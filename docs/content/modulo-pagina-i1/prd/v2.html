@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — PRD Módulo Página (I1) v2</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+    header { padding: 40px 0 24px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b26 0%, var(--bg) 100%); }
+    .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .crumbs a { color: var(--accent); text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 1.9rem; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .badge { display: inline-block; font-size: .72rem; padding: 2px 10px; border-radius: 999px; }
+    .badge-review { border: 1px solid #1f4a3c; color: var(--accent-2); }
+    .badge-prd { border: 1px solid #2b3a55; color: var(--accent); }
+    .badge-v2 { border: 1px solid #4a3c1f; color: var(--warn); }
+    main { padding: 24px 0 90px; }
+    h2 { margin: 48px 0 14px; font-size: 1.35rem; border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { margin: 28px 0 8px; font-size: 1.08rem; color: #cdd5e2; }
+    p, li { font-size: .98rem; }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+    pre { background: #0b0e13; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow: auto; font-size: .85rem; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 18px 0; }
+    .panel.accent { border-color: #2b3a55; }
+    .panel.star { border-color: #1f4a3c; }
+    .panel.warn { border-color: #4a3c1f; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .93rem; }
+    th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .rec { color: var(--accent-2); font-weight: 600; }
+    .must { color: var(--danger); font-weight: 600; }
+    .out { color: var(--danger); }
+    .check { color: var(--accent-2); }
+    .story { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
+    .story-id { font-size: .72rem; color: var(--muted); font-weight: 700; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+    .story h3 { margin: 0 0 6px; font-size: 1rem; color: var(--text); }
+    .story .accept { margin: 10px 0 0; }
+    .story .accept li { font-size: .92rem; color: var(--muted); }
+    /* Layout diagram */
+    .layout-demo {
+      display: grid;
+      grid-template-columns: 200px 1fr 200px;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 18px 0;
+      font-size: .85rem;
+    }
+    .layout-demo .col {
+      padding: 14px;
+      border-right: 1px solid var(--border);
+    }
+    .layout-demo .col:last-child { border-right: none; }
+    .layout-demo .col-header {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+    }
+    .layout-demo .col-center { background: #12161c; }
+    .layout-demo .phone-mock {
+      width: 80px; height: 140px; border: 2px solid #3a3f47; border-radius: 12px;
+      margin: 10px auto; background: #1b2029; display: flex; align-items: center;
+      justify-content: center; font-size: .7rem; color: var(--muted); text-align: center;
+    }
+    footer { color: var(--muted); font-size: .85rem; padding: 28px 0; border-top: 1px solid var(--border); }
+    .diff-tag { display: inline-block; font-size: .7rem; padding: 1px 7px; border-radius: 5px; background: #1f4a3c; color: var(--accent-2); margin-left: 6px; }
+    .v1-tag { background: #3a1515; color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="crumbs">
+        <a href="../../../index.html">Documentação</a> /
+        <a href="../spec/v1.html">Módulo Página (I1) — Spec</a> /
+        PRD
+      </div>
+      <h1>PRD — Módulo Página (I1) <span style="color:var(--warn)">v2</span></h1>
+      <p class="meta">
+        <span class="badge badge-review">Aguardando aprovação do board</span>
+        &nbsp;<span class="badge badge-prd">PRD</span>
+        &nbsp;<span class="badge badge-v2">v2 — layout corrigido</span>
+        &nbsp; 2026-06-22 · Issue BMJ-1
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <div class="panel warn">
+      <strong style="color:var(--warn)">⚠ Correção v2.</strong> O PRD v1 descrevia um layout de 3 colunas com "lista de blocos" (Organização) separada,
+      inspirado na POC WidgetMill de 4 colunas. Após revisão do <code>web-prototipe</code> (protótipo oficial do board),
+      o layout correto é: <strong>paleta/tree à esquerda · canvas central com phone mockup · propriedades à direita</strong>
+      — igual ao FlutterFlow. Os widgets são arrastados diretamente para a tela do celular, não para uma lista.
+      Esta v2 corrige o layout e alinha o PRD ao protótipo oficial.
+    </div>
+
+    <div class="panel star">
+      <strong style="color:var(--accent-2)">Resumo Executivo.</strong> O I1 entrega o núcleo do Page Builder da plataforma Driva:
+      um editor web (3 painéis) onde times de produto montam <strong>páginas SDUI</strong> arrastando widgets da paleta
+      diretamente para um <strong>canvas central com moldura de celular</strong>, ajustam propriedades no painel direito e
+      veem em tempo real um <strong>preview Flutter 100% fiel</strong> ao app. O resultado salvo é um <strong>JSON de página</strong>
+      renderizável em tempo de execução. Critério de aceite de 1ª classe: <strong>qualidade de UX e design</strong>.
+    </div>
+
+    <div class="panel accent">
+      <strong>Documentos de referência:</strong>
+      <ul style="margin: 8px 0 0">
+        <li><a href="../spec/v1.html" style="color:var(--accent)">Spec do I1</a> — escopo, modelo de dados, decisões do board.</li>
+        <li><a href="../../../visao-geral/spec/v1.html" style="color:var(--accent)">Visão Geral</a> — posicionamento, módulos, incrementos.</li>
+        <li><strong>web-prototipe</strong> — <code>docs/web-prototipe/Driva Builder.dc.html</code> (referência visual primária — abre localmente).</li>
+        <li><strong>WidgetMill POC</strong> — <code>docs/WidgetMill/</code> (kernel técnico a reaproveitar).</li>
+        <li>GitHub (branch <code>develop</code>): <code>docs/content/modulo-pagina-i1/prd/v2.html</code></li>
+      </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ 1. Problema -->
+    <h2 id="problema">1. Problema</h2>
+    <p>
+      Times que mantêm apps Flutter precisam alterar layouts e conteúdo de páginas com frequência.
+      Cada mudança hoje exige ciclo completo de desenvolvimento → PR → stores, levando dias.
+      A POC WidgetMill validou a abordagem SDUI (páginas como JSON, renderizadas sem nova publicação),
+      mas teve <strong>design e UX ruins demais</strong> para adoção real.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ 2. Usuários-alvo -->
+    <h2 id="usuarios">2. Usuários-alvo do I1</h2>
+    <table>
+      <tr><th>Perfil</th><th>Necessidade principal</th></tr>
+      <tr><td><strong>Product Manager / Designer</strong></td><td>Montar e visualizar páginas sem escrever código; confiar que o preview é idêntico ao app.</td></tr>
+      <tr><td><strong>Desenvolvedor mobile</strong></td><td>Registrar widgets no catálogo; garantir que o renderer Flutter reflita exatamente o app.</td></tr>
+      <tr><td><strong>QA / Homologador</strong></td><td>Abrir rascunho salvo e validar visualmente antes de publicar (I4).</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ 3. Layout do editor -->
+    <h2 id="layout">3. Layout do editor — 3 painéis <span class="diff-tag">CORRIGIDO em v2</span></h2>
+
+    <div class="layout-demo">
+      <div class="col">
+        <div class="col-header">① PAINEL ESQUERDO</div>
+        <p style="margin:0;font-size:.82rem;color:var(--muted)">
+          <strong style="color:var(--text)">Modo Paleta</strong>: widgets disponíveis em grid (icon + nome), com busca e agrupamento por categoria.<br><br>
+          <strong style="color:var(--text)">Modo Tree</strong>: hierarquia dos widgets na página atual, selecionáveis e reordenáveis.<br><br>
+          Toggle no cabeçalho do painel.
+        </p>
+      </div>
+      <div class="col col-center">
+        <div class="col-header">② CANVAS CENTRAL</div>
+        <p style="margin:0;font-size:.82rem;color:var(--muted)">
+          <strong style="color:var(--text)">Phone mockup</strong> renderizado pelo Flutter Web (iframe).<br>
+          Toolbar com zoom (+/−), seletor de device (smartphone/tablet) e dimensões.
+        </p>
+        <div class="phone-mock">Phone<br>Preview</div>
+        <p style="margin:0;font-size:.75rem;color:var(--muted);text-align:center">Arrastar widgets da paleta → aqui</p>
+      </div>
+      <div class="col">
+        <div class="col-header">③ PAINEL DIREITO</div>
+        <p style="margin:0;font-size:.82rem;color:var(--muted)">
+          <strong style="color:var(--text)">Inspector</strong>: quando nenhum widget selecionado, mostra Props da Página (nome, parâmetros). Quando um widget selecionado, mostra suas propriedades em formulário gerado pelo schema Zod.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Topbar:</strong> logo Driva · breadcrumb (App / NomeDaPágina) · barra de busca global · botões
+      (código, abrir em nova aba, <em>Preview</em>, <em>Publish</em>).
+      Em I1 o botão <em>Publish</em> aparece mas direciona ao fluxo de publicação (I4) — fica visível mas
+      mostra tooltipo "disponível no I4".
+    </p>
+    <p>
+      <strong>Painéis redimensionáveis</strong> via drag nos divisores entre painel esquerdo/canvas e canvas/painel direito.
+    </p>
+
+    <div class="panel accent">
+      <strong>Por que não existe coluna "Organização" separada? <span class="diff-tag v1-tag">diferença vs v1</span></strong><br>
+      Na POC WidgetMill havia 4 colunas, incluindo uma coluna de ordenação de blocos. O protótipo oficial do Driva
+      (e o FlutterFlow que nos inspira) elimina essa coluna: a organização visual é feita diretamente no canvas
+      (arrasto) e pela <strong>Tree View</strong> no painel esquerdo (toggle). Isso reduz a carga cognitiva e torna
+      a edição mais intuitiva.
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ 4. Histórias de usuário -->
+    <h2 id="historias">4. Histórias de usuário (I1)</h2>
+
+    <div class="story">
+      <span class="story-id">US-01 · CORE <span class="diff-tag">ATUALIZADA v2</span></span>
+      <h3>Arrastar widget da paleta para o canvas</h3>
+      <p><em>Como</em> criador de página, <em>quero</em> arrastar um widget da paleta para a moldura do celular no canvas,
+      <em>para</em> inserir o widget na página sem escrever código.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>A paleta exibe os ~14 primitivos Flutter (Container, Row, Column, Text, Image, Icon, Button, Spacer, Divider, Card, Stack, Padding, Expanded, SizedBox) em grid com icon + nome.</li>
+          <li>Arrastar da paleta → soltar no canvas (phone mockup) insere o widget com valores padrão na posição correta.</li>
+          <li>A zona de drop no canvas é visualmente indicada durante o arrasto (highlight de área).</li>
+          <li>Após o drop, o widget aparece imediatamente no preview Flutter e é automaticamente selecionado.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="story">
+      <span class="story-id">US-02 · CORE <span class="diff-tag">ATUALIZADA v2</span></span>
+      <h3>Reordenar e remover widgets pela Tree View</h3>
+      <p><em>Como</em> criador de página, <em>quero</em> ver e reorganizar a hierarquia da página na Tree View,
+      <em>para</em> controlar a ordem e o aninhamento dos widgets sem rearranjar manualmente no canvas.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>O painel esquerdo tem toggle "Paleta / Tree" no cabeçalho.</li>
+          <li>A Tree View mostra os widgets da página em hierarquia (nó pai ↔ filhos) com ícone e nome.</li>
+          <li>Drag-and-drop dentro da tree reordena ou reaninha widgets; canvas atualiza com debounce ≤ 300 ms.</li>
+          <li>Clicar em nó da tree seleciona o widget (destaca no canvas e abre inspector no painel direito).</li>
+          <li>Cada nó tem ação de remover (botão visível no hover), com confirmação visual.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="story">
+      <span class="story-id">US-03 · CORE</span>
+      <h3>Selecionar widget no canvas e editar propriedades</h3>
+      <p><em>Como</em> criador de página, <em>quero</em> clicar num widget no canvas para selecioná-lo
+      e editar suas propriedades no painel direito, <em>para</em> configurar conteúdo e visual de cada widget.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>Clicar num widget no canvas o seleciona (outline de seleção visível, label no topo do outline).</li>
+          <li>O painel direito exibe o inspector do widget selecionado com formulário gerado pelo schema Zod.</li>
+          <li>Cada alteração no inspector reflete no canvas com debounce ≤ 300 ms.</li>
+          <li>Clicar fora de qualquer widget no canvas desmarca a seleção e mostra Page Props no painel direito.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="story">
+      <span class="story-id">US-04 · CORE <span class="diff-tag">ATUALIZADA v2</span></span>
+      <h3>Canvas com zoom e seletor de device</h3>
+      <p><em>Como</em> criador de página, <em>quero</em> controlar o zoom do canvas e mudar o preset de dispositivo,
+      <em>para</em> verificar como a página aparece em telas de diferentes tamanhos.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>Toolbar do canvas tem controles de zoom (+/−) com % exibida (padrão: 90%).</li>
+          <li>Seletor de device com pelo menos 3 presets: Smartphone (ex. 393×852 px), Tablet, Desktop.</li>
+          <li>Trocar device redimensiona a moldura sem recarregar o app Flutter no iframe.</li>
+          <li>A moldura do celular é fiel ao físico (bordas arredondadas, notch).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="story">
+      <span class="story-id">US-05 · CORE</span>
+      <h3>Salvar e reabrir página como rascunho</h3>
+      <p><em>Como</em> criador de página, <em>quero</em> salvar o rascunho e reabri-lo depois,
+      <em>para</em> continuar o trabalho em sessões diferentes.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>Botão "Salvar rascunho" na topbar persiste o JSON da página no backend (NestJS, <code>project_id</code>-scoped).</li>
+          <li>Status de salvamento ("Salvo" / "Editando…") visível na topbar, discreto mas claro.</li>
+          <li>Ao reabrir o editor, o último rascunho é restaurado automaticamente.</li>
+          <li>O JSON salvo segue a spec definida na Spec do I1 (seção 4).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="story">
+      <span class="story-id">US-06 · UX — critério de aceite</span>
+      <h3>Editor com qualidade visual de produto comercial</h3>
+      <p><em>Como</em> usuário do Driva, <em>quero</em> uma interface que me dê prazer em usar,
+      <em>para</em> adotar a ferramenta no meu fluxo de trabalho sem atrito.</p>
+      <div class="accept">
+        <strong>Critérios de aceite:</strong>
+        <ul>
+          <li>Visual fiel ao <code>web-prototipe</code>: fundo cinza-claro no canvas, painéis brancos, accent roxo/azul (<code>#6c4cf1</code> ou similar), tipografia Public Sans.</li>
+          <li>Design system consistente: tokens de cor, espaçamento, bordas, sombras e estados de interação padronizados.</li>
+          <li>Interações fluidas: arrasto com ghost preview, hover states, transições suaves.</li>
+          <li>Undo/redo (Ctrl+Z / Ctrl+Y) para todas as ações de edição.</li>
+          <li>Navegação por teclado no inspector (acessibilidade WCAG AA).</li>
+          <li><span class="must">Obrigatório:</span> uma página funcional com visual/UX ruim <strong>não passa no aceite</strong>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ 5. Requisitos funcionais -->
+    <h2 id="funcional">5. Requisitos funcionais</h2>
+    <table>
+      <tr><th>ID</th><th>Requisito</th><th>Prioridade</th></tr>
+      <tr><td>RF-01</td><td>Editor de 3 painéis: painel esquerdo (paleta/tree) · canvas central (phone mockup) · painel direito (inspector).</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-02</td><td>Painel esquerdo: toggle entre modo Paleta (grid de widgets arrastáveis) e modo Tree (hierarquia da página).</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-03</td><td>Paleta com ~14 primitivos Flutter, busca por nome, agrupamento por categoria.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-04</td><td>Drag-and-drop da paleta → canvas (drop dentro da moldura do celular), com feedback visual de drop zone.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-05</td><td>Seleção de widget no canvas via clique (outline + label de seleção).</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-06</td><td>Tree View: visualização hierárquica, drag-and-drop para reordenar/reaninha, remoção por nó.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-07</td><td>Painel direito: Page Props (sem seleção) e Widget Inspector (com seleção) — formulário gerado pelo schema Zod.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-08</td><td>Canvas: preview Flutter Web via iframe + <code>postMessage</code> com <code>sdui_flutter</code> da POC.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-09</td><td>Canvas toolbar: zoom (+/−, %) · seletor de device (smartphone/tablet/desktop) · dimensões em px.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-10</td><td>Trocar device redimensiona canvas sem recarregar iframe Flutter.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-11</td><td>Preview atualiza com debounce ≤ 300 ms a cada alteração de widget ou propriedade.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-12</td><td>Salvar/carregar rascunho via API NestJS (<code>project_id</code>-scoped).</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-13</td><td>Topbar: logo · breadcrumb (App / NomeDaPágina) · barra de busca · botões (código, Preview, Publish).</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-14</td><td>Botão Publish visível mas desabilitado com tooltip "disponível no I4".</td><td>Should</td></tr>
+      <tr><td>RF-15</td><td>Undo/redo (Ctrl+Z/Y) para arrasto, reordenação, remoção e edição de propriedades.</td><td><span class="must">Must</span></td></tr>
+      <tr><td>RF-16</td><td>Painéis esquerdo e direito redimensionáveis via drag no divisor.</td><td>Should</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ 6. NFR -->
+    <h2 id="nfr">6. Requisitos não-funcionais</h2>
+    <table>
+      <tr><th>Aspecto</th><th>Critério</th><th>Prioridade</th></tr>
+      <tr><td><strong>UX / Design</strong></td><td>Fidelidade ao web-prototipe: fundo #eef0f2, painéis brancos, tipografia Public Sans, accent roxo. <span class="must">Critério de aceite de 1ª classe.</span></td><td><span class="must">Must</span></td></tr>
+      <tr><td><strong>Performance</strong></td><td>Preview carrega &lt; 3 s; re-renders com debounce sem janking. Build Flutter cacheado.</td><td><span class="must">Must</span></td></tr>
+      <tr><td><strong>Segurança</strong></td><td>Validação de <code>origin</code> no <code>postMessage</code>. Auth básica JWT. Multi-tenant via <code>project_id</code>.</td><td><span class="must">Must</span></td></tr>
+      <tr><td><strong>Acessibilidade</strong></td><td>Contraste WCAG AA; navegação por teclado no inspector.</td><td>Should</td></tr>
+      <tr><td><strong>Extensibilidade</strong></td><td>Catálogo extensível adicionando entradas ao schema sem alterar código do editor.</td><td>Should</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ 7. DoD -->
+    <h2 id="dod">7. Definição de "pronto" (I1)</h2>
+    <ol>
+      <li><span class="check">✓</span> PM consegue montar página com 3+ widgets arrastando da paleta ao canvas sem assistência.</li>
+      <li><span class="check">✓</span> Preview no canvas é idêntico ao Flutter real (zero divergência visual).</li>
+      <li><span class="check">✓</span> Tree View mostra hierarquia correta e permite reordenar / remover.</li>
+      <li><span class="check">✓</span> Troca de device redimensiona canvas sem reload.</li>
+      <li><span class="check">✓</span> Página salva como rascunho e reabrível em nova sessão.</li>
+      <li><span class="check">✓</span> Undo/redo funciona para todas as ações de edição.</li>
+      <li><span class="check">✓</span> Board avalia o editor como <strong>visualmente agradável e intuitivo</strong> — UI ruim = I1 não concluído.</li>
+      <li><span class="check">✓</span> Security Gate 3 concluído antes da homologação.</li>
+    </ol>
+
+    <!-- ══════════════════════════════════════════════════════ 8. Fora do escopo -->
+    <h2 id="fora-escopo">8. Fora do escopo do I1</h2>
+    <ul>
+      <li class="out">Condições de exibição por widget e filtros por propriedade de usuário → <strong>I2</strong>.</li>
+      <li class="out">Construtor de widget personalizado com estados e fonte de dados → <strong>I3</strong>.</li>
+      <li class="out">Workflow rascunho → homologação → produção, papéis, versionamento → <strong>I4</strong>.</li>
+      <li class="out">Serving de páginas para app de produção (<code>GET /pages/{id}</code>) — preview interno basta no I1.</li>
+      <li class="out">Auth granular por role — I1 usa JWT único por projeto.</li>
+    </ul>
+
+    <!-- ══════════════════════════════════════════════════════ 9. Dependências -->
+    <h2 id="dependencias">9. Dependências e riscos</h2>
+    <table>
+      <tr><th>Dependência</th><th>Status</th></tr>
+      <tr><td>Kernel da POC (<code>sdui_flutter</code>, <code>sdui_preview</code>, spec Zod) — em <code>docs/WidgetMill/</code></td><td><span class="check">✓ Disponível no branch develop</span></td></tr>
+      <tr><td>Referência visual primária (<code>web-prototipe</code>)</td><td><span class="check">✓ Disponível — <code>docs/web-prototipe/</code></span></td></tr>
+      <tr><td>Design system formal</td><td><span style="color:var(--warn)">⚠ Pendente — usar web-prototipe como referência (decisão do board)</span></td></tr>
+    </table>
+
+    <table>
+      <tr><th>Risco</th><th>Mitigação</th></tr>
+      <tr><td>Drag-and-drop para canvas complexo de implementar (drop com posicionamento correto)</td><td>Architect avalia @dnd-kit vs HTML5 DnD; implementar em fase dedicada com protótipo técnico antes do feature completo.</td></tr>
+      <tr><td>Performance do iframe Flutter no browser</td><td>Build Flutter pre-compilado e cacheado; debounce agressivo.</td></tr>
+      <tr><td>Schema Zod da POC incompleto para alguns widgets</td><td>Architect audita e completa schemas antes da fase de inspector.</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ 10. Próximos passos -->
+    <h2 id="proximos">10. Próximos passos</h2>
+    <ol>
+      <li><strong>[Board]</strong> Aprovar este PRD v2.</li>
+      <li><strong>[CEO → Architect]</strong> Criar issue "Plano de implementação — Módulo Página I1" linkando spec v1 + PRD v2.</li>
+      <li><strong>[Architect]</strong> Plano em fases: (a) infra/monorepo, (b) kernel de página, (c) backend NestJS, (d) editor React + DnD, (e) preview Flutter Web, (f) inspector, (g) integração.</li>
+      <li><strong>[Architect]</strong> Grillme do plano + Security Gate 2 antes de iniciar desenvolvimento.</li>
+    </ol>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <strong>Changelog:</strong><br>
+      <strong>v2 (2026-06-22):</strong> Layout corrigido de "3 colunas com lista de blocos" para "painel esquerdo paleta/tree · canvas central phone mockup · painel direito inspector" — alinhado ao web-prototipe oficial. US-01 a US-04 atualizadas. RF revisados (16 itens). Referências a web-prototipe e WidgetMill POC adicionadas.<br>
+      <strong>v1 (2026-06-22):</strong> Versão inicial (layout incorreto — substituída).
+      &nbsp;·&nbsp; Driva · Módulo Página (I1) · pt-BR
+    </div>
+  </footer>
+</body>
+</html>
