@@ -1,0 +1,18 @@
+name: sdui_flutter
+description: Renderer do WidgetMill — constrói widgets Flutter a partir do spec JSON.
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:

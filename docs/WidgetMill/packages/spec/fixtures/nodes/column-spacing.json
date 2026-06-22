@@ -1,0 +1,8 @@
+{
+  "type": "column",
+  "props": { "mainAxisAlignment": "spaceBetween", "spacing": 12 },
+  "children": [
+    { "type": "text", "props": { "data": "A" } },
+    { "type": "text", "props": { "data": "B" } }
+  ]
+}

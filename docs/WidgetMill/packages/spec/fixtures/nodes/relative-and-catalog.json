@@ -1,0 +1,102 @@
+{
+  "type": "safeArea",
+  "child": {
+    "type": "singleChildScrollView",
+    "child": {
+      "type": "column",
+      "props": { "spacing": 12, "mainAxisSize": "min", "crossAxisAlignment": "stretch" },
+      "children": [
+        {
+          "type": "container",
+          "props": {
+            "width": { "unit": "infinity" },
+            "height": { "unit": "screenHeight", "factor": 0.25 },
+            "alignment": "center",
+            "padding": { "all": 16 },
+            "decoration": {
+              "color": "#FF1565C0",
+              "borderRadius": 12,
+              "boxShadow": [
+                { "color": "#40000000", "offsetX": 0, "offsetY": 4, "blurRadius": 8, "spreadRadius": 0 }
+              ]
+            }
+          },
+          "child": {
+            "type": "text",
+            "props": {
+              "data": "Header full-width",
+              "style": { "color": "#FFFFFFFF", "fontSize": 18, "fontWeight": "w700" }
+            }
+          }
+        },
+        {
+          "type": "card",
+          "props": { "elevation": 2, "borderRadius": 8, "margin": { "all": 0 } },
+          "child": {
+            "type": "padding",
+            "props": { "padding": { "all": 12 } },
+            "child": {
+              "type": "wrap",
+              "props": { "spacing": 8, "runSpacing": 8, "alignment": "spaceBetween" },
+              "children": [
+                {
+                  "type": "button",
+                  "props": {
+                    "variant": "filled",
+                    "label": "Salvar",
+                    "icon": "check",
+                    "style": { "elevation": 1, "borderRadius": 24 }
+                  }
+                },
+                {
+                  "type": "button",
+                  "props": {
+                    "variant": "outlined",
+                    "label": "Cancelar",
+                    "icon": "close",
+                    "style": { "side": { "color": "#FF1565C0", "width": 1.5 } }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        { "type": "divider", "props": { "thickness": 1, "color": "#FFE0E0E0" } },
+        {
+          "type": "aspectRatio",
+          "props": { "aspectRatio": 1.78 },
+          "child": {
+            "type": "opacity",
+            "props": { "opacity": 0.9 },
+            "child": {
+              "type": "container",
+              "props": {
+                "decoration": {
+                  "gradient": {
+                    "type": "linear",
+                    "colors": ["#FF42A5F5", "#FF7E57C2"],
+                    "begin": "topLeft",
+                    "end": "bottomRight"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "align",
+          "props": { "alignment": "centerRight" },
+          "child": {
+            "type": "fractionallySizedBox",
+            "props": { "widthFactor": 0.5 },
+            "child": {
+              "type": "sizedBox",
+              "props": { "height": 40 },
+              "child": { "type": "container", "props": { "color": "#FF00897B" } }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

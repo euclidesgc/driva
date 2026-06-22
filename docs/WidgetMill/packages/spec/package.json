@@ -1,0 +1,28 @@
+{
+  "name": "@widgetmill/spec",
+  "version": "0.0.0",
+  "description": "Kernel do WidgetMill: schemas Zod do spec JSON (fonte de verdade)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "fixtures"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

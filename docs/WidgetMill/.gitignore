@@ -1,0 +1,37 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build / cache
+dist/
+build/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# Preview Flutter compilado (gerado a partir de flutter/sdui_preview)
+apps/web/public/preview/
+
+# Next.js
+.next/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/build/
+
+# Editores / SO
+.DS_Store
+*.log
+
+# Estado local do Claude Code
+.claude/
+
+# VS Code — launch/tasks/extensions são versionados; settings tem caminho de SDK local
+.vscode/settings.json

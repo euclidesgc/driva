@@ -1,0 +1,23 @@
+name: sdui_preview
+description: App Flutter Web que embarca o renderer e conversa com o editor via postMessage.
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+dependencies:
+  device_frame_plus: ^1.5.0
+  flutter:
+    sdk: flutter
+  sdui_flutter:
+    path: ../sdui_flutter
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

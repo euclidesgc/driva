@@ -1,0 +1,20 @@
+{
+  "name": "widgetmill",
+  "private": true,
+  "description": "WidgetMill — construtor visual de widgets (spec JSON como kernel)",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "packageManager": "pnpm@10.24.0",
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript-eslint": "^8.61.1"
+  }
+}

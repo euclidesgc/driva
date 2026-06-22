@@ -1,0 +1,4 @@
+{
+  "type": "text",
+  "props": { "data": "Olá, mundo", "textAlign": "center" }
+}

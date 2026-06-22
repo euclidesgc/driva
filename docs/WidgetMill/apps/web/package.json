@@ -1,0 +1,28 @@
+{
+  "name": "@widgetmill/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app lib components",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"(sem testes unitários ainda)\" && exit 0"
+  },
+  "dependencies": {
+    "@measured/puck": "^0.20.2",
+    "@uiw/react-color-sketch": "^2.10.3",
+    "@widgetmill/spec": "workspace:*",
+    "next": "^15.1.0",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.6.0"
+  }
+}

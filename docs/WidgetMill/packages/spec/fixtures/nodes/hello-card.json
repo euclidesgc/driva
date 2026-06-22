@@ -1,0 +1,27 @@
+{
+  "type": "container",
+  "props": {
+    "padding": { "all": 16 },
+    "color": "#FFFFFF"
+  },
+  "child": {
+    "type": "column",
+    "props": { "spacing": 8, "crossAxisAlignment": "start" },
+    "children": [
+      {
+        "type": "text",
+        "props": {
+          "data": "Título",
+          "style": { "fontSize": 18, "fontWeight": "w600" }
+        }
+      },
+      {
+        "type": "text",
+        "props": {
+          "data": "Subtítulo",
+          "style": { "fontSize": 14, "color": "#9E9E9E" }
+        }
+      }
+    ]
+  }
+}

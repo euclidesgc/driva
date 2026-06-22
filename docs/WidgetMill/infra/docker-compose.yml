@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: widgetmill-postgres
+    environment:
+      POSTGRES_USER: widgetmill
+      POSTGRES_PASSWORD: widgetmill
+      POSTGRES_DB: widgetmill
+    ports:
+      - "5432:5432"
+    volumes:
+      - widgetmill-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U widgetmill"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: widgetmill-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - widgetmill-redisdata:/data
+
+volumes:
+  widgetmill-pgdata:
+  widgetmill-redisdata:

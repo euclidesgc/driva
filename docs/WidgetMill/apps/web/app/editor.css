@@ -1,0 +1,41 @@
+/*
+ * O layout interno do Puck usa `height: 100dvh`, o que faz o editor ocupar a
+ * tela toda e empurra a barra de status (rodapé) para fora da área visível.
+ * Limitamos a altura do Puck ao container do editor (`.wm-editor-host`),
+ * deixando espaço para a StatusBar logo abaixo.
+ *
+ * `.wm-editor-host` vira um flex-column; o root do Puck preenche (`flex: 1`) e
+ * o layout interno passa a `height: 100%` (em vez de `100dvh`). Seletores por
+ * substring são resilientes ao hash dos CSS Modules do Puck.
+ */
+.wm-editor-host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/*
+ * A cadeia de altura precisa ser sólida até o `_PuckLayout-inner` (que tinha
+ * `height: 100dvh`): qualquer elo "auto" faz o `height: 100%` colapsar para o
+ * conteúdo (painéis curtos, espaço morto abaixo). Cobrimos o filho direto
+ * (a raiz do Puck — com ou sem wrapper do `next/dynamic`) e a própria raiz.
+ */
+.wm-editor-host > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.wm-editor-host [class*="_Puck_"] {
+  height: 100%;
+}
+.wm-editor-host [class*="PuckLayout"] {
+  height: 100% !important;
+}
+
+/*
+ * Canvas alinhado À ESQUERDA. O Puck centraliza o frame do canvas via
+ * `justify-content: center` no `_PuckCanvas-inner`; com isso, ocultar a barra de
+ * propriedades (direita) recentralizava o que está sendo montado. Encostando à
+ * esquerda, o conteúdo fica fixo e o espaço livre vai para a direita.
+ */
+.wm-editor-host [class*="PuckCanvas-inner"] {
+  justify-content: flex-start;
+}

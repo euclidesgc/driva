@@ -1,6 +1,5 @@
-# WidgetMill é um repositório separado (tem seu próprio .git) — não versionar aqui.
-# Se quiser integrá-lo, transforme em submódulo: git submodule add <url> docs/WidgetMill
-docs/WidgetMill/
+# WidgetMill: PoC inicial, versionada como app de REFERÊNCIA em docs/WidgetMill/
+# (não é código ativo do Driva). O .gitignore interno dela cobre node_modules/build.
 
 # Lixos comuns
 node_modules/

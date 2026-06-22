@@ -1,0 +1,41 @@
+{
+  "specVersion": 1,
+  "slug": "primary_button",
+  "name": "Botão Primário",
+  "kind": "primitive",
+  "version": 1,
+  "propsSchema": [
+    { "key": "label", "type": "string", "required": true, "default": "Comprar" },
+    { "key": "bgColor", "type": "color", "required": false, "default": "#1565C0" },
+    { "key": "productId", "type": "string", "required": true }
+  ],
+  "tree": {
+    "type": "gestureDetector",
+    "events": {
+      "onTap": [
+        {
+          "type": "navigate",
+          "params": {
+            "routeId": "route_product",
+            "args": { "id": "{{productId}}" }
+          }
+        }
+      ]
+    },
+    "child": {
+      "type": "container",
+      "props": {
+        "padding": { "horizontal": 24, "vertical": 12 },
+        "decoration": { "color": "{{bgColor}}", "borderRadius": 8 }
+      },
+      "child": {
+        "type": "text",
+        "props": {
+          "data": "{{label}}",
+          "style": { "fontSize": 16, "fontWeight": "w600", "color": "#FFFFFF" },
+          "textAlign": "center"
+        }
+      }
+    }
+  }
+}
