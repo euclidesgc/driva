@@ -1,0 +1,8 @@
+# WidgetMill é um repositório separado (tem seu próprio .git) — não versionar aqui.
+# Se quiser integrá-lo, transforme em submódulo: git submodule add <url> docs/WidgetMill
+docs/WidgetMill/
+
+# Lixos comuns
+node_modules/
+.DS_Store
+*.log
