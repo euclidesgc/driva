@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — Documentação</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+    header { padding: 44px 0 28px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(160deg, #12182a 0%, var(--bg) 100%); }
+    .logo { font-size: 1.6rem; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+    .logo span { color: var(--accent); }
+    .tagline { color: var(--muted); font-size: .95rem; margin-top: 6px; }
+    .stack-pills { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .pill { font-size: .74rem; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .pill.react { border-color: #1a3a55; color: #61dafb; }
+    .pill.nest  { border-color: #2a1f3d; color: #e0aaff; }
+    .pill.flutter { border-color: #1f3a4a; color: #54c5f8; }
+    .pill.pg    { border-color: #1f3a2a; color: var(--accent-2); }
+
+    main { padding: 32px 0 90px; }
+
+    /* --- Section headers --- */
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--muted); letter-spacing: .08em;
+      text-transform: uppercase; font-size: .8rem; margin: 40px 0 16px; border-left: 3px solid var(--accent);
+      padding-left: 10px; }
+
+    /* --- Feature cards --- */
+    .features { display: grid; gap: 16px; }
+    .feature-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px; }
+    .feature-card:hover { border-color: #3a4560; }
+    .feature-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .feature-title { font-size: 1.05rem; font-weight: 600; margin: 0; }
+    .issue-tag { font-size: .72rem; color: var(--muted); border: 1px solid var(--border); border-radius: 5px;
+      padding: 1px 7px; white-space: nowrap; }
+    .feature-desc { color: var(--muted); font-size: .92rem; margin: 0 0 14px; }
+
+    /* --- Document links --- */
+    .doc-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .doc-link { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem;
+      padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--muted);
+      text-decoration: none; transition: border-color .15s, color .15s; }
+    .doc-link:hover { border-color: var(--accent); color: var(--accent); }
+    .doc-link .icon { font-size: .85rem; }
+    .doc-link.spec  { border-color: #2b3a55; color: var(--accent); }
+    .doc-link.prd   { border-color: #1f4a3c; color: var(--accent-2); }
+    .doc-link.plan  { border-color: #4a3c1f; color: var(--warn); }
+    .doc-link.spec:hover  { background: #1a2535; }
+    .doc-link.prd:hover   { background: #122b20; }
+    .doc-link.plan:hover  { background: #2b2210; }
+
+    .version-tag { font-size: .7rem; color: var(--muted); margin-left: 3px; }
+
+    /* --- Status badges --- */
+    .status { display: inline-block; font-size: .72rem; padding: 2px 9px; border-radius: 999px;
+      margin-left: 8px; }
+    .status.aprovada  { border: 1px solid #1f4a3c; color: var(--accent-2); }
+    .status.pendente  { border: 1px solid #4a3c1f; color: var(--warn); }
+    .status.rascunho  { border: 1px solid #333; color: var(--muted); }
+
+    /* --- Increments table --- */
+    .inc-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .92rem; }
+    .inc-table th, .inc-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .inc-table th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .inc-i1 { color: var(--accent); font-weight: 700; }
+    .inc-i2 { color: var(--accent-2); }
+    .inc-i3 { color: var(--warn); }
+    .inc-i4 { color: var(--danger); }
+    .active-row { background: #12182a; }
+
+    footer { color: var(--muted); font-size: .84rem; padding: 24px 0; border-top: 1px solid var(--border); }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="logo">Driva <span>Docs</span></div>
+      <p class="tagline">Server-Driven UI para aplicações Flutter · BMJTech</p>
+      <div class="stack-pills">
+        <span class="pill react">React / Next.js</span>
+        <span class="pill nest">NestJS</span>
+        <span class="pill flutter">Flutter Web</span>
+        <span class="pill pg">PostgreSQL / JSONB</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <div class="section-title">Roadmap de Incrementos</div>
+    <table class="inc-table">
+      <thead>
+        <tr><th>Inc.</th><th>Módulo</th><th>Escopo</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr class="active-row">
+          <td><span class="inc-i1">I1 ◀ atual</span></td>
+          <td>Página</td>
+          <td>Editor 3 painéis, paleta ~14 widgets, canvas phone mockup, preview Flutter fiel, salvar rascunho, design de alto padrão.</td>
+          <td><span class="status pendente">PRD aguarda aprovação</span></td>
+        </tr>
+        <tr>
+          <td><span class="inc-i2">I2</span></td>
+          <td>Página</td>
+          <td>Condições de exibição da página + filtros por widget + simulação de propriedades de usuário no preview.</td>
+          <td><span class="status rascunho">backlog</span></td>
+        </tr>
+        <tr>
+          <td><span class="inc-i3">I3</span></td>
+          <td>Widget</td>
+          <td>Construtor de widget evoluído: estados loading/success/error/idle/empty + fonte de dados com parâmetros.</td>
+          <td><span class="status rascunho">backlog</span></td>
+        </tr>
+        <tr>
+          <td><span class="inc-i4">I4</span></td>
+          <td>Fluxo</td>
+          <td>Workflow rascunho → homologação → produção, papéis, versionamento imutável e agendamento de publicação.</td>
+          <td><span class="status rascunho">backlog</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">Documentos</div>
+    <div class="features">
+
+      <div class="feature-card">
+        <div class="feature-header">
+          <h2 class="feature-title">Visão Geral &amp; Recorte em Incrementos</h2>
+          <span class="issue-tag">BMJ-2</span>
+        </div>
+        <p class="feature-desc">
+          Posicionamento do produto Driva, os 3 módulos (A: Página, B: Widget, C: Fluxo) e a proposta de
+          recorte em 4 incrementos curtos. Inclui aprendizados da POC WidgetMill e decisões do board.
+        </p>
+        <div class="doc-links">
+          <a class="doc-link spec" href="content/visao-geral/spec/v1.html">
+            <span class="icon">📋</span> Spec <span class="version-tag">v1</span>
+            <span class="status aprovada">aprovada</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="feature-card" style="border-color: #2b3a55;">
+        <div class="feature-header">
+          <h2 class="feature-title">Módulo Página (I1) — Page Builder SDUI</h2>
+          <span class="issue-tag">BMJ-2</span>
+        </div>
+        <p class="feature-desc">
+          1º incremento: editor web com 3 painéis (paleta/tree · canvas central com phone mockup · inspector),
+          ~14 primitivos Flutter na paleta, drag-and-drop para o canvas, preview Flutter 100% fiel via iframe,
+          salvar/reabrir rascunho. Critério de aceite central: qualidade de UX e design.
+        </p>
+        <div class="doc-links">
+          <a class="doc-link spec" href="content/modulo-pagina-i1/spec/v2.html">
+            <span class="icon">📋</span> Spec <span class="version-tag">v2</span>
+            <span class="status pendente">aguarda aprovação</span>
+          </a>
+          <a class="doc-link spec" href="content/modulo-pagina-i1/spec/v1.html" style="opacity:.55;font-size:.78rem;">
+            v1 (superada)
+          </a>
+          <a class="doc-link prd" href="content/modulo-pagina-i1/prd/v2.html">
+            <span class="icon">📄</span> PRD <span class="version-tag">v2</span>
+            <span class="status pendente">aguarda aprovação</span>
+          </a>
+          <a class="doc-link prd" href="content/modulo-pagina-i1/prd/v1.html" style="opacity:.55;font-size:.78rem;">
+            v1 (superada)
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">Referências da POC e Design</div>
+    <div class="features">
+      <div class="feature-card" style="opacity:.8;">
+        <div class="feature-header">
+          <h2 class="feature-title">WidgetMill — POC de referência</h2>
+        </div>
+        <p class="feature-desc">
+          Prova de conceito que validou o contrato <code>spec ↔ renderer ↔ preview</code>.
+          O kernel técnico (<code>sdui_flutter</code>, <code>sdui_preview</code>, spec Zod) está disponível
+          em <code>docs/WidgetMill/</code> para reaproveitamento no I1.
+        </p>
+      </div>
+      <div class="feature-card" style="opacity:.8;">
+        <div class="feature-header">
+          <h2 class="feature-title">web-prototipe — Referência visual primária</h2>
+        </div>
+        <p class="feature-desc">
+          Protótipo de design do editor Driva (evolução do WidgetMill). Define o visual alvo:
+          3 painéis, canvas central com phone mockup, accent <code>#6c4cf1</code>, tipografia Public Sans.
+          Disponível em <code>docs/web-prototipe/Driva Builder.dc.html</code>.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="wrap">Driva · Documentação · pt-BR · 2026-06-22 · Issue BMJ-2</div>
+  </footer>
+</body>
+</html>
