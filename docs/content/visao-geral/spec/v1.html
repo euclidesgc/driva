@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — Visão Geral &amp; Recorte em Incrementos</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+    header { padding: 40px 0 24px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b26 0%, var(--bg) 100%); }
+    .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .crumbs a { color: var(--accent); text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 1.9rem; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .badge { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px; border:1px solid #4a3c1f; color:var(--warn); }
+    main { padding: 16px 0 90px; }
+    h2 { margin: 44px 0 14px; font-size: 1.35rem; border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { margin: 26px 0 8px; font-size: 1.08rem; color: #cdd5e2; }
+    p, li { font-size: .98rem; }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 16px 0; }
+    .panel.accent { border-color: #2b3a55; }
+    .panel.warn { border-color: #4a3c1f; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .92rem; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .rec { color: var(--accent-2); font-weight: 600; }
+    .pill { display:inline-block; font-size:.74rem; padding:2px 9px; border-radius:999px; background:#1f2530; border:1px solid var(--border); color:var(--muted); margin-right:6px; }
+    .pill.m1 { color: var(--accent); border-color:#2b3a55; }
+    .pill.m2 { color: var(--accent-2); border-color:#1f4a3c; }
+    .pill.m3 { color: var(--warn); border-color:#4a3c1f; }
+    ol.q { counter-reset: q; list-style: none; padding-left: 0; }
+    ol.q > li { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+    ol.q > li::before { counter-increment: q; content: "Decisão " counter(q); color: var(--accent); font-weight: 700; font-size: .82rem; letter-spacing:.04em; }
+    .opt { margin: 8px 0 0; padding-left: 4px; }
+    .note { color: var(--muted); font-size: .9rem; }
+    footer { color: var(--muted); font-size: .85rem; padding: 24px 0; border-top: 1px solid var(--border); }
+    hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="crumbs"><a href="../../index.html">Documentação</a> / Especificações / Visão Geral</div>
+      <h1>Driva — Visão Geral &amp; Recorte em Incrementos</h1>
+      <p class="meta"><span class="badge" style="border-color:#1f4a3c;color:var(--accent-2)">Decisões de framing aprovadas</span> &nbsp; Versão de trabalho · 2026-06-21 · Issue BMJ-2</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="panel accent">
+      <strong>Status deste documento.</strong> Esta é a <em>visão geral</em> do produto e a proposta de como fatiá-lo em
+      incrementos curtos. Ela <strong>não</strong> é a especificação detalhada de nenhum módulo — essa virá em seguida, para o
+      incremento que o board escolher como primeiro. Antes de detalhar, há <a href="#decisoes">4 decisões pendentes</a> que
+      dependem do board (seção final).
+    </div>
+
+    <h2 id="oque">1. O que é o Driva</h2>
+    <p>
+      O Driva é uma plataforma de <strong>Server-Driven UI (SDUI)</strong>: uma aplicação web onde times montam
+      <strong>páginas</strong> e <strong>widgets</strong> que são <strong>renderizados no lado do app Flutter</strong> do cliente final,
+      sem precisar publicar uma nova versão do app. O produto da plataforma é <strong>dado</strong> (um <em>spec</em> em JSON),
+      não código Dart — o app baixa esse spec e o renderiza com um renderer proprietário.
+    </p>
+    <p>A ferramenta é composta por <strong>módulos</strong>. Três foram descritos pelo board (seção 3).</p>
+
+    <h2 id="poc">2. Aprendizados da POC WidgetMill</h2>
+    <p>
+      A POC <code>WidgetMill</code> (em <code>/home/euclidesgc/Development/WidgetMill</code>) validou a parte mais arriscada da
+      arquitetura: o <strong>contrato spec ↔ renderer ↔ preview fiel</strong>. Vale herdar o que ela de-riscou e superar o que ela
+      deixou em aberto.
+    </p>
+    <h3>O que vale aproveitar</h3>
+    <ul>
+      <li><strong>Spec como kernel único</strong> — uma só fonte de verdade (Zod) da qual derivam validação, tipos, forms do Inspector e fixtures. Congelar o spec é a 1ª tarefa de código.</li>
+      <li><strong>Preview 100% fiel</strong> — app Flutter Web (<code>sdui_preview</code>) embarcado em <code>&lt;iframe&gt;</code>, comunicação por <code>postMessage</code>, molduras de dispositivo. Zero divergência React↔Flutter.</li>
+      <li><strong>Renderer proprietário</strong> (<code>sdui_flutter</code>) por registry <code>type → builder</code> + dispatcher de ações (estilo Stac), reusado tanto no preview quanto no app de produção.</li>
+      <li><strong>Catálogo de primitivos</strong> espelhando widgets do Flutter; <strong>eventos → lista de ações</strong> como dado; <strong>binding</strong> <code>{{prop}}</code>.</li>
+      <li><strong>Governança</strong> — multi-tenant por <code>project_id</code>, papéis (Reader/Creator/Reviewer/Publisher/Admin), workflow como máquina de estados, draft + versionamento imutável.</li>
+      <li><strong>Stack</strong> — Next.js (editor web), NestJS (backend de domínio), Flutter Web (preview), Postgres/JSONB, Puck (drag-and-drop).</li>
+    </ul>
+    <h3>O que a POC deixou em aberto e o Driva precisa superar</h3>
+    <ul>
+      <li><strong>Não tinha o Módulo de Página</strong> (montagem de página + condições de exibição + filtros por widget + simulação de propriedades de usuário). Era só o construtor de widgets.</li>
+      <li><strong>Widgets só primitivos</strong> — sem componentes complexos com <strong>estados</strong> (loading/success/error/idle/empty) nem <strong>fonte de dados</strong> com parâmetros (o que o board agora pede, à la FlutterFlow).</li>
+      <li><strong>Sem agendamento de publicação</strong> e sem fluxo rascunho → homologação → produção aplicado a <em>páginas</em>.</li>
+      <li><span class="note">Outros problemas concretos da POC que motivaram recomeçar: <strong>a confirmar com o board</strong> (ver Decisão 1).</span></li>
+    </ul>
+
+    <h2 id="modulos">3. Os módulos do produto</h2>
+
+    <h3><span class="pill m1">Módulo A</span> Construção de Página (Page Builder / SDUI)</h3>
+    <p>O coração do produto. Layout em colunas, no espírito descrito pelo board:</p>
+    <table>
+      <tr><th>Coluna</th><th>Função</th></tr>
+      <tr><td>Esquerda — Paleta</td><td>Lista de widgets disponíveis para <strong>arrastar e soltar</strong>.</td></tr>
+      <tr><td>Centro — Organização</td><td>Os widgets que comporão a página, <strong>em ordem</strong>; cada um com seu <strong>filtro de exibição</strong> (exibe ou não conforme configuração).</td></tr>
+      <tr><td>Propriedades</td><td>Quando um widget está selecionado, suas propriedades editáveis.</td></tr>
+      <tr><td>Direita — Preview</td><td>Como a página aparece no app, com <strong>simulação de propriedades de usuário</strong> para ver quais widgets seriam exibidos.</td></tr>
+    </table>
+    <p>A página também tem <strong>condições de exibição</strong> próprias (a página inteira aparece ou não no SDUI).</p>
+
+    <h3><span class="pill m2">Módulo B</span> Construção de Widget (estilo FlutterFlow)</h3>
+    <ul>
+      <li>Compor <strong>componentes complexos</strong> a partir dos widgets padrão do Flutter (evolução do construtor da POC).</li>
+      <li><strong>Estados do componente</strong>: <code>loading</code>, <code>success</code>, <code>error</code>, <code>idle</code>, <code>empty</code> — cada um com seu próprio layout.</li>
+      <li><strong>Fonte de dados</strong> para o componente, com <strong>passagem de parâmetros</strong> (o componente busca dados e troca de estado conforme o resultado).</li>
+    </ul>
+
+    <h3><span class="pill m3">Módulo C</span> Fluxo de Trabalho, Versionamento &amp; Agendamento</h3>
+    <ul>
+      <li>Publicação <strong>rascunho → homologação → produção</strong>, com <strong>papéis/usuários responsáveis</strong> por cada etapa.</li>
+      <li><strong>Agendamento de publicação</strong> — de widgets e de páginas.</li>
+      <li><strong>Versionamento</strong> de widgets e de páginas (versão publicada imutável).</li>
+    </ul>
+
+    <h2 id="recorte">4. Proposta de recorte em incrementos</h2>
+    <p class="note">Regra do Driva: ciclos curtos. Não detalhamos nem construímos os 3 módulos de uma vez. A proposta abaixo é a <strong>ordem sugerida</strong>; o board decide (Decisão 2).</p>
+    <table>
+      <tr><th>Inc.</th><th>Escopo (valor entregue)</th><th>Por quê nesta ordem</th></tr>
+      <tr>
+        <td><strong>I1</strong></td>
+        <td><span class="pill m1">Página</span> Montar uma página com um conjunto pequeno de widgets prontos, ordená-los, editar propriedades e ver o <strong>preview fiel</strong> ponta a ponta. <em>Sem</em> filtros complexos ainda.</td>
+        <td>Entrega o produto-essência (construção de página) e reusa o renderer/preview já de-riscado pela POC.</td>
+      </tr>
+      <tr>
+        <td><strong>I2</strong></td>
+        <td><span class="pill m1">Página</span> <strong>Condições de exibição</strong> da página + <strong>filtros por widget</strong> + <strong>simulação de propriedades de usuário</strong> no preview.</td>
+        <td>Diferencial de SDUI segmentado; depende da página existir (I1).</td>
+      </tr>
+      <tr>
+        <td><strong>I3</strong></td>
+        <td><span class="pill m2">Widget</span> Construtor de widget evoluído: <strong>estados</strong> (loading/success/error/idle/empty) + <strong>fonte de dados</strong> com parâmetros.</td>
+        <td>Enriquece o catálogo que as páginas consomem; é o módulo mais profundo.</td>
+      </tr>
+      <tr>
+        <td><strong>I4</strong></td>
+        <td><span class="pill m3">Fluxo</span> Workflow rascunho→homologação→produção com papéis + <strong>versionamento</strong> + <strong>agendamento</strong> de publicação (páginas e widgets).</td>
+        <td>Governança de publicação faz mais sentido quando já há páginas e widgets para publicar.</td>
+      </tr>
+    </table>
+    <p class="note">Cada incremento terá sua própria spec detalhada + PRD + plano em fases, um de cada vez. Os demais ficam no backlog.</p>
+
+    <h2 id="arq">5. Arquitetura herdada (a confirmar no detalhamento)</h2>
+    <p>
+      Entendimento atual da stack, herdado da POC: <strong>Next.js</strong> (editor web e telas de gestão), <strong>NestJS</strong>
+      (backend de domínio: RBAC, workflow, versionamento), <strong>Flutter Web</strong> (app de preview fiel), Postgres/JSONB,
+      Puck (canvas drag-and-drop). O <strong>app cliente final é Flutter nativo</strong>, que consome o spec e o renderiza com o
+      <code>sdui_flutter</code>. A frase do board <em>"já temos vários tipos de sistema: Next, Nest e Flutter Web"</em> é entendida
+      como <strong>essa stack</strong> — a confirmar (Decisão 3).
+    </p>
+
+    <h2 id="decisoes">6. Decisões do board</h2>
+    <div class="panel" style="border-color:#1f4a3c">
+      <strong style="color:var(--accent-2)">✓ Resolvidas em 2026-06-21 (BMJ-2):</strong>
+      <ol style="margin:10px 0 0">
+        <li><strong>Problema-chave da POC a superar:</strong> o <strong>design/UX da página estava ruim</strong>. O board quer uma ferramenta com <strong>UX melhor e design mais atrativo e intuitivo</strong> → UX/visual é requisito de primeira classe no Driva.</li>
+        <li><strong>Primeiro incremento:</strong> <strong>I1 — Módulo Página</strong> (montagem + preview fiel). Spec detalhada: <a href="../../modulo-pagina-i1/spec/v1.html">modulo-pagina.html</a>.</li>
+        <li><strong>Stack:</strong> "Next, Nest e Flutter Web" = <strong>a stack da plataforma</strong> (Next = editor, Nest = backend, Flutter Web = preview). App cliente final é Flutter nativo.</li>
+        <li><strong>Ponto de partida:</strong> <strong>reaproveitar o kernel da POC</strong> (spec + <code>sdui_flutter</code> + <code>sdui_preview</code>) e reconstruir editor/backend.</li>
+      </ol>
+    </div>
+    <p class="note">Como as decisões abaixo foram tomadas conforme as recomendações, mantemos o registro original para histórico.</p>
+    <ol class="q">
+      <li>
+        <p><strong>Quais problemas concretos da POC WidgetMill precisamos superar?</strong> O board citou que a POC "trouxe alguns problemas", mas não os listou. Saber quais (ex.: performance do preview, tradução Puck↔spec frágil, modelo de dados, DX, arquitetura do backend, etc.) muda diretamente o desenho do Driva. <span class="note">(resposta aberta)</span></p>
+      </li>
+      <li>
+        <p><strong>Qual incremento entregar primeiro?</strong></p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> <strong>I1 — Módulo Página (montagem + preview fiel)</strong>, pois é a essência do produto e reusa o renderer já provado.</div>
+        <div class="opt">○ I3 — Módulo Widget evoluído (estados + fonte de dados) primeiro, para enriquecer o catálogo antes das páginas.</div>
+        <div class="opt">○ I4 — Fluxo/versionamento/agendamento primeiro (governança antes da construção).</div>
+      </li>
+      <li>
+        <p><strong>Confirmação da stack / alvos de renderização.</strong></p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> "Next, Nest e Flutter Web" = <strong>a stack da plataforma</strong> (editor + backend + preview); app cliente final é Flutter nativo.</div>
+        <div class="opt">○ São <strong>3 alvos de saída</strong>: a mesma página renderiza em Next, em Nest e em Flutter Web (produto multiplataforma de saída).</div>
+        <div class="opt">○ Outro — o board esclarece.</div>
+      </li>
+      <li>
+        <p><strong>Ponto de partida do código.</strong></p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> <strong>Reaproveitar o kernel da POC</strong> (spec + <code>sdui_flutter</code> + <code>sdui_preview</code>) no repo Driva e reconstruir editor/backend conforme os aprendizados.</div>
+        <div class="opt">○ <strong>Greenfield</strong> total no repo Driva, usando a POC apenas como referência conceitual.</div>
+        <div class="opt">○ <strong>Migrar a POC inteira</strong> para o repo Driva e evoluir incrementalmente.</div>
+      </li>
+    </ol>
+
+    <h2 id="proximos">7. Próximos passos</h2>
+    <ol>
+      <li>Board responde às 4 decisões na issue BMJ-2.</li>
+      <li>CEO roda o <em>grillme</em> sobre o incremento escolhido e escreve a <strong>spec detalhada</strong> + <strong>PRD</strong> (HTML, pt-BR) só desse incremento.</li>
+      <li>Após aprovação, o Architect monta o <strong>plano em fases</strong>; o board aprova; o desenvolvimento começa.</li>
+      <li>Os demais incrementos ficam no backlog e entram um de cada vez.</li>
+    </ol>
+  </main>
+
+  <footer>
+    <div class="wrap">Driva · Visão Geral · pt-BR · 2026-06-21 · documento de trabalho (sujeito a revisão após as decisões do board)</div>
+  </footer>
+</body>
+</html>

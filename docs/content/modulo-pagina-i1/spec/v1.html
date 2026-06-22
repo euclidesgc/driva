@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — Spec do Módulo Página (I1)</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+    header { padding: 40px 0 24px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b26 0%, var(--bg) 100%); }
+    .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .crumbs a { color: var(--accent); text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 1.9rem; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .badge { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px; border:1px solid #4a3c1f; color:var(--warn); }
+    main { padding: 16px 0 90px; }
+    h2 { margin: 44px 0 14px; font-size: 1.35rem; border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { margin: 26px 0 8px; font-size: 1.08rem; color: #cdd5e2; }
+    p, li { font-size: .98rem; }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+    pre { background: #0b0e13; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow:auto; font-size:.85rem; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 16px 0; }
+    .panel.accent { border-color: #2b3a55; }
+    .panel.star { border-color: #1f4a3c; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .92rem; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .rec { color: var(--accent-2); font-weight: 600; }
+    .cols { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin:16px 0; }
+    .colbox { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; font-size:.84rem; }
+    .colbox b { display:block; color:var(--accent); margin-bottom:6px; font-size:.78rem; letter-spacing:.03em; }
+    ol.q { counter-reset: q; list-style: none; padding-left: 0; }
+    ol.q > li { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+    ol.q > li::before { counter-increment: q; content: "Decisão I1." counter(q); color: var(--accent); font-weight: 700; font-size: .82rem; letter-spacing:.04em; }
+    .opt { margin: 8px 0 0; }
+    .note { color: var(--muted); font-size: .9rem; }
+    footer { color: var(--muted); font-size: .85rem; padding: 24px 0; border-top: 1px solid var(--border); }
+    .out { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="crumbs"><a href="../../index.html">Documentação</a> / Especificações / Módulo Página (I1)</div>
+      <h1>Módulo Página (I1) — Construtor de Páginas SDUI</h1>
+      <p class="meta"><span class="badge" style="border-color:#5a2a2a;color:var(--danger)">Suspenso — aguardando design system</span> &nbsp; Versão de trabalho · 2026-06-21 · Issue BMJ-2 · 1º incremento</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="panel" style="border-color:#5a2a2a">
+      <strong class="out">⏸ Atividades suspensas (decisão do board, 2026-06-21).</strong> O board está construindo o
+      <strong>design system no Claude Design</strong> e pediu para suspender todo o trabalho até avisar o CEO onde o design estará.
+      Como UX/design é o requisito central do I1 (e o board optou por “UX antes de codar”), faz sentido aguardar o design system
+      antes de detalhar wireframes, plano e implementação. Retomamos quando o board indicar a localização do design.
+    </div>
+
+    <div class="panel accent">
+      Esta spec detalha <strong>apenas o incremento I1</strong>: montar uma página SDUI arrastando widgets, ordená-los, editar
+      propriedades e ver o <strong>preview fiel</strong> ponta a ponta — salvando como rascunho. Filtros/condições de exibição (I2),
+      construtor de widget avançado (I3) e fluxo/versionamento/agendamento (I4) ficam fora deste incremento. Contexto:
+      <a href="../../visao-geral/spec/v1.html">Visão Geral</a>.
+    </div>
+
+    <h2 id="objetivo">1. Objetivo</h2>
+    <p>
+      Entregar o <strong>núcleo do Page Builder</strong>: um editor onde um usuário compõe uma <strong>página</strong> a partir de
+      um catálogo de widgets, organiza-os em ordem, ajusta suas propriedades e vê em tempo real, num <strong>preview 100% fiel ao
+      Flutter</strong>, como a página aparecerá no app — com molduras de dispositivo para testar responsividade. Ao final, a página é
+      salva como rascunho e pode ser reaberta.
+    </p>
+
+    <div class="panel star">
+      <strong style="color:var(--accent-2)">★ Requisito central (decisão do board).</strong> O maior problema da POC foi o
+      <strong>design ruim</strong>. Portanto, em I1 a <strong>qualidade de UX e visual é critério de aceite</strong>, não um extra:
+      editor limpo, moderno, intuitivo e agradável; design system consistente; interações fluidas (arrastar, selecionar, editar);
+      hierarquia visual clara. Uma página funcional porém feia/confusa <em>não</em> cumpre o I1.
+    </div>
+
+    <h2 id="escopo">2. Escopo</h2>
+    <h3>Dentro do I1</h3>
+    <ul>
+      <li>Editor com layout em colunas (seção 4), reusando o preview fiel da POC.</li>
+      <li>Catálogo inicial de widgets na paleta (ver <a href="#decisoes">Decisão I1.1</a>).</li>
+      <li>Arrastar widgets da paleta para a página; <strong>reordenar</strong>, <strong>selecionar</strong> e <strong>remover</strong>.</li>
+      <li>Inspector: editar as propriedades do widget selecionado (forms gerados por tipo, herdados do kernel).</li>
+      <li>Preview fiel (Flutter Web em iframe via <code>postMessage</code>) + seletor de dispositivos (iPhone/Android/tablet).</li>
+      <li>Salvar/reabrir a página como <strong>rascunho</strong> (working copy), escopada por <code>project_id</code>.</li>
+      <li>Design system + UX de alto padrão (requisito central).</li>
+    </ul>
+    <h3>Fora do I1 (backlog dos próximos incrementos)</h3>
+    <ul>
+      <li class="out">Condições de exibição da página e filtros por widget + simulação de propriedades de usuário no preview → <strong>I2</strong>.</li>
+      <li class="out">Construtor de widget avançado (estados loading/success/error/idle/empty + fonte de dados) → <strong>I3</strong>.</li>
+      <li class="out">Workflow rascunho→homologação→produção, papéis por etapa, versionamento e agendamento → <strong>I4</strong>.</li>
+      <li class="out">Entrega/serving de páginas para o app de produção (<code>GET /pages</code>) — em I1 o preview basta.</li>
+    </ul>
+
+    <h2 id="conceitos">3. Conceitos</h2>
+    <table>
+      <tr><th>Conceito</th><th>Definição (I1)</th></tr>
+      <tr><td><strong>Página</strong></td><td>Artefato SDUI: uma <strong>lista ordenada de widgets</strong> (blocos) que o app renderiza. Tem identidade (ver <a href="#decisoes">Decisão I1.3</a>).</td></tr>
+      <tr><td><strong>Bloco (widget na página)</strong></td><td>Instância de um widget do catálogo posicionada na página, com suas próprias props. Referencia o widget do catálogo.</td></tr>
+      <tr><td><strong>Catálogo</strong></td><td>Conjunto de widgets disponíveis para arrastar (ver Decisão I1.1).</td></tr>
+      <tr><td><strong>Rascunho (draft)</strong></td><td>Cópia de trabalho da página, salva e reabrível. Sem máquina de estados ainda (isso é I4).</td></tr>
+      <tr><td><strong>Preview fiel</strong></td><td>Renderização da página pelo <strong>mesmo renderer do app</strong> (<code>sdui_flutter</code>), embarcado via iframe.</td></tr>
+    </table>
+
+    <h2 id="modelo">4. Modelo da página (spec JSON)</h2>
+    <p>A página é dado, no mesmo espírito do kernel da POC. Esboço (a fechar no plano técnico):</p>
+    <pre>{
+  "specVersion": 1,
+  "kind": "page",
+  "slug": "home",
+  "name": "Home",
+  "blocks": [
+    { "id": "b1", "widget": { "slug": "banner", "version": 2 }, "props": { "title": "Promo", "image": "{{...}}" } },
+    { "id": "b2", "widget": { "slug": "product_list", "version": 1 }, "props": { "source": "..." } }
+  ]
+  // "visibility" por bloco e condições da página entram no I2
+}</pre>
+    <p class="note">Cada bloco referencia um widget do catálogo por <code>slug</code> + <code>version</code> (imutável), garantindo que a página renderize de forma estável. A modelagem fina (inline vs. referência, IDs) é detalhe do plano do Architect.</p>
+
+    <h2 id="editor">5. Anatomia do editor (layout em colunas)</h2>
+    <p>Como descrito pelo board, com UX caprichada:</p>
+    <div class="cols">
+      <div class="colbox"><b>1 · PALETA</b>Widgets disponíveis, arrastáveis para a página. Busca e agrupamento por categoria.</div>
+      <div class="colbox"><b>2 · ORGANIZAÇÃO</b>Os blocos da página, em ordem. Arrastar para reordenar, selecionar, remover. (Filtro por bloco = I2.)</div>
+      <div class="colbox"><b>3 · PROPRIEDADES</b>Inspector do bloco selecionado: forms gerados por tipo de widget.</div>
+      <div class="colbox"><b>4 · PREVIEW</b>Render fiel no app, com moldura de dispositivo (iPhone/Android/tablet). (Simular usuário = I2.)</div>
+    </div>
+    <p>
+      <strong>Topbar:</strong> nome da página, salvar rascunho, indicador de “salvo”. <strong>Painéis redimensionáveis.</strong>
+      O preview atualiza com <em>debounce</em> a cada alteração. Interações de arrastar/soltar precisam ser visivelmente fluidas e
+      previsíveis (zona de drop clara, feedback de seleção, undo/redo).
+    </p>
+
+    <h2 id="preview">6. Preview fiel (herdado da POC)</h2>
+    <p>
+      Mesma arquitetura validada na POC: app <strong>Flutter Web</strong> (<code>sdui_preview</code>) embarca o renderer real
+      (<code>sdui_flutter</code>), servido como asset estático na mesma origem do editor; o editor envia o spec da página por
+      <code>postMessage</code> (com validação de <code>origin</code>) e o Flutter re-renderiza. O renderer passa a entender, além de
+      widgets isolados, uma <strong>página = lista de blocos</strong>. Fidelidade 100%, zero divergência React↔Flutter.
+    </p>
+
+    <h2 id="nfr">7. Requisitos não-funcionais</h2>
+    <table>
+      <tr><th>Aspecto</th><th>Critério em I1</th></tr>
+      <tr><td><strong>UX / visual</strong></td><td><span class="rec">Crítico.</span> Design moderno, limpo, intuitivo; design system consistente; interações fluidas. É critério de aceite.</td></tr>
+      <tr><td>Responsividade</td><td>Preview testável em ao menos 3 presets de dispositivo.</td></tr>
+      <tr><td>Acessibilidade</td><td>Navegação por teclado, contraste, semântica nos controles do editor.</td></tr>
+      <tr><td>Performance</td><td>Preview carrega rápido e re-renderiza com debounce sem travar; mitigar custo do iframe (cache do build).</td></tr>
+      <tr><td>Multi-tenant</td><td>Páginas escopadas por <code>project_id</code> (modelo herdado da POC).</td></tr>
+    </table>
+
+    <h2 id="decisoes">8. Decisões do I1</h2>
+    <div class="panel" style="border-color:#1f4a3c">
+      <strong style="color:var(--accent-2)">✓ Resolvidas pelo board em 2026-06-21:</strong>
+      <ol style="margin:10px 0 0">
+        <li><strong>Paleta do I1:</strong> os <strong>~14 primitivos do Flutter</strong> da POC (Container, Row, Column, Text, Image…) como blocos. Seções de alto nível ficam para depois.</li>
+        <li><strong>UX antes de codar:</strong> <strong>sim</strong> — wireframes/protótipo + design system precedem a implementação.</li>
+        <li><strong>Endereçamento da página:</strong> páginas são <strong>fragmentos anexados a telas que já existem no app</strong> (não rotas/slugs de tela inteira). O modelo da página (seção 4) permanece uma lista ordenada de blocos, mas a unidade é um <em>fragmento</em> plugado numa tela existente — a fechar no plano técnico.</li>
+      </ol>
+      <p style="margin:10px 0 0" class="note">Pendência externa: o board está produzindo o <strong>design system no Claude Design</strong> e suspendeu o trabalho até indicar onde ele estará.</p>
+    </div>
+    <p class="note">Registro original das perguntas (histórico):</p>
+    <ol class="q">
+      <li>
+        <p><strong>O que popula a paleta de widgets no I1?</strong> Como o construtor de widget avançado (I3) ainda não existe, o I1 precisa de um catálogo inicial.</p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> <strong>Conjunto curado de “seções” de alto nível</strong> (ex.: Banner, Carrossel, Lista de itens, Card, Texto, Botão, Imagem, Espaçador) — mais próximo de páginas SDUI reais e de uma UX atrativa.</div>
+        <div class="opt">○ <strong>Os ~14 primitivos do Flutter</strong> da POC (Container, Row, Column, Text, Image…) como blocos.</div>
+        <div class="opt">○ <strong>Híbrido</strong>: algumas seções de alto nível + alguns primitivos.</div>
+      </li>
+      <li>
+        <p><strong>Investir em UX/design antes de codar (dado que foi o problema nº1 da POC)?</strong></p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> <strong>Sim</strong> — UX entrega wireframes/protótipo do editor e definimos um design system <em>antes</em> de implementar, para garantir o padrão visual exigido.</div>
+        <div class="opt">○ <strong>Não</strong> — ir direto à implementação, melhorando a UI sobre a base da POC.</div>
+      </li>
+      <li>
+        <p><strong>Como a página é endereçada/consumida pelo app?</strong></p>
+        <div class="opt"><span class="rec">▸ Recomendado:</span> Cada página tem um <strong>slug/rota</strong> (ex.: <code>/home</code>, <code>/promo</code>) que o app pede ao SDUI.</div>
+        <div class="opt">○ Páginas são <strong>fragmentos/feeds</strong> anexados a telas já existentes do app.</div>
+        <div class="opt">○ <strong>Ambos</strong> (página completa e fragmento).</div>
+      </li>
+    </ol>
+
+    <h2 id="proximos">9. Próximos passos</h2>
+    <ol>
+      <li>Board responde às 3 decisões do I1 na issue BMJ-2.</li>
+      <li>CEO finaliza esta spec + escreve o <strong>PRD do I1</strong> (HTML, pt-BR) e os submete à aprovação.</li>
+      <li>Aprovados, o Architect monta o <strong>plano em fases</strong> do I1 (kernel de página + renderer de página + editor + preview + persistência + design system), com <em>grillme</em>.</li>
+      <li>Board aprova o plano; o desenvolvimento começa. UX produz wireframes na 1ª fase se a Decisão I1.2 for “sim”.</li>
+    </ol>
+  </main>
+
+  <footer>
+    <div class="wrap">Driva · Módulo Página (I1) · pt-BR · 2026-06-21 · documento de trabalho</div>
+  </footer>
+</body>
+</html>
