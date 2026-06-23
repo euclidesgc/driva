@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-22",
+  "lastUpdated": "2026-06-23",
   "features": [
     {
       "slug": "visao-geral",
@@ -22,10 +22,11 @@
       "issue": "BMJ-2",
       "documents": {
         "spec": {
-          "latest": 2,
+          "latest": 3,
           "versions": [
             { "v": 1, "date": "2026-06-21", "pr": null, "status": "superada" },
-            { "v": 2, "date": "2026-06-22", "pr": null, "status": "aguardando_aprovacao" }
+            { "v": 2, "date": "2026-06-22", "pr": null, "status": "superada" },
+            { "v": 3, "date": "2026-06-23", "pr": null, "status": "aguardando_aprovacao", "issue": "BMJ-3" }
           ]
         },
         "prd": {
@@ -33,6 +34,13 @@
           "versions": [
             { "v": 1, "date": "2026-06-22", "pr": null, "status": "superada" },
             { "v": 2, "date": "2026-06-22", "pr": null, "status": "aguardando_aprovacao" }
+          ]
+        },
+        "plan": {
+          "latest": 2,
+          "versions": [
+            { "v": 1, "date": "2026-06-23", "pr": null, "status": "superada", "issue": "BMJ-3" },
+            { "v": 2, "date": "2026-06-23", "pr": null, "status": "aguardando_aprovacao", "issue": "BMJ-3" }
           ]
         }
       }

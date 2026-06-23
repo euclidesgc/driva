@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — Plano de Implementação · Módulo Página (I1) v2</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+    header { padding: 40px 0 24px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b26 0%, var(--bg) 100%); }
+    .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .crumbs a { color: var(--accent); text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 1.9rem; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .badge { display: inline-block; font-size: .72rem; padding: 2px 10px; border-radius: 999px; }
+    main { padding: 24px 0 90px; }
+    h2 { margin: 48px 0 14px; font-size: 1.35rem; border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { margin: 28px 0 8px; font-size: 1.08rem; color: #cdd5e2; }
+    p, li { font-size: .98rem; }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+    pre { background: #0b0e13; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow: auto; font-size: .85rem; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 18px 0; }
+    .panel.accent { border-color: #2b3a55; }
+    .panel.star  { border-color: #1f4a3c; }
+    .panel.warn  { border-color: #4a3c1f; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .93rem; }
+    th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .must { color: var(--danger); font-weight: 600; }
+    .rec  { color: var(--accent-2); font-weight: 600; }
+    .phase {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px; margin: 28px 0; overflow: hidden;
+    }
+    .phase-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 22px; border-bottom: 1px solid var(--border); background: var(--panel-2);
+    }
+    .phase-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #1a2540; border: 2px solid var(--accent);
+      color: var(--accent); font-weight: 700; font-size: .95rem; flex-shrink: 0;
+    }
+    .phase-num.parallel { border-color: var(--accent-2); color: var(--accent-2); background: #0f2a20; }
+    .phase-title { font-size: 1.1rem; font-weight: 700; flex: 1; }
+    .phase-dep { font-size: .8rem; color: var(--muted); }
+    .phase-body { padding: 18px 22px; }
+    .phase-obj { color: var(--muted); font-size: .95rem; margin: 0 0 16px; }
+    .tasks { list-style: none; padding: 0; margin: 0; }
+    .tasks li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 12px; border-radius: 8px; margin: 4px 0;
+      border: 1px solid transparent;
+    }
+    .tasks li:hover { border-color: var(--border); }
+    .task-status {
+      display: inline-block; font-size: .66rem; padding: 2px 7px; border-radius: 999px;
+      font-weight: 700; letter-spacing: .04em; flex-shrink: 0; margin-top: 3px;
+    }
+    .status-todo { background: #1e2430; color: var(--muted); border: 1px solid #262b36; }
+    .task-text { font-size: .93rem; line-height: 1.55; }
+    .task-note { font-size: .82rem; color: var(--muted); display: block; margin-top: 2px; }
+    .sec-badge {
+      display: inline-block; font-size: .68rem; padding: 1px 7px; border-radius: 5px;
+      background: #2d1515; color: var(--danger); border: 1px solid #4a1515; margin-left: 6px; vertical-align: middle;
+    }
+    .new-badge {
+      display: inline-block; font-size: .68rem; padding: 1px 7px; border-radius: 5px;
+      background: #1f4a3c; color: var(--accent-2); border: 1px solid #1f4a3c; margin-left: 6px; vertical-align: middle;
+    }
+    .dep-chain {
+      display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap;
+      font-size: .82rem; margin: 14px 0; color: var(--muted);
+    }
+    .dep-chain .node {
+      background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; color: var(--text);
+    }
+    .dep-chain .node.par { border-color: var(--accent-2); color: var(--accent-2); }
+    .dep-chain .arrow { color: var(--border); font-size: 1rem; line-height: 2; }
+    .dep-chain .group { display: flex; flex-direction: column; gap: 4px; }
+    footer { color: var(--muted); font-size: .85rem; padding: 28px 0; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="crumbs">
+        <a href="../../../index.html">Documentação</a> /
+        <a href="../spec/v3.html">Módulo Página (I1) — Spec v3</a> /
+        Plano de Implementação
+      </div>
+      <h1>Plano de Implementação — Módulo Página (I1)</h1>
+      <p class="meta">
+        <span class="badge" style="border:1px solid #4a3c1f;color:var(--warn)">Aguardando aprovação do board</span>
+        &nbsp;<span class="badge" style="border:1px solid #2b3a55;color:var(--accent)">Plano v2</span>
+        &nbsp; 2026-06-23 · Issue BMJ-3 · Architect
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <div class="panel accent">
+      <strong>v2 — o que mudou vs v1:</strong>
+      (1) <strong>Aninhamento em I1</strong>: Fase 2 atualizada para modelo em árvore; Fase 6 com DnD de 3 cenários; Fase 7 com tree hierárquica real.
+      (2) <strong>F3 e F4 paralelas</strong>: execução simultânea reduz o timeline.
+      (3) <strong>7 decisões técnicas</strong> incorporadas: Zustand, @dnd-kit, auth via env, um draft por projeto, auto-save opcional, inspector tipos expandidos, navegação simplificada.
+      <a href="v1.html" style="color:var(--accent)">Ver v1 (superada)</a>.
+    </div>
+
+    <div class="panel accent">
+      <strong>Documentos-base:</strong>
+      <a href="../spec/v3.html" style="color:var(--accent)">Spec v3</a> ·
+      <a href="../prd/v2.html" style="color:var(--accent)">PRD v2</a> ·
+      <code>docs/WidgetMill/</code> (referência técnica) ·
+      <code>docs/web-prototipe/</code> (referência visual primária).
+    </div>
+
+    <div class="panel star">
+      <strong style="color:var(--accent-2)">Critério de aceite de 1ª classe (do board).</strong>
+      Uma página funcional com visual/UX ruim <strong>não passa no I1</strong>. O design system e a fidelidade ao
+      <code>web-prototipe</code> são validados em cada fase — não só no final.
+    </div>
+
+    <h2 id="visao-geral">Visão Geral do Plano</h2>
+    <p>
+      O I1 é construído em <strong>8 fases</strong>, com as Fases 3 e 4 rodando em <strong>paralelo</strong>.
+      A sequência garante: (a) fundações sólidas antes da UI; (b) modelo de dados em árvore desde a Fase 2
+      — sem refatoração posterior; (c) preview Flutter validado cedo (maior risco técnico);
+      (d) design system guiando o desenvolvimento desde a Fase 1.
+    </p>
+
+    <div class="dep-chain">
+      <span class="node">F1 Infra &amp; Design System</span>
+      <span class="arrow">→</span>
+      <span class="node">F2 Kernel &amp; Schemas</span>
+      <span class="arrow">→</span>
+      <div class="group">
+        <span class="node par">F3 Backend NestJS</span>
+        <span style="font-size:.75rem;color:var(--muted);text-align:center">paralelas</span>
+        <span class="node par">F4 Flutter Preview</span>
+      </div>
+      <span class="arrow">→</span>
+      <span class="node">F5 Editor Shell &amp; Canvas</span>
+      <span class="arrow">→</span>
+      <span class="node">F6 Paleta &amp; DnD</span>
+      <span class="arrow">→</span>
+      <span class="node">F7 Tree, Seleção &amp; Inspector</span>
+      <span class="arrow">→</span>
+      <span class="node">F8 Persistência &amp; Homologação</span>
+    </div>
+
+    <h2 id="fases">Fases</h2>
+
+    <!-- ═══════════════════════════════════════════ FASE 1 -->
+    <div class="phase" id="fase-1">
+      <div class="phase-header">
+        <span class="phase-num">1</span>
+        <div>
+          <div class="phase-title">Infra, Monorepo &amp; Design System</div>
+          <div class="phase-dep">Depende de: — (ponto de partida)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Repositório Driva estruturado como monorepo pnpm, ambiente de desenvolvimento funcionando e design system extraído do <code>web-prototipe</code> pronto para uso no editor React.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Criar estrutura monorepo pnpm: <code>pnpm-workspace.yaml</code>, <code>package.json</code> raiz, <code>.nvmrc</code>, <code>.editorconfig</code>.
+              <span class="task-note">Espelhar layout do WidgetMill: <code>apps/web</code>, <code>apps/api</code>, <code>packages/spec</code>, <code>packages/design-tokens</code>, <code>flutter/sdui_flutter</code>, <code>flutter/sdui_preview</code>, <code>infra/</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar ESLint (config compartilhada), TypeScript strict, Prettier, <code>.gitignore</code> atualizado.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Infraestrutura local: <code>docker-compose.yml</code> com Postgres 16 + Redis. <code>.env.example</code> documentado.
+              <span class="task-note"><span class="sec-badge">Segurança</span> Nunca commitar <code>.env</code> real. Variáveis sensíveis apenas em runtime.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Extrair design tokens do <code>web-prototipe</code> em <code>packages/design-tokens/tokens.ts</code>:
+              <span class="task-note">Cores: canvas <code>#eef0f2</code>, painéis brancos, accent <code>#6c4cf1</code>, text, muted, bordas. Tipografia: Public Sans. Espaçamento, border-radius, sombras, estados de hover/active/focus.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Criar <code>apps/web</code> Next.js 15 boilerplate (App Router) com tokens globais aplicados. Página de demonstração dos tokens para validação visual do board.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Atualizar <code>CLAUDE.md</code> raiz com instruções do monorepo Driva (comandos, convenções, estrutura).</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> <code>pnpm install</code> funciona; <code>docker-compose up</code> sobe Postgres; página de tokens visualmente fiel ao <code>web-prototipe</code>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 2 -->
+    <div class="phase" id="fase-2">
+      <div class="phase-header">
+        <span class="phase-num">2</span>
+        <div>
+          <div class="phase-title">Kernel de Página &amp; Schemas Zod — Modelo em Árvore <span class="new-badge">atualizado v2</span></div>
+          <div class="phase-dep">Depende de: Fase 1</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> <code>packages/spec</code> do Driva com modelo de dados em <strong>árvore</strong> (<code>PageFragment</code> + <code>Block</code> recursivo com <code>child</code>/<code>children</code>) e os 14 schemas Zod completos — fonte única de verdade para editor, backend e Flutter.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Definir schema Zod <code>Block</code> recursivo:
+              <span class="task-note"><code>{ id: string, widget: { slug: string, version: number }, props: Record&lt;string, unknown&gt; }</code> onde <code>props</code> pode conter <code>child?: Block</code> (single-child) ou <code>children?: Block[]</code> (multi-child). Usar <code>z.lazy()</code> para recursão.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Definir schema Zod <code>PageFragment</code>:
+              <span class="task-note"><code>{ specVersion: 1, kind: "page_fragment", id: string, name: string, project_id: string, blocks: Block[] }</code>. O array <code>blocks</code> contém os blocos raiz; filhos vivem em <code>props.child</code>/<code>props.children</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Portar e adaptar os 14 schemas de widgets do WidgetMill (<code>docs/WidgetMill/packages/spec/src/nodes/</code>):
+              <span class="task-note">Folha: text, image, icon, spacer, divider, button. Single-child: container, padding, expanded, sizedBox, card. Multi-child: row, column, stack. Auditar cada schema; completar props faltantes para I1.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Criar catálogo de widgets (<code>widgetCatalog</code>):
+              <span class="task-note"><code>{ slug, version, displayName, icon, category, slotKind: "leaf"|"child"|"children", schema, defaultProps }</code>. Categorias: Layout / Conteúdo / Interação.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Utilitários de kernel: <code>generateBlockId()</code>, <code>createBlock(slug, version)</code>, <code>validatePage(json)</code>, <code>walkBlocks(page, visitor)</code> (traversal recursivo).
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Utilitários de árvore: <code>insertBlock(page, parentId, slotKey, index, block)</code>, <code>removeBlock(page, blockId)</code>, <code>moveBlock(page, blockId, newParentId, newIndex)</code>.
+              <span class="task-note">Essas operações são usadas pelo Zustand store no editor. Implementar aqui no kernel (puro, sem dependência de UI) para testabilidade.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Exportar tipos TypeScript inferidos do Zod: <code>PageFragment</code>, <code>Block</code>, <code>WidgetDef</code>, <code>SlotKind</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes unitários do kernel: validação de PageFragment com blocos aninhados; <code>insertBlock</code>, <code>removeBlock</code>, <code>moveBlock</code> com árvores de profundidade 3; catálogo com 14 entradas.
+            </span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> <code>pnpm -F @driva/spec test</code> passa; schema valida árvore com Row → Padding → Text; utilitários de árvore corretos.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASES 3 + 4 (paralelas) -->
+    <div class="phase" id="fase-3">
+      <div class="phase-header">
+        <span class="phase-num parallel">3</span>
+        <div>
+          <div class="phase-title">Backend NestJS — API de Rascunhos <span style="font-size:.75rem;color:var(--accent-2);font-weight:normal">▶ paralela com F4</span></div>
+          <div class="phase-dep">Depende de: Fase 2</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> API NestJS para salvar e carregar rascunhos de página, com JWT via env, isolamento multi-tenant por <code>project_id</code> e persistência em Postgres via Prisma.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Scaffold <code>apps/api</code> NestJS: módulos <code>AppModule</code>, <code>PagesModule</code>, <code>AuthModule</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Schema Prisma: modelo <code>Page</code> (<code>id</code>, <code>projectId</code>, <code>name</code>, <code>draft</code> JSONB, <code>createdAt</code>, <code>updatedAt</code>). Migration inicial.
+              <span class="task-note"><span class="sec-badge">Segurança</span> Validar <code>draft</code> com schema Zod antes de persistir — nunca armazenar JSON arbitrário bruto.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Endpoints REST: <code>GET /pages?projectId=</code> · <code>GET /pages/:id</code> · <code>POST /pages</code> · <code>PUT /pages/:id</code> · <code>DELETE /pages/:id</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Auth JWT: middleware valida Bearer token e injeta <code>projectId</code>. Segredo em <code>JWT_SECRET</code> env; expiração configurável.
+              <span class="task-note"><span class="sec-badge">Segurança</span> Em I1: um token por projeto (I4 traz roles). Sem tela de login.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Guard multi-tenant: toda query filtra por <code>projectId</code> do JWT — nunca do body.
+              <span class="task-note"><span class="sec-badge">Segurança</span></span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Validação de payload: DTO (class-validator) + schema Zod do kernel como segunda barreira.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">CORS restrito (<code>ALLOWED_ORIGIN</code> env) + Helmet.
+              <span class="task-note"><span class="sec-badge">Segurança</span></span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes de integração (Supertest): CRUD completo; isolamento de tenants; JWT inválido → 401.
+              <span class="task-note"><span class="sec-badge">Segurança</span></span>
+            </span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> CRUD funciona via curl; testes de integração passam; tenant A não acessa dados do B.</p>
+      </div>
+    </div>
+
+    <div class="phase" id="fase-4">
+      <div class="phase-header">
+        <span class="phase-num parallel">4</span>
+        <div>
+          <div class="phase-title">Flutter Preview — Adaptação para Páginas em Árvore <span style="font-size:.75rem;color:var(--accent-2);font-weight:normal">▶ paralela com F3</span> <span class="new-badge">atualizado v2</span></div>
+          <div class="phase-dep">Depende de: Fase 2</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Portar o renderer Flutter da POC para renderizar uma <code>PageFragment</code> em árvore. O renderer já suporta <code>child</code>/<code>children</code> — a adaptação é de entry point e protocolo <code>postMessage</code>.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Portar <code>sdui_flutter</code> do WidgetMill para <code>flutter/sdui_flutter</code> do Driva. Adaptar entry point para aceitar <code>PageFragment</code> (lista de blocos raiz, cada um com subárvore em <code>props.child</code>/<code>props.children</code>).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>PageRenderer</code> Flutter: widget que recebe <code>PageFragment</code> e renderiza os blocos raiz numa Column scrollável. A renderização de cada bloco é recursiva (já implementada no renderer da POC para o modelo <code>child</code>/<code>children</code>).
+              <span class="task-note">Bloco com widget desconhecido → placeholder visual com slug e label.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Portar <code>sdui_preview</code> para o Driva. Protocolo postMessage: aceitar <code>{ type: "update_page", payload: PageFragment }</code>; responder <code>{ type: "render_complete" }</code>.
+              <span class="task-note"><span class="sec-badge">Segurança</span> Validar <code>event.origin</code> contra allowlist configurada em build time. Rejeitar silenciosamente origens desconhecidas.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Build Flutter Web do <code>sdui_preview</code> → <code>apps/web/public/preview/</code>. Script automatizado na raiz. Asset gitignored; documentado no CLAUDE.md.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Teste manual: página mínima com Column → Padding → Text enviada via postMessage; confirmar renderização correta.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes Flutter: PageFragment com árvore aninhada (3 níveis); widget desconhecido mostra placeholder; PageFragment vazia → sem crash.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> iframe renderiza árvore de 3 níveis via postMessage; origin inválida rejeitada.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 5 -->
+    <div class="phase" id="fase-5">
+      <div class="phase-header">
+        <span class="phase-num">5</span>
+        <div>
+          <div class="phase-title">Editor React — Shell, Canvas &amp; Topbar</div>
+          <div class="phase-dep">Depende de: Fases 1, 2, 3, 4 (todas concluídas)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Shell completo do editor (3 painéis redimensionáveis, topbar, canvas com phone mockup) com fidelidade visual ao <code>web-prototipe</code> e iframe Flutter integrado — sem DnD ou inspector ainda.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Layout de 3 painéis (CSS Grid): painel esquerdo (220px), canvas (flex), painel direito (220px). Divisores arrastáveis para redimensionar.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Topbar: logo Driva, breadcrumb (App / NomeDaPágina), busca global (placeholder), botões (Preview, Publish desabilitado + tooltip "disponível no I4"). Status indicator ("Salvo" / "Editando…").</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Canvas central: fundo <code>#eef0f2</code>, phone mockup (bordas arredondadas + notch), iframe <code>/preview/index.html</code>. Toolbar: zoom (+/−, %, padrão 90%), seletor de device (Smartphone 393×852 / Tablet 768×1024 / Desktop 1280×800), dimensões em px.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Hook <code>usePreviewBridge</code>: envia <code>PageFragment</code> ao iframe com debounce 300ms; escuta <code>render_complete</code>.
+              <span class="task-note"><span class="sec-badge">Segurança</span> Enviar postMessage apenas para a origem do iframe; nunca incluir tokens no payload.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Troca de device redimensiona a moldura via CSS sem recarregar iframe.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Estado global com <strong>Zustand + immer</strong>: <code>{ page: PageFragment, selectedBlockId: string|null, isDirty: boolean, history: PageFragment[] }</code>. Middleware de histórico (até 50 snapshots) para undo/redo.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Componentes de design system: Button, Tooltip, Input, Badge, Divider — com tokens de <code>packages/design-tokens</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Validação visual pelo board: screenshot/demo do shell antes de avançar.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Editor abre; 3 painéis redimensionáveis; phone mockup com iframe visível; troca de device sem reload; visual fiel ao <code>web-prototipe</code>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 6 -->
+    <div class="phase" id="fase-6">
+      <div class="phase-header">
+        <span class="phase-num">6</span>
+        <div>
+          <div class="phase-title">Paleta &amp; Drag-and-Drop — 3 cenários de drop <span class="new-badge">atualizado v2</span></div>
+          <div class="phase-dep">Depende de: Fase 5</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Painel esquerdo em modo Paleta e DnD para inserir widgets no canvas com suporte a 3 cenários: (a) inserção na raiz da página, (b) inserção como filho de container, (c) inserção entre irmãos.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Painel esquerdo — Modo Paleta: grid de 14 widgets (ícone + nome), agrupados por categoria (Layout / Conteúdo / Interação). Campo de busca por nome (filtro client-side).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">DnD com <strong>@dnd-kit/core</strong>: cada widget na paleta é <code>Draggable</code>. Ghost preview durante arrasto (miniatura com nome do widget).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário A — drop na raiz:</strong> drop na área do canvas fora de qualquer bloco → insere no final de <code>page.blocks</code>. Indicador visual: linha de inserção ao final da lista.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário B — drop dentro de container:</strong> drag sobre um bloco container (Row, Column, Stack, Card, Padding, Container, Expanded, SizedBox) → highlight do container como drop zone; soltar insere como filho. Distinguir single-child vs multi-child via <code>slotKind</code> do catálogo.
+              <span class="task-note">O canvas Flutter é um iframe opaco — o drop zone é um overlay React sobre o canvas. A posição relativa do arrasto determina o alvo por consulta ao estado da árvore (mapa de blocos para posições de tela enviados via postMessage pelo renderer).</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário C — drop entre irmãos:</strong> linha de inserção aparece entre blocos irmãos ao arrastar sobre um container multi-child. Soltar insere na posição indicada.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Ao soltar: chamar <code>insertBlock(page, parentId, slotKey, index, newBlock)</code> do kernel, selecionar o bloco inserido, disparar update do preview via <code>usePreviewBridge</code> (debounce 300ms).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Protocolo de layout do Flutter → editor: <code>sdui_preview</code> envia <code>{ type: "layout_update", blockRects: { [blockId]: DOMRect } }</code> após cada render, para o overlay calcular drop zones.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Undo/redo: ação de drop salva snapshot no histórico Zustand. Ctrl+Z reverte; Ctrl+Y reaplicar.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Acessibilidade: widgets na paleta acessíveis por teclado (Tab + Enter insere ao final da raiz como alternativa ao arrastar).</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> PM arrasta Text para o canvas → aparece. Arrasta Row, depois arrasta Text dentro do Row → preview mostra texto dentro de Row. Undo reverte os dois drops.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 7 -->
+    <div class="phase" id="fase-7">
+      <div class="phase-header">
+        <span class="phase-num">7</span>
+        <div>
+          <div class="phase-title">Tree View Hierárquica, Seleção &amp; Inspector <span class="new-badge">atualizado v2</span></div>
+          <div class="phase-dep">Depende de: Fase 6</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Toggle Paleta/Tree, tree view genuinamente hierárquica com drag-and-drop de reordenação/reparenting, seleção sincronizada canvas↔tree, e inspector com formulários Zod gerados automaticamente.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Toggle "Paleta / Tree" no cabeçalho do painel esquerdo.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Tree View hierárquica: renderização recursiva dos blocos da página. Cada nó mostra ícone (do catálogo), slug do widget e id curto. Containers exibem seus filhos indentados e colapsáveis.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">DnD sortable na Tree View com <strong>@dnd-kit/sortable</strong>: reordenar irmãos e reparentar (mover nó para dentro de outro container). Ao soltar, chamar <code>moveBlock(page, blockId, newParentId, newIndex)</code> do kernel.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Seleção sincronizada: clicar em nó da tree → seleciona bloco (highlight na tree + outline no canvas via postMessage). Clicar no canvas → protocolo de seleção reversa:
+              <span class="task-note">Estratégia: o overlay React sobre o canvas recebe o clique; calcula qual bloco foi tocado usando o mapa de <code>blockRects</code> (recebido do Flutter na Fase 6). Seleciona o bloco mais interno que contém o ponto clicado. Se nenhum → deseleciona.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Highlight de seleção no canvas: <code>sdui_preview</code> recebe <code>{ type: "select_block", blockId }</code> e renderiza outline de seleção + label sobre o bloco selecionado.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Remoção de bloco: botão remover visível no hover de cada nó da tree. Ação chama <code>removeBlock(page, blockId)</code> (remove o bloco e toda a subárvore). Undo restaura.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Painel direito — Page Props (sem seleção): campo editável para <code>name</code> da página.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Painel direito — Widget Inspector (com seleção): formulário gerado pelo schema Zod do widget selecionado.
+              <span class="task-note">Tipos suportados em I1: <code>string</code> (input texto), <code>number</code> (input numérico), <code>boolean</code> (toggle), <code>enum</code> (select/radio), <code>Color</code> (color picker com input hex), <code>EdgeInsets</code> (4 campos numéricos: top/right/bottom/left). Props do tipo <code>child</code>/<code>children</code> são gerenciadas pelo DnD — não aparecem no inspector de I1.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Debounce 300ms: cada alteração no inspector atualiza <code>page.blocks</code> e dispara <code>usePreviewBridge</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Undo/redo completo: reordenar na tree, reparentar, remover bloco (e subárvore), editar propriedade — todos registrados no histórico Zustand. Ctrl+Z / Ctrl+Y.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Acessibilidade do inspector: Tab entre campos, labels associados a inputs, contraste WCAG AA.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Usuário monta Column → Padding → Text; reordena e reparenta pela tree; edita props; preview atualiza em &lt;300ms; undo/redo cobre todas as ações.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 8 -->
+    <div class="phase" id="fase-8">
+      <div class="phase-header">
+        <span class="phase-num">8</span>
+        <div>
+          <div class="phase-title">Persistência, Polimento UX &amp; Homologação</div>
+          <div class="phase-dep">Depende de: Fases 3, 7</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Integrar save/load com o backend, polimento UX final, Security Gate 3 e homologação do board contra o DoD do I1.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Integração API: "Salvar rascunho" → <code>PUT /pages/:id</code>. Abrir editor → <code>GET /pages/:id</code> (um draft por <code>project_id</code>). Status indicator atualizado após cada operação.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Auto-save (opcional / Should): debounce 2s após última edição → salva silenciosamente. Indicador discreta de "Salvando…".</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Polimento: transições suaves nos toggles, hover states em todos os elementos interativos, ghost preview fluido no DnD, toast de confirmação ao salvar/remover.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Performance: medir carregamento inicial do iframe Flutter (&lt;3s); validar debounce 300ms sem janking; cachear build Flutter (Service Worker ou HTTP headers).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Auditoria de acessibilidade: navegação por teclado no inspector e paleta; contraste WCAG AA (axe-core / Lighthouse).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Security Gate 3:</strong> revisão de código:
+              (1) origin validation no postMessage;
+              (2) JWT secret em env, não em código;
+              (3) tenant isolation — toda query filtra por projectId do JWT;
+              (4) CORS restrito;
+              (5) XSS — inspector React sanitiza strings em labels/tooltips;
+              (6) payload size limits na API (prevenir DoS via JSON gigante).
+              <span class="task-note"><span class="sec-badge">Segurança</span></span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes E2E (Playwright): fluxo completo — abrir editor → arrastar 3 widgets → aninhar em Column → editar props → salvar → reabrir → rascunho restaurado.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Sessão de homologação com o board: validar os 8 itens do DoD (PRD seção 7), com atenção especial ao item 7 (UX agradável e intuitivo).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Atualizar <code>docs/manifest.json</code> com status aprovado. Fechar issues BMJ-3 e criar issues de implementação por fase.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Todos os 8 itens do DoD verificados; Security Gate 3 concluído; testes E2E passam; I1 homologado pelo board.</p>
+      </div>
+    </div>
+
+    <h2 id="decisoes">Decisões técnicas de projeto</h2>
+    <table>
+      <tr><th>Aspecto</th><th>Decisão</th><th>Razão</th></tr>
+      <tr><td><strong>Modelo de dados</strong></td><td>Árvore recursiva — <code>child</code>/<code>children</code> em <code>props</code></td><td>Consistente com WidgetMill POC; renderer Flutter já implementado; todos os 14 widgets úteis desde I1.</td></tr>
+      <tr><td><strong>Estado global</strong></td><td>Zustand + immer + middleware de histórico</td><td>Menos boilerplate; undo/redo nativo; immer facilita mutações imutáveis na árvore.</td></tr>
+      <tr><td><strong>Drag-and-drop</strong></td><td>@dnd-kit/core + sortable</td><td>Acessível; funciona com iframe como alvo; sortable para tree view.</td></tr>
+      <tr><td><strong>Drop zones no canvas</strong></td><td>Overlay React + mapa de <code>blockRects</code> via postMessage</td><td>Iframe Flutter é opaco para o DOM React. O renderer envia bounding boxes após cada render; o overlay usa para calcular targets.</td></tr>
+      <tr><td><strong>Inspector forms</strong></td><td>Gerador customizado a partir do schema Zod</td><td>Controle total sobre o visual do inspector; sem dependência de biblioteca de forms pesada.</td></tr>
+      <tr><td><strong>Auth em I1</strong></td><td>JWT via env, sem login screen</td><td>I4 traz roles e login. I1 precisa apenas de isolamento por projeto — token configurado externamente.</td></tr>
+      <tr><td><strong>Navegação de páginas</strong></td><td>Um draft por <code>project_id</code>, editor direto</td><td>Simplifica I1. Page list e criação de múltiplas páginas entram em I2+.</td></tr>
+      <tr><td><strong>Auto-save</strong></td><td>Opcional (Should, não Must)</td><td>RF-12 exige save explícito. Auto-save é conforto adicional — não bloqueia homologação.</td></tr>
+    </table>
+
+    <h2 id="riscos">Riscos e mitigações</h2>
+    <table>
+      <tr><th>Risco</th><th>Prob.</th><th>Mitigação</th></tr>
+      <tr><td>Drop zones em canvas iframe — cálculo de blockRects impreciso</td><td>Alta</td><td>Protótipo técnico no início da F6. Fallback: drop always ao final da raiz + reordenar via tree.</td></tr>
+      <tr><td>Performance da árvore recursiva no Zustand (atualizações frequentes)</td><td>Média</td><td>immer torna as atualizações de árvore O(profundidade). Memoização por blockId com <code>useSelector</code>. Debounce 300ms evita re-renders excessivos.</td></tr>
+      <tr><td>UX/visual reprovado pelo board</td><td>Média</td><td>Validação visual ao final das F1, F5 e F7 — não acumular dívida.</td></tr>
+      <tr><td>Performance do iframe Flutter (TTI > 3s)</td><td>Média</td><td>Build pré-compilado; medir na F4; Service Worker para cache.</td></tr>
+      <tr><td>Reparenting na tree view ambíguo (onde inserir)</td><td>Média</td><td>Indicadores visuais claros (linha entre irmãos vs highlight de container). UX inspirado no FlutterFlow.</td></tr>
+    </table>
+
+    <h2 id="seguranca">Resumo de ações de segurança</h2>
+    <table>
+      <tr><th>Item</th><th>Fase</th><th>Ação</th></tr>
+      <tr><td>postMessage origin validation</td><td>F4</td><td>Allowlist em build time; rejeitar silenciosamente origens desconhecidas.</td></tr>
+      <tr><td>postMessage payload</td><td>F5</td><td>Nunca incluir tokens; enviar apenas PageFragment.</td></tr>
+      <tr><td>JWT secret em env</td><td>F3</td><td>Segredo via <code>JWT_SECRET</code> env; .env nunca commitado.</td></tr>
+      <tr><td>Multi-tenant isolation</td><td>F3</td><td>projectId sempre do JWT, nunca do body; toda query filtra.</td></tr>
+      <tr><td>Payload validation</td><td>F3</td><td>DTO + schema Zod; JSON arbitrário rejeitado antes do Prisma.</td></tr>
+      <tr><td>Payload size limit</td><td>F3</td><td>Limite de tamanho no body da API (ex. 1MB) para prevenir DoS.</td></tr>
+      <tr><td>CORS restrito</td><td>F3</td><td>ALLOWED_ORIGIN env + Helmet.</td></tr>
+      <tr><td>XSS no inspector</td><td>F7</td><td>Props renderizadas no Flutter (não HTML); labels/tooltips React sanitizados.</td></tr>
+      <tr><td>Security Gate 3</td><td>F8</td><td>Revisão de código nos 7 pontos acima antes da homologação.</td></tr>
+    </table>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <!-- progress seed (machine-readable) — NÃO REMOVER
+      {
+        "version": 2,
+        "decisions": {
+          "state_management": "zustand+immer",
+          "dnd_library": "@dnd-kit",
+          "auth_i1": "jwt_via_env_no_login",
+          "page_nav_i1": "one_draft_per_project",
+          "autosave": "optional_should",
+          "nesting": "tree_model_in_i1",
+          "f3_f4": "parallel"
+        },
+        "phases": [
+          {
+            "id": "fase-1", "title": "Infra, Monorepo & Design System", "parallel": false,
+            "tasks": [
+              { "id": "f1-t1", "text": "Criar estrutura monorepo pnpm", "status": "todo" },
+              { "id": "f1-t2", "text": "Configurar ESLint, TypeScript, Prettier", "status": "todo" },
+              { "id": "f1-t3", "text": "docker-compose Postgres+Redis", "status": "todo" },
+              { "id": "f1-t4", "text": "Extrair design tokens do web-prototipe", "status": "todo" },
+              { "id": "f1-t5", "text": "Next.js boilerplate com tokens aplicados", "status": "todo" },
+              { "id": "f1-t6", "text": "Atualizar CLAUDE.md", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-2", "title": "Kernel de Página & Schemas Zod (árvore)", "parallel": false,
+            "tasks": [
+              { "id": "f2-t1", "text": "Schema Zod Block recursivo (z.lazy)", "status": "todo" },
+              { "id": "f2-t2", "text": "Schema Zod PageFragment", "status": "todo" },
+              { "id": "f2-t3", "text": "Portar 14 schemas de widgets da POC", "status": "todo" },
+              { "id": "f2-t4", "text": "Catálogo com slotKind (leaf/child/children)", "status": "todo" },
+              { "id": "f2-t5", "text": "Utilitários: generateBlockId, createBlock, validatePage, walkBlocks", "status": "todo" },
+              { "id": "f2-t6", "text": "Utilitários de árvore: insertBlock, removeBlock, moveBlock", "status": "todo" },
+              { "id": "f2-t7", "text": "Exportar tipos TypeScript", "status": "todo" },
+              { "id": "f2-t8", "text": "Testes unitários do kernel", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-3", "title": "Backend NestJS — API de Rascunhos", "parallel": true, "parallelWith": "fase-4",
+            "tasks": [
+              { "id": "f3-t1", "text": "Scaffold NestJS (apps/api)", "status": "todo" },
+              { "id": "f3-t2", "text": "Schema Prisma + migration", "status": "todo" },
+              { "id": "f3-t3", "text": "Endpoints CRUD de páginas", "status": "todo" },
+              { "id": "f3-t4", "text": "JWT auth middleware", "status": "todo" },
+              { "id": "f3-t5", "text": "Guard multi-tenant (projectId do JWT)", "status": "todo" },
+              { "id": "f3-t6", "text": "Validação de payload (DTO + Zod)", "status": "todo" },
+              { "id": "f3-t7", "text": "CORS + Helmet", "status": "todo" },
+              { "id": "f3-t8", "text": "Testes de integração (Supertest)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-4", "title": "Flutter Preview — Adaptação para Árvore", "parallel": true, "parallelWith": "fase-3",
+            "tasks": [
+              { "id": "f4-t1", "text": "Portar sdui_flutter para Driva", "status": "todo" },
+              { "id": "f4-t2", "text": "Implementar PageRenderer Flutter (árvore recursiva)", "status": "todo" },
+              { "id": "f4-t3", "text": "Portar sdui_preview com protocolo postMessage", "status": "todo" },
+              { "id": "f4-t4", "text": "Build Flutter Web → apps/web/public/preview/", "status": "todo" },
+              { "id": "f4-t5", "text": "Teste manual: Column → Padding → Text", "status": "todo" },
+              { "id": "f4-t6", "text": "Testes Flutter (árvore 3 níveis, placeholder)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-5", "title": "Editor React — Shell, Canvas & Topbar", "parallel": false,
+            "tasks": [
+              { "id": "f5-t1", "text": "Layout 3 painéis com divisores redimensionáveis", "status": "todo" },
+              { "id": "f5-t2", "text": "Topbar (logo, breadcrumb, busca, botões)", "status": "todo" },
+              { "id": "f5-t3", "text": "Canvas: phone mockup + iframe + toolbar (zoom, device)", "status": "todo" },
+              { "id": "f5-t4", "text": "Hook usePreviewBridge (postMessage + debounce 300ms)", "status": "todo" },
+              { "id": "f5-t5", "text": "Troca de device sem recarregar iframe", "status": "todo" },
+              { "id": "f5-t6", "text": "Estado global Zustand + immer + histórico", "status": "todo" },
+              { "id": "f5-t7", "text": "Componentes de design system", "status": "todo" },
+              { "id": "f5-t8", "text": "Validação visual pelo board", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-6", "title": "Paleta & DnD — 3 cenários de drop", "parallel": false,
+            "tasks": [
+              { "id": "f6-t1", "text": "Painel esquerdo — Modo Paleta (grid + busca + categorias)", "status": "todo" },
+              { "id": "f6-t2", "text": "Draggable com ghost preview (@dnd-kit)", "status": "todo" },
+              { "id": "f6-t3", "text": "Cenário A: drop na raiz da página", "status": "todo" },
+              { "id": "f6-t4", "text": "Cenário B: drop dentro de container", "status": "todo" },
+              { "id": "f6-t5", "text": "Cenário C: drop entre irmãos", "status": "todo" },
+              { "id": "f6-t6", "text": "Protocolo layout_update (blockRects) do Flutter para overlay", "status": "todo" },
+              { "id": "f6-t7", "text": "Undo/redo para drop", "status": "todo" },
+              { "id": "f6-t8", "text": "Acessibilidade: inserção via teclado", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-7", "title": "Tree View Hierárquica, Seleção & Inspector", "parallel": false,
+            "tasks": [
+              { "id": "f7-t1", "text": "Toggle Paleta/Tree no painel esquerdo", "status": "todo" },
+              { "id": "f7-t2", "text": "Tree View hierárquica recursiva com collapse", "status": "todo" },
+              { "id": "f7-t3", "text": "DnD sortable na Tree View (reordenar + reparentar)", "status": "todo" },
+              { "id": "f7-t4", "text": "Seleção sincronizada tree ↔ canvas (overlay + blockRects)", "status": "todo" },
+              { "id": "f7-t5", "text": "Highlight de seleção no Flutter via postMessage", "status": "todo" },
+              { "id": "f7-t6", "text": "Remoção de bloco (e subárvore) com undo", "status": "todo" },
+              { "id": "f7-t7", "text": "Painel direito — Page Props", "status": "todo" },
+              { "id": "f7-t8", "text": "Widget Inspector com forms Zod (6 tipos de campo)", "status": "todo" },
+              { "id": "f7-t9", "text": "Debounce 300ms para updates do inspector", "status": "todo" },
+              { "id": "f7-t10", "text": "Undo/redo completo (reorder, reparent, remove, edit)", "status": "todo" },
+              { "id": "f7-t11", "text": "Acessibilidade do inspector (WCAG AA)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-8", "title": "Persistência, Polimento UX & Homologação", "parallel": false,
+            "tasks": [
+              { "id": "f8-t1", "text": "Integração save/load com backend (PUT/GET /pages/:id)", "status": "todo" },
+              { "id": "f8-t2", "text": "Auto-save opcional (debounce 2s)", "status": "todo" },
+              { "id": "f8-t3", "text": "Polimento: transições, hover states, toasts", "status": "todo" },
+              { "id": "f8-t4", "text": "Performance (iframe <3s, sem janking)", "status": "todo" },
+              { "id": "f8-t5", "text": "Auditoria de acessibilidade (axe-core/Lighthouse)", "status": "todo" },
+              { "id": "f8-t6", "text": "Security Gate 3 (9 pontos)", "status": "todo" },
+              { "id": "f8-t7", "text": "Testes E2E Playwright (fluxo completo com aninhamento)", "status": "todo" },
+              { "id": "f8-t8", "text": "Sessão de homologação com o board (DoD I1)", "status": "todo" },
+              { "id": "f8-t9", "text": "Atualizar manifest.json e criar issues de implementação", "status": "todo" }
+            ]
+          }
+        ]
+      }
+      -->
+      <strong>Changelog:</strong><br>
+      <strong>v2 (2026-06-23, BMJ-3):</strong> Incorpora decisão do board de suportar aninhamento em I1 (opt_b, interação 1a0b8164). F2 atualizada para modelo de árvore recursiva + utilitários tree. F4 atualizada para PageRenderer recursivo. F6 expandida com 3 cenários de drop + protocolo blockRects. F7 com tree hierárquica real e reparenting. F3/F4 explicitamente paralelas. 7 decisões técnicas do Architect incorporadas (Zustand, @dnd-kit, auth via env, um draft por projeto, auto-save opcional, tipos do inspector, navegação simplificada).<br>
+      <strong>v1 (2026-06-23, BMJ-3):</strong> Versão inicial. Superada.
+      &nbsp;·&nbsp; Driva · Módulo Página (I1) · pt-BR
+    </div>
+  </footer>
+</body>
+</html>
