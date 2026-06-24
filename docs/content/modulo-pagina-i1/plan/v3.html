@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driva — Plano de Implementação · Módulo Página (I1) v3</title>
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --panel-2: #1b2029; --border: #262b36; --text: #e6e9ef;
+      --muted: #9aa3b2; --accent: #4f8cff; --accent-2: #00b894; --warn: #f0a020; --danger: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.65; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 28px; }
+    header { padding: 40px 0 24px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b26 0%, var(--bg) 100%); }
+    .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .crumbs a { color: var(--accent); text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 1.9rem; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .badge { display: inline-block; font-size: .72rem; padding: 2px 10px; border-radius: 999px; }
+    main { padding: 24px 0 90px; }
+    h2 { margin: 48px 0 14px; font-size: 1.35rem; border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { margin: 28px 0 8px; font-size: 1.08rem; color: #cdd5e2; }
+    h4 { margin: 18px 0 6px; font-size: .98rem; color: #b0bac8; }
+    p, li { font-size: .98rem; }
+    code { background: #11151c; border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .86em; }
+    pre { background: #0b0e13; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow: auto; font-size: .83rem; line-height: 1.55; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 18px 0; }
+    .panel.accent { border-color: #2b3a55; }
+    .panel.star  { border-color: #1f4a3c; }
+    .panel.warn  { border-color: #4a3c1f; }
+    .panel.danger { border-color: #4a1515; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .93rem; }
+    th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+    .must { color: var(--danger); font-weight: 600; }
+    .rec  { color: var(--accent-2); font-weight: 600; }
+    .phase {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px; margin: 28px 0; overflow: hidden;
+    }
+    .phase-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 22px; border-bottom: 1px solid var(--border); background: var(--panel-2);
+    }
+    .phase-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #1a2540; border: 2px solid var(--accent);
+      color: var(--accent); font-weight: 700; font-size: .95rem; flex-shrink: 0;
+    }
+    .phase-num.parallel { border-color: var(--accent-2); color: var(--accent-2); background: #0f2a20; }
+    .phase-title { font-size: 1.1rem; font-weight: 700; flex: 1; }
+    .phase-dep { font-size: .8rem; color: var(--muted); }
+    .phase-body { padding: 18px 22px; }
+    .phase-obj { color: var(--muted); font-size: .95rem; margin: 0 0 16px; }
+    .tasks { list-style: none; padding: 0; margin: 0; }
+    .tasks li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 12px; border-radius: 8px; margin: 4px 0;
+      border: 1px solid transparent;
+    }
+    .tasks li:hover { border-color: var(--border); }
+    .task-status {
+      display: inline-block; font-size: .66rem; padding: 2px 7px; border-radius: 999px;
+      font-weight: 700; letter-spacing: .04em; flex-shrink: 0; margin-top: 3px;
+    }
+    .status-todo { background: #1e2430; color: var(--muted); border: 1px solid #262b36; }
+    .task-text { font-size: .93rem; line-height: 1.55; }
+    .task-note { font-size: .82rem; color: var(--muted); display: block; margin-top: 2px; }
+    .sec-badge {
+      display: inline-block; font-size: .68rem; padding: 1px 7px; border-radius: 5px;
+      background: #2d1515; color: var(--danger); border: 1px solid #4a1515; margin-left: 6px; vertical-align: middle;
+    }
+    .new-badge {
+      display: inline-block; font-size: .68rem; padding: 1px 7px; border-radius: 5px;
+      background: #1f4a3c; color: var(--accent-2); border: 1px solid #1f4a3c; margin-left: 6px; vertical-align: middle;
+    }
+    .dep-chain {
+      display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap;
+      font-size: .82rem; margin: 14px 0; color: var(--muted);
+    }
+    .dep-chain .node {
+      background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; color: var(--text);
+    }
+    .dep-chain .node.par { border-color: var(--accent-2); color: var(--accent-2); }
+    .dep-chain .arrow { color: var(--border); font-size: 1rem; line-height: 2; }
+    .dep-chain .group { display: flex; flex-direction: column; gap: 4px; }
+    .pkg-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0;
+    }
+    .pkg-card {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+    }
+    .pkg-card .pkg-name { font-family: monospace; font-size: .88rem; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+    .pkg-card .pkg-desc { font-size: .82rem; color: var(--muted); }
+    .diff-tag {
+      display: inline-block; font-size: .7rem; padding: 1px 7px; border-radius: 5px;
+      background: #4a3c1f; color: var(--warn); margin-left: 6px; vertical-align: middle;
+    }
+    footer { color: var(--muted); font-size: .85rem; padding: 28px 0; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="crumbs">
+        <a href="../../../index.html">Documentação</a> /
+        <a href="../spec/v3.html">Módulo Página (I1) — Spec v3</a> /
+        Plano de Implementação
+      </div>
+      <h1>Plano de Implementação — Módulo Página (I1) v3</h1>
+      <p class="meta">
+        <span class="badge" style="border:1px solid #4a3c1f;color:var(--warn)">Aguardando aprovação do board (grillme)</span>
+        &nbsp;<span class="badge" style="border:1px solid #2b3a55;color:var(--accent)">Plano v3</span>
+        &nbsp; 2026-06-24 · Issue BMJ-16 · Architect
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <div class="panel warn">
+      <strong style="color:var(--warn)">v3 — mudança de stack radical.</strong>
+      Este plano substitui o v2 que assumia <strong>React (Next.js) + NestJS + Zustand + @dnd-kit</strong>.
+      O v3 incorpora as decisões do board (BMJ-16):
+      (1) <strong>Flutter Web puro</strong> como frontend do editor — sem React, sem iframe, sem postMessage;
+      (2) <strong>Arquitetura modular Flutter</strong> (get_it + flutter_bloc + go_router + fpdart + equatable), conforme artigo de referência;
+      (3) <strong>Backend NestJS diferido</strong> — I1 usa <code>InMemoryPageRepository</code> + interfaces; NestJS entra em I2+.
+      O plano v2 é superado em sua totalidade.
+      <a href="v2.html" style="color:var(--accent)">Ver v2 (superado)</a>.
+    </div>
+
+    <div class="panel accent">
+      <strong>Documentos-base:</strong>
+      <a href="../spec/v3.html" style="color:var(--accent)">Spec v3</a> ·
+      <a href="../prd/v2.html" style="color:var(--accent)">PRD v2</a> ·
+      <code>docs/content/padrao-de-projeto-flutter.md</code> (artigo de arquitetura — leitura obrigatória) ·
+      <code>docs/WidgetMill/</code> (referência técnica — renderer a portar) ·
+      <code>docs/web-prototipe/</code> (referência visual primária).
+    </div>
+
+    <div class="panel star">
+      <strong style="color:var(--accent-2)">Critério de aceite de 1ª classe (do board).</strong>
+      Uma página funcional com visual/UX ruim <strong>não passa no I1</strong>. O design system
+      e a fidelidade ao <code>web-prototipe</code> são validados em cada fase — não só no final.
+    </div>
+
+    <!-- ═══════════════════════════════════════════ DIVERGÊNCIAS -->
+    <div class="panel danger">
+      <strong style="color:var(--danger)">⚠ Divergências com a Spec v3 — a reportar ao CEO para realinhamento.</strong>
+      <ol style="margin: 10px 0 0">
+        <li>
+          <strong>Spec v3, seção 6 "Preview fiel":</strong> descreve preview via <em>iframe + postMessage</em>
+          (<code>sdui_preview</code> separado, validação de <code>event.origin</code>).
+          Com Flutter Web puro, o preview é o widget <code>SduiRenderer</code> embutido diretamente no canvas do editor —
+          sem iframe, sem postMessage, sem origin validation. A arquitetura simplifica; a fidelidade é a mesma.
+          <strong>Recomendação:</strong> atualizar Spec v3 seção 6 para refletir o preview inline Flutter.
+        </li>
+        <li>
+          <strong>Spec v3, seção 7 NFR Segurança:</strong> menciona "Auth JWT via env. Multi-tenant via project_id."
+          Com <code>InMemoryPageRepository</code> em I1, authn/authz e isolamento multi-tenant são diferidos para I2+
+          (quando NestJS entrar). Em I1 não há backend real, logo não há superfície de authn.
+          <strong>Recomendação:</strong> mover esse NFR para I2 na Spec.
+        </li>
+        <li>
+          <strong>Spec v3, seção 8, decisão 6:</strong> "Estado global do editor: Zustand + immer" — é tecnologia React.
+          Com Flutter Web puro, o estado é <code>EditorCubit</code> (flutter_bloc) + histórico de snapshots imutáveis.
+        </li>
+        <li>
+          <strong>Spec v3, seção 8, decisão 7:</strong> "DnD: @dnd-kit/core + sortable" — é biblioteca React.
+          Com Flutter Web puro, o DnD usa <code>Draggable/DragTarget</code> nativos do Flutter.
+        </li>
+      </ol>
+      <p style="margin:10px 0 0;font-size:.9rem">
+        <strong>Ação necessária:</strong> CEO deve apresentar estas divergências ao board para confirmar que o plano v3
+        supera as decisões antigas da Spec (ou pedir atualização da Spec antes de iniciar o desenvolvimento).
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ ARQUITETURA -->
+    <h2 id="arquitetura">Arquitetura de Packages</h2>
+
+    <p>
+      O I1 é construído como <strong>4 packages</strong> com fronteiras de responsabilidade claras,
+      seguindo o padrão do artigo de referência (Clean Architecture + barrels + get_it):
+    </p>
+
+    <div class="pkg-grid">
+      <div class="pkg-card">
+        <div class="pkg-name">driva_domain/</div>
+        <div class="pkg-desc">Dart puro. Entidades (<code>PageFragment</code>, <code>Block</code>), contratos (<code>IPageRepository</code>), use cases, <code>Either&lt;Failure,T&gt;</code>, catálogo de widgets.</div>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">driva_repository_memory/</div>
+        <div class="pkg-desc">Dart puro. <code>InMemoryPageRepository</code> implementa <code>IPageRepository</code>. Descartado quando NestJS entrar em I2+.</div>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">sdui_renderer/</div>
+        <div class="pkg-desc">Flutter. Renderer SDUI portado da POC WidgetMill. Widget <code>SduiRenderer</code> que renderiza <code>PageFragment</code> recursivamente.</div>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">driva_builder/</div>
+        <div class="pkg-desc">App Flutter Web. Editor completo: módulos editor, paleta, tree, inspector. Entry point do Driva Builder.</div>
+      </div>
+    </div>
+
+    <div class="panel accent">
+      <strong>Regra de dependência (estrita):</strong>
+      <code>driva_domain</code> não depende de nada (Dart puro).
+      <code>driva_repository_memory</code> depende de <code>driva_domain</code>.
+      <code>sdui_renderer</code> depende de <code>driva_domain</code>.
+      <code>driva_builder</code> depende dos três anteriores.
+      Nunca inverter a seta.
+    </div>
+
+    <!-- ═══════════════════════════════════════════ ESTRUTURA DE PASTAS -->
+    <h2 id="pastas">Estrutura de Pastas por Package</h2>
+
+    <h3>driva_domain/</h3>
+    <pre>
+lib/
+├── core/
+│   └── error/
+│       ├── failure.dart          # sealed Failure (NetworkFailure, NotFoundFailure, ValidationFailure)
+│       └── error.dart            # barrel
+├── entities/
+│   ├── block.dart                # Block recursivo + copyWith manual
+│   ├── page_fragment.dart        # PageFragment (blocks raiz, metadata)
+│   ├── widget_def.dart           # WidgetDef (slug, version, displayName, slotKind, defaultProps)
+│   ├── slot_kind.dart            # enum SlotKind { leaf, child, children }
+│   └── entities.dart             # barrel público
+├── repositories/
+│   ├── i_page_repository.dart    # contrato abstrato (IPageRepository)
+│   └── repositories.dart         # barrel
+├── use_cases/
+│   ├── get_page_use_case.dart    # Either&lt;Failure, PageFragment?&gt;
+│   ├── save_page_use_case.dart   # Either&lt;Failure, Unit&gt;
+│   └── use_cases.dart            # barrel
+├── catalog/
+│   ├── widget_catalog.dart       # lista dos 14 widgets com slotKind e defaultProps
+│   └── catalog.dart              # barrel
+└── driva_domain.dart             # barrel público do package</pre>
+
+    <h3>driva_repository_memory/</h3>
+    <pre>
+lib/
+├── in_memory_page_repository.dart  # Map&lt;String, PageFragment&gt; em memória
+└── driva_repository_memory.dart    # barrel público</pre>
+
+    <h3>sdui_renderer/</h3>
+    <pre>
+lib/
+├── sdui_renderer.dart              # widget raiz: SduiRenderer(page: PageFragment, selectedBlockId: String?)
+├── src/
+│   ├── block_renderer.dart         # renderiza Block recursivamente (child/children)
+│   ├── leaf_widgets.dart           # text, image, icon, spacer, divider, button
+│   ├── container_widgets.dart      # container, padding, expanded, sizedBox, card
+│   ├── multi_child_widgets.dart    # row, column, stack
+│   └── unknown_block.dart          # placeholder visual para widget desconhecido
+└── sdui_renderer.dart              # barrel público</pre>
+
+    <h3>driva_builder/ (app Flutter Web)</h3>
+    <pre>
+lib/
+├── main.dart                     # entry point + captura global de erros
+├── app_widget.dart               # MaterialApp.router
+├── app_router.dart               # go_router + rota do editor
+├── injection.dart                # setupLocator() — chama register de cada módulo
+├── core/
+│   └── theme/
+│       ├── app_theme.dart        # ThemeData com tokens do web-prototipe
+│       └── theme.dart            # barrel
+└── modules/
+    ├── editor_module/
+    │   ├── presentation/
+    │   │   ├── editor/
+    │   │   │   ├── cubit/
+    │   │   │   │   ├── editor_cubit.dart         # EditorCubit
+    │   │   │   │   └── editor_state.dart          # sealed EditorState
+    │   │   │   ├── editor_page.dart               # EditorPage (pageBuilder)
+    │   │   │   └── widgets/
+    │   │   │       ├── topbar.dart
+    │   │   │       ├── editor_layout.dart         # 3 painéis (ResizablePanelLayout)
+    │   │   │       ├── canvas_panel.dart          # PhoneMockup + SduiRenderer + overlay DnD
+    │   │   │       └── device_selector.dart       # enum DevicePreset + dropdown
+    │   │   └── editor.dart                        # barrel
+    │   ├── editor_routes.dart
+    │   ├── editor_injection.dart
+    │   └── editor_module.dart                     # barrel público
+    ├── paleta_module/
+    │   ├── presentation/
+    │   │   ├── paleta/
+    │   │   │   ├── cubit/
+    │   │   │   │   ├── paleta_cubit.dart          # filtro por busca/categoria
+    │   │   │   │   └── paleta_state.dart          # sealed
+    │   │   │   ├── paleta_panel.dart
+    │   │   │   └── widgets/
+    │   │   │       ├── widget_card.dart            # Draggable&lt;WidgetDef&gt;
+    │   │   │       └── category_section.dart
+    │   │   └── paleta.dart
+    │   ├── paleta_injection.dart
+    │   └── paleta_module.dart
+    ├── tree_module/
+    │   ├── presentation/
+    │   │   ├── tree/
+    │   │   │   ├── cubit/
+    │   │   │   │   ├── tree_cubit.dart            # expand/collapse por blockId
+    │   │   │   │   └── tree_state.dart            # sealed
+    │   │   │   ├── tree_panel.dart
+    │   │   │   └── widgets/
+    │   │   │       ├── tree_node.dart             # recursivo; LongPressDraggable&lt;String&gt; (blockId)
+    │   │   │       └── tree_drop_target.dart      # DragTarget para reparenting/reordenação
+    │   │   └── tree.dart
+    │   ├── tree_injection.dart
+    │   └── tree_module.dart
+    └── inspector_module/
+        ├── presentation/
+        │   ├── inspector/
+        │   │   ├── cubit/
+        │   │   │   ├── inspector_cubit.dart       # edição de props; debounce 300ms
+        │   │   │   └── inspector_state.dart       # sealed
+        │   │   ├── inspector_panel.dart
+        │   │   └── widgets/
+        │   │       ├── prop_string.dart
+        │   │       ├── prop_number.dart
+        │   │       ├── prop_bool.dart
+        │   │       ├── prop_enum.dart
+        │   │       ├── prop_color.dart
+        │   │       └── prop_edge_insets.dart
+        │   └── inspector.dart
+        ├── inspector_injection.dart
+        └── inspector_module.dart</pre>
+
+    <!-- ═══════════════════════════════════════════ CONTRATOS DE DOMÍNIO -->
+    <h2 id="contratos">Contratos de Domínio Principais</h2>
+
+    <h3>Block (entidade recursiva)</h3>
+    <pre>
+// driva_domain/lib/entities/block.dart
+import 'package:equatable/equatable.dart';
+
+class Block extends Equatable {
+  final String id;                   // nanoid 8 chars, imutável
+  final String widgetSlug;
+  final int widgetVersion;
+  final Map&lt;String, Object?&gt; props;  // inclui child/children como Block/List&lt;Block&gt;
+  // copyWith manual (sem freezed)
+
+  const Block({
+    required this.id,
+    required this.widgetSlug,
+    required this.widgetVersion,
+    required this.props,
+  });
+
+  @override
+  List&lt;Object?&gt; get props =&gt; [id, widgetSlug, widgetVersion, this.props];
+}</pre>
+
+    <h3>PageFragment (entidade raiz)</h3>
+    <pre>
+// driva_domain/lib/entities/page_fragment.dart
+import 'package:equatable/equatable.dart';
+import 'block.dart';
+
+class PageFragment extends Equatable {
+  final int specVersion;            // 1
+  final String kind;                // 'page_fragment'
+  final String id;
+  final String name;
+  final String projectId;
+  final List&lt;Block&gt; blocks;         // blocos raiz (filhos vivem em props)
+
+  const PageFragment({...});
+  // copyWith manual
+  @override
+  List&lt;Object?&gt; get props =&gt; [id, name, projectId, blocks];
+}</pre>
+
+    <h3>IPageRepository (contrato)</h3>
+    <pre>
+// driva_domain/lib/repositories/i_page_repository.dart
+import 'package:fpdart/fpdart.dart';
+import '../core/error/failure.dart';
+import '../entities/page_fragment.dart';
+
+abstract interface class IPageRepository {
+  Future&lt;Either&lt;Failure, PageFragment?&gt;&gt; getPage(String projectId);
+  Future&lt;Either&lt;Failure, Unit&gt;&gt;          savePage(PageFragment page);
+}</pre>
+
+    <h3>Use Cases</h3>
+    <pre>
+// driva_domain/lib/use_cases/get_page_use_case.dart
+class GetPageUseCase {
+  final IPageRepository repository;
+  const GetPageUseCase({required this.repository});
+  Future&lt;Either&lt;Failure, PageFragment?&gt;&gt; call(String projectId) =&gt;
+      repository.getPage(projectId);
+}
+
+// driva_domain/lib/use_cases/save_page_use_case.dart
+class SavePageUseCase {
+  final IPageRepository repository;
+  const SavePageUseCase({required this.repository});
+  Future&lt;Either&lt;Failure, Unit&gt;&gt; call(PageFragment page) =&gt;
+      repository.savePage(page);
+}</pre>
+
+    <h3>Utilitários de árvore (no domínio — Dart puro, testáveis)</h3>
+    <pre>
+// driva_domain/lib/entities/block_tree.dart
+PageFragment insertBlock(PageFragment page, String? parentId, String slotKey, int index, Block block);
+PageFragment removeBlock(PageFragment page, String blockId);     // remove bloco e subárvore
+PageFragment moveBlock(PageFragment page, String blockId, String? newParentId, int newIndex);
+String generateBlockId();   // nanoid 8 chars
+Block createBlock(WidgetDef def);  // block com defaultProps do catálogo</pre>
+
+    <!-- ═══════════════════════════════════════════ ESTADO DO EDITOR -->
+    <h2 id="estado">Estado e Eventos do Editor (Cubits)</h2>
+
+    <h3>EditorCubit — estado central</h3>
+    <pre>
+// editor_state.dart
+sealed class EditorState extends Equatable { ... }
+final class EditorInitial    extends EditorState { ... }
+final class EditorLoading    extends EditorState { ... }
+final class EditorLoaded     extends EditorState {
+  final PageFragment page;
+  final String? selectedBlockId;
+  final bool isDirty;
+  final bool canUndo;
+  final bool canRedo;
+  ...
+}
+final class EditorError      extends EditorState { final Failure failure; ... }
+
+// editor_cubit.dart  — principais métodos:
+class EditorCubit extends Cubit&lt;EditorState&gt; {
+  final GetPageUseCase getPage;
+  final SavePageUseCase savePage;
+
+  // Histórico de snapshots (até 50) para undo/redo
+  final List&lt;PageFragment&gt; _history = [];
+  int _historyIndex = -1;
+
+  Future&lt;void&gt; load(String projectId) async { ... }
+  Future&lt;void&gt; save() async { ... }
+
+  void insertBlock(String? parentId, String slotKey, int index, WidgetDef def) { ... }
+  void removeBlock(String blockId) { ... }
+  void moveBlock(String blockId, String? newParentId, int newIndex) { ... }
+  void updateBlockProp(String blockId, String propKey, Object? value) { ... }
+  void selectBlock(String? blockId) { ... }
+  void undo() { ... }
+  void redo() { ... }
+  void _snapshot() { /* salva estado atual no histórico antes de cada mutação */ }
+}</pre>
+
+    <h3>PaletaCubit — filtro e busca</h3>
+    <pre>
+sealed class PaletaState extends Equatable { ... }
+final class PaletaLoaded extends PaletaState {
+  final List&lt;WidgetDef&gt; filtered;
+  final String query;
+  ...
+}
+class PaletaCubit extends Cubit&lt;PaletaState&gt; {
+  void search(String query) { ... }    // filtra widgetCatalog por nome
+}</pre>
+
+    <h3>TreeCubit — expand/collapse</h3>
+    <pre>
+final class TreeState extends Equatable {
+  final Set&lt;String&gt; collapsed;   // blockIds colapsados
+  ...
+}
+class TreeCubit extends Cubit&lt;TreeState&gt; {
+  void toggle(String blockId) { ... }
+}</pre>
+
+    <h3>InspectorCubit — edição de props com debounce</h3>
+    <pre>
+// Recebe EditorCubit via construtor; chama updateBlockProp com debounce 300ms
+class InspectorCubit extends Cubit&lt;InspectorState&gt; {
+  final EditorCubit editorCubit;
+  Timer? _debounce;
+  void updateProp(String blockId, String key, Object? value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      editorCubit.updateBlockProp(blockId, key, value);
+    });
+  }
+}</pre>
+
+    <!-- ═══════════════════════════════════════════ INTEGRAÇÃO RENDERER -->
+    <h2 id="renderer">Integração sdui_renderer ↔ driva_builder</h2>
+
+    <p>
+      Com Flutter Web puro, o preview não usa iframe nem postMessage — o <code>SduiRenderer</code>
+      é um widget Flutter ordinário embutido dentro do canvas do editor.
+      Essa simplicidade é a vantagem fundamental sobre a arquitetura React + iframe do plano v2.
+    </p>
+
+    <pre>
+// canvas_panel.dart
+class CanvasPanel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder&lt;EditorCubit, EditorState&gt;(
+      builder: (context, state) {
+        if (state is! EditorLoaded) return const SizedBox();
+        return Stack(children: [
+          PhoneMockup(
+            device: state.device,
+            child: ClipRect(
+              child: SduiRenderer(       // package sdui_renderer
+                page: state.page,
+                selectedBlockId: state.selectedBlockId,
+                onBlockTap: (blockId) =&gt; context.read&lt;EditorCubit&gt;().selectBlock(blockId),
+              ),
+            ),
+          ),
+          // Overlay de DnD (DragTarget) sobre o mockup
+          CanvasDragOverlay(device: state.device),
+        ]);
+      },
+    );
+  }
+}</pre>
+
+    <p>
+      O <code>SduiRenderer</code> aceita <code>selectedBlockId</code> e renderiza um outline de seleção
+      sobre o bloco correspondente — sem protocolo de rede, apenas passagem de parâmetro.
+    </p>
+
+    <p>
+      <strong>DnD canvas:</strong> O <code>CanvasDragOverlay</code> é um <code>DragTarget&lt;WidgetDef&gt;</code>
+      empilhado sobre o renderer. Ao aceitar um drop, chama <code>editorCubit.insertBlock(null, 'children', -1, def)</code>
+      para inserir ao final da raiz (cenário A). Containers exibem seu próprio <code>DragTarget</code> filho
+      quando em foco durante drag (cenário B/C).
+    </p>
+
+    <!-- ═══════════════════════════════════════════ DI -->
+    <h2 id="di">DI com get_it — setup</h2>
+
+    <pre>
+// driva_builder/lib/injection.dart
+final getIt = GetIt.instance;
+
+void setupLocator() {
+  registerEditorModule(getIt);     // repositório, use cases, cubit factory
+  registerPaletaModule(getIt);
+  registerTreeModule(getIt);
+  registerInspectorModule(getIt);
+}
+
+// editor_injection.dart
+void registerEditorModule(GetIt getIt) {
+  // Repositório: lazy singleton (troca InMemory por NestJSImpl em I2+ sem mudar nada acima)
+  getIt.registerLazySingleton&lt;IPageRepository&gt;(() =&gt; InMemoryPageRepository());
+
+  getIt.registerFactory(() =&gt; GetPageUseCase(repository: getIt()));
+  getIt.registerFactory(() =&gt; SavePageUseCase(repository: getIt()));
+  // EditorCubit: factory (um por rota; dispose automático pelo BlocProvider)
+  getIt.registerFactory(() =&gt; EditorCubit(
+    getPage: getIt(),
+    savePage: getIt(),
+  ));
+}</pre>
+
+    <!-- ═══════════════════════════════════════════ NAVEGAÇÃO -->
+    <h2 id="navegacao">Navegação (go_router)</h2>
+
+    <pre>
+// app_router.dart
+final GoRouter appRoutes = GoRouter(
+  initialLocation: '/editor',
+  routes: [
+    GoRoute(
+      path: '/editor',
+      name: 'editor',
+      builder: EditorPage.pageBuilder,     // cria EditorCubit via getIt; chama load()
+    ),
+    // I2+: /pages (lista), /pages/:id (editor por id)
+  ],
+);</pre>
+
+    <!-- ═══════════════════════════════════════════ VISÃO GERAL DO PLANO -->
+    <h2 id="visao-geral">Visão Geral do Plano</h2>
+
+    <p>
+      O I1 é construído em <strong>7 fases</strong>, com as Fases 2, 3 e 4 rodando em
+      <strong>paralelo</strong> após a Fase 1. A sequência garante:
+      (a) domínio tipado e testado antes da UI;
+      (b) renderer validado antes do canvas do editor;
+      (c) DI configurada antes dos módulos de UI;
+      (d) design system guia o desenvolvimento desde a Fase 1.
+    </p>
+
+    <div class="dep-chain">
+      <span class="node">F1 Setup &amp; Design System</span>
+      <span class="arrow">→</span>
+      <div class="group">
+        <span class="node par">F2 driva_domain</span>
+        <span style="font-size:.75rem;color:var(--muted);text-align:center">paralelas</span>
+        <span class="node par">F3 sdui_renderer</span>
+        <span style="font-size:.75rem;color:var(--muted);text-align:center">paralelas</span>
+        <span class="node par">F4 repo_memory</span>
+      </div>
+      <span class="arrow">→</span>
+      <span class="node">F5 Builder Shell &amp; Canvas</span>
+      <span class="arrow">→</span>
+      <span class="node">F6 Paleta, DnD &amp; Tree</span>
+      <span class="arrow">→</span>
+      <span class="node">F7 Inspector, Persistência &amp; Homologação</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 1 -->
+    <div class="phase" id="fase-1">
+      <div class="phase-header">
+        <span class="phase-num">1</span>
+        <div>
+          <div class="phase-title">Setup do Monorepo Flutter &amp; Design System</div>
+          <div class="phase-dep">Depende de: — (ponto de partida)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Repositório estruturado com os 4 packages Flutter/Dart, ambiente de desenvolvimento funcionando e design system baseado no <code>web-prototipe</code> pronto para uso.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Criar estrutura de monorepo: diretório raiz com <code>melos.yaml</code> (ou <code>pubspec.yaml</code> raiz), <code>packages/driva_domain/</code>, <code>packages/driva_repository_memory/</code>, <code>packages/sdui_renderer/</code>, <code>apps/driva_builder/</code>. <code>.editorconfig</code>, <code>.gitignore</code>, <code>.nvmrc</code> (para Melos).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar cada package: <code>pubspec.yaml</code> com dependências aprovadas pelo board (<code>go_router</code>, <code>get_it</code>, <code>flutter_bloc</code>, <code>equatable</code>, <code>fpdart</code>, <code>bloc_test</code>, <code>mocktail</code>). <strong>Sem</strong> <code>build_runner</code>, <code>freezed</code>, <code>injectable</code>, <code>go_router_builder</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar análise estática: <code>analysis_options.yaml</code> compartilhado com lints estritos (<code>flutter_lints</code> + regras adicionais). Verificar que nenhum package tem dependência proibida.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Extrair design tokens do <code>web-prototipe</code> como <code>ThemeData</code> em <code>driva_builder/lib/core/theme/app_theme.dart</code>:
+              <span class="task-note">Cores: canvas <code>#eef0f2</code>, painéis brancos, accent <code>#6c4cf1</code> ou similar, text, muted, bordas. Tipografia: Public Sans (via Google Fonts ou asset local). Espaçamento, border-radius, sombras, estados de hover/active.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Criar app Flutter Web mínimo (<code>driva_builder</code>) com o tema aplicado. Tela de demonstração dos tokens para validação visual do board.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar CI básico: <code>flutter test</code> + <code>flutter analyze</code> para todos os packages em cada push.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Atualizar <code>CLAUDE.md</code> raiz com instruções do monorepo Driva Flutter (comandos Melos, convenções, estrutura).</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> <code>melos bootstrap</code> funciona; <code>flutter analyze</code> sem erros; tela de tokens visualmente fiel ao <code>web-prototipe</code>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 2 -->
+    <div class="phase" id="fase-2">
+      <div class="phase-header">
+        <span class="phase-num parallel">2</span>
+        <div>
+          <div class="phase-title">driva_domain — Domínio, Contratos &amp; Catálogo <span style="font-size:.75rem;color:var(--accent-2);font-weight:normal">▶ paralela com F3 e F4</span></div>
+          <div class="phase-dep">Depende de: Fase 1</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Package <code>driva_domain</code> completo: entidades imutáveis com <code>Equatable</code>, contratos de repositório com <code>Either&lt;Failure,T&gt;</code>, use cases, catálogo dos 14 widgets e utilitários de árvore — tudo Dart puro, testável sem Flutter.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>sealed Failure</code> com variantes: <code>NotFoundFailure</code>, <code>StorageFailure</code>, <code>ValidationFailure(String details)</code>, <code>UnexpectedFailure</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar entidade <code>Block</code>: <code>id</code>, <code>widgetSlug</code>, <code>widgetVersion</code>, <code>props: Map&lt;String, Object?&gt;</code>. <code>Equatable</code>. <code>copyWith</code> manual. Props de <code>child/children</code> vivem dentro de <code>props</code> como <code>Block</code>/<code>List&lt;Block&gt;</code>.
+              <span class="task-note">Sem z.lazy() — o modelo JSON/árvoreda é Dart nativo, não Zod. Validação de tipos de prop é responsabilidade do <code>sdui_renderer</code> e do inspector.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar entidade <code>PageFragment</code>: <code>specVersion</code>, <code>kind</code>, <code>id</code>, <code>name</code>, <code>projectId</code>, <code>blocks: List&lt;Block&gt;</code>. <code>Equatable</code>. <code>copyWith</code> manual. <code>toJson</code>/<code>fromJson</code> (serialização para persistência).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>WidgetDef</code>: <code>slug</code>, <code>version</code>, <code>displayName</code>, <code>category</code>, <code>icon</code> (IconData), <code>slotKind: SlotKind</code>, <code>defaultProps: Map&lt;String, Object?&gt;</code>, <code>propSchema: List&lt;PropDescriptor&gt;</code> (para o inspector).
+              <span class="task-note"><code>PropDescriptor</code>: <code>{ key, type: PropType (string/number/bool/enum/color/edgeInsets), label, options? }</code>. Define os campos do formulário do inspector — sem biblioteca de formulário externa.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>widgetCatalog</code>: lista com os 14 widgets (folha: text, image, icon, spacer, divider, button; single-child: container, padding, expanded, sizedBox, card; multi-child: row, column, stack). Portado e adaptado dos schemas do WidgetMill.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>IPageRepository</code>: <code>getPage(projectId)</code> → <code>Either&lt;Failure, PageFragment?&gt;</code>; <code>savePage(page)</code> → <code>Either&lt;Failure, Unit&gt;</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar use cases: <code>GetPageUseCase</code>, <code>SavePageUseCase</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar utilitários de árvore em <code>block_tree.dart</code> (funções puras):
+              <span class="task-note"><code>generateBlockId()</code> · <code>createBlock(WidgetDef)</code> · <code>insertBlock(page, parentId, slotKey, index, block)</code> · <code>removeBlock(page, blockId)</code> (remove subárvore) · <code>moveBlock(page, blockId, newParentId, newIndex)</code> · <code>findBlock(page, blockId)</code> · <code>walkBlocks(page, visitor)</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Barrels: <code>entities.dart</code>, <code>repositories.dart</code>, <code>use_cases.dart</code>, <code>catalog.dart</code>, <code>driva_domain.dart</code> (público). Verificar que o barrel público não expõe nada interno.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes unitários com <code>mocktail</code>:
+              <span class="task-note">
+                · <code>Block</code> equality + copyWith com props aninhadas.<br>
+                · <code>PageFragment.toJson/fromJson</code> round-trip (árvore de 3 níveis: Column → Padding → Text).<br>
+                · <code>insertBlock</code>, <code>removeBlock</code>, <code>moveBlock</code> com árvores de profundidade 3.<br>
+                · <code>GetPageUseCase</code>/<code>SavePageUseCase</code> com mock de <code>IPageRepository</code>.<br>
+                · Catálogo com exatamente 14 entradas e SlotKind correto por widget.
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> <code>dart test</code> passa; round-trip JSON valida árvore Column → Padding → Text; utilitários de árvore cobertos por testes.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 3 -->
+    <div class="phase" id="fase-3">
+      <div class="phase-header">
+        <span class="phase-num parallel">3</span>
+        <div>
+          <div class="phase-title">sdui_renderer — Portar Renderer da POC <span style="font-size:.75rem;color:var(--accent-2);font-weight:normal">▶ paralela com F2 e F4</span></div>
+          <div class="phase-dep">Depende de: Fase 1 (+ driva_domain para tipagem, após F2)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Package <code>sdui_renderer</code> com o widget <code>SduiRenderer</code> que renderiza uma <code>PageFragment</code> recursivamente, suportando os 14 widgets, com seleção visual inline e placeholder para widget desconhecido.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Portar <code>sdui_flutter</code> do WidgetMill para <code>packages/sdui_renderer/</code>. Adaptar para consumir <code>PageFragment</code> e <code>Block</code> do <code>driva_domain</code> (em vez dos tipos da POC).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>SduiRenderer</code>: widget raiz que recebe <code>PageFragment page</code>, <code>String? selectedBlockId</code> e <code>ValueChanged&lt;String&gt;? onBlockTap</code>. Renderiza os blocos raiz em <code>Column</code> scrollável.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>BlockRenderer</code>: recursivo. Folha → widget correspondente. Single-child → widget envolvendo <code>BlockRenderer(block.props['child'])</code>. Multi-child → widget com <code>block.props['children'].map(BlockRenderer)</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar os 14 widgets (portado da POC):
+              <span class="task-note">Folha: Text, Image, Icon, Spacer, Divider, ElevatedButton. Single-child: Container, Padding, Expanded, SizedBox, Card. Multi-child: Row, Column, Stack. Props mapeadas a partir de <code>block.props</code> com parseamento seguro (null-safe).</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Overlay de seleção: quando <code>selectedBlockId == block.id</code>, envolve o widget em um <code>Stack</code> com borda colorida e label do slug. Callback <code>onBlockTap</code> via <code>GestureDetector</code> em cada bloco.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Placeholder para widget desconhecido: container cinza com slug, versão e ícone de aviso — nunca crash.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes de widget (<code>flutter_test</code>):
+              <span class="task-note">
+                · <code>PageFragment</code> vazia → renderiza sem crash.<br>
+                · Árvore Column → Padding → Text → texto visível.<br>
+                · Widget desconhecido → mostra placeholder.<br>
+                · <code>selectedBlockId</code> → borda de seleção visível.<br>
+                · Tap em bloco → <code>onBlockTap</code> chamado.
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Testes de widget passam; árvore de 3 níveis renderiza corretamente; seleção visual funciona.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 4 -->
+    <div class="phase" id="fase-4">
+      <div class="phase-header">
+        <span class="phase-num parallel">4</span>
+        <div>
+          <div class="phase-title">driva_repository_memory — InMemory Repository <span style="font-size:.75rem;color:var(--accent-2);font-weight:normal">▶ paralela com F2 e F3</span></div>
+          <div class="phase-dep">Depende de: Fase 2 (driva_domain)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Implementação in-memory de <code>IPageRepository</code> que persiste páginas em <code>Map</code> durante a sessão. Substituída por implementação NestJS em I2+ sem alterar nenhum use case ou Cubit.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>InMemoryPageRepository implements IPageRepository</code>:
+              <span class="task-note">Internamente: <code>final Map&lt;String, PageFragment&gt; _store = {}</code>. <code>getPage(projectId)</code> → <code>Right(_store[projectId])</code> ou <code>Right(null)</code> se não existe. <code>savePage(page)</code> → <code>_store[page.projectId] = page; return Right(unit)</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes unitários com <code>bloc_test</code>/<code>mocktail</code>:
+              <span class="task-note">· save + get round-trip. · get de projectId inexistente → <code>Right(null)</code>. · implementa corretamente a interface <code>IPageRepository</code>.</span>
+            </span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Testes unitários passam; implementa corretamente <code>IPageRepository</code>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 5 -->
+    <div class="phase" id="fase-5">
+      <div class="phase-header">
+        <span class="phase-num">5</span>
+        <div>
+          <div class="phase-title">driva_builder — Shell do Editor, Canvas &amp; DI</div>
+          <div class="phase-dep">Depende de: Fases 2, 3, 4 (todas concluídas)</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> App Flutter Web completo com DI configurada, shell de 3 painéis redimensionáveis, topbar, canvas com phone mockup e <code>SduiRenderer</code> integrado — sem DnD ou inspector ainda.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><code>main.dart</code>: captura global de erros (3 redes: <code>FlutterError.onError</code>, <code>PlatformDispatcher.instance.onError</code>, <code>runZonedGuarded</code>). <code>setupLocator()</code> antes do <code>runApp</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar <code>injection.dart</code>: registrar <code>InMemoryPageRepository</code> como <code>IPageRepository</code> (lazy singleton). Registrar use cases (factory). Registrar cubits (factory, dispose automático pelo BlocProvider).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Configurar <code>app_router.dart</code>: rota <code>/editor</code> com <code>EditorPage.pageBuilder</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar layout de 3 painéis (<code>EditorLayout</code>):
+              <span class="task-note">Usar <code>Row</code> com <code>MouseRegion</code> + <code>GestureDetector</code> nos divisores para redimensionamento. Largura mínima/máxima por painel. Estado de largura gerenciado localmente no widget (não no Cubit — é UI detail).</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar topbar: logo Driva, breadcrumb (App / NomeDaPágina), busca global (placeholder), botões (Preview — ação futura, Publish — desabilitado com Tooltip "disponível no I4"). Status indicator ("Salvo" / "Editando…") via <code>BlocBuilder&lt;EditorCubit&gt;</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>CanvasPanel</code>: fundo <code>#eef0f2</code>, <code>PhoneMockup</code> (bordas arredondadas + notch), <code>SduiRenderer</code> inline. Toolbar: zoom (+/−, %, padrão 90%), seletor de device (Smartphone 393×852 / Tablet 768×1024 / Desktop 1280×800).
+              <span class="task-note">Zoom via <code>Transform.scale</code> sobre o mockup. Troca de device apenas redimensiona o <code>SizedBox</code> do mockup — sem reload, sem iframe.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>EditorCubit</code> base: load/save, histórico de snapshots (até 50), undo/redo, selectBlock. Conectar ao <code>CanvasPanel</code> para renderizar a página e mostrar seleção.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes de widget: <code>EditorPage</code> renderiza 3 painéis; canvas mostra phone mockup; troca de device redimensiona sem erro; topbar exibe status correto.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Validação visual pelo board: screenshot/demo do shell antes de avançar.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Editor abre; 3 painéis redimensionáveis; phone mockup com <code>SduiRenderer</code> integrado; troca de device sem reload; visual fiel ao <code>web-prototipe</code>; board aprova.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 6 -->
+    <div class="phase" id="fase-6">
+      <div class="phase-header">
+        <span class="phase-num">6</span>
+        <div>
+          <div class="phase-title">Paleta, DnD &amp; Tree View Hierárquica</div>
+          <div class="phase-dep">Depende de: Fase 5</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Painel esquerdo completo: modo Paleta com DnD Flutter nativo (3 cenários de drop) e modo Tree com visualização hierárquica, DnD de reordenação/reparenting e seleção sincronizada com o canvas.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>PaletaCubit</code> + <code>PaletaPanel</code>: grid de 14 widgets (ícone + nome), agrupados por categoria (Layout / Conteúdo / Interação). Campo de busca filtra <code>widgetCatalog</code> por <code>displayName</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">DnD Flutter nativo — paleta: cada <code>WidgetCard</code> é <code>Draggable&lt;WidgetDef&gt;</code> com <code>feedback</code> (miniatura: ícone + nome) e <code>childWhenDragging</code> (opaco).
+              <span class="task-note">Sem pacote externo de DnD — Flutter SDK inclui <code>Draggable</code>/<code>DragTarget</code> nativos.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário A — drop no canvas (raiz):</strong> <code>CanvasPanel</code> tem <code>DragTarget&lt;WidgetDef&gt;</code> de fundo. Drop fora de qualquer bloco → <code>editorCubit.insertBlock(null, 'children', -1, def)</code>. Indicador visual: borda tracejada ao redor do canvas durante drag.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário B — drop dentro de container:</strong> cada bloco container no <code>BlockRenderer</code> pode ser envolvido em <code>DragTarget&lt;WidgetDef&gt;</code> quando um drag está ativo (via <code>InheritedWidget</code> de contexto de drag). Highlight do container com borda colorida. Drop → <code>insertBlock(containerId, slotKey, -1, def)</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Cenário C — drop entre irmãos:</strong> em containers multi-child, linha de inserção aparece entre blocos irmãos com base na posição vertical do cursor. Drop → <code>insertBlock(containerId, 'children', index, def)</code>.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Toggle "Paleta / Tree" no cabeçalho do painel esquerdo.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>TreeCubit</code> + <code>TreePanel</code>: renderização recursiva da <code>PageFragment</code>. Cada nó: ícone (catálogo), slug, id curto. Containers colapsáveis (estado em <code>TreeCubit</code>).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">DnD na tree para reordenação e reparenting:
+              <span class="task-note"><code>LongPressDraggable&lt;String&gt;</code> (blockId) em cada nó. <code>DragTarget&lt;String&gt;</code> em cada nó e espaço entre nós. A posição vertical do drop (cima/centro/baixo de um nó) determina: "inserir antes", "inserir como filho" ou "inserir depois". Ao soltar: <code>editorCubit.moveBlock(blockId, newParentId, newIndex)</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Seleção sincronizada tree ↔ canvas: clicar nó da tree → <code>editorCubit.selectBlock(blockId)</code>. Canvas recebe <code>selectedBlockId</code> e mostra outline via <code>SduiRenderer</code>. Tap no canvas (via <code>onBlockTap</code> do <code>SduiRenderer</code>) → <code>editorCubit.selectBlock(blockId)</code> → tree expande e destaca o nó.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Remoção de bloco: botão remover visível no hover de cada nó. Chama <code>editorCubit.removeBlock(blockId)</code> (remove o bloco e toda a subárvore). Undo restaura.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Undo/redo: toda ação de drop ou remoção registra snapshot no histórico do <code>EditorCubit</code>. Ctrl+Z / Ctrl+Y via <code>Focus</code> + <code>KeyEventResult</code> no Flutter Web.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Acessibilidade: widgets na paleta acessíveis por teclado (Tab + Enter insere ao final da raiz como alternativa ao arrastar). Tooltips em todos os botões de ação.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> PM arrasta Text para o canvas → aparece. Arrasta Row, depois arrasta Text dentro do Row → preview mostra texto dentro de Row (cenário B). Reordena pela tree. Undo reverte. Seleção sincronizada canvas ↔ tree.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ FASE 7 -->
+    <div class="phase" id="fase-7">
+      <div class="phase-header">
+        <span class="phase-num">7</span>
+        <div>
+          <div class="phase-title">Inspector, Persistência, Polimento &amp; Homologação</div>
+          <div class="phase-dep">Depende de: Fase 6</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <p class="phase-obj"><strong>Objetivo:</strong> Inspector com formulários gerados por <code>PropDescriptor</code>, persistência via <code>IPageRepository</code> (InMemory), polimento UX, Security Gate 3 e homologação pelo board contra o DoD do I1.</p>
+        <ul class="tasks">
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar <code>InspectorCubit</code> + <code>InspectorPanel</code>:
+              <span class="task-note">Sem seleção → exibe <code>PagePropsForm</code> (nome da página editável). Com seleção → exibe formulário gerado a partir do <code>WidgetDef.propSchema</code> do bloco selecionado. Props <code>child</code>/<code>children</code> não aparecem no inspector (gerenciadas pelo DnD).</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Implementar campos de formulário do inspector (6 tipos):
+              <span class="task-note"><code>string</code>: <code>TextField</code>. <code>number</code>: <code>TextField</code> numérico. <code>bool</code>: <code>Switch</code>. <code>enum</code>: <code>DropdownButton</code>. <code>color</code>: seletor com input hex + preview. <code>edgeInsets</code>: 4 campos numéricos (top/right/bottom/left).</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Debounce 300ms: cada alteração no inspector chama <code>editorCubit.updateBlockProp</code> com debounce via <code>InspectorCubit</code>. Preview atualiza automaticamente (Cubit emite novo estado → BlocBuilder reconstrói canvas → SduiRenderer re-renderiza).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Undo/redo completo: edição de propriedade, reordenação na tree, reparenting, remoção — todos registrados no histórico do <code>EditorCubit</code>. Ctrl+Z / Ctrl+Y.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Save/load via <code>IPageRepository</code>: botão "Salvar rascunho" → <code>editorCubit.save()</code> → <code>SavePageUseCase</code> → <code>InMemoryPageRepository</code>. Ao abrir editor → <code>GetPageUseCase</code>. Status indicator atualizado.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Auto-save (Should): debounce de 2s após última edição → salva silenciosamente. Indicador discreto "Salvando…".</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Polimento: transições suaves (AnimatedSwitcher nos toggles de painel), hover states em todos os elementos interativos (MouseRegion + AnimatedContainer), feedback tátil no DnD (escala do ghost), SnackBar/toast ao salvar/remover.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Performance: medir TTI do app Flutter Web (&lt;3s); validar debounce 300ms sem janks; aplicar <code>const</code> em todos os widgets estáticos; usar <code>RepaintBoundary</code> no canvas para isolar repaint do preview do resto do editor.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Acessibilidade: navegação por teclado no inspector (Tab entre campos); <code>Semantics</code> nos elementos interativos; contraste WCAG AA (verificar com <code>flutter_a11y</code> ou DevTools).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text"><strong>Security Gate 3:</strong> revisão de código focada nos pontos da Avaliação de Superfície (seção abaixo).
+              <span class="task-note"><span class="sec-badge">Segurança</span></span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Testes de Cubit com <code>bloc_test</code>:
+              <span class="task-note">· <code>EditorCubit</code>: load → loaded; insertBlock → loaded com bloco; undo → estado anterior; save → isDirty false. · <code>InspectorCubit</code>: updateProp com debounce. Mocks via <code>mocktail</code>.</span>
+            </span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Teste de integração (flutter_test com pump): fluxo completo — abrir editor → arrastar 3 widgets → aninhar em Column → editar prop de texto → salvar → reabrir → rascunho restaurado.</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Sessão de homologação com o board: validar os 8 itens do DoD (PRD seção 7), com atenção especial ao item 7 (UX agradável e intuitivo).</span>
+          </li>
+          <li>
+            <span class="task-status status-todo">todo</span>
+            <span class="task-text">Após homologação: atualizar <code>docs/manifest.json</code> com status aprovado do Plano v3. Criar issues de implementação por fase.</span>
+          </li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0"><strong>Critério de saída:</strong> Todos os 8 itens do DoD verificados; Security Gate 3 concluído; testes de Cubit passam; I1 homologado pelo board.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ SECURITY GATE 2 -->
+    <h2 id="security">Security Gate 2 — Avaliação de Superfície Sensível</h2>
+
+    <div class="panel star">
+      <strong style="color:var(--accent-2)">✓ Avaliação concluída — sem superfície sensível neste incremento.</strong>
+      <table style="margin:14px 0 0">
+        <tr><th>Área</th><th>Status em I1</th><th>Observação</th></tr>
+        <tr><td><strong>Autenticação / Autorização</strong></td><td style="color:var(--accent-2)">Diferida → I2+</td><td>I1 usa <code>InMemoryPageRepository</code> sem backend real. Sem authn, sem tokens, sem surface de ataque.</td></tr>
+        <tr><td><strong>Dados pessoais (LGPD)</strong></td><td style="color:var(--accent-2)">Não coletados</td><td>Editor edita estrutura de página SDUI, sem PII.</td></tr>
+        <tr><td><strong>Pagamentos</strong></td><td style="color:var(--accent-2)">Fora de escopo</td><td>Não faz parte do produto Driva Builder em nenhum incremento.</td></tr>
+        <tr><td><strong>Integrações externas</strong></td><td style="color:var(--accent-2)">Nenhuma em I1</td><td>InMemory não abre socket. Flutter Web roda no browser, sem chamadas a serviços externos.</td></tr>
+        <tr><td><strong>iframe / postMessage</strong></td><td style="color:var(--accent-2)">Eliminado</td><td>Plano v3 usa Flutter Web puro sem iframe. Toda a superfície de <code>origin</code> validation do plano v2 foi eliminada por design.</td></tr>
+        <tr><td><strong>XSS (props do inspector)</strong></td><td style="color:var(--warn)">Risco baixo — monitorar</td><td>Props de widget renderizadas pelo <code>SduiRenderer</code> Flutter — não HTML/DOM — sem vetor de XSS clássico. Props de tipo string exibidas via <code>Text</code> widget (imune a injeção de HTML).</td></tr>
+        <tr><td><strong>Injeção de código</strong></td><td style="color:var(--accent-2)">Não aplicável em I1</td><td>Sem execução de código de usuário. Props são strings/números/booleanos mapeados a atributos visuais.</td></tr>
+        <tr><td><strong>Preparação para I2+ (NestJS)</strong></td><td style="color:var(--warn)">A planejar</td><td>Quando NestJS entrar: authn JWT, multi-tenant isolation, CORS, Helmet, payload limits — Security Gate 2 deve ser re-executado para I2.</td></tr>
+      </table>
+      <p style="margin:12px 0 0;font-size:.9rem">
+        <strong>Conclusão:</strong> O I1 com Flutter Web puro + InMemory tem a menor superfície de ataque possível.
+        Nenhuma tarefa de segurança bloqueia o desenvolvimento do I1. As preocupações de segurança de rede
+        (authn, CORS, tenant isolation) devem compor o Security Gate 2 de I2 quando NestJS for adicionado.
+        O Security Gate 3 (revisão de código pré-homologação) permanece obrigatório — foco em XSS de props,
+        acesso a recursos do browser e integridade do build Flutter Web.
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ CRITÉRIOS DE ACEITE -->
+    <h2 id="dod">Critérios de Aceite do I1</h2>
+
+    <ol>
+      <li>PM consegue montar página com 3+ widgets arrastando da paleta ao canvas sem assistência, incluindo aninhamento (ex.: Text dentro de Column dentro de Padding).</li>
+      <li>Preview no canvas é idêntico ao Flutter real (zero divergência — é o mesmo renderer).</li>
+      <li>Tree View hierárquica mostra a árvore correta; permite reordenar e reparentar via DnD; seleção sincronizada com canvas.</li>
+      <li>Troca de device no seletor redimensiona o canvas sem reload.</li>
+      <li>Página salva como rascunho (InMemory) e restaurada ao reabrir o editor na mesma sessão.</li>
+      <li>Undo/redo (Ctrl+Z/Y) reverte e reaplicar toda ação de edição (drop, remove, move, prop edit).</li>
+      <li><strong>Board avalia o editor como visualmente agradável e intuitivo</strong> — UI ruim = I1 não concluído.</li>
+      <li>Security Gate 3 concluído antes da homologação.</li>
+    </ol>
+
+    <!-- ═══════════════════════════════════════════ DECISÕES TÉCNICAS -->
+    <h2 id="decisoes">Decisões Técnicas</h2>
+
+    <table>
+      <tr><th>Aspecto</th><th>Decisão</th><th>Razão</th></tr>
+      <tr><td><strong>Frontend</strong></td><td>Flutter Web puro (driva_builder)</td><td>Decisão do board (BMJ-16). Zero divergência React ↔ Flutter no preview; preview inline sem iframe.</td></tr>
+      <tr><td><strong>Backend (I1)</strong></td><td>InMemoryPageRepository (diferido)</td><td>NestJS em I2+. I1 demonstra a UX completa sem complexidade de backend.</td></tr>
+      <tr><td><strong>Estado global</strong></td><td>EditorCubit (flutter_bloc) + snapshots imutáveis</td><td>Prescritivo (sealed state + switch exaustivo). Undo/redo via lista de snapshots.</td></tr>
+      <tr><td><strong>DI</strong></td><td>get_it (lazy singletons + factories)</td><td>Sem BuildContext. Troca de impl (InMemory → NestJS) sem alterar use cases ou cubits.</td></tr>
+      <tr><td><strong>DnD</strong></td><td>Draggable/DragTarget nativos Flutter SDK</td><td>Sem dependência extra (não aprovada pelo board). Funcional; mais simples que biblioteca JS.</td></tr>
+      <tr><td><strong>Preview inline</strong></td><td>SduiRenderer como widget no canvas</td><td>Sem iframe, sem postMessage, sem origin validation. Fidelidade 100% por construção.</td></tr>
+      <tr><td><strong>Sem geração de código</strong></td><td>Zero build_runner/freezed/injectable/go_router_builder</td><td>Decisão do board (BMJ-16). copyWith manual; barrels manuais; injeção manual.</td></tr>
+      <tr><td><strong>Imutabilidade</strong></td><td>copyWith manual + Equatable</td><td>Trade-off consciente (artigo de referência, seção 11). Sem freezed = sem build_runner.</td></tr>
+      <tr><td><strong>Erros previstos</strong></td><td>Either&lt;Failure, T&gt; via fpdart</td><td>Erro na assinatura; compilador obriga tratamento. Padrão do artigo de referência.</td></tr>
+      <tr><td><strong>Testes</strong></td><td>bloc_test + mocktail</td><td>Pacotes aprovados pelo board. bloc_test abstrai boilerplate de teste de Cubit.</td></tr>
+    </table>
+
+    <!-- ═══════════════════════════════════════════ RISCOS -->
+    <h2 id="riscos">Riscos e Mitigações</h2>
+
+    <table>
+      <tr><th>Risco</th><th>Prob.</th><th>Mitigação</th></tr>
+      <tr><td>DnD com DragTarget em containers aninhados — hit testing ambíguo (qual container é o alvo?)</td><td>Alta</td><td>Protótipo técnico no início da F6. Usar <code>hitTestBehavior</code> corretamente. Fallback: drop sempre na raiz + reordenar via tree (cenário A sempre disponível).</td></tr>
+      <tr><td>Undo/redo com snapshots completos de PageFragment — memória excessiva em páginas grandes</td><td>Média</td><td>Limitar histórico a 50 snapshots. Em I1 o número de blocos é pequeno; monitorar em I2+.</td></tr>
+      <tr><td>Performance do SduiRenderer com árvore profunda + rebuild frequente do BlocBuilder</td><td>Média</td><td>RepaintBoundary no canvas. Equatable previne rebuilds sem mudança de estado. Debounce 300ms no inspector.</td></tr>
+      <tr><td>UX/visual reprovado pelo board</td><td>Média</td><td>Validação visual ao final das F1, F5 e F7. Fidelidade ao web-prototipe desde a F1.</td></tr>
+      <tr><td>copyWith manual em Block com props dinâmicas (Map) — mutação acidental</td><td>Média</td><td>Props são Map imutável (Map.unmodifiable). Testes unitários cobrem imutabilidade.</td></tr>
+      <tr><td>Spec v3 desatualizada (menciona iframe/React) confunde desenvolvedores</td><td>Alta (se não corrigida)</td><td>CEO deve alinhar com board e atualizar Spec antes do desenvolvimento começar (ver divergências acima).</td></tr>
+    </table>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <!-- progress seed (machine-readable) — NÃO REMOVER
+      {
+        "version": 3,
+        "stack": {
+          "frontend": "flutter_web",
+          "backend_i1": "in_memory",
+          "backend_i2plus": "nestjs_diferido",
+          "state": "flutter_bloc_cubit",
+          "di": "get_it",
+          "dnd": "draggable_drag_target_native",
+          "errors": "fpdart_either",
+          "no_codegen": true
+        },
+        "packages": ["go_router","get_it","flutter_bloc","equatable","fpdart","bloc_test","mocktail"],
+        "phases": [
+          {
+            "id": "fase-1", "title": "Setup do Monorepo Flutter & Design System", "parallel": false,
+            "tasks": [
+              { "id": "f1-t1", "text": "Criar estrutura monorepo com 4 packages", "status": "todo" },
+              { "id": "f1-t2", "text": "Configurar pubspec.yaml de cada package", "status": "todo" },
+              { "id": "f1-t3", "text": "Configurar análise estática compartilhada", "status": "todo" },
+              { "id": "f1-t4", "text": "Extrair design tokens como ThemeData Flutter", "status": "todo" },
+              { "id": "f1-t5", "text": "App Flutter Web mínimo com tema", "status": "todo" },
+              { "id": "f1-t6", "text": "Configurar CI básico (flutter test + analyze)", "status": "todo" },
+              { "id": "f1-t7", "text": "Atualizar CLAUDE.md raiz", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-2", "title": "driva_domain — Domínio, Contratos & Catálogo", "parallel": true, "parallelWith": ["fase-3","fase-4"],
+            "tasks": [
+              { "id": "f2-t1", "text": "sealed Failure com variantes", "status": "todo" },
+              { "id": "f2-t2", "text": "Entidade Block (recursivo, Equatable, copyWith)", "status": "todo" },
+              { "id": "f2-t3", "text": "Entidade PageFragment (toJson/fromJson)", "status": "todo" },
+              { "id": "f2-t4", "text": "WidgetDef + PropDescriptor + SlotKind", "status": "todo" },
+              { "id": "f2-t5", "text": "widgetCatalog: 14 widgets com slotKind", "status": "todo" },
+              { "id": "f2-t6", "text": "IPageRepository (contrato)", "status": "todo" },
+              { "id": "f2-t7", "text": "GetPageUseCase + SavePageUseCase", "status": "todo" },
+              { "id": "f2-t8", "text": "Utilitários de árvore: insertBlock, removeBlock, moveBlock, walkBlocks", "status": "todo" },
+              { "id": "f2-t9", "text": "Barrels do package driva_domain", "status": "todo" },
+              { "id": "f2-t10", "text": "Testes unitários (Dart test)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-3", "title": "sdui_renderer — Portar Renderer da POC", "parallel": true, "parallelWith": ["fase-2","fase-4"],
+            "tasks": [
+              { "id": "f3-t1", "text": "Portar sdui_flutter do WidgetMill", "status": "todo" },
+              { "id": "f3-t2", "text": "SduiRenderer widget raiz (page + selectedBlockId + onBlockTap)", "status": "todo" },
+              { "id": "f3-t3", "text": "BlockRenderer recursivo (leaf/child/children)", "status": "todo" },
+              { "id": "f3-t4", "text": "Implementar os 14 widgets", "status": "todo" },
+              { "id": "f3-t5", "text": "Overlay de seleção (borda + label)", "status": "todo" },
+              { "id": "f3-t6", "text": "Placeholder para widget desconhecido", "status": "todo" },
+              { "id": "f3-t7", "text": "Testes de widget (flutter_test)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-4", "title": "driva_repository_memory — InMemory Repository", "parallel": true, "parallelWith": ["fase-2","fase-3"],
+            "tasks": [
+              { "id": "f4-t1", "text": "InMemoryPageRepository implements IPageRepository", "status": "todo" },
+              { "id": "f4-t2", "text": "Testes unitários", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-5", "title": "driva_builder — Shell, Canvas & DI", "parallel": false,
+            "tasks": [
+              { "id": "f5-t1", "text": "main.dart: captura global de erros + setupLocator", "status": "todo" },
+              { "id": "f5-t2", "text": "injection.dart: registrar InMemoryPageRepository + use cases + cubits", "status": "todo" },
+              { "id": "f5-t3", "text": "app_router.dart: rota /editor", "status": "todo" },
+              { "id": "f5-t4", "text": "EditorLayout: 3 painéis redimensionáveis", "status": "todo" },
+              { "id": "f5-t5", "text": "Topbar (logo, breadcrumb, busca, botões, status indicator)", "status": "todo" },
+              { "id": "f5-t6", "text": "CanvasPanel: PhoneMockup + SduiRenderer + toolbar (zoom, device)", "status": "todo" },
+              { "id": "f5-t7", "text": "EditorCubit base: load/save/histórico/undo-redo/selectBlock", "status": "todo" },
+              { "id": "f5-t8", "text": "Testes de widget do editor shell", "status": "todo" },
+              { "id": "f5-t9", "text": "Validação visual pelo board", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-6", "title": "Paleta, DnD & Tree View Hierárquica", "parallel": false,
+            "tasks": [
+              { "id": "f6-t1", "text": "PaletaCubit + PaletaPanel (grid + busca + categorias)", "status": "todo" },
+              { "id": "f6-t2", "text": "Draggable<WidgetDef> na paleta com ghost preview", "status": "todo" },
+              { "id": "f6-t3", "text": "Cenário A: DragTarget no canvas → insertBlock raiz", "status": "todo" },
+              { "id": "f6-t4", "text": "Cenário B: DragTarget em container → insertBlock filho", "status": "todo" },
+              { "id": "f6-t5", "text": "Cenário C: linha de inserção entre irmãos", "status": "todo" },
+              { "id": "f6-t6", "text": "Toggle Paleta/Tree no painel esquerdo", "status": "todo" },
+              { "id": "f6-t7", "text": "TreeCubit + TreePanel (hierárquico, colapsável)", "status": "todo" },
+              { "id": "f6-t8", "text": "DnD na tree: LongPressDraggable + reorder/reparent", "status": "todo" },
+              { "id": "f6-t9", "text": "Seleção sincronizada tree ↔ canvas", "status": "todo" },
+              { "id": "f6-t10", "text": "Remoção de bloco (e subárvore) com undo", "status": "todo" },
+              { "id": "f6-t11", "text": "Undo/redo por teclado (Ctrl+Z/Y)", "status": "todo" },
+              { "id": "f6-t12", "text": "Acessibilidade da paleta (Tab + Enter)", "status": "todo" }
+            ]
+          },
+          {
+            "id": "fase-7", "title": "Inspector, Persistência, Polimento & Homologação", "parallel": false,
+            "tasks": [
+              { "id": "f7-t1", "text": "InspectorCubit + InspectorPanel (Page Props + Widget Inspector)", "status": "todo" },
+              { "id": "f7-t2", "text": "6 tipos de campo: string, number, bool, enum, color, edgeInsets", "status": "todo" },
+              { "id": "f7-t3", "text": "Debounce 300ms no inspector → update preview", "status": "todo" },
+              { "id": "f7-t4", "text": "Undo/redo completo (editProp incluso)", "status": "todo" },
+              { "id": "f7-t5", "text": "Save/load via IPageRepository (InMemory)", "status": "todo" },
+              { "id": "f7-t6", "text": "Auto-save opcional (debounce 2s)", "status": "todo" },
+              { "id": "f7-t7", "text": "Polimento: transições, hover states, toasts", "status": "todo" },
+              { "id": "f7-t8", "text": "Performance (TTI <3s, RepaintBoundary, const widgets)", "status": "todo" },
+              { "id": "f7-t9", "text": "Acessibilidade (Tab no inspector, WCAG AA)", "status": "todo" },
+              { "id": "f7-t10", "text": "Security Gate 3", "status": "todo" },
+              { "id": "f7-t11", "text": "Testes de Cubit (bloc_test + mocktail)", "status": "todo" },
+              { "id": "f7-t12", "text": "Teste de integração: fluxo completo arrastar→aninhar→editar→salvar→reabrir", "status": "todo" },
+              { "id": "f7-t13", "text": "Sessão de homologação com o board (DoD I1)", "status": "todo" },
+              { "id": "f7-t14", "text": "Atualizar manifest.json e criar issues de implementação", "status": "todo" }
+            ]
+          }
+        ]
+      }
+      -->
+      <strong>Changelog:</strong><br>
+      <strong>v3 (2026-06-24, BMJ-16):</strong> Reescrita completa. Stack migrada de React/Next.js + NestJS + Zustand + @dnd-kit para <strong>Flutter Web puro + InMemoryRepository + flutter_bloc + DnD nativo Flutter</strong>, conforme decisões do board (BMJ-16). 4 packages definidos (driva_domain, driva_repository_memory, sdui_renderer, driva_builder). Preview inline sem iframe/postMessage. Arquitetura modular Flutter com get_it + flutter_bloc + go_router + fpdart + equatable. Backend NestJS diferido para I2+. Security Gate 2 avaliado: sem superfície sensível em I1. Divergências com Spec v3 documentadas para realinhamento pelo CEO/board.<br>
+      <strong>v2 (2026-06-23, BMJ-3):</strong> Versão React + NestJS. Superada.<br>
+      <strong>v1 (2026-06-23, BMJ-3):</strong> Versão inicial. Superada.
+      &nbsp;·&nbsp; Driva · Módulo Página (I1) · pt-BR
+    </div>
+  </footer>
+</body>
+</html>

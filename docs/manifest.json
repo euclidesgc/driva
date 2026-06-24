@@ -37,10 +37,11 @@
           ]
         },
         "plan": {
-          "latest": 2,
+          "latest": 3,
           "versions": [
             { "v": 1, "date": "2026-06-23", "pr": null, "status": "superada", "issue": "BMJ-3" },
-            { "v": 2, "date": "2026-06-23", "pr": null, "status": "aguardando_aprovacao", "issue": "BMJ-3" }
+            { "v": 2, "date": "2026-06-23", "pr": null, "status": "superada", "issue": "BMJ-3" },
+            { "v": 3, "date": "2026-06-24", "pr": null, "status": "aguardando_aprovacao", "issue": "BMJ-16" }
           ]
         }
       }
