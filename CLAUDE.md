@@ -30,18 +30,61 @@ Paperclip e quem revisa pela web não acessa o disco do agente. **Todo entregáv
 humano** (PRD, spec, HTML renderizado, screenshot, relatório, vídeo, PDF, diagrama) deve ser
 **promovido como artifact ANTES de mover a tarefa para `in_review`**:
 
-- **Arquivo que fica no repo** (ex.: PRD/spec em `docs/`): registre um **work product `workspace_file`**
-  apontando pro caminho relativo no workspace —
-  `POST /api/issues/$PAPERCLIP_TASK_ID/work-products` com
-  `{"type":"workspace_file","title":"...","resourceRef":{"kind":"workspace_file","issueId":"$PAPERCLIP_TASK_ID","workspaceKind":"project_workspace","workspaceId":"$PAPERCLIP_PROJECT_WORKSPACE_ID","relativePath":"docs/...","displayPath":"docs/..."}}`
-  (use `Authorization: Bearer $PAPERCLIP_API_KEY` e `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID`).
-- **Arquivo gerado pra download** (vídeo, PDF, zip, imagem): **suba como anexo** com
-  `paperclip-upload-artifact.sh <arquivo> --title "..." --summary "..."` (skill `paperclip`). Ele cria o
-  artifact e imprime o link markdown.
+### Opção A — Upload como attachment (recomendado para deliverables)
+
+Use o script `paperclip-upload-artifact.sh` disponível em `/app/skills/paperclip/scripts/`:
+
+```bash
+bash /app/skills/paperclip/scripts/paperclip-upload-artifact.sh \
+  docs/content/<slug>/<tipo>/v1.html \
+  --title "PRD: <Feature> v1" \
+  --summary "Descrição curta do documento."
+```
+
+O script faz upload do arquivo, cria um work product `artifact` linkado ao attachment, e imprime
+os links markdown para o comentário final. Use para: HTML de specs/PRDs, PDF, imagem, vídeo, zip.
+
+### Opção B — Referência no workspace (para arquivos que ficam no repo)
+
+Para arquivos cujo valor está ligado ao checkout (logs, índices gerados, código):
+
+```bash
+curl -sS -X POST "$PAPERCLIP_API_URL/api/issues/$PAPERCLIP_TASK_ID/work-products" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "document",
+    "provider": "workspace",
+    "title": "...",
+    "status": "ready_for_review",
+    "reviewState": "needs_board_review",
+    "summary": "...",
+    "metadata": {
+      "resourceRef": {
+        "kind": "workspace_file",
+        "issueId": "'"$PAPERCLIP_TASK_ID"'",
+        "workspaceKind": "execution_workspace",
+        "workspaceId": "<execution-workspace-id>",
+        "relativePath": "docs/content/<slug>/<tipo>/v1.html",
+        "displayPath": "docs/content/<slug>/<tipo>/v1.html"
+      }
+    }
+  }'
+```
+
+O `execution-workspace-id` está em `executionWorkspaceId` na resposta de
+`GET /api/issues/$PAPERCLIP_TASK_ID`. **Nota:** `PAPERCLIP_PROJECT_WORKSPACE_ID` pode vir
+vazio no ambiente — sempre busque o ID via API se necessário.
+
+### Regra
+
+- **Sempre** use a **Opção A** para specs/PRDs/HTMLs que o board vai revisar — o upload garante
+  acesso mesmo sem o workspace ativo.
 - **Sempre** linke o artifact no **comentário final** da tarefa, e só então mude o status.
 
-As envs (`PAPERCLIP_API_URL/API_KEY/TASK_ID/RUN_ID/COMPANY_ID/PROJECT_WORKSPACE_ID`) já vêm injetadas
-no ambiente do run. Detalhes: skill `paperclip` e `AGENT-ARTIFACTS.md`.
+As envs (`PAPERCLIP_API_URL/API_KEY/TASK_ID/RUN_ID/COMPANY_ID`) já vêm injetadas no ambiente.
+Detalhes completos: `skills/paperclip/references/artifacts.md`.
 
 ## Documentação
 
