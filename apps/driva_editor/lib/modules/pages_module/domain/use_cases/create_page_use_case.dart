@@ -24,6 +24,9 @@ class CreatePageUseCase {
         const Left(ValidationFailure('A tela de destino é obrigatória.')),
       );
     }
-    return repository.createPage(name: trimmedName, screenTarget: trimmedTarget);
+    return repository.createPage(
+      name: trimmedName,
+      screenTarget: trimmedTarget,
+    );
   }
 }

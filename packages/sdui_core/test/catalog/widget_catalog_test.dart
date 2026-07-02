@@ -4,22 +4,25 @@ import 'package:test/test.dart';
 void main() {
   group('widgetCatalog', () {
     test('tem os 14 primitivos do I1', () {
-      expect(widgetCatalog.keys, containsAll(<String>[
-        'container',
-        'column',
-        'row',
-        'stack',
-        'text',
-        'image',
-        'icon',
-        'button',
-        'card',
-        'divider',
-        'sizedBox',
-        'padding',
-        'center',
-        'spacer',
-      ]));
+      expect(
+        widgetCatalog.keys,
+        containsAll(<String>[
+          'container',
+          'column',
+          'row',
+          'stack',
+          'text',
+          'image',
+          'icon',
+          'button',
+          'card',
+          'divider',
+          'sizedBox',
+          'padding',
+          'center',
+          'spacer',
+        ]),
+      );
       expect(widgetCatalog, hasLength(14));
     });
 
@@ -33,15 +36,24 @@ void main() {
       for (final descriptor in widgetCatalog.values) {
         for (final field in descriptor.fields) {
           if (field.kind == FieldKind.enumeration) {
-            expect(field.enumValues, isNotEmpty,
-                reason: '${descriptor.type}.${field.key}');
+            expect(
+              field.enumValues,
+              isNotEmpty,
+              reason: '${descriptor.type}.${field.key}',
+            );
             if (field.defaultValue != null) {
-              expect(field.enumValues, contains(field.defaultValue),
-                  reason: '${descriptor.type}.${field.key}');
+              expect(
+                field.enumValues,
+                contains(field.defaultValue),
+                reason: '${descriptor.type}.${field.key}',
+              );
             }
           } else {
-            expect(field.enumValues, isEmpty,
-                reason: '${descriptor.type}.${field.key}');
+            expect(
+              field.enumValues,
+              isEmpty,
+              reason: '${descriptor.type}.${field.key}',
+            );
           }
         }
       }
@@ -61,8 +73,11 @@ void main() {
       expect(node.type, 'text');
       expect(node.properties['data'], 'Texto');
       expect(node.properties['fontSize'], 14.0);
-      expect(node.properties.containsKey('color'), isFalse,
-          reason: 'campo sem default não entra');
+      expect(
+        node.properties.containsKey('color'),
+        isFalse,
+        reason: 'campo sem default não entra',
+      );
     });
 
     test('nó default passa na validação do schema', () {
@@ -70,8 +85,11 @@ void main() {
         final node = defaultNode(type, id: 'nd_$type');
         final result = parseNode(node.toJson());
 
-        expect(result.isRight(), isTrue,
-            reason: '$type: ${result.getLeft().toNullable()}');
+        expect(
+          result.isRight(),
+          isTrue,
+          reason: '$type: ${result.getLeft().toNullable()}',
+        );
       }
     });
 

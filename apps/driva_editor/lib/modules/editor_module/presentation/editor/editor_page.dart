@@ -38,24 +38,24 @@ class EditorPage extends StatelessWidget {
       builder: (context, state) {
         return switch (state) {
           EditorLoading() => const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
+            body: Center(child: CircularProgressIndicator()),
+          ),
           final EditorLoadFailure s => Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_messageFor(s.failure)),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => context.goNamed('pages'),
-                      child: const Text('Voltar para as páginas'),
-                    ),
-                  ],
-                ),
+            appBar: AppBar(),
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_messageFor(s.failure)),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => context.goNamed('pages'),
+                    child: const Text('Voltar para as páginas'),
+                  ),
+                ],
               ),
             ),
+          ),
           final EditorReady s => _EditorWorkspace(state: s),
         };
       },
@@ -63,11 +63,11 @@ class EditorPage extends StatelessWidget {
   }
 
   String _messageFor(Failure failure) => switch (failure) {
-        NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
-        NotFoundFailure() => 'Página não encontrada.',
-        ValidationFailure(message: final m) => 'Spec inválido: $m',
-        UnexpectedFailure() => 'Algo deu errado ao abrir o editor.',
-      };
+    NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
+    NotFoundFailure() => 'Página não encontrada.',
+    ValidationFailure(message: final m) => 'Spec inválido: $m',
+    UnexpectedFailure() => 'Algo deu errado ao abrir o editor.',
+  };
 }
 
 class _EditorWorkspace extends StatelessWidget {
@@ -83,8 +83,7 @@ class _EditorWorkspace extends StatelessWidget {
       shortcuts: {
         const SingleActivator(LogicalKeyboardKey.keyS, control: true):
             const _SaveIntent(),
-        const SingleActivator(LogicalKeyboardKey.delete):
-            const _DeleteIntent(),
+        const SingleActivator(LogicalKeyboardKey.delete): const _DeleteIntent(),
       },
       child: Actions(
         actions: {
@@ -108,10 +107,8 @@ class _EditorWorkspace extends StatelessWidget {
                   onSelect: cubit.selectNode,
                   onChangeDevice: cubit.changeDevice,
                   onChangeZoom: cubit.changeZoom,
-                  onAddToRoot: (type) => cubit.addNode(
-                    type,
-                    parentId: state.document.root.id,
-                  ),
+                  onAddToRoot: (type) =>
+                      cubit.addNode(type, parentId: state.document.root.id),
                 ),
               ),
               right: ColoredBox(

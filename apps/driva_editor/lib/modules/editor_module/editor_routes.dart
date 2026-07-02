@@ -6,9 +6,6 @@ class EditorRoutes {
   static const String editor = '/pages/:id/edit';
   static const String editorName = 'editor';
 
-  static GoRoute get route => GoRoute(
-        path: editor,
-        name: editorName,
-        builder: EditorPage.pageBuilder,
-      );
+  static GoRoute get route =>
+      GoRoute(path: editor, name: editorName, builder: EditorPage.pageBuilder);
 }

@@ -26,12 +26,12 @@ class SduiView extends StatelessWidget {
     SduiActionHandler? onAction,
     SduiNodeWrapper? nodeWrapper,
   }) : this(
-          key: key,
-          node: spec.root,
-          registry: registry,
-          onAction: onAction,
-          nodeWrapper: nodeWrapper,
-        );
+         key: key,
+         node: spec.root,
+         registry: registry,
+         onAction: onAction,
+         nodeWrapper: nodeWrapper,
+       );
 
   final SduiNode node;
   final SduiRegistry? registry;

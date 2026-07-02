@@ -20,9 +20,7 @@ final _pageEnvelope = z.map({
 /// Valida o envelope (zard), a versão do formato, e a árvore de nós
 /// (recursiva, contra o catálogo). `root` precisa ser um `column`: os blocos
 /// de topo da página são `root.children`.
-Either<SpecValidationError, PageSpec> parsePageSpec(
-  Map<String, dynamic> json,
-) {
+Either<SpecValidationError, PageSpec> parsePageSpec(Map<String, dynamic> json) {
   final result = _pageEnvelope.safeParse(json);
   if (!result.success) {
     return Left(SpecValidationError(z.prettifyError(result.error!)));
@@ -46,9 +44,7 @@ Either<SpecValidationError, PageSpec> parsePageSpec(
   return parseNode(rawRoot.cast<String, dynamic>()).flatMap((root) {
     if (root.type != 'column') {
       return Left(
-        SpecValidationError(
-          'root: precisa ser "column" (veio "${root.type}")',
-        ),
+        SpecValidationError('root: precisa ser "column" (veio "${root.type}")'),
       );
     }
     return Right(

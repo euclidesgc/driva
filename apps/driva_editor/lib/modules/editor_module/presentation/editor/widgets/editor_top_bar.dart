@@ -7,11 +7,7 @@ import '../cubit/editor_cubit.dart';
 /// Top bar do editor: voltar, identificação da página, status de salvamento
 /// e a ação de salvar. Preview/Publish reais chegam nos próximos incrementos.
 class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const EditorTopBar({
-    super.key,
-    required this.state,
-    required this.onSave,
-  });
+  const EditorTopBar({super.key, required this.state, required this.onSave});
 
   final EditorReady state;
   final VoidCallback onSave;
@@ -51,10 +47,7 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
         const SizedBox(width: 8),
         Tooltip(
           message: 'Publicação chega no incremento I4',
-          child: OutlinedButton(
-            onPressed: null,
-            child: const Text('Publish'),
-          ),
+          child: OutlinedButton(onPressed: null, child: const Text('Publish')),
         ),
         const SizedBox(width: 16),
       ],
@@ -72,11 +65,17 @@ class _SaveIndicator extends StatelessWidget {
     // Cor + ícone + texto: a cor nunca é o único sinal (acessibilidade).
     final (icon, label, color) = switch (status) {
       SaveStatus.saved => (Icons.check_circle, 'Salvo', AppTheme.success),
-      SaveStatus.dirty =>
-        (Icons.edit_outlined, 'Não salvo', AppTheme.inkSecondary),
+      SaveStatus.dirty => (
+        Icons.edit_outlined,
+        'Não salvo',
+        AppTheme.inkSecondary,
+      ),
       SaveStatus.saving => (Icons.sync, 'Salvando…', AppTheme.inkSecondary),
-      SaveStatus.saveFailed =>
-        (Icons.error_outline, 'Falha ao salvar', Colors.red),
+      SaveStatus.saveFailed => (
+        Icons.error_outline,
+        'Falha ao salvar',
+        Colors.red,
+      ),
     };
     return Semantics(
       liveRegion: true,

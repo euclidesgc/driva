@@ -63,6 +63,12 @@ class SduiNode extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      <Object?>[id, type, properties, events, child, children];
+  List<Object?> get props => <Object?>[
+    id,
+    type,
+    properties,
+    events,
+    child,
+    children,
+  ];
 }

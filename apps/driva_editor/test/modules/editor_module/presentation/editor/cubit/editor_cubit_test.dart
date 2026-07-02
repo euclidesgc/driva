@@ -38,10 +38,8 @@ void main() {
     saveDraft = MockSaveDraftUseCase();
   });
 
-  EditorCubit build() => EditorCubit(
-        loadPageUseCase: loadPage,
-        saveDraftUseCase: saveDraft,
-      );
+  EditorCubit build() =>
+      EditorCubit(loadPageUseCase: loadPage, saveDraftUseCase: saveDraft);
 
   EditorCubit buildLoaded() {
     final cubit = build();
@@ -53,20 +51,19 @@ void main() {
     blocTest<EditorCubit, EditorState>(
       'emite Loading → Ready com o documento',
       build: build,
-      setUp: () =>
-          when(() => loadPage('pg_1')).thenAnswer((_) async => const Right(page)),
+      setUp: () => when(
+        () => loadPage('pg_1'),
+      ).thenAnswer((_) async => const Right(page)),
       act: (cubit) => cubit.loadPage('pg_1'),
-      expect: () => [
-        const EditorLoading(),
-        const EditorReady(document: page),
-      ],
+      expect: () => [const EditorLoading(), const EditorReady(document: page)],
     );
 
     blocTest<EditorCubit, EditorState>(
       'emite Loading → LoadFailure na falha',
       build: build,
-      setUp: () => when(() => loadPage('pg_1'))
-          .thenAnswer((_) async => const Left(NotFoundFailure())),
+      setUp: () => when(
+        () => loadPage('pg_1'),
+      ).thenAnswer((_) async => const Left(NotFoundFailure())),
       act: (cubit) => cubit.loadPage('pg_1'),
       expect: () => [
         const EditorLoading(),
@@ -114,10 +111,11 @@ void main() {
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(
-          state.document.root.children.map((n) => n.type),
-          ['container', 'text', 'divider'],
-        );
+        expect(state.document.root.children.map((n) => n.type), [
+          'container',
+          'text',
+          'divider',
+        ]);
       },
     );
 
@@ -127,10 +125,10 @@ void main() {
       act: (cubit) => cubit.moveNode('nd_text', 'nd_root', 0),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(
-          state.document.root.children.map((n) => n.id),
-          ['nd_text', 'nd_banner'],
-        );
+        expect(state.document.root.children.map((n) => n.id), [
+          'nd_text',
+          'nd_banner',
+        ]);
       },
     );
 
@@ -175,8 +173,9 @@ void main() {
     blocTest<EditorCubit, EditorState>(
       'sucesso: saving → saved',
       build: buildLoaded,
-      setUp: () => when(() => saveDraft(any()))
-          .thenAnswer((_) async => const Right(unit)),
+      setUp: () => when(
+        () => saveDraft(any()),
+      ).thenAnswer((_) async => const Right(unit)),
       act: (cubit) => cubit.save(),
       expect: () => [
         const EditorReady(document: page, saveStatus: SaveStatus.saving),
@@ -187,8 +186,9 @@ void main() {
     blocTest<EditorCubit, EditorState>(
       'falha: saving → saveFailed, documento intacto',
       build: buildLoaded,
-      setUp: () => when(() => saveDraft(any()))
-          .thenAnswer((_) async => const Left(NetworkFailure())),
+      setUp: () => when(
+        () => saveDraft(any()),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
       act: (cubit) => cubit.save(),
       expect: () => [
         const EditorReady(document: page, saveStatus: SaveStatus.saving),

@@ -10,8 +10,7 @@ import '../renderer.dart';
 Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final enabled = p['enabled'] as bool? ?? true;
-  final onPressed =
-      enabled ? () => r.dispatch(node.events['onPressed']) : null;
+  final onPressed = enabled ? () => r.dispatch(node.events['onPressed']) : null;
 
   final borderRadius = parseBorderRadius(p['borderRadius']);
   final fontSize = parseDouble(p['fontSize']);
@@ -27,10 +26,12 @@ Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
 
   return switch (p['variant']) {
     'text' => TextButton(onPressed: onPressed, style: style, child: label),
-    'outlined' =>
-      OutlinedButton(onPressed: onPressed, style: style, child: label),
-    'filled' =>
-      FilledButton(onPressed: onPressed, style: style, child: label),
+    'outlined' => OutlinedButton(
+      onPressed: onPressed,
+      style: style,
+      child: label,
+    ),
+    'filled' => FilledButton(onPressed: onPressed, style: style, child: label),
     _ => ElevatedButton(onPressed: onPressed, style: style, child: label),
   };
 }

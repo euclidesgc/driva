@@ -5,17 +5,14 @@ import 'renderer.dart';
 
 /// Constrói um widget a partir de um nó. Recebe o renderer para descer na
 /// árvore (filhos).
-typedef SduiBuilder = Widget Function(
-  BuildContext context,
-  SduiNode node,
-  SduiRenderer renderer,
-);
+typedef SduiBuilder =
+    Widget Function(BuildContext context, SduiNode node, SduiRenderer renderer);
 
 /// Mapa imutável `type → builder`. Adicionar um primitivo = uma entrada aqui
 /// (+ descriptor no catálogo do `sdui_core`).
 class SduiRegistry {
   SduiRegistry(Map<String, SduiBuilder> builders)
-      : _builders = Map.unmodifiable(builders);
+    : _builders = Map.unmodifiable(builders);
 
   final Map<String, SduiBuilder> _builders;
 

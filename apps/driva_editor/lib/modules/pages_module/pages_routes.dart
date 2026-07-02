@@ -6,9 +6,6 @@ class PagesRoutes {
   static const String pages = '/pages';
   static const String pagesName = 'pages';
 
-  static GoRoute get route => GoRoute(
-        path: pages,
-        name: pagesName,
-        builder: PageListPage.pageBuilder,
-      );
+  static GoRoute get route =>
+      GoRoute(path: pages, name: pagesName, builder: PageListPage.pageBuilder);
 }

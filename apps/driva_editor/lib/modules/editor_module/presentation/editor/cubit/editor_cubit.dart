@@ -14,10 +14,8 @@ class EditorCubit extends Cubit<EditorState> {
   final LoadPageUseCase loadPageUseCase;
   final SaveDraftUseCase saveDraftUseCase;
 
-  EditorCubit({
-    required this.loadPageUseCase,
-    required this.saveDraftUseCase,
-  }) : super(const EditorLoading());
+  EditorCubit({required this.loadPageUseCase, required this.saveDraftUseCase})
+    : super(const EditorLoading());
 
   int _idSequence = 0;
 
@@ -37,7 +35,8 @@ class EditorCubit extends Cubit<EditorState> {
   String _nextNodeId(SduiNode root) {
     String candidate;
     do {
-      candidate = 'nd_${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}'
+      candidate =
+          'nd_${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}'
           '${_idSequence++}';
     } while (sdui.findNode(root, candidate) != null);
     return candidate;
@@ -69,8 +68,9 @@ class EditorCubit extends Cubit<EditorState> {
       // Alvo é folha (ou single ocupado): entra na raiz, depois do alvo se
       // ele for bloco de topo.
       case SlotKind.single || SlotKind.none:
-        final topIndex =
-            root.children.indexWhere((child) => child.id == target.id);
+        final topIndex = root.children.indexWhere(
+          (child) => child.id == target.id,
+        );
         newRoot = sdui.insertChild(
           root,
           root.id,
@@ -88,8 +88,12 @@ class EditorCubit extends Cubit<EditorState> {
   void moveNode(String id, String newParentId, int index) {
     final current = state;
     if (current is! EditorReady) return;
-    final newRoot =
-        sdui.moveNode(current.document.root, id, newParentId, index);
+    final newRoot = sdui.moveNode(
+      current.document.root,
+      id,
+      newParentId,
+      index,
+    );
     if (identical(newRoot, current.document.root)) return;
     _emitDocument(current, newRoot);
   }
@@ -99,8 +103,9 @@ class EditorCubit extends Cubit<EditorState> {
     if (current is! EditorReady) return;
     if (id == current.document.root.id) return;
     final newRoot = sdui.removeNode(current.document.root, id);
-    final selection =
-        current.selectedNodeId == id ? null : current.selectedNodeId;
+    final selection = current.selectedNodeId == id
+        ? null
+        : current.selectedNodeId;
     _emitDocument(current, newRoot, selectedNodeId: selection);
   }
 
@@ -151,8 +156,7 @@ class EditorCubit extends Cubit<EditorState> {
     if (latest is! EditorReady) return;
     emit(
       latest.copyWith(
-        saveStatus:
-            result.isRight() ? SaveStatus.saved : SaveStatus.saveFailed,
+        saveStatus: result.isRight() ? SaveStatus.saved : SaveStatus.saveFailed,
       ),
     );
   }

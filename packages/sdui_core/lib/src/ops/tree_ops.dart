@@ -38,12 +38,7 @@ SduiNode? findParent(SduiNode root, String id) {
 
 /// Insere [node] em `children` de [parentId], na posição [index]
 /// (clampada ao tamanho da lista). Sem efeito se [parentId] não existe.
-SduiNode insertChild(
-  SduiNode root,
-  String parentId,
-  int index,
-  SduiNode node,
-) {
+SduiNode insertChild(SduiNode root, String parentId, int index, SduiNode node) {
   return _rebuild(root, (current) {
     if (current.id != parentId) return current;
     final children = [...current.children];
@@ -99,11 +94,7 @@ SduiNode moveNode(SduiNode root, String id, String newParentId, int index) {
 
 /// Aplica [patch] nas props do nó [id] (merge). Valor `null` no patch
 /// **remove** a chave (volta ao default do renderer).
-SduiNode updateNodeProps(
-  SduiNode root,
-  String id,
-  Map<String, dynamic> patch,
-) {
+SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   return _rebuild(root, (current) {
     if (current.id != id) return current;
     final merged = {...current.properties, ...patch}
@@ -122,9 +113,7 @@ SduiNode _rebuild(SduiNode node, SduiNode Function(SduiNode) transform) {
     }
   }
   if (next.children.isNotEmpty) {
-    final children = [
-      for (final c in next.children) _rebuild(c, transform),
-    ];
+    final children = [for (final c in next.children) _rebuild(c, transform)];
     next = next.copyWith(children: children);
   }
   return transform(next);
