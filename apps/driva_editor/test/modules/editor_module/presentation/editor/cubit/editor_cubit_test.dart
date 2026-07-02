@@ -1,0 +1,215 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:sdui_core/sdui_core.dart';
+
+class MockLoadPageUseCase extends Mock implements LoadPageUseCase {}
+
+class MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
+
+void main() {
+  late MockLoadPageUseCase loadPage;
+  late MockSaveDraftUseCase saveDraft;
+
+  const page = PageSpec(
+    specVersion: kSpecVersion,
+    id: 'pg_1',
+    name: 'Home',
+    screenTarget: 'home',
+    root: SduiNode(
+      id: 'nd_root',
+      type: 'column',
+      children: [
+        SduiNode(id: 'nd_banner', type: 'container'),
+        SduiNode(id: 'nd_text', type: 'text', properties: {'data': 'Oi'}),
+      ],
+    ),
+  );
+
+  setUpAll(() => registerFallbackValue(page));
+
+  setUp(() {
+    loadPage = MockLoadPageUseCase();
+    saveDraft = MockSaveDraftUseCase();
+  });
+
+  EditorCubit build() => EditorCubit(
+        loadPageUseCase: loadPage,
+        saveDraftUseCase: saveDraft,
+      );
+
+  EditorCubit buildLoaded() {
+    final cubit = build();
+    cubit.emit(const EditorReady(document: page));
+    return cubit;
+  }
+
+  group('loadPage', () {
+    blocTest<EditorCubit, EditorState>(
+      'emite Loading → Ready com o documento',
+      build: build,
+      setUp: () =>
+          when(() => loadPage('pg_1')).thenAnswer((_) async => const Right(page)),
+      act: (cubit) => cubit.loadPage('pg_1'),
+      expect: () => [
+        const EditorLoading(),
+        const EditorReady(document: page),
+      ],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'emite Loading → LoadFailure na falha',
+      build: build,
+      setUp: () => when(() => loadPage('pg_1'))
+          .thenAnswer((_) async => const Left(NotFoundFailure())),
+      act: (cubit) => cubit.loadPage('pg_1'),
+      expect: () => [
+        const EditorLoading(),
+        const EditorLoadFailure(failure: NotFoundFailure()),
+      ],
+    );
+  });
+
+  group('mutações da árvore', () {
+    blocTest<EditorCubit, EditorState>(
+      'addNode na raiz: nó com defaults do catálogo, selecionado, dirty',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNode('button'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root.children, hasLength(3));
+        final added = state.document.root.children.last;
+        expect(added.type, 'button');
+        expect(added.properties['label'], 'Botão');
+        expect(state.selectedNodeId, added.id);
+        expect(state.saveStatus, SaveStatus.dirty);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode com container selecionado entra como child (slot único)',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.selectNode('nd_banner');
+        cubit.addNode('text');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final banner = findNode(state.document.root, 'nd_banner')!;
+        expect(banner.child?.type, 'text');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode com folha selecionada entra como vizinho na raiz',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.selectNode('nd_text');
+        cubit.addNode('divider');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(
+          state.document.root.children.map((n) => n.type),
+          ['container', 'text', 'divider'],
+        );
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNode reordena dentro da raiz',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNode('nd_text', 'nd_root', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(
+          state.document.root.children.map((n) => n.id),
+          ['nd_text', 'nd_banner'],
+        );
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNode inválido (para a própria subárvore) não muda nada',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNode('nd_root', 'nd_banner', 0),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'removeNode limpa a seleção do nó removido',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.selectNode('nd_text');
+        cubit.removeNode('nd_text');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(findNode(state.document.root, 'nd_text'), isNull);
+        expect(state.selectedNodeId, isNull);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'updateProps faz merge e null remove a chave',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.updateProps('nd_text', {'fontSize': 20.0});
+        cubit.updateProps('nd_text', {'data': null});
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final text = findNode(state.document.root, 'nd_text')!;
+        expect(text.properties['fontSize'], 20.0);
+        expect(text.properties.containsKey('data'), isFalse);
+      },
+    );
+  });
+
+  group('save', () {
+    blocTest<EditorCubit, EditorState>(
+      'sucesso: saving → saved',
+      build: buildLoaded,
+      setUp: () => when(() => saveDraft(any()))
+          .thenAnswer((_) async => const Right(unit)),
+      act: (cubit) => cubit.save(),
+      expect: () => [
+        const EditorReady(document: page, saveStatus: SaveStatus.saving),
+        const EditorReady(document: page, saveStatus: SaveStatus.saved),
+      ],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'falha: saving → saveFailed, documento intacto',
+      build: buildLoaded,
+      setUp: () => when(() => saveDraft(any()))
+          .thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.save(),
+      expect: () => [
+        const EditorReady(document: page, saveStatus: SaveStatus.saving),
+        const EditorReady(document: page, saveStatus: SaveStatus.saveFailed),
+      ],
+    );
+  });
+
+  group('preview', () {
+    blocTest<EditorCubit, EditorState>(
+      'changeDevice e changeZoom (com clamp)',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.changeDevice(DevicePreset.tablet);
+        cubit.changeZoom(9);
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.device, DevicePreset.tablet);
+        expect(state.zoom, 1.5);
+      },
+    );
+  });
+}

@@ -17,6 +17,7 @@
 8. [Fase 5 — Workers (cartão de criação de cada um)](#fase-5--workers-cartão-de-criação-de-cada-um)
 9. [Fase 6 — Skill `grillme`](#fase-6--skill-grillme)
 10. [Fase 7 — Primeiro ciclo de produto](#fase-7--primeiro-ciclo-de-produto)
+11. [Apêndice A — Setup automatizável via CLI](#apêndice-a--setup-automatizável-via-cli)
 
 ---
 
@@ -222,6 +223,8 @@ Em produção, publique `docs/` como site estático (ex.: GitHub Pages). Sem dep
 ---
 
 ## Fase 1 — Company + CEO (o wizard)
+
+> 💡 Os passos das Fases 1–6 estão descritos pelo **wizard/GUI**, mas todos têm equivalente em **linha de comando** — o Claude Code pode executá-los do terminal. Ver [Apêndice A — Setup automatizável via CLI](#apêndice-a--setup-automatizável-via-cli).
 
 **Passo 1.1 — Company.** Na aba **Company** do wizard, defina o **goal** da empresa (ex.: *"Construir e evoluir software de alta qualidade em ciclos curtos"*) e um **budget mensal** inicial.
 
@@ -894,6 +897,59 @@ Com a org montada, fale com o **CEO** descrevendo o que quer construir. O fluxo 
 7. Só após a homologação, **QA** escreve os testes (happy path + edge cases) até ficar tudo verde.
 8. **Architect** valida a fase contra plano/Spec/PRD → libera a **próxima fase** → repete até o fim.
 9. No encerramento, o **CEO** (com **Tech Writer**) entrega o **mini-site `docs/` atualizado** — cada documento na **última versão**, com data + link do PR + **nota de rodapé** do que mudou (pt-BR) — e **abre o PR**. Modificações futuras viram **nova versão** do documento (reescrita total + nota de rodapé), navegável no site; progresso de tarefas fica na versão atual do plano, sem gerar versão.
+
+---
+
+## Apêndice A — Setup automatizável via CLI
+
+As Fases 1–6 estão descritas como passos no **wizard/GUI**, mas o Paperclip expõe uma **CLI completa** (`paperclipai`) e uma **API HTTP**. Logo, **o Claude Code rodando no terminal consegue executar quase todo o setup de forma não-interativa** — criar a empresa, os agentes, colar instruções, ativar skills, vincular o projeto, abrir issues, aprovar contratações e disparar heartbeats. O que continua sendo **decisão do board** (aprovar hire, homologar) também é um comando — você só decide *quando* rodar.
+
+> ⚠️ A CLI evolui entre versões. Trate os comandos abaixo como **mapa**, e confirme flags exatas com `npx paperclipai <grupo> --help` antes de scriptar. Grupos disponíveis incluem: `company`, `agent`, `goal`, `project`, `issue`, `skill`/`skills`, `approval`, `adapter`, `secrets`, `workspace`, `goal`, `routines`, `heartbeat-run`, `run`, `cost`, `auth`, `cloud`, `doctor`, `configure`, `onboard`.
+
+### A.1 — Bootstrap da instância
+
+```bash
+npx paperclipai onboard --yes          # sobe server local (:3100) + Postgres embarcado (loopback)
+# modo autenticado/privado, se precisar:
+npx paperclipai onboard --yes --bind lan      # ou --bind tailnet
+npx paperclipai doctor                  # checagem de saúde
+```
+
+Logo após, **aplique o fix do catálogo de skills** (ver [Seção 2](#2-sobre-as-skills-de-onde-vêm)) para a aba/endpoint de catálogo funcionar.
+
+### A.2 — Mapa: fase do runbook → comando
+
+| Fase do runbook | Grupo da CLI | O que faz |
+|---|---|---|
+| Fase 1 — Company | `company create --name "…" --goal "…"` | cria a empresa + goal + budget |
+| Fase 1/2 — CEO | `auth-bootstrap-ceo`, `agent …` | cria/configura o CEO (role `ceo`, adapter `claude_local`) |
+| Fase 2/4/5 — Instruções | `agent …` | seta `AGENTS.md`/`SOUL.md`/`HEARTBEAT.md`, capabilities, `--reports-to` |
+| Fase 2/2.1 — Skills | `skill`, `skills` | importa `SKILL.md` na biblioteca e ativa por agente |
+| Fase 3 — Goal/Project | `goal …`, `project …` | cria goal e project; vincula repo, branch template, budget, workspaces |
+| Fase 3 — Env/segredos | `secrets …` | env vars (marcar secret quando sensível) |
+| Fase 3 — Workspaces | `workspace …` | execution workspaces (provision/teardown) |
+| Fase 4 — Hierarquia | `agent … --reports-to <id>` | Architect→CEO, Tech Lead→Architect, workers→Tech Lead |
+| Fase 4 — Aprovar hire | `approval …` | aprova os `hire_agent` (decisão do board, via comando) |
+| Fase 4 — Heartbeat | `heartbeat-run …` | dispara o heartbeat manual do agente |
+| Fase 7 — Trabalho | `issue create --company-id <id> --title "…" --assignee-agent-id <id> …` | specs, planos, fases e tarefas como issues |
+
+### A.3 — Caminho recomendado para replicar em outra máquina (templates portáveis)
+
+A forma mais reproduzível **não** é rescriptar tudo do zero: o Paperclip suporta **export/import da org inteira** (agentes, skills, projetos, routines, issues) com *secret scrubbing* e tratamento de colisão.
+
+```bash
+# na máquina onde a org já está montada:
+npx paperclipai company export --company <company-id> -o empresa.zip   # confira flags com --help
+
+# na máquina nova (após onboard + fix do catálogo):
+npx paperclipai company import empresa.zip                              # idem
+```
+
+Assim você monta a empresa **uma vez** (script de comandos ou GUI), exporta o bundle, e nas demais máquinas é só `onboard` + fix do catálogo + `company import`. Os segredos são removidos no export — **reponha os env vars/segredos** com `secrets` após importar.
+
+### A.4 — O que continua sendo seu (board)
+
+Mesmo 100% via CLI, as **aprovações** (`approval`) e a **homologação** de cada fase são decisões suas — a automação prepara e apresenta, mas o *go* é do board, por design de governança.
 
 ---
 

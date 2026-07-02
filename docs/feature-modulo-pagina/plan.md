@@ -24,33 +24,36 @@
 - [x] SduiView / SduiView.page
 - [x] 7 testes verdes, incl. contrato catálogo ↔ registry e fixture ponta a ponta
 
-## Fase 3 — Casca do editor + pages_module (em andamento)
+## Fase 3 — Casca do editor + pages_module ✅ (2026-07-02)
 
-- [ ] core/: error (Failure sealed), network (createDio), observability (AppBlocObserver), config (AppConfig)
-- [ ] bootstrap.dart (4 redes de erro) + main_dev/main_prod + config/dev.json [P com pages_module]
-- [ ] core/theme: AppTheme (tokens do protótipo), widgets compartilhados (ResizableSplitView)
-- [ ] pages_module: domain (PageSummary, PagesRepository, 3 use cases) → data (model zard + `PagesRepositoryFake`) → presentation (PageListCubit sealed, PageListPage grid + diálogo "Nova página")
-- [ ] Fiação: pages_routes/pages_injection/barrel + app_router + injection
-- [ ] Verificável: `flutter run -d chrome` abre a lista com dados fake
+- [x] core/: error (Failure sealed com message), network (createDio + x-project-id), observability (AppBlocObserver), config (AppConfig com useFakeData)
+- [x] bootstrap.dart (4 redes de erro) + main_dev/main_prod + config/{dev,prod}.json
+- [x] core/theme: AppTheme (tokens do protótipo — laranja #E8602C, tema claro) + ResizableSplitView
+- [x] core/dev: FakePagesStore (compartilhado pelos fakes; página de exemplo)
+- [x] pages_module completo (domain → data com fake e Dio → PageListCubit/PageListPage)
+- [x] Fiação + verificado: lista abre no Chrome com dados fake
 
-## Fase 4 — editor_module
+## Fase 4 — editor_module ✅ (2026-07-02)
 
-- [ ] domain: EditorRepository (loadPage/saveDraft) + use cases [P com widgets]
-- [ ] data: page_spec_model (delega a parsePageSpec) + `EditorRepositoryFake`
-- [ ] EditorCubit + EditorState sealed (document/selectedNodeId/device/zoom/saveStatus); mutações via tree_ops
-- [ ] Painéis: editor_top_bar, widget_palette_panel (Draggable), widget_tree_panel (DragTarget), canvas_panel (moldura + SduiView + nodeWrapper), inspector_panel (derivado do catálogo), prop_field_editor (fábrica FieldKind→editor)
-- [ ] Atalhos (Delete, Ctrl+S) + acessibilidade (contorno + label na seleção, Semantics)
-- [ ] Verificável: criar página, arrastar os 14 primitivos, reordenar, editar props, preview com zoom/device — em memória
+- [x] domain: EditorRepository + LoadPage/SaveDraft (com trava de revalidação no save)
+- [x] data: impl Dio (`GET/PUT /v1/pages/:id`, parse só via kernel) + fake
+- [x] EditorCubit + EditorState sealed; mutações via tree_ops; id único por documento
+- [x] Painéis: top bar (status de salvamento), paleta (Draggable + clique-para-adicionar), árvore (DragTarget, reordenar/aninhar), canvas (moldura 3 presets + zoom + SduiView + nodeWrapper de seleção), inspector derivado do catálogo, prop_field_editor (9 kinds)
+- [x] Atalhos Ctrl+S/Delete; seleção com contorno + label; Semantics/tooltips
+- [x] Verificado no Chrome via DTD: editor completo renderizado, zero erros de runtime
 
-## Fase 5 — Backend + integração
+## Fase 5 — Backend + integração ✅ (2026-07-02)
 
-- [ ] NestJS pages (controller/service/DTOs class-validator) + Prisma (Page: id, projectId, name, screenTarget, spec Json) + docker-compose postgres:16 [P com fases 3–4]
-- [ ] Repos Dio reais no flavor dev apontando para `http://localhost:3000/v1`
-- [ ] Verificável: salvar/reabrir persiste no Postgres
+- [x] NestJS (controller/service/DTOs) + Prisma (`pages`, JSONB) + docker-compose postgres:16 na porta **5433** (5432 ocupada por outro projeto)
+- [x] Tenant por `x-project-id`; CORS restrito a localhost; specVersion validada no PUT
+- [x] dev.json passa a USE_FAKE_DATA=false; fakes seguem como default sem config
+- [x] Verificado: contrato inteiro por curl (roundtrip do spec) + UI real com `GET /v1/pages` 200
 
 ## Fase 6 — E2E + testes + docs (fluxo do livro)
 
-- [ ] Gate CISO (código limpo) → QA instrumenta E2E → dev testa (test_plan.md + evidencias/)
-- [ ] Wrap: limpar instrumentação + final_report.md → gate CISO
-- [ ] Bateria automatizada por último: bloc_test dos cubits, widget tests por estado, golden [S]
-- [ ] Docs vivas: README, CHANGELOG, ANALYTICS.md ("nenhum evento"), ERROR_LOGS.md
+- [x] Bateria automatizada: 20 testes no editor (PageListCubit, EditorCubit, SaveDraftUseCase) — total 57 no workspace
+- [x] test_plan.md com o roteiro completo do E2E manual + mapa de instrumentação
+- [x] Docs vivas: README, CHANGELOG, ANALYTICS.md ("nenhum evento"), ERROR_LOGS.md, final_report.md
+- [ ] **Dev executa o E2E manual** (roteiro do test_plan.md) e anexa prints em evidencias/
+- [ ] Gates do CISO (revisão de segurança da entrega) — recomendado antes do merge
+- [ ] Golden tests do editor — quando o design estabilizar (backlog)

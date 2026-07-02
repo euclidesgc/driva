@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..40,400,0,0&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#d7dadf;border-radius:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;height:100vh;width:100%;font-family:'Public Sans',system-ui,sans-serif;font-size:13px;color:#2a2d34;background:#eef0f2;overflow:hidden">
+
+  <!-- ===================== TOP BAR ===================== -->
+  <div style="height:52px;flex:0 0 auto;background:#ffffff;border-bottom:1px solid #e6e8eb;display:flex;align-items:center;padding:0 14px;gap:14px;z-index:20">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="width:28px;height:28px;border-radius:8px;background:{{ accent }};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.04em">D</div>
+      <div style="display:flex;flex-direction:column;line-height:1.15">
+        <span style="font-weight:700;font-size:13px">Driva</span>
+        <span style="font-size:10px;color:#9aa0a8;font-weight:500">main · Production</span>
+      </div>
+    </div>
+    <div style="margin-left:18px;display:flex;align-items:center;gap:7px;font-size:13px;color:#6b7280">
+      <span style="font-weight:600;color:#2a2d34">App</span>
+      <span style="color:#c4c8cd">/</span>
+      <span>HomePage</span>
+    </div>
+    <div style="flex:1;max-width:420px;margin:0 auto;height:34px;border-radius:9px;background:#f3f4f6;display:flex;align-items:center;gap:8px;padding:0 12px;color:#9aa0a8">
+      <span style="font-family:'Material Symbols Outlined';font-size:18px">search</span>
+      <span style="font-size:12px">Search anything…</span>
+      <span style="margin-left:auto;font-size:11px;background:#e4e6e9;border-radius:5px;padding:1px 6px;color:#6b7280">⌘K</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="width:9px;height:9px;border-radius:50%;background:#16a34a"></span>
+        <span style="width:9px;height:9px;border-radius:50%;background:#16a34a"></span>
+        <span style="width:9px;height:9px;border-radius:50%;background:#16a34a"></span>
+      </div>
+      <div style="width:1px;height:22px;background:#e6e8eb"></div>
+      <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#6b7280">code</span>
+      <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#6b7280">open_in_new</span>
+      <div style="display:flex;align-items:center;gap:7px;background:#fff1eb;color:#e8602c;border-radius:8px;padding:6px 11px;font-weight:600;font-size:12px"><span style="font-family:'Material Symbols Outlined';font-size:18px">visibility</span>Preview</div>
+      <div style="display:flex;align-items:center;gap:6px;background:{{ accent }};color:#fff;border-radius:8px;padding:7px 14px;font-weight:600;font-size:12px"><span style="font-family:'Material Symbols Outlined';font-size:18px">bolt</span>Publish</div>
+    </div>
+  </div>
+
+  <!-- ===================== BODY ===================== -->
+  <div style="flex:1;display:flex;min-height:0">
+
+    <!-- ---------- LEFT PANEL (palette / tree) ---------- -->
+    <div style="width:{{ leftW }}px;flex:0 0 auto;background:#ffffff;border-right:1px solid #e6e8eb;display:flex;flex-direction:column;min-height:0">
+      <!-- header with mode toggle -->
+      <div style="height:50px;flex:0 0 auto;border-bottom:1px solid #edeef0;display:flex;align-items:center;gap:8px;padding:0 12px">
+        <div style="display:flex;background:#f3f4f6;border-radius:9px;padding:3px;gap:2px">
+          <div onClick="{{ setPalette }}" style="display:flex;align-items:center;justify-content:center;width:36px;height:28px;border-radius:7px;cursor:pointer;background:{{ palBg }};color:{{ palColor }};box-shadow:{{ palShadow }}"><span style="font-family:'Material Symbols Outlined';font-size:18px">widgets</span></div>
+          <div onClick="{{ setTree }}" style="display:flex;align-items:center;justify-content:center;width:36px;height:28px;border-radius:7px;cursor:pointer;background:{{ treeBg }};color:{{ treeColor }};box-shadow:{{ treeShadow }}"><span style="font-family:'Material Symbols Outlined';font-size:18px">account_tree</span></div>
+        </div>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;color:#6b7280">{{ panelTitle }}</span>
+      </div>
+
+      <!-- content -->
+      <div style="flex:1;overflow:auto;padding:10px 10px 24px">
+
+        <!-- =========== PALETTE =========== -->
+        <sc-if value="{{ isPalette }}" hint-placeholder-val="{{ true }}">
+          <div style="height:34px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;gap:8px;padding:0 10px;color:#9aa0a8;margin-bottom:12px">
+            <span style="font-family:'Material Symbols Outlined';font-size:18px">search</span>
+            <span style="font-size:12px">Search for widget…</span>
+          </div>
+
+          <div onClick="{{ toggleCommon }}" style="display:flex;align-items:center;justify-content:space-between;padding:6px 2px;cursor:pointer;margin-bottom:8px">
+            <span style="font-weight:700;font-size:12px;letter-spacing:.01em">Commonly Used Elements</span>
+            <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#9aa0a8">{{ chevCommon }}</span>
+          </div>
+          <sc-if value="{{ openCommon }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat({{ gridCols }},minmax(0,1fr));gap:8px;margin-bottom:14px">
+              <sc-for list="{{ paletteCards }}" as="card" hint-placeholder-count="6">
+                <div style="border:1px solid #e6e8eb;border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px 5px;cursor:grab;background:#fff;overflow:hidden" style-hover="border-color:{{ accent }};background:#faf9ff">
+                  <span style="font-family:'Material Symbols Outlined';font-size:23px;color:#5b6068">{{ card.icon }}</span>
+                  <span style="font-size:9.5px;font-weight:600;color:#4b4f56;text-align:center;line-height:1.15;width:100%;text-wrap:balance">{{ card.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{ otherSecs }}" as="sec" hint-placeholder-count="4">
+            <div onClick="{{ sec.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:9px 2px;cursor:pointer;border-top:1px solid #f0f1f3">
+              <span style="font-weight:700;font-size:12px">{{ sec.label }}</span>
+              <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#9aa0a8">{{ sec.chev }}</span>
+            </div>
+            <sc-if value="{{ sec.open }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat({{ gridCols }},minmax(0,1fr));gap:8px;margin:4px 0 12px">
+                <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+                  <div style="border:1px solid #e6e8eb;border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px 5px;cursor:grab;background:#fff;overflow:hidden" style-hover="border-color:{{ accent }};background:#faf9ff">
+                    <span style="font-family:'Material Symbols Outlined';font-size:23px;color:#5b6068">{{ it.icon }}</span>
+                    <span style="font-size:9.5px;font-weight:600;color:#4b4f56;text-align:center;line-height:1.15;width:100%;text-wrap:balance">{{ it.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </sc-for>
+        </sc-if>
+
+        <!-- =========== WIDGET TREE =========== -->
+        <sc-if value="{{ isTree }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 6px;color:#6b7280;font-size:12px;font-weight:700;margin-bottom:4px">
+            <span style="font-family:'Material Symbols Outlined';font-size:18px">folder</span>pages
+            <span style="margin-left:auto;background:#eef0f2;border-radius:5px;padding:0 6px;font-size:10px;color:#9aa0a8">1</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px">
+            <sc-for list="{{ treeRows }}" as="node" hint-placeholder-count="11">
+              <div onClick="{{ node.onSelect }}" style="display:flex;align-items:center;gap:8px;height:30px;padding-right:8px;padding-left:{{ node.pad }}px;background:{{ node.bg }};color:{{ node.color }};font-weight:{{ node.weight }};border-radius:7px;cursor:pointer;position:relative">
+                <span style="font-family:'Material Symbols Outlined';font-size:18px;color:{{ node.iconColor }}">{{ node.icon }}</span>
+                <span style="font-size:13px">{{ node.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <!-- left resizer -->
+    <div onMouseDown="{{ startLeft }}" style="width:9px;flex:0 0 auto;margin:0 -4px;z-index:30;cursor:col-resize;display:flex;align-items:center;justify-content:center;background:transparent" style-hover="background:rgba(108,76,241,.10)"><div style="width:2px;height:30px;border-radius:2px;background:#c4c8cd" style-hover="background:{{ accent }};height:42px"></div></div>
+
+    <!-- ---------- CENTER CANVAS ---------- -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eef0f2">
+      <!-- canvas toolbar -->
+      <div style="height:50px;flex:0 0 auto;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #e6e8eb;background:#eef0f2">
+        <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#7c828a">first_page</span>
+        <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e6e8eb;border-radius:9px;padding:4px 10px">
+          <span style="font-family:'Material Symbols Outlined';font-size:18px;color:#7c828a;cursor:pointer">remove</span>
+          <span style="font-size:12px;font-weight:600;min-width:38px;text-align:center">90%</span>
+          <span style="font-family:'Material Symbols Outlined';font-size:18px;color:#7c828a;cursor:pointer">add</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:2px;background:#fff;border:1px solid #e6e8eb;border-radius:9px;padding:4px">
+          <div style="width:30px;height:26px;border-radius:6px;background:#eef0f2;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#3a3f47">smartphone</span></div>
+          <div style="width:30px;height:26px;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">tablet</span></div>
+          <div style="width:30px;height:26px;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">desktop_windows</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;line-height:1.1;color:#6b7280">
+          <span style="font-size:9px;font-weight:600;color:#9aa0a8">Size (px)</span>
+          <span style="font-size:12px;font-weight:600">393 × 852</span>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;color:#7c828a">
+          <span style="font-family:'Material Symbols Outlined';font-size:20px">grid_on</span>
+          <span style="font-family:'Material Symbols Outlined';font-size:20px">tune</span>
+        </div>
+      </div><div style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:36px" onClick="{{ clearSel }}">
+        <div style="position:relative;width:300px;height:624px;background:#1b1c1e;border-radius:46px;padding:9px;box-shadow:0 18px 50px rgba(20,22,30,.24);flex:0 0 auto" onClick="{{ stopProp }}">
+          <div style="position:relative;width:100%;height:100%;background:#faf8f5;border-radius:38px;overflow:hidden;display:flex;flex-direction:column">
+            <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:88px;height:24px;background:#0c0d0f;border-radius:14px;z-index:5"></div>
+            <!-- app bar -->
+            <div onClick="{{ selectAppBar }}" style="background:{{ previewBlue }};padding:36px 16px 16px;color:#fff;flex:0 0 auto;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-family:'Material Symbols Outlined';font-size:22px">arrow_back</span><span style="font-size:15px;font-weight:500">Back</span></div>
+              <div style="font-size:22px;font-weight:700;margin-left:2px">Page Title</div>
+            </div>
+            <!-- body -->
+            <div style="flex:1;padding:20px 16px;display:flex;flex-direction:column;gap:20px">
+              <div style="font-size:14px;color:#4b4f56">Hello World</div>
+              <div style="position:relative" onClick="{{ selectButtonStop }}">
+                <sc-if value="{{ btnSelected }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:-17px;left:0;background:#14b8a6;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px 5px 0 0;z-index:2">Button</div>
+                </sc-if>
+                <div style="height:42px;border-radius:8px;background:#6f96f2;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;outline:{{ btnOutline }};outline-offset:1px"><span style="font-family:'Material Symbols Outlined';font-size:18px">check_circle</span>Button</div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;top:50%;right:-30px;transform:translateY(-50%);width:24px;height:24px;background:#fff;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-size:15px;color:#9aa0a8">link</span></div>
+        </div>
+      </div>
+
+      <!-- phone stage -->
+      
+    </div>
+
+    <!-- right resizer -->
+    <div onMouseDown="{{ startRight }}" style="width:9px;flex:0 0 auto;margin:0 -4px;z-index:30;cursor:col-resize;display:flex;align-items:center;justify-content:center;background:transparent" style-hover="background:rgba(108,76,241,.10)"><div style="width:2px;height:30px;border-radius:2px;background:#c4c8cd" style-hover="background:{{ accent }};height:42px"></div></div>
+
+    <!-- ---------- RIGHT PROPERTIES PANEL ---------- -->
+    <div style="width:{{ rightW }}px;flex:0 0 auto;background:#ffffff;border-left:1px solid #e6e8eb;display:flex;flex-direction:column;min-height:0">
+      <div style="flex:1;overflow:auto">
+
+        <!-- ===== PAGE PROPS ===== -->
+        <sc-if value="{{ isPage }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:14px 14px 36px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edeef0">
+              <span style="font-weight:700;font-size:13px">Page Parameters</span>
+              <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#9aa0a8">add</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edeef0">
+              <span style="font-weight:700;font-size:13px">Page Imports</span>
+              <span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">edit</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin:18px 0 10px;font-weight:700"><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#6b7280">smartphone</span>Scaffold</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <div style="flex:1;height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:13px">HomePage</div>
+              <div style="width:36px;height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">content_copy</span></div>
+              <div style="width:36px;height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">delete</span></div>
+            </div>
+            <div style="border:1px solid #e6e8eb;border-radius:8px;padding:11px;color:#9aa0a8;font-size:12px;margin-bottom:16px">Describe your page here…</div>
+            <div style="display:flex;gap:6px;margin-bottom:16px">
+              <div style="width:36px;height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">palette</span></div>
+              <div style="width:36px;height:32px;background:{{ accent }};border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-family:'Material Symbols Outlined';font-size:17px">touch_app</span></div>
+              <div style="width:36px;height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">storage</span></div>
+              <div style="width:36px;height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">play_arrow</span></div>
+              <div style="width:36px;height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">add_box</span></div>
+            </div>
+            <!-- Visibility -->
+            <div onClick="{{ po.pageVis.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid #edeef0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#4b4f56">Visibility</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.pageVis.chev }}</span></div>
+            <sc-if value="{{ po.pageVis.open }}" hint-placeholder-val="{{ true }}">
+              <div style="padding-bottom:4px">
+                <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:8px">Opacity</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="flex:1;height:5px;border-radius:5px;background:{{ accent }};position:relative"><div style="position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid {{ accent }}"></div></div><div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">1</div></div>
+                <div style="height:40px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;color:#9aa0a8;font-size:12px;font-weight:600"><span style="font-family:'Material Symbols Outlined';font-size:16px">add</span>Add Animated Opacity</div>
+              </div>
+            </sc-if>
+            <!-- Page (Scaffold) Properties -->
+            <div onClick="{{ po.scaffold.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid #edeef0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#4b4f56">Page (Scaffold) Properties</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.scaffold.chev }}</span></div>
+            <sc-if value="{{ po.scaffold.open }}" hint-placeholder-val="{{ true }}">
+              <div style="padding-bottom:4px">
+                <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin:4px 0 7px">Background Color</div>
+                <div style="height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;gap:8px;padding:0 10px;margin-bottom:6px"><span style="width:14px;height:14px;border-radius:4px;border:1px solid #d7dadf;background:#fff"></span><span style="font-size:12px;color:#6b7280">Unset</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Safe Area</span><div style="width:36px;height:20px;border-radius:11px;background:{{ accent }};position:relative"><div style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Hide Keyboard on Tap</span><div style="width:36px;height:20px;border-radius:11px;background:#dcdfe3;position:relative"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Disable Android Back Button</span><div style="width:36px;height:20px;border-radius:11px;background:#dcdfe3;position:relative"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Disable Resize To Avoid Bottom Inset</span><div style="width:36px;height:20px;border-radius:11px;background:#dcdfe3;position:relative"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+              </div>
+            </sc-if>
+            <!-- Nav Bar Item Properties -->
+            <div onClick="{{ po.navbar.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid #edeef0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#4b4f56">Nav Bar Item Properties</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.navbar.chev }}</span></div>
+            <sc-if value="{{ po.navbar.open }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Show on Nav Bar</span><div style="width:36px;height:20px;border-radius:11px;background:#dcdfe3;position:relative"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ===== WIDGET PROPS ===== -->
+        <sc-if value="{{ showWidget }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:14px 14px 40px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <span style="font-family:'Material Symbols Outlined';font-size:20px;color:#3a3f47">{{ selectedIcon }}</span>
+              <span style="font-weight:700;font-size:15px">{{ selectedLabel }}</span>
+            </div>
+            <div style="display:flex;gap:8px;margin:0 0 16px;border-bottom:1px solid #edeef0;padding-bottom:16px">
+              <div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:13px">{{ selectedLabel }}</div>
+            </div>
+
+            <div style="font-weight:700;font-size:12px;margin-bottom:10px">Widget Styling</div>
+            <div style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:12px;font-weight:600;margin-bottom:16px">Theme Style Unset</div>
+
+            <!-- MOLECULE: text value field (text-only) -->
+            <sc-if value="{{ isText }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Text</span><span style="font-family:'Material Symbols Outlined';font-size:14px;color:{{ accent }}">tune</span></div>
+              <div style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;padding:0 12px;font-size:13px;margin-bottom:8px">Hello World</div>
+            </sc-if>
+
+            <!-- ORGANISM: Visibility (shared) -->
+            <div style="border-top:1px solid #edeef0">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
+                <span style="font-size:12px;font-weight:700;color:#3a3f47;flex:0 0 auto">Visibility</span>
+                <span style="font-family:'Material Symbols Outlined';font-size:17px;color:{{ accent }};flex:0 0 auto">visibility</span>
+                <sc-if value="{{ po.vis.closed }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:1;position:relative">
+                    <div onClick="{{ toggleVisMenu }}" style="height:30px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px;cursor:pointer"><span style="width:12px;height:12px;border-radius:4px;background:{{ opacitySwatch }};flex:0 0 auto"></span><span style="font-size:12px">{{ opacity }}</span><span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">expand_more</span></div>
+                    <sc-if value="{{ visMenu }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute;top:34px;left:0;right:0;background:#fff;border:1px solid #e6e8eb;border-radius:9px;box-shadow:0 10px 28px rgba(20,22,30,.16);z-index:50;padding:5px">
+                        <sc-for list="{{ opacityOptions }}" as="op" hint-placeholder-count="4">
+                          <div onClick="{{ op.pick }}" style="display:flex;align-items:center;gap:9px;height:30px;padding:0 8px;border-radius:6px;cursor:pointer" style-hover="background:#f3f4f6"><span style="width:13px;height:13px;border-radius:4px;background:{{ op.swatch }};border:1px solid #e6e8eb;flex:0 0 auto"></span><span style="font-size:12px">{{ op.label }}</span></div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+                <span onClick="{{ po.vis.toggle }}" style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8;cursor:pointer;flex:0 0 auto">{{ po.vis.chev }}</span>
+              </div>
+              <sc-if value="{{ po.vis.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 0 12px">
+                  <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:8px">Opacity</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="flex:1;height:5px;border-radius:5px;background:#e6e8eb;position:relative"><div style="position:absolute;left:0;top:0;height:5px;width:100%;background:{{ accent }};border-radius:5px"></div><div style="position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid {{ accent }}"></div></div><div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">1</div></div>
+                  <div style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;color:#9aa0a8;font-size:12px;font-weight:600"><span style="font-family:'Material Symbols Outlined';font-size:16px">add</span>Add Animated Opacity</div>
+                </div>
+              </sc-if>
+            </div>
+
+            <!-- Expansion (container) -->
+            <sc-if value="{{ isContainer }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 4px"><span style="font-size:12px;font-weight:600;color:#4b4f56">Expansion</span><div style="display:flex;align-items:center;gap:6px"><div style="width:62px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 8px;font-size:12px;color:#9aa0a8">Flex</div><div style="width:30px;height:30px;border:1px solid #e8602c;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#e8602c"><span style="font-family:'Material Symbols Outlined';font-size:16px">width_normal</span></div><div style="width:30px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">crop_square</span></div></div></div>
+            </sc-if>
+
+            <!-- ORGANISM: Padding (shared) -->
+            <div style="border-top:1px solid #edeef0;display:flex;align-items:center;gap:10px;padding:10px 0">
+              <span style="font-size:12px;font-weight:700;color:#3a3f47;flex:0 0 auto">Padding</span>
+              <sc-if value="{{ po.padding.closed }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;position:relative">
+                  <div onClick="{{ togglePadMenu }}" style="height:30px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:#6b7280;background:#f8f9fa;cursor:pointer">{{ padVal }}<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">expand_more</span></div>
+                  <sc-if value="{{ padMenu }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:34px;left:0;right:0;max-height:236px;overflow:auto;background:#fff;border:1px solid #e6e8eb;border-radius:9px;box-shadow:0 10px 28px rgba(20,22,30,.16);z-index:60;padding:5px">
+                      <div style="font-size:11px;font-weight:700;color:#9aa0a8;padding:6px 8px 4px">Custom</div>
+                      <sc-for list="{{ padOptions }}" as="op" hint-placeholder-count="9">
+                        <div onClick="{{ op.pick }}" style="display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:6px;cursor:pointer" style-hover="background:#f3f4f6"><span style="width:14px;height:14px;border:1.5px solid #c4c8cd;border-radius:3px;flex:0 0 auto"></span><span style="font-size:12px;flex:1">{{ op.label }}</span><span style="font-size:11px;color:#9aa0a8">{{ op.val }}</span></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <span onClick="{{ po.padding.toggle }}" style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8;cursor:pointer;flex:0 0 auto">{{ po.padding.chev }}</span>
+            </div>
+            <sc-if value="{{ po.padding.open }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:0 0 14px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+                  <div style="width:34px;height:30px;background:#fff0eb;border:1px solid #e8602c;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#e8602c"><span style="font-family:'Material Symbols Outlined';font-size:16px">select_all</span></div>
+                  <div style="width:34px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">crop_free</span></div>
+                  <div style="margin-left:auto;display:flex;gap:10px;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">deployed_code</span><span style="font-family:'Material Symbols Outlined';font-size:18px">restart_alt</span></div>
+                </div>
+                <div style="border:1px solid #e6e8eb;border-radius:9px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:7px;margin-bottom:12px">
+                  <div style="font-size:10px;color:#9aa0a8;font-weight:600">T</div>
+                  <div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">0</div>
+                  <div style="display:flex;align-items:center;gap:10px;width:100%;justify-content:center"><span style="font-size:11px;color:#9aa0a8">L</span><div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">0</div><div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">0</div><span style="font-size:11px;color:#9aa0a8">R</span></div>
+                  <div style="width:54px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">0</div>
+                  <div style="font-size:10px;color:#9aa0a8;font-weight:600">B</div>
+                </div>
+                <div style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;color:#9aa0a8;font-size:12px;font-weight:600"><span style="font-family:'Material Symbols Outlined';font-size:16px">add</span>Add Animated Padding</div>
+              </div>
+            </sc-if>
+
+            <!-- ORGANISM: Alignment (shared) -->
+            <div style="border-top:1px solid #edeef0;display:flex;align-items:center;gap:10px;padding:10px 0">
+              <span style="font-size:12px;font-weight:700;color:#3a3f47;flex:0 0 auto">Alignment</span>
+              <sc-if value="{{ po.alignment.closed }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;position:relative">
+                  <div onClick="{{ toggleAlignMenu }}" style="height:30px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:#6b7280;background:#f8f9fa;cursor:pointer">{{ alignVal }}<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">expand_more</span></div>
+                  <sc-if value="{{ alignMenu }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:34px;left:0;right:0;max-height:236px;overflow:auto;background:#fff;border:1px solid #e6e8eb;border-radius:9px;box-shadow:0 10px 28px rgba(20,22,30,.16);z-index:60;padding:5px">
+                      <sc-for list="{{ alignOptions }}" as="op" hint-placeholder-count="10">
+                        <div onClick="{{ op.pick }}" style="display:flex;align-items:center;gap:9px;height:30px;padding:0 8px;border-radius:6px;cursor:pointer" style-hover="background:#f3f4f6"><span style="font-family:'Material Symbols Outlined';font-size:17px;color:#9aa0a8;flex:0 0 auto">grid_view</span><span style="font-size:12px">{{ op.label }}</span></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <span onClick="{{ po.alignment.toggle }}" style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8;cursor:pointer;flex:0 0 auto">{{ po.alignment.chev }}</span>
+            </div>
+            <sc-if value="{{ po.alignment.open }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:0 0 14px">
+                <div style="display:flex;gap:14px;margin-bottom:12px">
+                  <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                    <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">X</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px"></div></div>
+                    <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">Y</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px"></div></div>
+                  </div>
+                  <div style="width:92px;height:84px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:5px">
+                    <div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div>
+                    <div style="background:#eef0f2;border-radius:5px"></div><div style="background:{{ accent }};border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div>
+                    <div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div>
+                  </div>
+                </div>
+                <div style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;color:#9aa0a8;font-size:12px;font-weight:600"><span style="font-family:'Material Symbols Outlined';font-size:16px">add</span>Add Animated Alignment</div>
+              </div>
+            </sc-if>
+
+            <!-- ORGANISM: Value Key (shared) -->
+            <div style="border-top:1px solid #edeef0">
+              <div onClick="{{ po.valueKey.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#3a3f47">Value Key</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.valueKey.chev }}</span></div>
+              <sc-if value="{{ po.valueKey.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 0 12px"><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="font-size:13px;color:#b9bdc4;flex:1">Unset</span><span style="font-family:'Material Symbols Outlined';font-size:14px;color:{{ accent }}">tune</span></div></div>
+              </sc-if>
+            </div>
+
+            <!-- ===== TEXT-SPECIFIC SECTIONS ===== -->
+            <sc-if value="{{ isText }}" hint-placeholder-val="{{ false }}">
+              <!-- ORGANISM: Text Properties -->
+              <div style="border-top:1px solid #edeef0">
+                <div onClick="{{ po.textProps.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#3a3f47">Text Properties</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.textProps.chev }}</span></div>
+                <sc-if value="{{ po.textProps.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 14px">
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Theme Text Style</div>
+                    <div style="display:flex;gap:8px;margin-bottom:14px">
+                      <div style="flex:1;min-width:0;height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;border:1.5px solid #c4c8cd;flex:0 0 auto"></span><span style="font-size:12px;font-weight:600">Body Medium</span></div>
+                      <div style="flex:0 0 auto;height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:6px;padding:0 10px"><span style="font-size:11px;color:#6b7280">Normal, 14px</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div>
+                    </div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Font Family</div>
+                    <div style="height:36px;background:#eef0f2;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#3a3f47;margin-bottom:14px">Primary Family</div>
+                    <div style="display:flex;gap:12px;margin-bottom:14px">
+                      <div style="flex:1;min-width:0"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Font Weight</div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px">400 - Normal<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div></div>
+                      <div style="flex:0 0 auto"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Styling</div><div style="display:flex;gap:4px"><div style="width:32px;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">format_italic</span></div><div style="width:32px;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">format_underlined</span></div><div style="width:32px;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#6b7280"><span style="font-family:'Material Symbols Outlined';font-size:17px">format_strikethrough</span></div></div></div>
+                    </div>
+                    <div style="display:flex;gap:12px;margin-bottom:14px">
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Font Size</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px">14</div></div>
+                      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Text Color</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;background:#303030;flex:0 0 auto"></span><span style="font-size:12px">#303030</span></div></div>
+                    </div>
+                    <div style="display:flex;gap:12px;margin-bottom:14px">
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Line Height</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Letter Spacing</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                    </div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Text Align</div>
+                    <div style="display:flex;gap:6px;margin-bottom:14px">
+                      <div style="flex:1;height:34px;background:#eef0f2;border:1px solid {{ accent }};border-radius:7px;display:flex;align-items:center;justify-content:center;color:#3a3f47"><span style="font-family:'Material Symbols Outlined';font-size:18px">format_align_left</span></div>
+                      <div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">format_align_center</span></div>
+                      <div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">format_align_right</span></div>
+                      <div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">format_align_justify</span></div>
+                    </div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:8px">Shadows</div>
+                    <sc-if value="{{ t.shadow.on }}" hint-placeholder-val="{{ false }}">
+                      <div style="border:1px solid #e6e8eb;border-radius:9px;padding:12px;margin-bottom:10px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;font-weight:600">Shadow 1</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">expand_more</span></div>
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Color</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                        <div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px;margin-bottom:12px"><span style="width:14px;height:14px;border-radius:4px;background:#eceae3;flex:0 0 auto"></span><span style="font-size:12px">Secondary Text</span></div>
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Blur Radius</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                        <div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;margin-bottom:12px">2</div>
+                        <div style="display:flex;gap:12px"><div style="flex:1"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Offset X</div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px">2</div></div><div style="flex:1"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Offset Y</div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px">2</div></div></div>
+                      </div>
+                    </sc-if>
+                    <div onClick="{{ t.shadow.toggle }}" style="height:38px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:14px"><span style="font-family:'Material Symbols Outlined';font-size:18px">add</span>Add Shadow</div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Text Overflow Replacement</div>
+                    <div style="height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:#6b7280">Unspecified<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- MOLECULE: Selectable toggle -->
+              <div style="border-top:1px solid #edeef0;display:flex;align-items:center;justify-content:space-between;padding:13px 0">
+                <span style="font-size:12px;font-weight:700;color:#3a3f47">Selectable</span>
+                <div onClick="{{ t.selectable.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.selectable.bg }};display:flex;align-items:center;justify-content:{{ t.selectable.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+              </div>
+
+              <!-- ORGANISM: Gradient -->
+              <div style="border-top:1px solid #edeef0">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0">
+                  <span style="font-size:12px;font-weight:700;color:#3a3f47">Gradient</span>
+                  <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Material Symbols Outlined';font-size:17px;color:#9aa0a8">content_copy</span><span style="font-family:'Material Symbols Outlined';font-size:17px;color:#9aa0a8">add_box</span><div onClick="{{ t.gradient.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.gradient.bg }};display:flex;align-items:center;justify-content:{{ t.gradient.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                </div>
+                <sc-if value="{{ t.gradient.on }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 12px">
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Type</div>
+                    <div style="height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;margin-bottom:12px">Linear<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Direction</div>
+                    <div style="height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;margin-bottom:14px">Left to Right<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Color 1</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;background:{{ previewBlue }};flex:0 0 auto"></span><span style="font-size:12px">Primary</span></div><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#e8602c;cursor:pointer">delete</span></div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Color 2</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;background:#e8602c;flex:0 0 auto"></span><span style="font-size:12px">Secondary</span></div><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#e8602c;cursor:pointer">delete</span></div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Color 3</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;background:#673ab7;flex:0 0 auto"></span><span style="font-size:12px">#673ab7</span></div><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#e8602c;cursor:pointer">delete</span></div>
+                    <div style="font-size:12px;font-weight:700;color:{{ accent }};cursor:pointer">Add Color</div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- MOLECULE: Animate Changes toggle -->
+              <div style="border-top:1px solid #edeef0;display:flex;align-items:center;justify-content:space-between;padding:13px 0">
+                <span style="font-size:12px;font-weight:700;color:#9aa0a8">Animate Changes</span>
+                <div onClick="{{ t.animate.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.animate.bg }};display:flex;align-items:center;justify-content:{{ t.animate.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+              </div>
+            </sc-if>
+
+            <!-- container-only fields -->
+            <sc-if value="{{ isContainer }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ po.container.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid #edeef0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#4b4f56">Container Properties</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.container.chev }}</span></div>
+              <sc-if value="{{ po.container.open }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:2px 0 8px">
+                  <!-- MOLECULE: shape toggle -->
+                  <div style="display:flex;gap:8px;margin-bottom:14px">
+                    <div onClick="{{ setSquare }}" style="width:36px;height:32px;background:{{ sqBg }};border:1px solid {{ sqBorder }};border-radius:8px;display:flex;align-items:center;justify-content:center;color:{{ sqColor }};cursor:pointer"><span style="font-family:'Material Symbols Outlined';font-size:18px">crop_square</span></div>
+                    <div onClick="{{ setCircle }}" style="width:36px;height:32px;background:{{ ciBg }};border:1px solid {{ ciBorder }};border-radius:8px;display:flex;align-items:center;justify-content:center;color:{{ ciColor }};cursor:pointer"><span style="font-family:'Material Symbols Outlined';font-size:18px">circle</span></div>
+                  </div>
+                  <!-- ATOM: dimension inputs (square: W/H ; circle: Diameter) -->
+                  <sc-if value="{{ isSquare }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:12px;margin-bottom:14px">
+                      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Width</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">100</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Height</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#c4c8cd">PX</span><span style="font-size:10px;font-weight:700;color:#3a3f47">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">35</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ isCircle }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Diameter</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">100</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                  </sc-if>
+                  <!-- MOLECULE: fill / border color -->
+                  <div style="display:flex;gap:12px;margin-bottom:14px">
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Fill Color</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:7px;padding:0 6px 0 10px"><span style="width:13px;height:13px;border-radius:4px;background:#eceae3;flex:0 0 auto"></span><span style="font-size:11px;line-height:1.05;flex:1">Secondary Background</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8;cursor:pointer">close</span></div></div>
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Border Color</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:7px;padding:0 6px 0 10px"><span style="width:13px;height:13px;border-radius:4px;background:{{ previewBlue }};flex:0 0 auto"></span><span style="font-size:12px;flex:1">Primary</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8;cursor:pointer">close</span></div></div>
+                  </div>
+                  <!-- ORGANISM: border radius (square only) -->
+                  <sc-if value="{{ isSquare }}" hint-placeholder-val="{{ true }}">
+                    <div style="margin-bottom:14px">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                        <span style="font-size:11px;color:#9aa0a8;font-weight:600">Border Radius</span>
+                        <div style="display:flex;gap:4px"><div style="width:30px;height:26px;background:#fff0eb;border:1px solid #e8602c;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#e8602c"><span style="font-family:'Material Symbols Outlined';font-size:15px">link</span></div><div style="width:30px;height:26px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:15px">link_off</span></div></div>
+                        <div style="margin-left:auto;display:flex;gap:8px;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:17px">content_copy</span><span style="font-family:'Material Symbols Outlined';font-size:17px">deployed_code</span><span style="font-family:'Material Symbols Outlined';font-size:17px">restart_alt</span></div>
+                      </div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">32</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                        <div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1"></span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                        <div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1"></span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                        <div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">2</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <!-- ATOM: plain numeric inputs -->
+                  <div style="display:flex;gap:12px;margin-bottom:14px">
+                    <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Border Width</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                    <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Elevation</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                  </div>
+                  <!-- ATOM: min/max dimension inputs (PX/% + inf) -->
+                  <div style="display:flex;gap:12px;margin-bottom:14px">
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Min W</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">80</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Min H</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">80</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                  </div>
+                  <div style="display:flex;gap:12px;margin-bottom:14px">
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Max W</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px;color:#6b7280">inf</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                    <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Max H</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">60</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                  </div>
+                  <!-- MOLECULE: clip content toggle -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px"><span style="font-size:12px;font-weight:600;color:#9aa0a8">Clip Content</span><div onClick="{{ t.clipContent.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.clipContent.bg }};display:flex;align-items:center;justify-content:{{ t.clipContent.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                </div>
+              </sc-if>
+            </sc-if>
+
+            <!-- ===== CONTAINER EXTRA SECTIONS ===== -->
+            <sc-if value="{{ isContainer }}" hint-placeholder-val="{{ false }}">
+              <!-- ORGANISM: Box Shadow (toggle + editor) -->
+              <div style="border-top:1px solid #edeef0">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0"><span style="font-size:12px;font-weight:700;color:#3a3f47">Box Shadow</span><div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Material Symbols Outlined';font-size:17px;color:#9aa0a8">deployed_code</span><div onClick="{{ t.boxShadow.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.boxShadow.bg }};display:flex;align-items:center;justify-content:{{ t.boxShadow.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div></div>
+                <sc-if value="{{ t.boxShadow.on }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 12px">
+                    <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Shadow Color</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                    <div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:7px;padding:0 10px;margin-bottom:12px"><span style="width:13px;height:13px;border-radius:4px;border:1px solid #d7dadf;background:#fff;flex:0 0 auto"></span><span style="font-size:12px;color:#6b7280">Unset</span></div>
+                    <div style="display:flex;gap:12px;margin-bottom:12px">
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Blur</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Spread</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                    </div>
+                    <div style="display:flex;gap:12px">
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Offset X</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Offset Y</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px"></div></div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- MOLECULE: Gradient toggle -->
+              <div style="border-top:1px solid #edeef0;display:flex;align-items:center;justify-content:space-between;padding:13px 0"><span style="font-size:12px;font-weight:700;color:#3a3f47">Gradient</span><div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Material Symbols Outlined';font-size:17px;color:#9aa0a8">add_box</span><div onClick="{{ t.gradient.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.gradient.bg }};display:flex;align-items:center;justify-content:{{ t.gradient.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div></div>
+
+              <!-- ORGANISM: Background Image -->
+              <div style="border-top:1px solid #edeef0">
+                <div onClick="{{ po.bgImage.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#3a3f47">Background Image</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.bgImage.chev }}</span></div>
+                <sc-if value="{{ po.bgImage.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 12px">
+                    <div style="display:flex;gap:12px;margin-bottom:12px">
+                      <div style="flex:1"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Image Type</div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px">Network<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div></div>
+                      <div style="flex:0 0 auto"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Cached</div><div style="height:34px;display:flex;align-items:center"><div onClick="{{ t.cached.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.cached.bg }};display:flex;align-items:center;justify-content:{{ t.cached.pos }};padding:2px;cursor:pointer"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Path</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span></div>
+                    <div style="display:flex;gap:8px;margin-bottom:12px"><div style="flex:1;height:34px;border:1px solid #e6e8eb;border-radius:8px"></div><div style="width:38px;height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:18px">search</span></div></div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Box Fit</div>
+                    <div style="display:flex;gap:5px;margin-bottom:12px">
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">open_with</span></div>
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">fit_screen</span></div>
+                      <div style="flex:1;height:30px;background:#eef0f2;border:1px solid {{ accent }};border-radius:6px;display:flex;align-items:center;justify-content:center;color:#3a3f47"><span style="font-family:'Material Symbols Outlined';font-size:16px">crop_free</span></div>
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">swap_horiz</span></div>
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">swap_vert</span></div>
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">close_fullscreen</span></div>
+                      <div style="flex:1;height:30px;border:1px solid #e6e8eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9aa0a8"><span style="font-family:'Material Symbols Outlined';font-size:16px">south</span></div>
+                    </div>
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:8px">Image Alignment</div>
+                    <div style="display:flex;gap:14px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                        <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">X</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px"></div></div>
+                        <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">Y</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px"></div></div>
+                      </div>
+                      <div style="width:92px;height:84px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:5px"><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div></div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isContainer }}" hint-placeholder-val="{{ false }}">
+              <!-- ORGANISM: Child -->
+              <div style="border-top:1px solid #edeef0">
+                <div onClick="{{ po.child.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#3a3f47">Child</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.child.chev }}</span></div>
+                <sc-if value="{{ po.child.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 12px">
+                    <div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:8px">Child Alignment</div>
+                    <div style="display:flex;gap:14px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                        <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">X</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 10px;font-size:12px">0</div></div>
+                        <div><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">Y</div><div style="height:32px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;padding:0 10px;font-size:12px">0</div></div>
+                      </div>
+                      <div style="width:92px;height:84px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:5px"><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:{{ accent }};border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div><div style="background:#eef0f2;border-radius:5px"></div></div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- MOLECULE: Implicit Animated (toggle + curve) -->
+              <div style="border-top:1px solid #edeef0">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0"><span style="font-size:12px;font-weight:700;color:#3a3f47">Implicit Animated</span><div onClick="{{ t.implicitAnimated.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.implicitAnimated.bg }};display:flex;align-items:center;justify-content:{{ t.implicitAnimated.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <sc-if value="{{ t.implicitAnimated.on }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 0 12px"><div style="font-size:11px;color:#9aa0a8;font-weight:600;margin-bottom:6px">Animation Curve</div><div style="height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:#6b7280">Unset<span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:#9aa0a8">expand_more</span></div></div>
+                </sc-if>
+              </div>
+
+              <!-- MOLECULE: Safe Area toggle -->
+              <div style="border-top:1px solid #edeef0;display:flex;align-items:center;justify-content:space-between;padding:13px 0"><span style="font-size:12px;font-weight:700;color:#3a3f47">Safe Area</span><div onClick="{{ t.safeArea.toggle }}" style="width:36px;height:20px;border-radius:11px;background:{{ t.safeArea.bg }};display:flex;align-items:center;justify-content:{{ t.safeArea.pos }};padding:2px;cursor:pointer;flex:0 0 auto"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+            </sc-if>
+
+            <!-- button-only fields -->
+            <sc-if value="{{ isButton }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top:1px solid #edeef0">
+                <div onClick="{{ po.btnStyle.toggle }}" style="display:flex;align-items:center;justify-content:space-between;padding:13px 0 12px;cursor:pointer"><span style="font-size:12px;font-weight:700;color:#4b4f56">Button Default Style</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">{{ po.btnStyle.chev }}</span></div>
+                <sc-if value="{{ po.btnStyle.open }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:12px;margin-bottom:14px">
+                  <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Width</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px;color:#6b7280">inf</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                  <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:11px;color:#9aa0a8;font-weight:600">Height</span><span style="font-family:'Material Symbols Outlined';font-size:13px;color:{{ accent }}">tune</span><span style="margin-left:auto;font-size:10px;font-weight:700;color:#3a3f47">PX</span><span style="font-size:10px;font-weight:700;color:#c4c8cd">%</span></div><div style="height:34px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;padding:0 6px 0 10px"><span style="flex:1;font-size:12px">40</span><span style="font-family:'Material Symbols Outlined';font-size:16px;color:#c4c8cd">all_inclusive</span></div></div>
+                </div>
+                <div style="margin-bottom:14px"><div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:5px">FILL COLOR</div><div style="height:34px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="width:14px;height:14px;border-radius:4px;background:{{ previewBlue }}"></span><span style="font-size:12px">Primary</span></div></div>
+                <div style="margin-bottom:14px">
+                  <div style="font-size:10px;color:#9aa0a8;font-weight:600;margin-bottom:7px">BORDER RADIUS</div>
+                  <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:5px;border-radius:5px;background:#e6e8eb;position:relative"><div style="position:absolute;left:0;top:0;height:5px;width:34%;background:{{ accent }};border-radius:5px"></div><div style="position:absolute;left:32%;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid {{ accent }}"></div></div><div style="width:48px;height:30px;border:1px solid #e6e8eb;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">8</div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #edeef0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Show Loading Indicator</span><div style="width:36px;height:20px;border-radius:11px;background:{{ accent }};position:relative"><div style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #edeef0"><span style="font-size:12px;font-weight:600;color:#4b4f56">Button Hover Style</span><div style="width:36px;height:20px;border-radius:11px;background:#dcdfe3;position:relative"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px"><span style="font-size:12px;font-weight:700;color:#4b4f56">Icon Properties</span><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#9aa0a8">expand_more</span></div>
+                <div style="height:36px;border:1px solid #e6e8eb;border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 10px"><span style="font-family:'Material Symbols Outlined';font-size:18px;color:#3a3f47">check_circle</span><span style="font-size:12px">Check Circle</span><span style="margin-left:auto;font-family:'Material Symbols Outlined';font-size:16px;color:{{ accent }}">check_circle</span></div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#6c4cf1&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;appBarColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#2f6bff&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    mode: 'palette',
+    selected: null,
+    open: { common: true, layout: false, base: false, page: false, form: false },
+    propOpen: { pageVis: true, scaffold: true, navbar: true, padding: false, alignment: false, container: true, btnStyle: true, vis: false, valueKey: false, textProps: false, bgImage: false, child: false },
+    tog: { selectable: false, gradient: false, animate: false, shadow: false, boxShadow: false, implicitAnimated: false, safeArea: false, clipContent: false, cached: false },
+    shape: 'square',
+    opacity: '100%',
+    openMenu: null,
+    alignVal: 'None',
+    padVal: 'None',
+    leftW: 302,
+    rightW: 322
+  };
+
+  startResize(side, e) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = side === 'left' ? this.state.leftW : this.state.rightW;
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      if (side === 'left') {
+        this.setState({ leftW: Math.max(252, Math.min(460, startW + dx)) });
+      } else {
+        this.setState({ rightW: Math.max(240, Math.min(480, startW - dx)) });
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  setMode(m) { this.setState({ mode: m }); }
+  togglePO(key) { this.setState(s => ({ propOpen: { ...s.propOpen, [key]: !s.propOpen[key] } })); }
+  toggle(key) { this.setState(s => ({ open: { ...s.open, [key]: !s.open[key] } })); }
+  selectWidget(id, label, icon) { this.setState({ selected: { id, label, icon } }); }
+  clearSel() { this.setState({ selected: null }); }
+  toggleT(k) { this.setState(s => ({ tog: { ...s.tog, [k]: !s.tog[k] } })); }
+  toggleMenu(id) { this.setState(s => ({ openMenu: s.openMenu === id ? null : id })); }
+  setOpacity(v) { this.setState({ opacity: v, openMenu: null }); }
+  setAlign(v) { this.setState({ alignVal: v, openMenu: null }); }
+  setPad(v) { this.setState({ padVal: v, openMenu: null }); }
+  setShape(s) { this.setState({ shape: s }); }
+
+  renderVals() {
+    const accent = this.props.accent || '#6c4cf1';
+    const previewBlue = this.props.appBarColor || '#2f6bff';
+    const sel = this.state.selected;
+    const isPal = this.state.mode === 'palette';
+
+    const isButton = !!sel && sel.label === 'Button';
+    const isContainer = !!sel && sel.label === 'Container';
+    const isText = !!sel && sel.label === 'Text';
+    const showWidget = !!sel && sel.label !== 'HomePage';
+    const isOther = showWidget && !isButton && !isContainer;
+    const isPage = !showWidget;
+
+    const po = {};
+    ['pageVis', 'scaffold', 'navbar', 'padding', 'alignment', 'container', 'btnStyle', 'vis', 'valueKey', 'textProps', 'bgImage', 'child'].forEach(k => {
+      const o = this.state.propOpen[k];
+      po[k] = { open: o, closed: !o, chev: o ? 'expand_more' : 'chevron_right', toggle: () => this.togglePO(k) };
+    });
+    const mkTog = (k) => { const on = this.state.tog[k]; return { on, bg: on ? accent : '#dcdfe3', pos: on ? 'flex-end' : 'flex-start', toggle: () => this.toggleT(k) }; };
+    const t = { selectable: mkTog('selectable'), gradient: mkTog('gradient'), animate: mkTog('animate'), shadow: mkTog('shadow'), boxShadow: mkTog('boxShadow'), implicitAnimated: mkTog('implicitAnimated'), safeArea: mkTog('safeArea'), clipContent: mkTog('clipContent'), cached: mkTog('cached') };
+    const isSquare = this.state.shape === 'square';
+    const isCircle = !isSquare;
+    const sq = isSquare ? { bg: '#fff0eb', border: '#e8602c', color: '#e8602c' } : { bg: '#ffffff', border: '#e6e8eb', color: '#9aa0a8' };
+    const ci = isCircle ? { bg: '#fff0eb', border: '#e8602c', color: '#e8602c' } : { bg: '#ffffff', border: '#e6e8eb', color: '#9aa0a8' };
+    const alphaHex = { '0%': '14', '25%': '55', '50%': '99', '100%': 'ff' };
+    const opacityOptions = ['0%', '25%', '50%', '100%'].map(l => ({ label: l, swatch: accent + alphaHex[l], pick: () => this.setOpacity(l) }));
+    const alignNames = ['None', 'Top Left', 'Top Center', 'Top Right', 'Center Left', 'Center', 'Center Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'];
+    const alignOptions = alignNames.map(l => ({ label: l, pick: () => this.setAlign(l) }));
+    const padPresets = [['None', ''], ['All ( xs )', '4'], ['All ( sm )', '8'], ['All ( md )', '16'], ['All ( lg )', '24'], ['All ( xl )', '32'], ['Symmetric Horizontal ( xs )', '4'], ['Symmetric Vertical ( xs )', '4'], ['Only Top ( md )', '16']];
+    const padOptions = padPresets.map(p => ({ label: p[0], val: p[1], pick: () => this.setPad(p[0]) }));
+
+    const tree = [
+      { id: 'home', label: 'HomePage', icon: 'smartphone', depth: 0 },
+      { id: 'col1', label: 'Column', icon: 'vertical_distribute', depth: 1 },
+      { id: 'txt1', label: 'Text', icon: 'text_fields', depth: 2 },
+      { id: 'cont1', label: 'Container', icon: 'crop_square', depth: 2 },
+      { id: 'btn1', label: 'Button', icon: 'smart_button', depth: 3 },
+      { id: 'appbar', label: 'AppBar', icon: 'web_asset', depth: 1 },
+      { id: 'col2', label: 'Column', icon: 'vertical_distribute', depth: 2 },
+      { id: 'row1', label: 'Row', icon: 'horizontal_distribute', depth: 3 },
+      { id: 'ibtn', label: 'IconButton', icon: 'touch_app', depth: 4 },
+      { id: 'txt2', label: 'Text', icon: 'text_fields', depth: 4 },
+      { id: 'txt3', label: 'Text', icon: 'text_fields', depth: 2 }
+    ];
+    const treeRows = tree.map(n => {
+      const on = sel && sel.id === n.id;
+      return {
+        ...n,
+        pad: 10 + n.depth * 16,
+        bg: on ? '#efeaff' : 'transparent',
+        color: on ? '#3a2db0' : '#3a3f47',
+        iconColor: on ? accent : '#8b9099',
+        weight: n.depth === 0 ? 700 : 500,
+        onSelect: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.selectWidget(n.id, n.label, n.icon); }
+      };
+    });
+
+    const paletteCards = [
+      { label: 'Text', icon: 'text_fields' },
+      { label: 'Column', icon: 'vertical_distribute' },
+      { label: 'Row', icon: 'horizontal_distribute' },
+      { label: 'Container', icon: 'crop_square' },
+      { label: 'Image', icon: 'image' },
+      { label: 'Button', icon: 'smart_button' }
+    ];
+
+    const secData = [
+      { key: 'layout', label: 'Layout Elements', items: [
+        { label: 'Container', icon: 'crop_square' },
+        { label: 'Row', icon: 'horizontal_distribute' },
+        { label: 'Column', icon: 'vertical_distribute' },
+        { label: 'Stack', icon: 'layers' },
+        { label: 'Card', icon: 'style' },
+        { label: 'ListView', icon: 'view_list' },
+        { label: 'GridView', icon: 'grid_view' },
+        { label: 'Spacer', icon: 'height' },
+        { label: 'Divider', icon: 'horizontal_rule' },
+        { label: 'VerticalDivider', icon: 'align_horizontal_center' },
+        { label: 'TabBar', icon: 'tab' },
+        { label: 'PageView', icon: 'view_carousel' },
+        { label: 'Carousel', icon: 'slideshow' },
+        { label: 'Expandable', icon: 'open_in_full' },
+        { label: 'Wrap', icon: 'wrap_text' },
+        { label: 'Form Validation', icon: 'checklist' },
+        { label: 'StaggeredView', icon: 'dashboard' },
+        { label: 'FlippableCard', icon: 'flip' },
+        { label: 'SwipeableStack', icon: 'swipe' },
+        { label: 'DataTable', icon: 'table_chart' },
+        { label: 'Flex', icon: 'open_with' } ] },
+      { key: 'base', label: 'Base Elements', items: [
+        { label: 'Text', icon: 'text_fields' },
+        { label: 'RichText', icon: 'article' },
+        { label: 'Image', icon: 'image' },
+        { label: 'CircleImage', icon: 'account_circle' },
+        { label: 'Icon', icon: 'star' },
+        { label: 'Button', icon: 'smart_button' },
+        { label: 'IconButton', icon: 'touch_app' },
+        { label: 'ListTile', icon: 'list_alt' },
+        { label: 'SlidableListTile', icon: 'swipe_left' },
+        { label: 'VideoPlayer', icon: 'play_circle' },
+        { label: 'YoutubePlayer', icon: 'smart_display' },
+        { label: 'Calendar', icon: 'calendar_month' },
+        { label: 'ToggleIcon', icon: 'favorite' },
+        { label: 'AudioPlayer', icon: 'graphic_eq' },
+        { label: 'WebView', icon: 'public' },
+        { label: 'StaticMap', icon: 'location_on' },
+        { label: 'GoogleMap', icon: 'map' },
+        { label: 'AdBanner', icon: 'ad_units' },
+        { label: 'LottieAnimation', icon: 'animation' },
+        { label: 'Blur', icon: 'blur_on' },
+        { label: 'AspectRatio', icon: 'aspect_ratio' },
+        { label: 'ShaderWrapper', icon: 'texture' },
+        { label: 'ShaderFill', icon: 'gradient' },
+        { label: 'Transform', icon: 'transform' },
+        { label: 'MediaDisplay', icon: 'perm_media' },
+        { label: 'RiveAnimation', icon: 'auto_awesome' },
+        { label: 'PdfViewer', icon: 'picture_as_pdf' },
+        { label: 'ProgressBar', icon: 'linear_scale' },
+        { label: 'LanguageSelector', icon: 'translate' },
+        { label: 'Badge', icon: 'notifications' },
+        { label: 'Chart', icon: 'show_chart' },
+        { label: 'MuxBroadcast', icon: 'cast' },
+        { label: 'Timer', icon: 'timer' },
+        { label: 'MouseRegion', icon: 'mouse' },
+        { label: 'Barcode', icon: 'barcode' },
+        { label: 'DataTable', icon: 'table_chart' },
+        { label: 'Tooltip', icon: 'chat_bubble' },
+        { label: 'ConditionalBuilder', icon: 'account_tree' },
+        { label: 'StickyHeader', icon: 'push_pin' },
+        { label: 'Markdown', icon: 'code' },
+        { label: 'Draggable', icon: 'drag_indicator' },
+        { label: 'DragTarget', icon: 'pan_tool' },
+        { label: 'GenUI Chat', icon: 'smart_toy' } ] },
+      { key: 'page', label: 'Page Elements', items: [
+        { label: 'AppBar', icon: 'web_asset' },
+        { label: 'FAB', icon: 'add_circle' },
+        { label: 'Drawer', icon: 'menu_open' },
+        { label: 'EndDrawer', icon: 'menu_open' } ] },
+      { key: 'form', label: 'Form Elements', items: [
+        { label: 'TextField', icon: 'edit_note' },
+        { label: 'DropDown', icon: 'arrow_drop_down_circle' },
+        { label: 'Checkbox', icon: 'check_box' },
+        { label: 'CheckboxListTile', icon: 'fact_check' },
+        { label: 'Switch', icon: 'toggle_on' },
+        { label: 'SwitchListTile', icon: 'toggle_on' },
+        { label: 'RadioButton', icon: 'radio_button_checked' },
+        { label: 'PinCode', icon: 'password' },
+        { label: 'Slider', icon: 'tune' },
+        { label: 'RatingBar', icon: 'stars' },
+        { label: 'CreditCardForm', icon: 'credit_card' },
+        { label: 'Counter Button', icon: 'exposure' },
+        { label: 'ChoiceChips', icon: 'label' },
+        { label: 'PlacePicker', icon: 'pin_drop' },
+        { label: 'Form Validation', icon: 'checklist' },
+        { label: 'CheckboxGroup', icon: 'playlist_add_check' },
+        { label: 'Signature', icon: 'gesture' } ] }
+    ];
+    const otherSecs = secData.map(s => ({
+      key: s.key,
+      label: s.label,
+      items: s.items,
+      open: this.state.open[s.key],
+      chev: this.state.open[s.key] ? 'expand_more' : 'chevron_right',
+      toggle: () => this.toggle(s.key)
+    }));
+
+    return {
+      accent,
+      previewBlue,
+      isPalette: isPal,
+      isTree: !isPal,
+      panelTitle: isPal ? 'Components' : 'Widget Tree',
+      palBg: isPal ? '#ffffff' : 'transparent',
+      palColor: isPal ? accent : '#7c828a',
+      palShadow: isPal ? '0 1px 3px rgba(20,22,30,.12)' : 'none',
+      treeBg: !isPal ? '#ffffff' : 'transparent',
+      treeColor: !isPal ? accent : '#7c828a',
+      treeShadow: !isPal ? '0 1px 3px rgba(20,22,30,.12)' : 'none',
+      setPalette: () => this.setMode('palette'),
+      setTree: () => this.setMode('tree'),
+
+      leftW: this.state.leftW,
+      rightW: this.state.rightW,
+      gridCols: Math.min(6, Math.max(3, Math.floor((this.state.leftW - 28) / 100))),
+      startLeft: (e) => this.startResize('left', e),
+      startRight: (e) => this.startResize('right', e),
+
+      paletteCards,
+      otherSecs,
+      openCommon: this.state.open.common,
+      chevCommon: this.state.open.common ? 'expand_more' : 'chevron_right',
+      toggleCommon: () => this.toggle('common'),
+
+      treeRows,
+      isPage,
+      showWidget,
+      isButton,
+      isContainer,
+      isOther,
+      po,
+      t,
+      isText,
+      opacity: this.state.opacity,
+      opacitySwatch: accent + alphaHex[this.state.opacity],
+      opacityOptions,
+      visMenu: this.state.openMenu === 'vis',
+      toggleVisMenu: () => this.toggleMenu('vis'),
+      alignVal: this.state.alignVal,
+      alignMenu: this.state.openMenu === 'align',
+      toggleAlignMenu: () => this.toggleMenu('align'),
+      alignOptions,
+      padVal: this.state.padVal,
+      padMenu: this.state.openMenu === 'pad',
+      togglePadMenu: () => this.toggleMenu('pad'),
+      padOptions,
+      isSquare, isCircle,
+      sqBg: sq.bg, sqBorder: sq.border, sqColor: sq.color,
+      ciBg: ci.bg, ciBorder: ci.border, ciColor: ci.color,
+      setSquare: () => this.setShape('square'),
+      setCircle: () => this.setShape('circle'),
+      selectedLabel: sel ? sel.label : '',
+      selectedIcon: sel ? sel.icon : '',
+
+      btnSelected: isButton,
+      btnOutline: isButton ? '2px solid #14b8a6' : '1.5px solid transparent',
+      selectButtonStop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.selectWidget('btn1', 'Button', 'smart_button'); },
+      selectAppBar: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.selectWidget('appbar', 'AppBar', 'web_asset'); },
+      stopProp: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      clearSel: () => this.clearSel()
+    };
+  }
+}
+</script>
+</body>
+</html>
