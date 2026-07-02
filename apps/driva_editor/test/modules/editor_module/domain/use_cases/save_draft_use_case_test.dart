@@ -28,8 +28,9 @@ void main() {
   });
 
   test('persiste um spec válido', () async {
-    when(() => repository.saveDraft(any()))
-        .thenAnswer((_) async => const Right(unit));
+    when(
+      () => repository.saveDraft(any()),
+    ).thenAnswer((_) async => const Right(unit));
 
     final result = await useCase(validPage);
 
@@ -37,8 +38,7 @@ void main() {
     verify(() => repository.saveDraft(validPage)).called(1);
   });
 
-  test('barra spec que o kernel rejeitaria, sem tocar o repositório',
-      () async {
+  test('barra spec que o kernel rejeitaria, sem tocar o repositório', () async {
     // root que não é column: o editor nunca produz isso; a trava garante.
     const invalid = PageSpec(
       specVersion: kSpecVersion,

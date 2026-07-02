@@ -34,9 +34,7 @@ Either<SpecValidationError, SduiNode> parseNode(
 
   final descriptor = descriptorFor(type);
   if (descriptor == null) {
-    return Left(
-      SpecValidationError('$path: tipo "$type" fora do catálogo'),
-    );
+    return Left(SpecValidationError('$path: tipo "$type" fora do catálogo'));
   }
 
   final rawProps = json['props'];
@@ -117,8 +115,7 @@ Either<SpecValidationError, SduiNode> parseNode(
     SduiNode(
       id: id,
       type: type,
-      properties:
-          (rawProps as Map?)?.cast<String, dynamic>() ?? const {},
+      properties: (rawProps as Map?)?.cast<String, dynamic>() ?? const {},
       events: (rawEvents as Map?)?.cast<String, dynamic>() ?? const {},
       child: child,
       children: children,

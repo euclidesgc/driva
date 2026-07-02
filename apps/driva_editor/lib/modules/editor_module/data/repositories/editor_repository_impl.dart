@@ -19,8 +19,9 @@ class EditorRepositoryImpl implements EditorRepository {
         return const Left(ValidationFailure('Resposta sem o campo "spec".'));
       }
       // A única porta JSON → entidade é o kernel; aqui só traduzimos o erro.
-      return parsePageSpec(spec.cast<String, dynamic>())
-          .mapLeft((error) => ValidationFailure(error.message));
+      return parsePageSpec(
+        spec.cast<String, dynamic>(),
+      ).mapLeft((error) => ValidationFailure(error.message));
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -40,15 +41,14 @@ class EditorRepositoryImpl implements EditorRepository {
   }
 
   Failure _failureFor(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError =>
-          const NetworkFailure(),
-        DioExceptionType.badResponse => switch (e.response?.statusCode) {
-            404 => const NotFoundFailure(),
-            400 => const ValidationFailure(),
-            _ => const UnexpectedFailure(),
-          },
-        _ => const UnexpectedFailure(),
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => const NetworkFailure(),
+    DioExceptionType.badResponse => switch (e.response?.statusCode) {
+      404 => const NotFoundFailure(),
+      400 => const ValidationFailure(),
+      _ => const UnexpectedFailure(),
+    },
+    _ => const UnexpectedFailure(),
+  };
 }

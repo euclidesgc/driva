@@ -12,29 +12,34 @@ PageSpec _loadFixturePage() {
   final file = local.existsSync()
       ? local
       : File('packages/sdui_core/test/fixtures/page_valid.json');
-  final json =
-      (jsonDecode(file.readAsStringSync()) as Map).cast<String, dynamic>();
+  final json = (jsonDecode(file.readAsStringSync()) as Map)
+      .cast<String, dynamic>();
   return parsePageSpec(json).getRight().toNullable()!;
 }
 
 Widget _host(Widget child) => MaterialApp(
-      home: Scaffold(body: SingleChildScrollView(child: child)),
-    );
+  home: Scaffold(body: SingleChildScrollView(child: child)),
+);
 
 void main() {
   test('contrato kernel ↔ renderer: todo tipo do catálogo tem builder', () {
     for (final type in widgetCatalog.keys) {
-      expect(defaultRegistry.contains(type), isTrue,
-          reason: 'catálogo tem "$type" mas o registry não');
+      expect(
+        defaultRegistry.contains(type),
+        isTrue,
+        reason: 'catálogo tem "$type" mas o registry não',
+      );
     }
     for (final type in defaultRegistry.types) {
-      expect(widgetCatalog.containsKey(type), isTrue,
-          reason: 'registry tem "$type" mas o catálogo não');
+      expect(
+        widgetCatalog.containsKey(type),
+        isTrue,
+        reason: 'registry tem "$type" mas o catálogo não',
+      );
     }
   });
 
-  testWidgets('renderiza a página da fixture de ponta a ponta',
-      (tester) async {
+  testWidgets('renderiza a página da fixture de ponta a ponta', (tester) async {
     await tester.pumpWidget(_host(SduiView.page(_loadFixturePage())));
 
     expect(find.text('Semana do cliente'), findsOneWidget);
@@ -45,8 +50,7 @@ void main() {
     expect(find.byType(Card), findsOneWidget);
   });
 
-  testWidgets('props planas viram estilo (texto e container)',
-      (tester) async {
+  testWidgets('props planas viram estilo (texto e container)', (tester) async {
     const node = SduiNode(
       id: 'root',
       type: 'container',
@@ -83,7 +87,10 @@ void main() {
       properties: {'label': 'Comprar'},
       events: {
         'onPressed': [
-          {'action': 'navigate', 'params': {'to': '/carrinho'}},
+          {
+            'action': 'navigate',
+            'params': {'to': '/carrinho'},
+          },
         ],
       },
     );
@@ -120,8 +127,9 @@ void main() {
     expect(dispatched, isEmpty);
   });
 
-  testWidgets('nodeWrapper envolve todos os nós (gancho de seleção)',
-      (tester) async {
+  testWidgets('nodeWrapper envolve todos os nós (gancho de seleção)', (
+    tester,
+  ) async {
     const node = SduiNode(
       id: 'root',
       type: 'column',
@@ -147,8 +155,9 @@ void main() {
     expect(wrapped, containsAll(<String>['root', 'a', 'b']));
   });
 
-  testWidgets('tipo fora do registry mostra fallback, não derruba o preview',
-      (tester) async {
+  testWidgets('tipo fora do registry mostra fallback, não derruba o preview', (
+    tester,
+  ) async {
     const node = SduiNode(id: 'x', type: 'carousel3d');
 
     await tester.pumpWidget(_host(const SduiView(node: node)));

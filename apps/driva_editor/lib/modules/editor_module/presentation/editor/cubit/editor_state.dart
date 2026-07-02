@@ -55,8 +55,9 @@ final class EditorReady extends EditorState {
   }) {
     return EditorReady(
       document: document ?? this.document,
-      selectedNodeId:
-          selectedNodeId != null ? selectedNodeId() : this.selectedNodeId,
+      selectedNodeId: selectedNodeId != null
+          ? selectedNodeId()
+          : this.selectedNodeId,
       device: device ?? this.device,
       zoom: zoom ?? this.zoom,
       saveStatus: saveStatus ?? this.saveStatus,
@@ -64,6 +65,11 @@ final class EditorReady extends EditorState {
   }
 
   @override
-  List<Object?> get props =>
-      [document, selectedNodeId, device, zoom, saveStatus];
+  List<Object?> get props => [
+    document,
+    selectedNodeId,
+    device,
+    zoom,
+    saveStatus,
+  ];
 }

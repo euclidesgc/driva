@@ -35,9 +35,9 @@ void main() {
     });
 
     test('roundtrip: toJson de uma página parseada re-parseia igual', () {
-      final page = parsePageSpec(_loadFixture('page_valid.json'))
-          .getRight()
-          .toNullable()!;
+      final page = parsePageSpec(
+        _loadFixture('page_valid.json'),
+      ).getRight().toNullable()!;
       final reparsed = parsePageSpec(page.toJson()).getRight().toNullable();
 
       expect(reparsed, equals(page));

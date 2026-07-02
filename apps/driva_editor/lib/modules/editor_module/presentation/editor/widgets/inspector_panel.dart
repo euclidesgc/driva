@@ -18,8 +18,7 @@ class InspectorPanel extends StatelessWidget {
   });
 
   final EditorReady state;
-  final void Function(String nodeId, Map<String, dynamic> patch)
-      onUpdateProps;
+  final void Function(String nodeId, Map<String, dynamic> patch) onUpdateProps;
   final ValueChanged<String> onRemove;
 
   @override
@@ -38,8 +37,7 @@ class InspectorPanel extends StatelessWidget {
               ? '${state.document.name} · tela ${state.document.screenTarget}'
               : 'id ${node.id}',
           iconType: isPage ? null : node.type,
-          onRemove:
-              isPage ? null : () => onRemove(node.id),
+          onRemove: isPage ? null : () => onRemove(node.id),
         ),
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty
@@ -54,8 +52,9 @@ class InspectorPanel extends StatelessWidget {
                   children: [
                     for (final group in _groupsInOrder(descriptor)) ...[
                       _GroupHeader(label: group),
-                      for (final field in descriptor.fields
-                          .where((f) => f.group == group))
+                      for (final field in descriptor.fields.where(
+                        (f) => f.group == group,
+                      ))
                         PropFieldEditor(
                           // Key por nó+campo: troca o form quando a seleção muda.
                           key: ValueKey('${node.id}_${field.key}'),
@@ -119,7 +118,9 @@ class _InspectorHeader extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                      fontSize: 11, color: AppTheme.inkMuted),
+                    fontSize: 11,
+                    color: AppTheme.inkMuted,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

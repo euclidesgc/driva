@@ -69,7 +69,7 @@ const _boxFit = <String, BoxFit>{
 BoxFit boxFitFrom(Object? v) => _boxFit[v] ?? BoxFit.contain;
 
 StackFit stackFitFrom(Object? v) => switch (v) {
-      'expand' => StackFit.expand,
-      'passthrough' => StackFit.passthrough,
-      _ => StackFit.loose,
-    };
+  'expand' => StackFit.expand,
+  'passthrough' => StackFit.passthrough,
+  _ => StackFit.loose,
+};

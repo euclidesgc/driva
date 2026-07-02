@@ -98,23 +98,17 @@ class _CanvasToolbar extends StatelessWidget {
                   value: preset,
                   tooltip:
                       '${preset.label} (${preset.width.toInt()}×${preset.height.toInt()})',
-                  icon: Icon(
-                    switch (preset) {
-                      DevicePreset.smartphone => Icons.smartphone,
-                      DevicePreset.android => Icons.phone_android,
-                      DevicePreset.tablet => Icons.tablet_mac,
-                    },
-                    size: 16,
-                  ),
+                  icon: Icon(switch (preset) {
+                    DevicePreset.smartphone => Icons.smartphone,
+                    DevicePreset.android => Icons.phone_android,
+                    DevicePreset.tablet => Icons.tablet_mac,
+                  }, size: 16),
                 ),
             ],
             selected: {state.device},
-            onSelectionChanged: (selection) =>
-                onChangeDevice(selection.single),
+            onSelectionChanged: (selection) => onChangeDevice(selection.single),
             showSelectedIcon: false,
-            style: const ButtonStyle(
-              visualDensity: VisualDensity.compact,
-            ),
+            style: const ButtonStyle(visualDensity: VisualDensity.compact),
           ),
           const Spacer(),
           Text(
@@ -203,8 +197,7 @@ class _PreviewSurface extends StatelessWidget {
           : SingleChildScrollView(
               child: SduiView.page(
                 document,
-                onAction: (action) =>
-                    ScaffoldMessenger.of(context).showSnackBar(
+                onAction: (action) => ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       'Ação "${action.type}" é executada só no app cliente.',
@@ -234,8 +227,11 @@ class _EmptyPreview extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.swipe_left_alt_outlined,
-                size: 40, color: AppTheme.inkMuted),
+            Icon(
+              Icons.swipe_left_alt_outlined,
+              size: 40,
+              color: AppTheme.inkMuted,
+            ),
             SizedBox(height: 12),
             Text(
               'Página vazia.\nArraste um widget da paleta para começar.',
@@ -293,8 +289,7 @@ class _SelectableNode extends StatelessWidget {
               top: -18,
               left: 0,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 color: AppTheme.primary,
                 child: Text(
                   descriptor?.label ?? node.type,

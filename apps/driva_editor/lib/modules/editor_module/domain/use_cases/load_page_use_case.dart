@@ -9,6 +9,5 @@ class LoadPageUseCase {
   final EditorRepository repository;
   const LoadPageUseCase({required this.repository});
 
-  Future<Either<Failure, PageSpec>> call(String id) =>
-      repository.loadPage(id);
+  Future<Either<Failure, PageSpec>> call(String id) => repository.loadPage(id);
 }

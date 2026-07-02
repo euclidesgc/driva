@@ -32,17 +32,17 @@ void main() {
   });
 
   PageListCubit build() => PageListCubit(
-        getPages: getPages,
-        createPage: createPage,
-        deletePage: deletePage,
-      );
+    getPages: getPages,
+    createPage: createPage,
+    deletePage: deletePage,
+  );
 
   group('load', () {
     blocTest<PageListCubit, PageListState>(
       'emite Loading → Loaded quando há páginas',
       build: build,
-      setUp: () => when(() => getPages())
-          .thenAnswer((_) async => Right([page])),
+      setUp: () =>
+          when(() => getPages()).thenAnswer((_) async => Right([page])),
       act: (cubit) => cubit.load(),
       expect: () => [
         const PageListLoading(),
@@ -53,20 +53,18 @@ void main() {
     blocTest<PageListCubit, PageListState>(
       'emite Loading → Empty quando não há páginas',
       build: build,
-      setUp: () => when(() => getPages())
-          .thenAnswer((_) async => const Right([])),
+      setUp: () =>
+          when(() => getPages()).thenAnswer((_) async => const Right([])),
       act: (cubit) => cubit.load(),
-      expect: () => [
-        const PageListLoading(),
-        const PageListEmpty(),
-      ],
+      expect: () => [const PageListLoading(), const PageListEmpty()],
     );
 
     blocTest<PageListCubit, PageListState>(
       'emite Loading → Error com a Failure tipada',
       build: build,
-      setUp: () => when(() => getPages())
-          .thenAnswer((_) async => const Left(NetworkFailure())),
+      setUp: () => when(
+        () => getPages(),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
       act: (cubit) => cubit.load(),
       expect: () => [
         const PageListLoading(),
@@ -80,8 +78,9 @@ void main() {
       'sucesso: recarrega a lista e devolve a página criada',
       build: build,
       setUp: () {
-        when(() => createPage(name: 'Home', screenTarget: 'home'))
-            .thenAnswer((_) async => Right(page));
+        when(
+          () => createPage(name: 'Home', screenTarget: 'home'),
+        ).thenAnswer((_) async => Right(page));
         when(() => getPages()).thenAnswer((_) async => Right([page]));
       },
       act: (cubit) => cubit.create(name: 'Home', screenTarget: 'home'),
@@ -95,9 +94,9 @@ void main() {
     blocTest<PageListCubit, PageListState>(
       'falha: não recarrega e não muda o estado',
       build: build,
-      setUp: () =>
-          when(() => createPage(name: 'Home', screenTarget: 'home'))
-              .thenAnswer((_) async => const Left(ValidationFailure('x'))),
+      setUp: () => when(
+        () => createPage(name: 'Home', screenTarget: 'home'),
+      ).thenAnswer((_) async => const Left(ValidationFailure('x'))),
       act: (cubit) => cubit.create(name: 'Home', screenTarget: 'home'),
       expect: () => <PageListState>[],
       verify: (_) => verifyNever(() => getPages()),
@@ -109,15 +108,13 @@ void main() {
       'recarrega após excluir',
       build: build,
       setUp: () {
-        when(() => deletePage('pg_1'))
-            .thenAnswer((_) async => const Right(unit));
+        when(
+          () => deletePage('pg_1'),
+        ).thenAnswer((_) async => const Right(unit));
         when(() => getPages()).thenAnswer((_) async => const Right([]));
       },
       act: (cubit) => cubit.delete('pg_1'),
-      expect: () => [
-        const PageListLoading(),
-        const PageListEmpty(),
-      ],
+      expect: () => [const PageListLoading(), const PageListEmpty()],
     );
   });
 }

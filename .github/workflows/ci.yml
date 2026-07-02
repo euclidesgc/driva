@@ -1,0 +1,67 @@
+name: CI
+
+# A cancela roda no servidor: o PR de um agente passa pela mesma régua que o de
+# um humano (cap. 35 do livro). Verde aqui é pré-requisito de merge em develop/main.
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  flutter:
+    name: Flutter — format + analyze + testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependências (pub workspace)
+        run: dart pub get
+
+      - name: Formatação
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Testes — sdui_core (kernel)
+        run: dart test packages/sdui_core
+
+      - name: Testes — sdui_flutter (renderer)
+        run: flutter test packages/sdui_flutter
+
+      - name: Testes — driva_editor (editor)
+        run: flutter test apps/driva_editor
+
+  backend:
+    name: Backend — build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma Client
+        run: pnpm prisma:generate
+
+      - name: Build (tsc via nest)
+        run: pnpm build

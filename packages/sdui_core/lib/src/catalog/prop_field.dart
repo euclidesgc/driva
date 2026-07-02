@@ -36,8 +36,15 @@ class PropField extends Equatable {
   final bool isRequired;
 
   @override
-  List<Object?> get props =>
-      [key, kind, label, group, enumValues, defaultValue, isRequired];
+  List<Object?> get props => [
+    key,
+    kind,
+    label,
+    group,
+    enumValues,
+    defaultValue,
+    isRequired,
+  ];
 }
 
 /// Rótulos dos grupos (seções do Inspector), centralizados para consistência.

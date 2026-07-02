@@ -24,7 +24,8 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
   Widget build(BuildContext context) {
     final byCategory = <String, List<WidgetDescriptor>>{};
     for (final descriptor in widgetCatalog.values) {
-      final matches = _query.isEmpty ||
+      final matches =
+          _query.isEmpty ||
           descriptor.label.toLowerCase().contains(_query) ||
           descriptor.type.toLowerCase().contains(_query);
       if (matches) {
@@ -58,9 +59,7 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                         child: Text(
                           entry.key,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
+                          style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(color: AppTheme.inkMuted),
                         ),
                       ),
