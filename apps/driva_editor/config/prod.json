@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "https://api.driva.example.com",
+  "DEFAULT_PROJECT_ID": "default",
+  "USE_FAKE_DATA": false
+}
