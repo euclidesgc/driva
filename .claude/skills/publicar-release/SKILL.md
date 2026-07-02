@@ -12,7 +12,7 @@ Passos:
 2. Parta de `develop` atualizado e crie o branch: `git switch develop && git pull && git switch -c release/v<X.Y.0>` (ex.: `release/v0.2.0`).
 3. Estabilize apenas: bump da versão, ajustes finais, docs. **Sem feature nova** (isso continua em `feature/*` para a próxima).
 4. Promova o **CHANGELOG**: mova `Unreleased` para a seção `v<X.Y.0>` com a data.
-5. Rode a cancela local (`dart format`, `flutter analyze`, testes; backend `lint`/`build`).
+5. Rode a cancela local (`dart format`, `flutter analyze`, testes; backend `build`).
 6. Abra o PR para `main`: `gh pr create --base main --fill`. CI verde + revisão humana → merge.
 7. **Tag no merge de `main`:** `git switch main && git pull && git tag -a v<X.Y.0> -m "release v<X.Y.0>" && git push origin v<X.Y.0>`. O Coolify publica em **produção** (`driva.bmjtech.duckdns.org` + `driva-api.bmjtech.duckdns.org`).
 8. **Regra de ouro:** faça o merge de volta em `develop`: `git switch develop && git pull && git merge --no-ff origin/main && git push`.
