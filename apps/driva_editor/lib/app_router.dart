@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'modules/editor_module/editor_module.dart';
 import 'modules/pages_module/pages_module.dart';
 
 /// Root navigator key: available for routes that must cover any future shell.
@@ -19,7 +20,7 @@ final GoRouter appRoutes = GoRouter(
       redirect: (context, state) => PagesRoutes.pages,
     ),
     PagesRoutes.route,
-    // TODO(fase-4): EditorRoutes.route
+    EditorRoutes.route,
   ],
   onException: (context, state, router) => router.go(PagesRoutes.pages),
 );

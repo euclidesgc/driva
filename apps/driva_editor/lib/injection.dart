@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'core/config/app_config.dart';
 import 'core/dev/fake_pages_store.dart';
 import 'core/network/network.dart';
+import 'modules/editor_module/editor_module.dart';
 import 'modules/pages_module/pages_module.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -26,5 +27,5 @@ void setupInjection(AppConfig config) {
 
   // --- Module registrations ---
   registerPagesModule(getIt);
-  // TODO(fase-4): registerEditorModule(getIt);
+  registerEditorModule(getIt);
 }
