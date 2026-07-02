@@ -47,10 +47,16 @@ class WidgetTreePanel extends StatelessWidget {
         _DropZone(
           label: 'Soltar aqui adiciona ao fim da página',
           onAccept: (payload) => switch (payload) {
-            PaletteDragPayload(:final type) =>
-              onAddInto(type, root.id, root.children.length),
-            NodeDragPayload(:final nodeId) =>
-              onMoveInto(nodeId, root.id, root.children.length),
+            PaletteDragPayload(:final type) => onAddInto(
+              type,
+              root.id,
+              root.children.length,
+            ),
+            NodeDragPayload(:final nodeId) => onMoveInto(
+              nodeId,
+              root.id,
+              root.children.length,
+            ),
           },
         ),
       ],
@@ -81,7 +87,8 @@ class WidgetTreePanel extends StatelessWidget {
   /// recebe como vizinho seguinte no pai.
   void _dropOn(SduiNode target, DragPayload payload) {
     final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
-    final acceptsChildren = slot == SlotKind.multi ||
+    final acceptsChildren =
+        slot == SlotKind.multi ||
         (slot == SlotKind.single && target.child == null);
 
     final String parentId;
@@ -160,13 +167,12 @@ class _TreeRow extends StatelessWidget {
                 color: isSelected
                     ? AppTheme.primaryTint
                     : highlighted
-                        ? AppTheme.canvas
-                        : null,
+                    ? AppTheme.canvas
+                    : null,
                 border: Border(
                   left: BorderSide(
                     width: 3,
-                    color:
-                        isSelected ? AppTheme.primary : Colors.transparent,
+                    color: isSelected ? AppTheme.primary : Colors.transparent,
                   ),
                 ),
               ),
@@ -175,7 +181,9 @@ class _TreeRow extends StatelessWidget {
                   Icon(
                     paletteIconFor(node.type),
                     size: 16,
-                    color: isSelected ? AppTheme.primary : AppTheme.inkSecondary,
+                    color: isSelected
+                        ? AppTheme.primary
+                        : AppTheme.inkSecondary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(

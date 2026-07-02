@@ -18,21 +18,21 @@ import 'text.dart';
 /// Adicionar um primitivo = um arquivo em `builders/` + uma entrada aqui
 /// (+ descriptor no catálogo do `sdui_core` — o teste de contrato cobra).
 SduiRegistry buildDefaultRegistry() => SduiRegistry({
-      'container': buildContainer,
-      'column': buildColumn,
-      'row': buildRow,
-      'stack': buildStack,
-      'text': buildText,
-      'image': buildImage,
-      'icon': buildIcon,
-      'button': buildButton,
-      'card': buildCard,
-      'divider': buildDivider,
-      'sizedBox': buildSizedBox,
-      'padding': buildPadding,
-      'center': buildCenter,
-      'spacer': buildSpacer,
-    });
+  'container': buildContainer,
+  'column': buildColumn,
+  'row': buildRow,
+  'stack': buildStack,
+  'text': buildText,
+  'image': buildImage,
+  'icon': buildIcon,
+  'button': buildButton,
+  'card': buildCard,
+  'divider': buildDivider,
+  'sizedBox': buildSizedBox,
+  'padding': buildPadding,
+  'center': buildCenter,
+  'spacer': buildSpacer,
+});
 
 /// Registry padrão compartilhado (montado uma vez).
 final SduiRegistry defaultRegistry = buildDefaultRegistry();

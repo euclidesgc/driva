@@ -1,0 +1,28 @@
+# Contexto do build do frontend (Flutter Web) = raiz do repo.
+# Fora daqui o build não precisa de nada disto.
+
+# Artefatos de build
+**/build/
+**/.dart_tool/
+.dart_tool/
+
+# Backend (não entra na imagem do web)
+backend/node_modules/
+backend/dist/
+
+# Docs pesadas (livro + PoC WidgetMill) — não são necessárias para buildar o app
+docs/
+
+# VCS e tooling
+.git/
+.github/
+.claude/
+graphify-out/
+
+# Segredos e ambiente
+**/.env
+**/.env.*
+
+# Os próprios artefatos de container
+**/Dockerfile
+**/.dockerignore

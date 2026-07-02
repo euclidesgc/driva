@@ -55,8 +55,7 @@ const _fontWeights = <String, FontWeight>{
   'w900': FontWeight.w900,
 };
 
-FontWeight? parseFontWeight(Object? v) =>
-    v is String ? _fontWeights[v] : null;
+FontWeight? parseFontWeight(Object? v) => v is String ? _fontWeights[v] : null;
 
 /// BorderRadius uniforme a partir de um número.
 BorderRadius? parseBorderRadius(Object? v) =>

@@ -32,8 +32,9 @@ class SduiRenderer {
       node == null ? null : render(context, node);
 
   /// Renderiza uma lista de filhos.
-  List<Widget> renderAll(BuildContext context, List<SduiNode> nodes) =>
-      [for (final n in nodes) render(context, n)];
+  List<Widget> renderAll(BuildContext context, List<SduiNode> nodes) => [
+    for (final n in nodes) render(context, n),
+  ];
 
   /// Executa, em ordem, a lista de ações de um evento. No-op sem handler.
   void dispatch(Object? actions) {

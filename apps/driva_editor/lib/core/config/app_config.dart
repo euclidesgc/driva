@@ -16,19 +16,21 @@ final class AppConfig extends Equatable {
   /// Reads the dart-defines injected at build time.
   /// The flavor entrypoint only names the environment.
   const AppConfig.fromEnvironment({required String environment})
-      : this(
-          environment: environment,
-          apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
-          defaultProjectId: const String.fromEnvironment(
-            'DEFAULT_PROJECT_ID',
-            defaultValue: 'default',
-          ),
-          // Default dev-amigável: sem o arquivo de config, roda com fakes.
-          // O build de produção SEMPRE usa --dart-define-from-file
-          // (config/prod.json define USE_FAKE_DATA=false).
-          useFakeData:
-              const bool.fromEnvironment('USE_FAKE_DATA', defaultValue: true),
-        );
+    : this(
+        environment: environment,
+        apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
+        defaultProjectId: const String.fromEnvironment(
+          'DEFAULT_PROJECT_ID',
+          defaultValue: 'default',
+        ),
+        // Default dev-amigável: sem o arquivo de config, roda com fakes.
+        // O build de produção SEMPRE usa --dart-define-from-file
+        // (config/prod.json define USE_FAKE_DATA=false).
+        useFakeData: const bool.fromEnvironment(
+          'USE_FAKE_DATA',
+          defaultValue: true,
+        ),
+      );
 
   /// Flavor name: `dev` or `prod`.
   final String environment;
@@ -44,6 +46,10 @@ final class AppConfig extends Equatable {
   final bool useFakeData;
 
   @override
-  List<Object?> get props =>
-      [environment, apiBaseUrl, defaultProjectId, useFakeData];
+  List<Object?> get props => [
+    environment,
+    apiBaseUrl,
+    defaultProjectId,
+    useFakeData,
+  ];
 }

@@ -41,24 +41,25 @@ class PageListPage extends StatelessWidget {
       body: BlocBuilder<PageListCubit, PageListState>(
         builder: (context, state) {
           return switch (state) {
-            PageListLoading() =>
-              const Center(child: CircularProgressIndicator()),
+            PageListLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             PageListEmpty() => _EmptyPages(
-                onCreate: () => _showCreateDialog(context),
-              ),
+              onCreate: () => _showCreateDialog(context),
+            ),
             final PageListError s => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_messageFor(s.failure)),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => context.read<PageListCubit>().load(),
-                      child: const Text('Tentar de novo'),
-                    ),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_messageFor(s.failure)),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => context.read<PageListCubit>().load(),
+                    child: const Text('Tentar de novo'),
+                  ),
+                ],
               ),
+            ),
             final PageListLoaded s => _PagesGrid(pages: s.pages),
           };
         },
@@ -67,11 +68,11 @@ class PageListPage extends StatelessWidget {
   }
 
   String _messageFor(Failure failure) => switch (failure) {
-        NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
-        NotFoundFailure() => 'Nada encontrado.',
-        ValidationFailure(message: final m) => m,
-        UnexpectedFailure() => 'Algo deu errado.',
-      };
+    NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
+    NotFoundFailure() => 'Nada encontrado.',
+    ValidationFailure(message: final m) => m,
+    UnexpectedFailure() => 'Algo deu errado.',
+  };
 
   Future<void> _showCreateDialog(BuildContext context) async {
     final cubit = context.read<PageListCubit>();
@@ -87,13 +88,10 @@ class PageListPage extends StatelessWidget {
     );
     if (!context.mounted) return;
     created.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_messageFor(failure))),
-      ),
-      (page) => context.goNamed(
-        'editor',
-        pathParameters: {'id': page.id},
-      ),
+      (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_messageFor(failure)))),
+      (page) => context.goNamed('editor', pathParameters: {'id': page.id}),
     );
   }
 }
@@ -127,8 +125,7 @@ class _PageCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () =>
-            context.goNamed('editor', pathParameters: {'id': page.id}),
+        onTap: () => context.goNamed('editor', pathParameters: {'id': page.id}),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -243,9 +240,9 @@ class _CreatePageDialogState extends State<_CreatePageDialog> {
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    Navigator.of(context).pop(
-      (name: _name.text, screenTarget: _screenTarget.text),
-    );
+    Navigator.of(
+      context,
+    ).pop((name: _name.text, screenTarget: _screenTarget.text));
   }
 
   @override

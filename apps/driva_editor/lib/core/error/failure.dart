@@ -17,7 +17,9 @@ sealed class Failure extends Equatable {
 
 /// Connectivity or server-side error (timeouts, 5xx, no connection).
 final class NetworkFailure extends Failure {
-  const NetworkFailure([super.message = 'Falha de comunicação com o servidor.']);
+  const NetworkFailure([
+    super.message = 'Falha de comunicação com o servidor.',
+  ]);
 }
 
 /// Payload that does not match the expected schema (zard `safeParse` failed)

@@ -15,10 +15,7 @@ final GoRouter appRoutes = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: PagesRoutes.pages,
   routes: [
-    GoRoute(
-      path: '/',
-      redirect: (context, state) => PagesRoutes.pages,
-    ),
+    GoRoute(path: '/', redirect: (context, state) => PagesRoutes.pages),
     PagesRoutes.route,
     EditorRoutes.route,
   ],

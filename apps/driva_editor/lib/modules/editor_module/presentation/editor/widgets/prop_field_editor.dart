@@ -21,15 +21,53 @@ class PropFieldEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final editor = switch (field.kind) {
-      FieldKind.string => _StringEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.doubleNum => _NumberEditor(field: field, value: value, onChanged: onChanged, isInt: false),
-      FieldKind.intNum => _NumberEditor(field: field, value: value, onChanged: onChanged, isInt: true),
-      FieldKind.boolean => _BoolEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.color => _ColorEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.enumeration => _EnumEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.edgeInsets => _EdgeInsetsEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.alignment => _AlignmentEditor(field: field, value: value, onChanged: onChanged),
-      FieldKind.iconName => _IconEditor(field: field, value: value, onChanged: onChanged),
+      FieldKind.string => _StringEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.doubleNum => _NumberEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+        isInt: false,
+      ),
+      FieldKind.intNum => _NumberEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+        isInt: true,
+      ),
+      FieldKind.boolean => _BoolEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.color => _ColorEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.enumeration => _EnumEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.edgeInsets => _EdgeInsetsEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.alignment => _AlignmentEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
+      FieldKind.iconName => _IconEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+      ),
     };
 
     return Padding(
@@ -136,10 +174,7 @@ class _BoolEditor extends StatelessWidget {
         : (field.defaultValue as bool? ?? false);
     return Align(
       alignment: Alignment.centerLeft,
-      child: Switch(
-        value: current,
-        onChanged: onChanged,
-      ),
+      child: Switch(value: current, onChanged: onChanged),
     );
   }
 }
@@ -156,8 +191,14 @@ class _ColorEditor extends StatelessWidget {
   final ValueChanged<Object?> onChanged;
 
   static const _swatches = [
-    '#E8602C', '#2F6BFF', '#16A34A', '#F0A020', '#DC2626',
-    '#111827', '#6B7280', '#FFFFFF',
+    '#E8602C',
+    '#2F6BFF',
+    '#16A34A',
+    '#F0A020',
+    '#DC2626',
+    '#111827',
+    '#6B7280',
+    '#FFFFFF',
   ];
 
   Color? _parse(Object? v) {
@@ -185,8 +226,11 @@ class _ColorEditor extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: current == null
-                  ? const Icon(Icons.format_color_reset_outlined,
-                      size: 14, color: AppTheme.inkMuted)
+                  ? const Icon(
+                      Icons.format_color_reset_outlined,
+                      size: 14,
+                      color: AppTheme.inkMuted,
+                    )
                   : null,
             ),
             const SizedBox(width: 8),
@@ -195,8 +239,10 @@ class _ColorEditor extends StatelessWidget {
                 key: ValueKey('${field.key}_${value ?? ''}'),
                 initialValue: value?.toString() ?? '',
                 style: const TextStyle(fontSize: 13),
-                decoration:
-                    const InputDecoration(isDense: true, hintText: '#RRGGBB'),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  hintText: '#RRGGBB',
+                ),
                 onChanged: (text) {
                   final trimmed = text.trim().toUpperCase();
                   if (trimmed.isEmpty) {
@@ -257,8 +303,7 @@ class _EnumEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final current =
-        field.enumValues.contains(value) ? value! as String : null;
+    final current = field.enumValues.contains(value) ? value! as String : null;
     return DropdownButtonFormField<String?>(
       initialValue: current,
       isDense: true,
@@ -317,24 +362,24 @@ class _EdgeInsetsEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget sideField(String key, String label) => Expanded(
-          child: TextFormField(
-            key: ValueKey('${field.key}_${key}_${_side(key) ?? ''}'),
-            initialValue: _side(key)?.toString() ?? '',
-            style: const TextStyle(fontSize: 12),
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: label,
-              labelStyle: const TextStyle(fontSize: 10),
-            ),
-            onChanged: (text) => _update(
-              key,
-              text.trim().isEmpty
-                  ? null
-                  : double.tryParse(text.trim().replaceAll(',', '.')),
-            ),
-          ),
-        );
+      child: TextFormField(
+        key: ValueKey('${field.key}_${key}_${_side(key) ?? ''}'),
+        initialValue: _side(key)?.toString() ?? '',
+        style: const TextStyle(fontSize: 12),
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          isDense: true,
+          labelText: label,
+          labelStyle: const TextStyle(fontSize: 10),
+        ),
+        onChanged: (text) => _update(
+          key,
+          text.trim().isEmpty
+              ? null
+              : double.tryParse(text.trim().replaceAll(',', '.')),
+        ),
+      ),
+    );
 
     return Row(
       children: [

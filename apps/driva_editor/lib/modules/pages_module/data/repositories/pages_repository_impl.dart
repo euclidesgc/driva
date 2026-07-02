@@ -58,15 +58,14 @@ class PagesRepositoryImpl implements PagesRepository {
 
   // O único try/catch do módulo mora nesta classe: HTTP vira Failure aqui.
   Failure _failureFor(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError =>
-          const NetworkFailure(),
-        DioExceptionType.badResponse => switch (e.response?.statusCode) {
-            404 => const NotFoundFailure(),
-            400 => const ValidationFailure(),
-            _ => const UnexpectedFailure(),
-          },
-        _ => const UnexpectedFailure(),
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => const NetworkFailure(),
+    DioExceptionType.badResponse => switch (e.response?.statusCode) {
+      404 => const NotFoundFailure(),
+      400 => const ValidationFailure(),
+      _ => const UnexpectedFailure(),
+    },
+    _ => const UnexpectedFailure(),
+  };
 }

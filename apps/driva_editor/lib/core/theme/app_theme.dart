@@ -38,20 +38,21 @@ abstract final class AppTheme {
   // --- Theme ---
 
   static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: primary,
-      onPrimary: Colors.white,
-      primaryContainer: primaryTint,
-      onPrimaryContainer: primary,
-      surface: surface,
-      onSurface: ink,
-      onSurfaceVariant: inkSecondary,
-      outline: border,
-      outlineVariant: border,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: primary,
+          onPrimary: Colors.white,
+          primaryContainer: primaryTint,
+          onPrimaryContainer: primary,
+          surface: surface,
+          onSurface: ink,
+          onSurfaceVariant: inkSecondary,
+          outline: border,
+          outlineVariant: border,
+        );
 
     final base = ThemeData(
       useMaterial3: true,
@@ -77,26 +78,19 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
-      textTheme: base.textTheme.apply(
-        bodyColor: ink,
-        displayColor: ink,
-      ),
+      textTheme: base.textTheme.apply(bodyColor: ink, displayColor: ink),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: ink,
           side: const BorderSide(color: border),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -116,7 +110,9 @@ abstract final class AppTheme {
           borderSide: const BorderSide(color: primary, width: 2),
         ),
       ),
-      tooltipTheme: const TooltipThemeData(waitDuration: Duration(milliseconds: 400)),
+      tooltipTheme: const TooltipThemeData(
+        waitDuration: Duration(milliseconds: 400),
+      ),
     );
   }
 }

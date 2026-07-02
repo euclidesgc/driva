@@ -42,3 +42,20 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 O usuário fala **só com o tech-manager** (`.claude/agents/`). Fluxo: PM faz discovery e mata ambiguidades → `specs.md` → `prd.md` (humano aprova) → tech-lead escreve `plan.md` vivo (1 fase = 1 PR) → especialistas implementam fase a fase (QA valida + CISO revisa + humano revisa o PR) → gate CISO → E2E manual instrumentado (QA prepara, humano testa) → wrap + `final_report.md` → gate CISO → **só então** testes automatizados → DoD (testes verdes + docs vivas em dia). Desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
 
 Comandos úteis: `dart pub get` (raiz), `flutter analyze`, `dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`, `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
+
+## Git, branches e releases (GitFlow)
+
+Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacional:
+
+- **`main`** = produção (cada commit é uma versão com tag `vX.Y.Z`; **protegida**, só recebe `release/*` e `hotfix/*`). **`develop`** = integração (o próximo release; base de todo trabalho). **Ninguém comita direto em `main`/`develop`** — todo trabalho nasce num branch de suporte e volta por PR.
+- Branches de suporte: **`feature/<issue>-<slug>`** (de `develop` → PR para `develop`; **default**), **`bugfix/<issue>-<slug>`** (bug ainda em dev; de `develop` → `develop`), **`hotfix/<issue>-<slug>`** (bug em produção; de **`main`** → PR para `main` **e** merge de volta em `develop`; sobe PATCH), **`release/<vX.Y.Z>`** (estabiliza; de `develop` → `main` **e** `develop`; sobe MINOR, **sem feature nova**).
+- **Regra de ouro:** `release/*` e `hotfix/*` voltam para **duas** branches (`main` **e** `develop`), com **tag SemVer** no merge em `main`. Merges de volta usam `--no-ff`.
+- **CHANGELOG** (Keep a Changelog): a seção `Unreleased` é atualizada **no mesmo PR** da mudança; o `release/*` a promove para a versão.
+- Por situação, use a skill: `iniciar-feature`, `iniciar-bugfix`, `iniciar-hotfix`, `publicar-release`.
+
+## CI/CD e deploy (Coolify)
+
+- **CI é a cancela** (`.github/workflows/ci.yml`): em PR/push para `develop`/`main` roda `dart format` + `flutter analyze` + os testes (e `lint`/`build` do backend). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
+- **Deploy = auto-deploy por branch** no **Coolify** (GitHub App): merge em **`develop` → homologação**, merge em **`main` → produção**. Detalhes e checklist do painel em **`docs/deploy/coolify.md`**.
+- Dois deployáveis por ambiente (frontend Flutter Web servido por nginx + backend Nest) + Postgres gerenciado. Domínios: `driva[-hml]` (front) e `driva-api[-hml]` (API) sob `bmjtech.duckdns.org` (prod sem sufixo).
+- **Segredo/URL/origem nunca no repo** — só como env/Build Variable no Coolify. A URL da API do front é **compile-time** (ARG `API_BASE_URL` no Dockerfile); o CORS do backend vem de `CORS_ORIGINS`.
