@@ -1,0 +1,39 @@
+import 'package:flutter/widgets.dart';
+import 'package:sdui_core/sdui_core.dart';
+
+import '../parsing/enums.dart';
+import '../parsing/parsers.dart';
+import '../renderer.dart';
+
+/// Container. Props planas (`color`, `borderRadius`, `borderColor`,
+/// `borderWidth`): quando há borda ou raio, viram uma [BoxDecoration] (regra
+/// do Flutter: `color` e `decoration` são mutuamente exclusivos).
+Widget buildContainer(BuildContext context, SduiNode node, SduiRenderer r) {
+  final p = node.properties;
+  final borderRadius = parseBorderRadius(p['borderRadius']);
+  final borderColor = parseColor(p['borderColor']);
+  final border = borderColor != null
+      ? Border.all(
+          color: borderColor,
+          width: parseDouble(p['borderWidth']) ?? 1.0,
+        )
+      : null;
+  final needsDecoration = borderRadius != null || border != null;
+
+  return Container(
+    width: parseDouble(p['width']),
+    height: parseDouble(p['height']),
+    padding: parseEdgeInsets(p['padding']),
+    margin: parseEdgeInsets(p['margin']),
+    alignment: alignmentFrom(p['alignment']),
+    color: needsDecoration ? null : parseColor(p['color']),
+    decoration: needsDecoration
+        ? BoxDecoration(
+            color: parseColor(p['color']),
+            borderRadius: borderRadius,
+            border: border,
+          )
+        : null,
+    child: r.maybeRender(context, node.child),
+  );
+}
