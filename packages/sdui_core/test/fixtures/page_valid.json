@@ -1,0 +1,89 @@
+{
+  "specVersion": 1,
+  "kind": "page",
+  "id": "pg_home_promo",
+  "name": "Home — vitrine de promoções",
+  "screenTarget": "home",
+  "root": {
+    "id": "nd_root",
+    "type": "column",
+    "props": { "mainAxisSize": "min", "crossAxisAlignment": "stretch" },
+    "children": [
+      {
+        "id": "nd_banner",
+        "type": "container",
+        "props": {
+          "height": 140.0,
+          "color": "#6C4CF1",
+          "borderRadius": 12.0,
+          "padding": { "all": 16.0 },
+          "margin": { "left": 16.0, "top": 16.0, "right": 16.0, "bottom": 8.0 },
+          "alignment": "centerLeft"
+        },
+        "child": {
+          "id": "nd_banner_text",
+          "type": "text",
+          "props": {
+            "data": "Semana do cliente",
+            "fontSize": 22.0,
+            "fontWeight": "w700",
+            "color": "#FFFFFF"
+          }
+        }
+      },
+      {
+        "id": "nd_row",
+        "type": "row",
+        "props": { "mainAxisAlignment": "spaceBetween", "spacing": 8.0 },
+        "children": [
+          {
+            "id": "nd_icon",
+            "type": "icon",
+            "props": { "icon": "star", "size": 20.0, "color": "#F0A020" }
+          },
+          {
+            "id": "nd_caption",
+            "type": "text",
+            "props": { "data": "Ofertas selecionadas", "fontSize": 14.0 }
+          },
+          { "id": "nd_spacer", "type": "spacer", "props": { "flex": 1 } }
+        ]
+      },
+      { "id": "nd_divider", "type": "divider", "props": { "thickness": 1.0 } },
+      {
+        "id": "nd_card",
+        "type": "card",
+        "props": { "elevation": 2.0, "borderRadius": 8.0, "margin": { "all": 16.0 } },
+        "child": {
+          "id": "nd_card_padding",
+          "type": "padding",
+          "props": { "padding": { "all": 12.0 } },
+          "child": {
+            "id": "nd_card_image",
+            "type": "image",
+            "props": {
+              "src": "https://picsum.photos/300/150",
+              "height": 150.0,
+              "fit": "cover"
+            }
+          }
+        }
+      },
+      {
+        "id": "nd_cta",
+        "type": "button",
+        "props": {
+          "label": "Ver todas as ofertas",
+          "variant": "filled",
+          "backgroundColor": "#6C4CF1",
+          "borderRadius": 8.0
+        },
+        "events": {
+          "onPressed": [
+            { "action": "navigate", "params": { "to": "/promocoes" } }
+          ]
+        }
+      }
+    ]
+  }
+}
