@@ -12,9 +12,16 @@ async function bootstrap() {
 
   app.setGlobalPrefix('v1');
 
-  // CORS restrito ao editor em dev (porta aleatória do flutter run).
+  // CORS: em dev, qualquer localhost (porta aleatória do flutter run); em
+  // hml/prod, a lista exata de origens vem de CORS_ORIGINS (definida no Coolify,
+  // separada por vírgula). Segredo/origem nunca fica no repo.
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: /^https?:\/\/localhost(:\d+)?$/,
+    origin: corsOrigins?.length
+      ? corsOrigins
+      : /^https?:\/\/localhost(:\d+)?$/,
     allowedHeaders: ['content-type', 'x-project-id'],
   });
 
