@@ -1,0 +1,44 @@
+# driva
+
+Plataforma de **Server-Driven UI** para apps Flutter: o editor web (`apps/driva_editor`, Flutter Web) monta páginas como **spec JSON**, validado pelo kernel (`packages/sdui_core`) e desenhado pelo renderer (`packages/sdui_flutter`) — o mesmo renderer que os apps dos clientes usarão. O backend (`backend/`, NestJS + Prisma + Postgres) apenas armazena os specs (JSONB), sem interpretá-los.
+
+## Layout do workspace (Dart pub workspace)
+
+- `packages/sdui_core` — kernel do spec. **Dart puro** (equatable, fpdart, zard; `package:flutter` proibido). Modelos, schema zard, catálogo de widgets, operações puras de árvore.
+- `packages/sdui_flutter` — renderer. Registry `type → builder`, `SduiView`. Depende só de `sdui_core`.
+- `apps/driva_editor` — o editor. Depende de `sdui_flutter` e `sdui_core`.
+- `backend/` — NestJS (fora do workspace Dart). Contrato REST em `/v1/pages`.
+- `docs/feature-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report).
+
+## O gabarito
+
+A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módulo de referência é `apps/driva_editor/lib/modules/pages_module/` — na dúvida, imite-o. Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.**
+
+## Regras inegociáveis (Flutter/Dart)
+
+- Clean Architecture por módulo: `lib/modules/<nome>_module/{domain,data,presentation}` + `<nome>_routes.dart` + `<nome>_injection.dart` + barrel público `<nome>_module.dart` que expõe **só** a rota e o registro de DI.
+- **domain** = Dart puro; entidades imutáveis (`Equatable`, sem `fromMap`/`toMap`); contratos `abstract interface class` devolvendo `Future<Either<Failure, T>>` (fpdart); **um use case por operação** (método `call()`), mesmo passa-fica.
+- **data** = models com (de)serialização validada por **zard** (`safeParse` → `Either`); impl do repositório atrás do contrato; **único lugar com try/catch** (traduz `DioException` → `Failure` tipada de `core/error/`).
+- **presentation** = `Cubit` (flutter_bloc) com estado `sealed class` + `switch` exaustivo (states via `part of`); página `StatelessWidget` com `static Widget pageBuilder` — **o único lugar que toca o get_it**. Guarda `isClosed` após `await` antes de `emit`.
+- **presentation NUNCA importa data.** Nenhum módulo importa o interno de outro (só o barrel público). Lógica recebe dependências pelo construtor.
+- Navegação: go_router; rotas por módulo em classe `XRoutes` (`static GoRoute get route` + constantes); sempre variantes `*Named`; nada de `extra:` (some no refresh web).
+- Erros imprevistos: `runZonedGuarded` + `FlutterError.onError` + `PlatformDispatcher.onError` + `AppBlocObserver` no `bootstrap.dart`.
+- Flavors: `main_dev.dart`/`main_prod.dart` → `bootstrap(AppConfig)`; config via `--dart-define-from-file=config/<env>.json`; segredo nunca em dart-define.
+- **Zero build_runner** (nada de freezed, json_serializable, injectable, mockito, go_router_builder).
+- Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`; a bateria automatizada é escrita **por último** (após o E2E manual — cap. 22 do livro).
+- Acessibilidade: cor nunca é o único sinal de informação; controles com `Semantics`/tooltip.
+- Arquivos `snake_case`, classes `PascalCase`, uma classe pública por arquivo; código em inglês, UI e docs em pt-BR.
+- Cancela de máquina: **"pronto" = `flutter analyze` verde + testes existentes passando.** Nunca opinião.
+
+## Regras do spec SDUI
+
+- Todo nó tem `id`, `type`, `props`; `events` e `children`/`child` opcionais. Página: `{specVersion, kind: "page", id, name, screenTarget, root}`; `root` é sempre `column`.
+- O JSON só vira entidade por `parsePageSpec` (zard) do `sdui_core` — nenhum `fromMap` cru fora dele.
+- Paleta, inspector e defaults derivam 100% do `widget_catalog.dart` (WidgetDescriptor/PropField). Novo primitivo = novo descriptor + novo builder + fixture; nada hardcoded no editor.
+- Binding `{{prop}}` e ações são **dados** — o editor não os executa (só o app cliente).
+
+## Método de trabalho (time de IA — cap. 22–23 do livro)
+
+O usuário fala **só com o tech-manager** (`.claude/agents/`). Fluxo: PM faz discovery e mata ambiguidades → `specs.md` → `prd.md` (humano aprova) → tech-lead escreve `plan.md` vivo (1 fase = 1 PR) → especialistas implementam fase a fase (QA valida + CISO revisa + humano revisa o PR) → gate CISO → E2E manual instrumentado (QA prepara, humano testa) → wrap + `final_report.md` → gate CISO → **só então** testes automatizados → DoD (testes verdes + docs vivas em dia). Desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
+
+Comandos úteis: `dart pub get` (raiz), `flutter analyze`, `dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`, `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.

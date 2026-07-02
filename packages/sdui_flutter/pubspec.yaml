@@ -1,0 +1,18 @@
+name: sdui_flutter
+description: Renderer SDUI do driva — desenha um PageSpec do sdui_core como widgets Flutter via registry type→builder.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sdui_core: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

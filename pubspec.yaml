@@ -1,0 +1,11 @@
+name: driva_workspace
+description: Workspace do driva — plataforma de Server-Driven UI para apps Flutter.
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+workspace:
+  - packages/sdui_core
+  - packages/sdui_flutter
+  - apps/driva_editor

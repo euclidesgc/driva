@@ -1,0 +1,14 @@
+# Dart / Flutter
+.dart_tool/
+build/
+*.iml
+.idea/
+.metadata
+
+# Backend (Node)
+node_modules/
+backend/dist/
+backend/.env
+
+# Sistema
+.DS_Store
