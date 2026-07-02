@@ -23,7 +23,11 @@ final class AppConfig extends Equatable {
             'DEFAULT_PROJECT_ID',
             defaultValue: 'default',
           ),
-          useFakeData: const bool.fromEnvironment('USE_FAKE_DATA'),
+          // Default dev-amigável: sem o arquivo de config, roda com fakes.
+          // O build de produção SEMPRE usa --dart-define-from-file
+          // (config/prod.json define USE_FAKE_DATA=false).
+          useFakeData:
+              const bool.fromEnvironment('USE_FAKE_DATA', defaultValue: true),
         );
 
   /// Flavor name: `dev` or `prod`.
