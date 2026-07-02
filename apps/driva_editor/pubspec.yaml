@@ -32,3 +32,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Public Sans
+      fonts:
+        - asset: fonts/public_sans/PublicSans-Regular.ttf
+        - asset: fonts/public_sans/PublicSans-Medium.ttf
+          weight: 500
+        - asset: fonts/public_sans/PublicSans-SemiBold.ttf
+          weight: 600
+        - asset: fonts/public_sans/PublicSans-Bold.ttf
+          weight: 700

@@ -53,7 +53,11 @@ abstract final class AppTheme {
       outlineVariant: border,
     );
 
-    final base = ThemeData(useMaterial3: true, colorScheme: colorScheme);
+    final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      fontFamily: 'Public Sans',
+    );
 
     return base.copyWith(
       scaffoldBackgroundColor: canvas,
