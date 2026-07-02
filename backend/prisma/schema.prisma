@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Uma página SDUI. O `spec` é JSONB opaco: o backend NÃO interpreta o
+/// conteúdo — o kernel de validação é Dart (`sdui_core`). Multi-tenant
+/// preparado por `projectId` (papéis/workflow chegam no I4).
+model Page {
+  id           String   @id @default(uuid())
+  projectId    String   @default("default") @map("project_id")
+  name         String
+  screenTarget String   @map("screen_target")
+  spec         Json
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@map("pages")
+}

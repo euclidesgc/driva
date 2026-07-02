@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: driva-postgres
+    environment:
+      POSTGRES_USER: driva
+      POSTGRES_PASSWORD: driva
+      POSTGRES_DB: driva
+    ports:
+      # 5433 no host: a 5432 costuma estar ocupada por outros projetos.
+      - "5433:5432"
+    volumes:
+      - driva-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U driva"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  driva-pgdata:
