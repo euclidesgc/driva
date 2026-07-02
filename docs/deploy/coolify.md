@@ -38,7 +38,7 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
 2. **Branch**: `develop` (hml) / `main` (prod). Ligue **Automatic Deployment**.
 3. **Build Pack**: `Dockerfile`.
    - **Base Directory**: `/backend`
-   - **Dockerfile Location**: `/backend/Dockerfile`
+   - **Dockerfile Location**: `/Dockerfile`  *(relativo ao Base Directory — **não** repita `backend/` aqui, senão o Coolify resolve `backend/backend` e o build falha)*
    - **Ports Exposes**: `3000`
 4. **Domains**: `https://driva-api-hml.bmjtech.duckdns.org` (hml) / `https://driva-api.bmjtech.duckdns.org` (prod).
 5. **Environment Variables** (runtime):
@@ -69,6 +69,12 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
 - Merge de um PR em **`develop`** → Coolify rebuilda e publica **hml** automaticamente. Teste em `driva-hml…`.
 - Uma **release** (PR `release/* → main`, veja a skill `publicar-release`) → Coolify publica **prod**.
 - Um **hotfix** (`hotfix/* → main`) → publica prod; lembre de trazer de volta para `develop`.
+
+## Troubleshooting
+
+- **`lstat .../backend/backend: no such file or directory`** (ou caminho duplicado no build): o **Dockerfile Location** é relativo ao **Base Directory** e os dois foram repetidos. Com Base Directory `/backend`, o Dockerfile Location tem de ser só `/Dockerfile`. (No frontend não ocorre: o Base Directory é `/`.)
+- **Erro de CORS no console do front**: confira `CORS_ORIGINS` no backend do **mesmo ambiente** — deve conter exatamente a origem do frontend (com `https://`, sem barra no fim).
+- **Front carrega mas não fala com a API**: a URL da API é **build-time**; se trocou o domínio da API, rebuilde o frontend (a Build Variable `API_BASE_URL` só entra num novo build).
 
 ## Notas e limites (I1)
 
