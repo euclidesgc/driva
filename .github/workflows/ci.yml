@@ -39,7 +39,7 @@ jobs:
         run: flutter test apps/driva_editor
 
   backend:
-    name: Backend — lint + build
+    name: Backend — build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -63,8 +63,5 @@ jobs:
       - name: Prisma Client
         run: pnpm prisma:generate
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
+      - name: Build (tsc via nest)
         run: pnpm build

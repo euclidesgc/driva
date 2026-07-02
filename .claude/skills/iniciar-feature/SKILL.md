@@ -19,5 +19,5 @@ Passos:
 
 Regras inegociáveis (o `docs/GITFLOW.md`, o CLAUDE.md e a CI cobram):
 - Sem push direto em `main`/`develop`; PR de `feature/*` **sempre** para `develop`.
-- Não declare pronto com CI vermelha (`dart format`, `flutter analyze`, testes; `lint`/`build` no backend).
+- Não declare pronto com CI vermelha (`dart format`, `flutter analyze`, testes; `build` no backend).
 - Sem segredo/URL no repo — config sensível só como env/Build Variable no Coolify.

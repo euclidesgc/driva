@@ -55,7 +55,7 @@ Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacio
 
 ## CI/CD e deploy (Coolify)
 
-- **CI é a cancela** (`.github/workflows/ci.yml`): em PR/push para `develop`/`main` roda `dart format` + `flutter analyze` + os testes (e `lint`/`build` do backend). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
+- **CI é a cancela** (`.github/workflows/ci.yml`): em PR/push para `develop`/`main` roda `dart format` + `flutter analyze` + os testes (e `build` do backend). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
 - **Deploy = auto-deploy por branch** no **Coolify** (GitHub App): merge em **`develop` → homologação**, merge em **`main` → produção**. Detalhes e checklist do painel em **`docs/deploy/coolify.md`**.
 - Dois deployáveis por ambiente (frontend Flutter Web servido por nginx + backend Nest) + Postgres gerenciado. Domínios: `driva[-hml]` (front) e `driva-api[-hml]` (API) sob `bmjtech.duckdns.org` (prod sem sufixo).
 - **Segredo/URL/origem nunca no repo** — só como env/Build Variable no Coolify. A URL da API do front é **compile-time** (ARG `API_BASE_URL` no Dockerfile); o CORS do backend vem de `CORS_ORIGINS`.
