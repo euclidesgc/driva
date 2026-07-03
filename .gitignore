@@ -5,13 +5,18 @@ build/
 .idea/
 .metadata
 
+# Segredos — nunca versionar (ex.: COOLIFY_TOKEN)
+.env
+!.env.example
+
 # Backend (Node)
 node_modules/
 backend/dist/
 backend/.env
 
-# Artefatos do E2E (script e2e.sh — processo/log do backend de teste)
-.e2e-backend.*
+# Artefatos transitórios do E2E na raiz da feature (o e2e.sh cria; `down` remove).
+# As cópias salvas como evidência em evidencias/rodada_MM/ NÃO são ignoradas.
+docs/*/.e2e-backend.*
 
 # Sistema
 .DS_Store

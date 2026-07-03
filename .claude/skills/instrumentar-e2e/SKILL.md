@@ -22,10 +22,28 @@ Se a stack real **não** está pronta (ex.: backend ausente), aí sim instrument
 
 ## 3. Roteiro manual — só o visual/UX
 
-No `docs/NN-<nome>/test_plan.md`, além de documentar o script, escreva o **checklist curto** do que só o humano confirma na tela (o que a API não vê): navegação/URL, derivação ao vivo em campo, render de preview, estados visuais, mensagens. Cada item: o que fazer, o que observar, onde salvar o print (`docs/NN-<nome>/evidencias/`). Nada de "teste a feature" — checklist de voo.
+No `docs/NN-<nome>/test_plan.md`, além de documentar o script, escreva o **checklist curto** do que só o humano confirma na tela (o que a API não vê): navegação/URL, derivação ao vivo em campo, render de preview, estados visuais, mensagens. Cada item: o que fazer, o que observar, qual print salvar. Nada de "teste a feature" — checklist de voo.
+
+> **Gotcha Flutter Web:** mudança de fonte/ícone no `pubspec` **exige relaunch completo** (não hot-restart) e, no browser, hard-refresh (Ctrl+Shift+R) — senão o manifesto de fontes fica stale e os ícones viram "tofu" (□). Para o visual, sempre lance o editor **do zero** (na dúvida, `flutter clean` antes). O checklist deve dizer isso.
+
+## 4. Rodadas e evidências
+
+O E2E roda **em rodadas**. Cada rodada tem sua pasta de evidências:
+
+```
+docs/NN-<nome>/evidencias/rodada_01/   ← 1ª rodada
+docs/NN-<nome>/evidencias/rodada_02/   ← 2ª rodada (após correções), etc.
+```
+
+Em cada `rodada_MM/` ficam: o **snapshot do script** usado (`e2e.sh`), os **logs** gerados e os **prints** do dev (`evidencia_01.png`, `02`, …). O ciclo:
+
+1. O dev roda o script + o visual e salva tudo na `rodada_MM/`.
+2. Se **tudo passou** → a feature segue para o wrap (limpeza + testes automatizados + DoD). Fim das rodadas.
+3. Se **achou problema/pediu mudança** → o time **analisa os logs, os prints e o código**, corrige o que for código e **ajusta o script** se preciso. Só então **avisa o dev** que a `rodada_MM+1` está pronta — e o dev roda de novo, salvando na próxima pasta.
 
 ## Regras de ouro
 
 - **Máquina valida contrato; humano valida percepção.** Se um passo manual pode virar asserção de script, ele deve virar.
-- Quando o E2E falhar: quem lê logs/prints e conserta é o **tech-lead**; você atualiza o roteiro se o fluxo mudou.
+- **Uma rodada = uma pasta.** Nunca sobrescreva a evidência de uma rodada anterior — o histórico das rodadas é o rastro do que quebrou e do que foi corrigido.
+- Quando o E2E falhar: o time lê logs/prints/código, conserta e ajusta o script; o dev só re-executa na rodada seguinte.
 - Todo o rastro (script e, se houver, instrumentação `[e2e]`) fica listado no `test_plan.md` — é o mapa da limpeza no wrap.

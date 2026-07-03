@@ -41,7 +41,12 @@ destrutiva de Prisma) e valida, com `PASS/FAIL` explícito:
 ### Parte manual — só o que a API não enxerga (visual da UI)
 
 Com a stack no ar (após o script), rode o editor e confirme na tela (projeto
-`default`, lista começa vazia). Salve prints em `docs/02-conteudos/evidencias/`:
+`default`, lista começa vazia). Salve prints em `docs/02-conteudos/evidencias/rodada_MM/`.
+
+> **Lance do zero** (não reaproveite um `flutter run` antigo) e dê **hard-refresh
+> (Ctrl+Shift+R)** no browser. Mudança de fonte/ícone no `pubspec` exige rebuild
+> completo — build stale mostra ícones como "tofu" (□). Na dúvida: `flutter clean`
+> antes.
 
 ```bash
 flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart \
