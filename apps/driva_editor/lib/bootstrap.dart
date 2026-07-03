@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'app_widget.dart';
 import 'core/config/app_config.dart';
@@ -22,6 +23,11 @@ Future<void> bootstrap(AppConfig config) async {
   runZonedGuarded(
     () {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // URLs limpas no Flutter Web (`/pages` em vez de `/#/pages`). Exige que o
+      // servidor faça SPA fallback para index.html — o nosso nginx já faz
+      // (`try_files … /index.html`, veja deploy/nginx.conf).
+      usePathUrlStrategy();
 
       Bloc.observer = const AppBlocObserver();
       setupInjection(config);

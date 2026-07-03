@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Corrigido
+
+- **driva_editor**: URLs limpas no Flutter Web via path URL strategy (`usePathUrlStrategy`) — `/pages` em vez de `/#/pages`. O SPA fallback do nginx (`try_files … /index.html`) já cobre o refresh direto.
+
 ## [0.1.0] — 2026-07-02 · I1: Módulo Página
 
 - **sdui_core**: kernel do spec (specVersion 1) — `SduiNode` com id, `PageSpec` (página = fragmento com `screenTarget`, root sempre `column`), `parsePageSpec` (zard + validação recursiva contra o catálogo e slots), catálogo de 14 primitivos com descriptors, `tree_ops` puras.
