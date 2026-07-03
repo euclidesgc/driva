@@ -6,15 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
-PageSpec _loadFixturePage() {
+ContentSpec _loadFixtureContent() {
   // A fixture do sdui_core é o contrato compartilhado kernel ↔ renderer.
-  final local = File('../sdui_core/test/fixtures/page_valid.json');
+  final local = File('../sdui_core/test/fixtures/content_valid.json');
   final file = local.existsSync()
       ? local
-      : File('packages/sdui_core/test/fixtures/page_valid.json');
+      : File('packages/sdui_core/test/fixtures/content_valid.json');
   final json = (jsonDecode(file.readAsStringSync()) as Map)
       .cast<String, dynamic>();
-  return parsePageSpec(json).getRight().toNullable()!;
+  return parseContentSpec(json).getRight().toNullable()!;
 }
 
 Widget _host(Widget child) => MaterialApp(
@@ -39,8 +39,10 @@ void main() {
     }
   });
 
-  testWidgets('renderiza a página da fixture de ponta a ponta', (tester) async {
-    await tester.pumpWidget(_host(SduiView.page(_loadFixturePage())));
+  testWidgets('renderiza o conteúdo da fixture de ponta a ponta', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(SduiView.content(_loadFixtureContent())));
 
     expect(find.text('Semana do cliente'), findsOneWidget);
     expect(find.text('Ofertas selecionadas'), findsOneWidget);

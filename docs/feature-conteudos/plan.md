@@ -1,6 +1,6 @@
 # Plan — Conteúdos (rename Página → Conteúdo + nova identidade)
 
-> Documento vivo. Dono: Tech Lead. **1 fase = 1 PR.** Cada fase nasce um branch de `develop` (skill `iniciar-feature`) e volta por PR para `develop`; **CI verde é pré-requisito de merge**. Fonte: `prd.md` aprovado pelo dev em 2026-07-02 (sem ajustes). As fases estão ordenadas de **MENOR → MAIOR risco**: começa pelo que não toca dados vivos e isola a migração destrutiva.
+> Documento vivo. Dono: Tech Lead. **1 fase = 1 PR.** **Topologia de merge (desvio 001, ver `variance_report.md`):** por causa do rename encadeado (o workspace não compila entre fases) e da CI-cancela que só dispara em PRs para `develop`/`main`, existe uma **branch de integração `feature/conteudos`** (nasceu de `develop`). **Cada fase nasce de `feature/conteudos` e volta por PR PARA `feature/conteudos`.** Só o merge final `feature/conteudos → develop` (após a Fase 6) passa pela CI-cancela. Fonte: `prd.md` aprovado pelo dev em 2026-07-02 (sem ajustes). As fases estão ordenadas de **MENOR → MAIOR risco**: começa pelo que não toca dados vivos e isola a migração destrutiva.
 >
 > Marcas de tarefa: `[P]` pode rodar em paralelo com as vizinhas · `[S]` delegar a sub-agente (varredura/rename pesado).
 
@@ -126,8 +126,8 @@ Fatia vertical: renomeia os **dois** módulos e as rotas atomicamente, para o ap
 
 ## Progresso
 
-- Fase 1 — ✅ concluída (2026-07-02): `sdui_core` renomeado; `dart test packages/sdui_core` verde (30 testes), `dart analyze` limpo; QA aprovou substância, CISO liberado; PR aberto para `develop`
-- Fase 2 — não iniciada
+- Fase 1 — ✅ concluída (2026-07-02): `sdui_core` renomeado; `dart test packages/sdui_core` verde (30 testes), `dart analyze` limpo; QA aprovou, CISO liberado; PR #8 mergeado na integração `feature/conteudos`
+- Fase 2 — 🚧 em progresso (2026-07-02): `sdui_flutter` renomeado (`SduiView.content`) + fachada `DrivaContent` reservada; `flutter test packages/sdui_flutter` verde (7), `flutter analyze` do pacote limpo; QA aprovou (após ajuste do `pubspec`), CISO liberado; PR aberto para `feature/conteudos`
 - Fase 3 — não iniciada
 - Fase 4 — não iniciada
 - Fase 5 — não iniciada
