@@ -1,27 +1,30 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
 
-import '../model/page_spec.dart';
+import '../model/content_spec.dart';
 import 'node_schema.dart';
 import 'spec_validation_error.dart';
 import 'spec_version.dart';
 
-// Envelope da página. O `root` é validado à parte por `parseNode`.
-final _pageEnvelope = z.map({
+// Envelope do conteúdo. O `root` é validado à parte por `parseNode`.
+final _contentEnvelope = z.map({
   'specVersion': z.int(),
-  'kind': z.$enum(['page']),
+  'kind': z.$enum(['content']),
   'id': z.string().min(1),
   'name': z.string().min(1),
-  'screenTarget': z.string().min(1),
+  'slug': z.string().regex(RegExp(r'^[a-z][a-z0-9-]*$')),
+  'description': z.string().optional(),
 });
 
-/// A única porta JSON → entidade do spec de página.
+/// A única porta JSON → entidade do spec de conteúdo.
 ///
 /// Valida o envelope (zard), a versão do formato, e a árvore de nós
 /// (recursiva, contra o catálogo). `root` precisa ser um `column`: os blocos
-/// de topo da página são `root.children`.
-Either<SpecValidationError, PageSpec> parsePageSpec(Map<String, dynamic> json) {
-  final result = _pageEnvelope.safeParse(json);
+/// de topo do conteúdo são `root.children`.
+Either<SpecValidationError, ContentSpec> parseContentSpec(
+  Map<String, dynamic> json,
+) {
+  final result = _contentEnvelope.safeParse(json);
   if (!result.success) {
     return Left(SpecValidationError(z.prettifyError(result.error!)));
   }
@@ -48,11 +51,12 @@ Either<SpecValidationError, PageSpec> parsePageSpec(Map<String, dynamic> json) {
       );
     }
     return Right(
-      PageSpec(
+      ContentSpec(
         specVersion: specVersion,
         id: data['id'] as String,
         name: data['name'] as String,
-        screenTarget: data['screenTarget'] as String,
+        slug: data['slug'] as String,
+        description: data['description'] as String?,
         root: root,
       ),
     );

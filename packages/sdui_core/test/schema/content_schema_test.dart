@@ -14,61 +14,63 @@ Map<String, dynamic> _loadFixture(String name) {
 }
 
 void main() {
-  group('parsePageSpec', () {
-    test('aceita a página da fixture e preserva a árvore', () {
-      final result = parsePageSpec(_loadFixture('page_valid.json'));
+  group('parseContentSpec', () {
+    test('aceita o conteúdo da fixture e preserva a árvore', () {
+      final result = parseContentSpec(_loadFixture('content_valid.json'));
 
-      final page = result.getRight().toNullable();
-      expect(page, isNotNull, reason: result.toString());
-      expect(page!.id, 'pg_home_promo');
-      expect(page.screenTarget, 'home');
-      expect(page.root.type, 'column');
-      expect(page.root.children, hasLength(5));
+      final content = result.getRight().toNullable();
+      expect(content, isNotNull, reason: result.toString());
+      expect(content!.id, 'ct_home_promo');
+      expect(content.slug, 'home');
+      expect(content.root.type, 'column');
+      expect(content.root.children, hasLength(5));
 
-      final banner = page.root.children.first;
+      final banner = content.root.children.first;
       expect(banner.type, 'container');
       expect(banner.properties['color'], '#6C4CF1');
       expect(banner.child?.type, 'text');
 
-      final cta = page.root.children.last;
+      final cta = content.root.children.last;
       expect(cta.events['onPressed'], isA<List<dynamic>>());
     });
 
-    test('roundtrip: toJson de uma página parseada re-parseia igual', () {
-      final page = parsePageSpec(
-        _loadFixture('page_valid.json'),
+    test('roundtrip: toJson de um conteúdo parseado re-parseia igual', () {
+      final content = parseContentSpec(
+        _loadFixture('content_valid.json'),
       ).getRight().toNullable()!;
-      final reparsed = parsePageSpec(page.toJson()).getRight().toNullable();
+      final reparsed = parseContentSpec(
+        content.toJson(),
+      ).getRight().toNullable();
 
-      expect(reparsed, equals(page));
+      expect(reparsed, equals(content));
     });
 
     test('rejeita specVersion desconhecida', () {
-      final json = _loadFixture('page_valid.json')..['specVersion'] = 99;
+      final json = _loadFixture('content_valid.json')..['specVersion'] = 99;
 
-      final error = parsePageSpec(json).getLeft().toNullable();
+      final error = parseContentSpec(json).getLeft().toNullable();
 
       expect(error, isNotNull);
       expect(error!.message, contains('specVersion'));
     });
 
-    test('rejeita kind diferente de page', () {
-      final json = _loadFixture('page_valid.json')..['kind'] = 'widget';
+    test('rejeita kind diferente de content', () {
+      final json = _loadFixture('content_valid.json')..['kind'] = 'widget';
 
-      expect(parsePageSpec(json).isLeft(), isTrue);
+      expect(parseContentSpec(json).isLeft(), isTrue);
     });
 
     test('rejeita root que não é column', () {
-      final json = _loadFixture('page_valid.json');
+      final json = _loadFixture('content_valid.json');
       json['root'] = {'id': 'nd_root', 'type': 'row'};
 
-      final error = parsePageSpec(json).getLeft().toNullable();
+      final error = parseContentSpec(json).getLeft().toNullable();
 
       expect(error!.message, contains('column'));
     });
 
     test('rejeita nó com tipo fora do catálogo', () {
-      final json = _loadFixture('page_valid.json');
+      final json = _loadFixture('content_valid.json');
       json['root'] = {
         'id': 'nd_root',
         'type': 'column',
@@ -77,13 +79,13 @@ void main() {
         ],
       };
 
-      final error = parsePageSpec(json).getLeft().toNullable();
+      final error = parseContentSpec(json).getLeft().toNullable();
 
       expect(error!.message, contains('carousel3d'));
     });
 
     test('rejeita folha com filhos (contrato de slot)', () {
-      final json = _loadFixture('page_valid.json');
+      final json = _loadFixture('content_valid.json');
       json['root'] = {
         'id': 'nd_root',
         'type': 'column',
@@ -99,13 +101,13 @@ void main() {
         ],
       };
 
-      final error = parsePageSpec(json).getLeft().toNullable();
+      final error = parseContentSpec(json).getLeft().toNullable();
 
       expect(error!.message, contains('folha'));
     });
 
     test('rejeita nó sem id', () {
-      final json = _loadFixture('page_valid.json');
+      final json = _loadFixture('content_valid.json');
       json['root'] = {
         'id': 'nd_root',
         'type': 'column',
@@ -114,7 +116,7 @@ void main() {
         ],
       };
 
-      expect(parsePageSpec(json).isLeft(), isTrue);
+      expect(parseContentSpec(json).isLeft(), isTrue);
     });
   });
 }
