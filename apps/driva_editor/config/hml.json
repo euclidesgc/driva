@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "https://driva-api-hml.bmjtech.duckdns.org",
+  "DEFAULT_PROJECT_ID": "default",
+  "USE_FAKE_DATA": false
+}

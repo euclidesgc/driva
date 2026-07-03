@@ -1,0 +1,53 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "editor ▶ local (dev · API localhost)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driva_editor",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/dev.json"]
+    },
+    {
+      "name": "editor ▶ hml (API homologação)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driva_editor",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/hml.json"]
+    },
+    {
+      "name": "editor ▶ prod (API produção)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driva_editor",
+      "program": "lib/main_prod.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/prod.json"]
+    },
+    {
+      "name": "backend ▶ local (Nest watch)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "start:dev"],
+      "preLaunchTask": "db up (postgres local)",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "stack ▶ full local (backend + editor)",
+      "configurations": [
+        "backend ▶ local (Nest watch)",
+        "editor ▶ local (dev · API localhost)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
