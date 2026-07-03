@@ -128,10 +128,12 @@ Fatia vertical: renomeia os **dois** módulos e as rotas atomicamente, para o ap
 
 - Fase 1 — ✅ concluída (2026-07-02): `sdui_core` renomeado; `dart test packages/sdui_core` verde (30 testes), `dart analyze` limpo; QA aprovou, CISO liberado; PR #8 mergeado na integração `feature/conteudos`
 - Fase 2 — ✅ concluída (2026-07-02): `sdui_flutter` renomeado (`SduiView.content`) + fachada `DrivaContent` reservada; `flutter test packages/sdui_flutter` verde (7); QA aprovou, CISO liberado; PR #9 mergeado na integração `feature/conteudos`
-- Fase 3 — 🚧 em progresso (2026-07-02): `driva_editor` — `contents_module` + `editor_module` + rotas `/contents`; card com slug em destaque, form Nome+Descrição, `SlugUtil`, `ConflictFailure` (409 traduzido só na data). **`flutter analyze` da RAIZ verde** (chain Dart 1→2→3 fechado) + `flutter test apps/driva_editor` verde (20). QA aprovou, CISO liberado; PR aberto para `feature/conteudos`.
+- Fase 3 — ✅ concluída (2026-07-02): `driva_editor` — `contents_module` + `editor_module` + rotas `/contents`; card com slug em destaque, form Nome+Descrição, `SlugUtil`, `ConflictFailure` (409 traduzido só na data). **`flutter analyze` da RAIZ verde** (chain Dart 1→2→3 fechado) + `flutter test apps/driva_editor` verde (20). QA aprovou, CISO liberado; PR #10 mergeado na integração `feature/conteudos`.
   - Backlog (não-bloqueia): quando existir superfície de **edição de slug de conteúdo já criado**, reexibir o aviso não-bloqueante nela (hoje o aviso vive como `helperText` do campo Slug na criação).
-  - Para o gate geral pré-E2E (Fase 6): condicionar o `LogInterceptor` do `dio_client` a `!kReleaseMode`/flag de debug (pré-existente, fora do diff desta fase); confirmar `useFakeData:false` em `config/prod.json`.
-- Fase 4 — não iniciada
-- Fase 4 — não iniciada
+- Fase 4 — 🚧 em progresso (2026-07-02): `backend` — `model Content` (CUID2, `@@unique([projectId, slug])`, `@@map("contents")`), `/v1/contents`, DTOs sem `screenTarget`, `409` com `suggestedSlug` no corpo (espelha `SlugUtil.suggestFree`; contrato casado com a Fase 3). Cancela: `pnpm build` verde + `prisma:generate`/`validate` ok; backend não tem bateria de testes hoje (a nova é Fase 6). QA aprovou, CISO liberado; PR aberto para `feature/conteudos`.
+- **Notas para o gate geral pré-E2E / DoD (Fase 6)** — carregadas das fases 3 e 4:
+  - `dio_client`: condicionar o `LogInterceptor` a `!kReleaseMode`/flag de debug; confirmar `useFakeData:false` em `config/prod.json`.
+  - **Segurança (CISO, Fase 4):** o tenant vem de `x-project-id` **não autenticado** (fallback `"default"`) — estrutura de isolamento correta (todas as queries e o `freeSlug` escopam por `projectId`), mas falta a autenticação que amarra o header a um tenant. Diferido ao I4; **pré-requisito de segurança antes de qualquer exposição pública multi-tenant**. Garantir `CORS_ORIGINS` preenchido no Coolify de hml/prod (fallback libera `localhost`).
+  - `backend`: o `create` faz 2 writes não-transacionais (insert `spec:{}` → update com o spec, para o `spec.id` referenciar o CUID2 cunhado pelo Prisma); avaliar `$transaction` — risco baixo (P2002 dispara no insert, sem órfão no caminho de conflito).
 - Fase 5 — não iniciada
 - Fase 6 — não iniciada
