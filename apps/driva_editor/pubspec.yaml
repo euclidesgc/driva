@@ -44,3 +44,9 @@ flutter:
           weight: 600
         - asset: fonts/public_sans/PublicSans-Bold.ttf
           weight: 700
+    - family: Space Grotesk
+      fonts:
+        - asset: fonts/space_grotesk/SpaceGrotesk-Medium.ttf
+          weight: 500
+        - asset: fonts/space_grotesk/SpaceGrotesk-Bold.ttf
+          weight: 700
