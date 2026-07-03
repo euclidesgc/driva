@@ -1,14 +1,16 @@
 -- Baseline: reflete o estado JÁ DEPLOYADO (criado por `db push` a partir do
--- schema antigo `model Page`). Em prod/hml esta migration NÃO roda: é marcada
+-- schema antigo `model Page`). O caminho recomendado em prod/hml é marcá-la
 -- como aplicada com `prisma migrate resolve --applied 0_baseline`, adotando o
--- histórico sem re-executar SQL sobre a tabela `pages` existente. Em bancos
--- novos (local/CI) ela roda e recria exatamente esse estado de partida.
+-- histórico sem re-executar SQL. Ainda assim, todo comando aqui é idempotente
+-- (`IF NOT EXISTS`): se o operador esquecer o resolve, a baseline roda como
+-- no-op seguro sobre a tabela `pages` existente e o deploy segue para o rename.
+-- Em bancos novos (local/CI) ela cria exatamente esse estado de partida.
 
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateTable
-CREATE TABLE "pages" (
+CREATE TABLE IF NOT EXISTS "pages" (
     "id" TEXT NOT NULL,
     "project_id" TEXT NOT NULL DEFAULT 'default',
     "name" TEXT NOT NULL,
@@ -21,4 +23,4 @@ CREATE TABLE "pages" (
 );
 
 -- CreateIndex
-CREATE INDEX "pages_project_id_idx" ON "pages"("project_id");
+CREATE INDEX IF NOT EXISTS "pages_project_id_idx" ON "pages"("project_id");

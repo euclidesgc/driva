@@ -34,13 +34,24 @@ sobre o banco que já tem esse estado — marca-se como aplicado:
 pnpm exec prisma migrate resolve --applied 0_baseline
 ```
 
-> Se o Coolify subir o container e o `migrate deploy` rodar **antes** do
-> `resolve --applied 0_baseline`, o Prisma tentará aplicar a baseline
-> (`CREATE TABLE pages ...`) e falhará porque a tabela já existe. Por isso o
-> `resolve --applied 0_baseline` é **pré-condição** e deve ser executado no
+> **O `resolve --applied 0_baseline` é PRÉ-CONDIÇÃO OBRIGATÓRIA**, executado no
 > banco (via shell/console do Coolify) **antes** de habilitar o auto-deploy da
 > branch que contém as migrations. Depois disso, `migrate deploy` aplica só a
 > `20260702120000_rename_pages_to_contents`.
+>
+> **Por que é obrigatório (verificado em Postgres efêmero):** se o `migrate
+> deploy` rodar sobre o banco deployado (criado por `db push`, sem histórico de
+> migrations) **sem** o resolve, o Prisma aborta no preflight com **`P3005 — The
+> database schema is not empty`**, *antes* de executar qualquer SQL. A falha é
+> limpa e **não muta dados** (nada é criado/apagado), mas o deploy **não avança**
+> e o rename **não** é aplicado. Só o `migrate resolve` registra a baseline em
+> `_prisma_migrations` e destrava o `migrate deploy`.
+>
+> **Nota R2 (idempotência da baseline):** a `0_baseline` é toda idempotente
+> (`CREATE SCHEMA/TABLE/INDEX IF NOT EXISTS`) como defesa em profundidade — se
+> algum dia ela for reexecutada, é no-op seguro. Isso **não** contorna o P3005
+> (o gate é do Prisma, anterior ao SQL); serve só para não haver erro de "objeto
+> já existe" caso a baseline rode sobre o schema legado.
 
 ### Passo a passo (o humano executa)
 
