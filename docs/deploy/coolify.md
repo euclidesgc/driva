@@ -45,8 +45,9 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - `DATABASE_URL` = a connection string interna do passo 1.
    - `PORT` = `3000`
    - `CORS_ORIGINS` = `https://driva-hml.bmjtech.duckdns.org` (hml) / `https://driva.bmjtech.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
-6. Deploy. O container roda `prisma db push` (sincroniza o schema — ainda não há migrations versionadas) e sobe o Nest.
-7. Teste: `curl https://driva-api-hml.bmjtech.duckdns.org/v1/pages` deve responder `200` com uma lista JSON.
+6. Deploy. O container roda **`prisma migrate deploy`** (aplica as migrations pendentes) e sobe o Nest.
+   > **Pré-condição, uma vez por ambiente** (banco criado por `db push` antes das migrations versionadas): rode `pnpm exec prisma migrate resolve --applied 0_baseline` no terminal do container backend **antes** do primeiro deploy que traz as migrations — senão o `migrate deploy` aborta com `P3005`. Veja o roteiro OPS em [`../02-conteudos/test_plan.md`](../02-conteudos/test_plan.md).
+7. Teste: `curl https://driva-api-hml.bmjtech.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
 
 ### 3. Frontend (Flutter Web)
 
@@ -78,7 +79,7 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
 
 ## Notas e limites (I1)
 
-- **Sem migrations versionadas**: o backend usa `prisma db push` no start. Ao adotar migrations, trocar por `prisma migrate deploy`.
+- **Migrations versionadas** (a partir da feature Conteúdos): o backend roda `prisma migrate deploy` no start. A baseline (`0_baseline`) precisa ser resolvida uma vez por ambiente (passo 6). Config de hml e prod **conferida via API do Coolify em 2026-07-03** — env/build vars e domínios corretos.
 - **Branch protection**: `main` tem o ruleset `protect-main` (PR obrigatório, sem force-push). Mantenha ligado.
 - **CORS**: se um ambiente tiver mais de uma origem de frontend, liste-as em `CORS_ORIGINS` separadas por vírgula.
 - **Ordem de subida** importa: Postgres → Backend → Frontend.
