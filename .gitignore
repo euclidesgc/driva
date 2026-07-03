@@ -10,5 +10,8 @@ node_modules/
 backend/dist/
 backend/.env
 
+# Artefatos do E2E (script e2e.sh — processo/log do backend de teste)
+.e2e-backend.*
+
 # Sistema
 .DS_Store
