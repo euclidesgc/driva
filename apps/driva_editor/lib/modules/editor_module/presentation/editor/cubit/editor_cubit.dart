@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sdui_core/sdui_core.dart' as sdui;
 import 'package:sdui_core/sdui_core.dart'
-    show PageSpec, SduiNode, SlotKind, defaultNode, descriptorFor;
+    show ContentSpec, SduiNode, SlotKind, defaultNode, descriptorFor;
 
 import '../../../../../core/error/error.dart';
 import '../../../domain/use_cases/use_cases.dart';
@@ -11,22 +11,24 @@ import '../device_preset.dart';
 part 'editor_state.dart';
 
 class EditorCubit extends Cubit<EditorState> {
-  final LoadPageUseCase loadPageUseCase;
+  final LoadContentUseCase loadContentUseCase;
   final SaveDraftUseCase saveDraftUseCase;
 
-  EditorCubit({required this.loadPageUseCase, required this.saveDraftUseCase})
-    : super(const EditorLoading());
+  EditorCubit({
+    required this.loadContentUseCase,
+    required this.saveDraftUseCase,
+  }) : super(const EditorLoading());
 
   int _idSequence = 0;
 
-  Future<void> loadPage(String id) async {
+  Future<void> loadContent(String id) async {
     emit(const EditorLoading());
-    final result = await loadPageUseCase(id);
+    final result = await loadContentUseCase(id);
     if (isClosed) return;
     emit(
       result.fold(
         (failure) => EditorLoadFailure(failure: failure),
-        (page) => EditorReady(document: page),
+        (content) => EditorReady(document: content),
       ),
     );
   }

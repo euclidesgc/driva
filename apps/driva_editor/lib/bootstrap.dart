@@ -24,7 +24,7 @@ Future<void> bootstrap(AppConfig config) async {
     () {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // URLs limpas no Flutter Web (`/pages` em vez de `/#/pages`). Exige que o
+      // URLs limpas no Flutter Web (`/contents` em vez de `/#/contents`). Exige que o
       // servidor faça SPA fallback para index.html — o nosso nginx já faz
       // (`try_files … /index.html`, veja deploy/nginx.conf).
       usePathUrlStrategy();

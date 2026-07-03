@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/dev/fake_pages_store.dart';
+import '../../core/dev/fake_contents_store.dart';
 import 'data/repositories/repositories.dart'; // barrel INTERNO (impls)
 import 'domain/repositories/editor_repository.dart';
 import 'domain/use_cases/use_cases.dart';
@@ -11,12 +11,12 @@ import 'domain/use_cases/use_cases.dart';
 void registerEditorModule(GetIt getIt) {
   getIt.registerLazySingleton<EditorRepository>(
     () => getIt<AppConfig>().useFakeData
-        ? EditorRepositoryFake(getIt<FakePagesStore>())
+        ? EditorRepositoryFake(getIt<FakeContentsStore>())
         : EditorRepositoryImpl(getIt<Dio>()),
   );
 
   getIt.registerFactory(
-    () => LoadPageUseCase(repository: getIt<EditorRepository>()),
+    () => LoadContentUseCase(repository: getIt<EditorRepository>()),
   );
   getIt.registerFactory(
     () => SaveDraftUseCase(repository: getIt<EditorRepository>()),

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../cubit/editor_cubit.dart';
 
-/// Top bar do editor: voltar, identificação da página, status de salvamento
+/// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
 /// e a ação de salvar. Preview/Publish reais chegam nos próximos incrementos.
 class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
   const EditorTopBar({super.key, required this.state, required this.onSave});
@@ -21,9 +21,9 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       leadingWidth: 48,
       leading: IconButton(
-        tooltip: 'Voltar para as páginas',
+        tooltip: 'Voltar para os conteúdos',
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.goNamed('pages'),
+        onPressed: () => context.goNamed('contents'),
       ),
       titleSpacing: 0,
       title: Row(
@@ -31,7 +31,8 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
           Text(state.document.name, style: theme.textTheme.titleMedium),
           const SizedBox(width: 12),
           Chip(
-            label: Text('Tela: ${state.document.screenTarget}'),
+            avatar: const Icon(Icons.tag, size: 16),
+            label: Text('Slug: ${state.document.slug}'),
             visualDensity: VisualDensity.compact,
           ),
         ],

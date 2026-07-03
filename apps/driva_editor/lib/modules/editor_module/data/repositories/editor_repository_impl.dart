@@ -10,16 +10,16 @@ class EditorRepositoryImpl implements EditorRepository {
   EditorRepositoryImpl(this.dio);
 
   @override
-  Future<Either<Failure, PageSpec>> loadPage(String id) async {
+  Future<Either<Failure, ContentSpec>> loadContent(String id) async {
     try {
-      final response = await dio.get<Map<String, dynamic>>('/v1/pages/$id');
+      final response = await dio.get<Map<String, dynamic>>('/v1/contents/$id');
       final body = response.data ?? const <String, dynamic>{};
       final spec = body['spec'];
       if (spec is! Map) {
         return const Left(ValidationFailure('Resposta sem o campo "spec".'));
       }
       // A única porta JSON → entidade é o kernel; aqui só traduzimos o erro.
-      return parsePageSpec(
+      return parseContentSpec(
         spec.cast<String, dynamic>(),
       ).mapLeft((error) => ValidationFailure(error.message));
     } on DioException catch (e) {
@@ -28,11 +28,11 @@ class EditorRepositoryImpl implements EditorRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> saveDraft(PageSpec page) async {
+  Future<Either<Failure, Unit>> saveDraft(ContentSpec content) async {
     try {
       await dio.put<void>(
-        '/v1/pages/${page.id}',
-        data: {'name': page.name, 'spec': page.toJson()},
+        '/v1/contents/${content.id}',
+        data: {'name': content.name, 'spec': content.toJson()},
       );
       return const Right(unit);
     } on DioException catch (e) {
@@ -46,6 +46,7 @@ class EditorRepositoryImpl implements EditorRepository {
     DioExceptionType.connectionError => const NetworkFailure(),
     DioExceptionType.badResponse => switch (e.response?.statusCode) {
       404 => const NotFoundFailure(),
+      409 => const ConflictFailure(),
       400 => const ValidationFailure(),
       _ => const UnexpectedFailure(),
     },

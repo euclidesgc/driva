@@ -7,8 +7,8 @@ import 'palette_icons.dart';
 import 'prop_field_editor.dart';
 
 /// Inspector: o formulário do nó selecionado, 100% derivado do catálogo
-/// (WidgetDescriptor/PropField). Sem seleção, mostra as propriedades da
-/// página (o root column).
+/// (WidgetDescriptor/PropField). Sem seleção, mostra as propriedades do
+/// conteúdo (o root column).
 class InspectorPanel extends StatelessWidget {
   const InspectorPanel({
     super.key,
@@ -26,18 +26,18 @@ class InspectorPanel extends StatelessWidget {
     final selected = state.selectedNode;
     final node = selected ?? state.document.root;
     final descriptor = descriptorFor(node.type);
-    final isPage = selected == null || node.id == state.document.root.id;
+    final isContent = selected == null || node.id == state.document.root.id;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _InspectorHeader(
-          title: isPage ? 'Página' : (descriptor?.label ?? node.type),
-          subtitle: isPage
-              ? '${state.document.name} · tela ${state.document.screenTarget}'
+          title: isContent ? 'Conteúdo' : (descriptor?.label ?? node.type),
+          subtitle: isContent
+              ? '${state.document.name} · slug ${state.document.slug}'
               : 'id ${node.id}',
-          iconType: isPage ? null : node.type,
-          onRemove: isPage ? null : () => onRemove(node.id),
+          iconType: isContent ? null : node.type,
+          onRemove: isContent ? null : () => onRemove(node.id),
         ),
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty
