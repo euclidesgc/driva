@@ -11,7 +11,7 @@ Passos:
 1. **Fakes e fixtures.** Se o backend não está pronto/estável, registre os repositórios fake no DI do flavor dev (`PagesRepositoryFake`, `EditorRepositoryFake`), com dados realistas — consulte o especialista de dados para o formato exato do payload e o de infra para o toggle de troca. Um fake honra o contrato de verdade (erros, casos de borda), não só a interface.
 2. **Logs.** Plante `log()` (dart:developer) nos pontos que contam a história: carregar página, mutação da árvore, salvar, falhas. Prefixo `[e2e]` para a limpeza achar tudo depois.
 3. **Atalhos.** Se o roteiro precisa de um estado difícil de alcançar, crie o atalho (página pré-populada, botão escondido em dev) — sempre atrás de flag de dev.
-4. **Roteiro.** Escreva `docs/feature-<nome>/test_plan.md`: pré-condições (comandos para subir tudo), passos numerados (o que clicar/digitar), o que **observar** em cada passo, onde tirar **print** e salvar em `docs/feature-<nome>/evidencias/`. Roteiro de checklist de voo — nada de "teste a feature".
+4. **Roteiro.** Escreva `docs/NN-<nome>/test_plan.md`: pré-condições (comandos para subir tudo), passos numerados (o que clicar/digitar), o que **observar** em cada passo, onde tirar **print** e salvar em `docs/NN-<nome>/evidencias/`. Roteiro de checklist de voo — nada de "teste a feature".
 5. Cubra o caminho feliz, as exceções do PRD e os casos de borda (página vazia, spec inválido, backend fora).
 
 Quando o E2E falhar: quem lê logs e prints e conserta é o **tech-lead** — você atualiza o roteiro se o fluxo mudou.

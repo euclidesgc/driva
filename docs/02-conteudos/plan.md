@@ -10,7 +10,7 @@
 - **Rename ≠ bateria nova.** Cada fase de rename **atualiza os testes já existentes** para compilar/passar (mecânico — faz parte do rename; "pronto" = `analyze` verde + testes existentes passando). A **bateria automatizada nova** (casos de slug, `409`, data migration, goldens) é escrita **por último**, na Fase 6, após o E2E manual atestado — cap. 22 do livro.
 - **Fixtures e docs contam para o critério 6.** Renomear `page_valid.json` → `content_valid.json`, reescrever envelope (`kind:"content"`, `slug`, sem `screenTarget`) e varrer docs/fixtures em cada fase.
 - **Nada de `extra:` em rotas; variantes `*Named`; go_router.** Regras do CLAUDE.md mandam em qualquer contradição.
-- **Desvio do plano** só entra com aprovação do dev humano e registro em `docs/feature-conteudos/variance_report.md` (como estava · por que mudou · o que mudou).
+- **Desvio do plano** só entra com aprovação do dev humano e registro em `docs/02-conteudos/variance_report.md` (como estava · por que mudou · o que mudou).
 
 ## Mapa de dependências e paralelismo
 
@@ -97,7 +97,7 @@ Fatia vertical: renomeia os **dois** módulos e as rotas atomicamente, para o ap
 
 - [ ] **Gate CISO** (antes de instrumentar) — revisão de segurança da entrega
 - [ ] QA instrumenta o E2E (skill `instrumentar-e2e`; instrumentação temporária, nunca vai a produção) + escreve `test_plan.md` com o roteiro do caminho feliz e casos de borda do PRD
-- [ ] **Dev executa o E2E manual** e anexa prints em `docs/feature-conteudos/evidencias/`
+- [ ] **Dev executa o E2E manual** e anexa prints em `docs/02-conteudos/evidencias/`
 - [ ] Se o E2E falhar: Tech Lead lê os logs plantados + prints, localiza a quebra e conserta (ou delega ao especialista da fatia)
 - [ ] **Gate CISO** (depois de limpar a instrumentação)
 - [ ] **Bateria automatizada nova** (por último — skill `escrever-testes`):

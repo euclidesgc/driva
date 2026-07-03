@@ -10,7 +10,7 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte páginas num editor 
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e, futuramente, nos apps dos clientes |
 | `apps/driva_editor` | O editor (Flutter Web): lista de páginas + builder de 3 colunas com preview fiel |
 | `backend/` | NestJS + Prisma + Postgres: storage de specs (`/v1/pages`), tenant por `x-project-id` |
-| `docs/feature-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
+| `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
 | `docs/livro-flutter/` | O livro que define a arquitetura e o método de trabalho (gabarito) |
 
 ## Rodando em dev
@@ -49,7 +49,7 @@ Clean Architecture por módulo (`domain`/`data`/`presentation` + barrel público
 
 ## Incrementos
 
-- **I1 — Módulo Página** (este repositório): montar página com primitivos, editar props, preview fiel, salvar rascunho. ✅ implementado (E2E manual pendente — `docs/feature-modulo-pagina/test_plan.md`)
+- **I1 — Módulo Página** (este repositório): montar página com primitivos, editar props, preview fiel, salvar rascunho. ✅ implementado (E2E manual pendente — `docs/01-modulo-pagina/test_plan.md`)
 - **I2** — condições de exibição + filtros por widget + simulação de usuário
 - **I3** — construtor de widget composto (estados + fonte de dados)
 - **I4** — workflow, papéis, versionamento, agendamento e serving

@@ -8,7 +8,7 @@ Plataforma de **Server-Driven UI** para apps Flutter: o editor web (`apps/driva_
 - `packages/sdui_flutter` — renderer. Registry `type → builder`, `SduiView`. Depende só de `sdui_core`.
 - `apps/driva_editor` — o editor. Depende de `sdui_flutter` e `sdui_core`.
 - `backend/` — NestJS (fora do workspace Dart). Contrato REST em `/v1/pages`.
-- `docs/feature-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report).
+- `docs/NN-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report). **`NN`** é o número de sequência com dois dígitos, na ordem de desenvolvimento (`01`, `02`, …), para o dev enxergar a linha do tempo e saber onde está. Pastas de referência/apoio (`web-prototipe/`, `deploy/`, `specs/`) **não** são numeradas.
 
 ## O gabarito
 

@@ -9,7 +9,7 @@ Objetivo: dado o diff da fase, conferir item a item se o que foi feito bate com 
 
 Confira, nesta ordem:
 
-1. **Plano.** Cada tarefa da fase no `docs/feature-<nome>/plan.md` foi feita? Algo foi feito que NÃO estava no plano? Desvio não se aceita de cara: reporte ao tech-lead (correção ou justificativa ao dev).
+1. **Plano.** Cada tarefa da fase no `docs/NN-<nome>/plan.md` foi feita? Algo foi feito que NÃO estava no plano? Desvio não se aceita de cara: reporte ao tech-lead (correção ou justificativa ao dev).
 2. **Fronteiras.** presentation não importa data; nenhuma lógica chama o get_it por dentro (só pageBuilder); nenhum módulo importa o interno de outro (só barrel público); domain sem `package:flutter` e sem `fromMap`.
 3. **Convenções.** Estado sealed + switch exaustivo; `Either<Failure, T>` nos contratos; um use case por operação; entidade imutável; barrel público só com rota + DI; zero build_runner; `isClosed` após await.
 4. **Spec SDUI** (se a fase toca no kernel/renderer): JSON só vira entidade via `parsePageSpec`; novo primitivo tem descriptor + builder + fixture; nada hardcoded no editor que devesse derivar do catálogo.

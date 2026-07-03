@@ -27,5 +27,5 @@
 - **sdui_flutter**: renderer com registry `type → builder` para os 14 primitivos, `SduiView`, `nodeWrapper` (gancho de seleção do editor), fallback amigável para tipo desconhecido.
 - **driva_editor**: lista de páginas (grid, criar/excluir) e o editor de 3 colunas — paleta com busca e drag-and-drop, árvore com reordenação/aninhamento, canvas com moldura de dispositivo (3 presets + zoom) renderizando o preview com o renderer real, inspector 100% derivado do catálogo, salvar explícito (botão + Ctrl+S) com indicador de estado, Delete remove o bloco selecionado. Tema claro extraído do protótipo (laranja `#E8602C`), tipografia **Public Sans** empacotada (pesos 400/500/600/700).
 - **backend**: NestJS + Prisma + Postgres (porta 5433) com `/v1/pages` (CRUD de specs JSONB), escopo por `x-project-id`, validação de DTO e de `specVersion`.
-- **Método**: time de IA (9 agentes + 5 skills em `.claude/`), CLAUDE.md com as regras do livro, docs vivas em `docs/feature-modulo-pagina/`.
+- **Método**: time de IA (9 agentes + 5 skills em `.claude/`), CLAUDE.md com as regras do livro, docs vivas em `docs/01-modulo-pagina/`.
 - Testes: 57 (30 kernel + 7 renderer + 20 editor), `flutter analyze` zero issues.
