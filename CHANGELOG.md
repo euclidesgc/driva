@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Alterado
+
+- **Conteúdos (rename página → conteúdo) · Fase 1 — `sdui_core`**: `PageSpec` → `ContentSpec` (remove `screenTarget`; adiciona `slug`, validado `^[a-z][a-z0-9-]*$`, e `description` opcional), `parsePageSpec` → `parseContentSpec`, envelope `kind:"page"` → `kind:"content"`. Fixture `page_valid.json` → `content_valid.json`. Kernel Dart puro; `slug` passa a ser o handle técnico do conteúdo.
+
 ### Adicionado
 
 - **driva_editor**: wordmark "Driva Builder" na home é um link para a própria home, com tipografia própria (fonte **Space Grotesk** empacotada, pesos 500/700) e "Driva" no laranja da marca.

@@ -1,9 +1,10 @@
 {
   "specVersion": 1,
-  "kind": "page",
-  "id": "pg_home_promo",
+  "kind": "content",
+  "id": "ct_home_promo",
   "name": "Home — vitrine de promoções",
-  "screenTarget": "home",
+  "slug": "home",
+  "description": "Vitrine de promoções da semana",
   "root": {
     "id": "nd_root",
     "type": "column",
