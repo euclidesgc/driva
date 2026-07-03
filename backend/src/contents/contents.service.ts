@@ -43,37 +43,39 @@ export class ContentsService {
       // O id é CUID2 cunhado pelo Prisma no insert; o spec precisa referenciar
       // esse mesmo id, então nasce após a linha existir e é preenchido em
       // seguida (o backend não interpreta o spec — só o monta válido de saída).
-      const created = await this.prisma.content.create({
-        data: {
-          projectId,
+      const row = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.content.create({
+          data: {
+            projectId,
+            name: dto.name,
+            slug: dto.slug,
+            description: dto.description,
+            spec: {},
+          },
+          select: { id: true },
+        });
+        const spec = {
+          specVersion: SPEC_VERSION,
+          kind: 'content',
+          id: created.id,
           name: dto.name,
           slug: dto.slug,
-          description: dto.description,
-          spec: {},
-        },
-        select: { id: true },
-      });
-      const spec = {
-        specVersion: SPEC_VERSION,
-        kind: 'content',
-        id: created.id,
-        name: dto.name,
-        slug: dto.slug,
-        ...(dto.description !== undefined
-          ? { description: dto.description }
-          : {}),
-        root: { id: `nd_root_${created.id}`, type: 'column' },
-      };
-      const row = await this.prisma.content.update({
-        where: { id: created.id },
-        data: { spec },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          updatedAt: true,
-        },
+          ...(dto.description !== undefined
+            ? { description: dto.description }
+            : {}),
+          root: { id: `nd_root_${created.id}`, type: 'column' },
+        };
+        return tx.content.update({
+          where: { id: created.id },
+          data: { spec },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            updatedAt: true,
+          },
+        });
       });
       return this.toSummary(row);
     } catch (error) {

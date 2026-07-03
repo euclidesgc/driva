@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 import '../config/app_config.dart';
 
@@ -15,6 +16,8 @@ Dio createDio(AppConfig config) {
       headers: {'x-project-id': config.defaultProjectId},
     ),
   );
-  dio.interceptors.add(LogInterceptor(responseBody: false));
+  if (!kReleaseMode) {
+    dio.interceptors.add(LogInterceptor(responseBody: false));
+  }
   return dio;
 }
