@@ -1,9 +1,81 @@
 # Test Plan — Conteúdos
 
 > Documento vivo. A bateria automatizada completa (unit/widget/golden/backend) é
-> escrita na **Fase 6**, após o E2E manual. Esta versão cobre a **Fase 5 — a
-> migração destrutiva versionada `pages` → `contents`** e o **roteiro OPS** que o
-> humano executa.
+> escrita na **Fase 6**, após o E2E manual. Este documento cobre: (1) o **E2E
+> manual da Fase 6** — o caminho feliz e os casos de borda que o dev executa no
+> editor; e (2) o **roteiro OPS da Fase 5** — a migração destrutiva `pages` →
+> `contents` que o dev executa contra hml/prod.
+
+---
+
+## Fase 6 — E2E manual (o dev executa no editor)
+
+> Testa o editor + backend reais de ponta a ponta. **Instrumentação temporária:
+> NENHUMA** — o backend está pronto e o fluxo é 100% observável pela UI, pelos
+> logs de estado do `AppBlocObserver` e pelo `LogInterceptor` do dio (em debug).
+> Nada a limpar no wrap.
+
+### Pré-condições — subir o ambiente local
+
+Três terminais (Postgres → backend → editor):
+
+```bash
+# 1. Postgres local (postgres:16 em localhost:5433)
+cd backend && docker compose up -d
+
+# 2. Backend: .env (uma vez) + schema + subir
+cd backend
+cp .env.example .env                 # DATABASE_URL já aponta p/ localhost:5433; CORS_ORIGINS vazio libera localhost
+pnpm install --frozen-lockfile
+pnpm prisma:generate
+pnpm prisma:migrate:deploy            # banco novo: baseline cria + rename migra → tabela final `contents`
+pnpm start:dev                        # Nest em http://localhost:3000, prefixo /v1
+
+# sanity (outro terminal): lista vazia, HTTP 200
+curl -s http://localhost:3000/v1/contents -H 'x-project-id: default'   # → []
+
+# 3. Editor (fala com o backend real: dev.json tem USE_FAKE_DATA=false)
+flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart \
+  --dart-define-from-file=apps/driva_editor/config/dev.json
+```
+
+Salve os prints em `docs/02-conteudos/evidencias/`.
+
+### A. Caminho feliz — criar um conteúdo
+
+1. Abra `/contents` (URL **limpa, sem `#`**). **Observar:** título "Conteúdos", wordmark "Driva Builder", estado vazio "Nenhum conteúdo ainda". → *print A1*
+2. "Novo conteúdo". Nome = `Home`. **Observar:** o campo **Slug** deriva ao vivo → `home`; Descrição é opcional. → *print A2*
+3. Descrição = `Vitrine principal`. "Criar". **Observar:** abre o editor do conteúdo; a barra mostra o nome `Home` (sem nenhum "screenTarget"). → *print A3*
+
+### B. Editar a árvore e salvar
+
+4. Arraste um primitivo da paleta pro canvas e ajuste props no inspector. **Observar:** o preview reflete no mesmo frame; indicador **"Não salvo"**. → *print B1*
+5. **Ctrl+S** (ou botão Salvar). **Observar:** indicador → **"Salvo"**. → *print B2*
+6. **F5** (recarrega). **Observar:** a URL limpa persiste e o conteúdo reabre com a árvore salva. → *print B3*
+
+### C. Lista e card
+
+7. Clique no wordmark "Driva Builder" para voltar. **Observar:** o card do `Home` mostra o **slug em destaque** (`home`), o **"ID de suporte"** (um CUID2), o nome e a descrição. → *print C1*
+
+### D. Caso de borda — colisão de slug (`409` com sugestão)
+
+8. "Novo conteúdo", Nome = `Home` de novo. **Observar:** o campo Slug deriva `home` (o mesmo já existente). → *print D1*
+9. "Criar". **Observar:** o backend responde `409`; o diálogo **reabre** com o Slug já preenchido `home-2` e a mensagem **"Slug já em uso neste projeto. Sugerimos \"home-2\"."**; nada foi criado. → *print D2*
+10. "Criar" (aceitando `home-2`). **Observar:** cria com sucesso e abre o editor.
+
+### E. Casos de borda — validação e resiliência
+
+11. **Slug inválido:** num novo conteúdo, edite o Slug à mão para algo com maiúscula/acento (ex.: `Ínicio`). **Observar:** a validação do cliente barra antes de salvar, com mensagem de formato (`^[a-z][a-z0-9-]*$`). → *print E1*
+12. **Backend fora:** pare o `start:dev` (Ctrl+C) e recarregue a lista. **Observar:** mensagem de erro de rede + botão **"Tentar de novo"**, **sem crash** no console. Suba o backend e clique "Tentar de novo" → a lista volta. → *print E2*
+13. **Conteúdo inexistente:** acesse `/contents/nao-existe/edit`. **Observar:** tela de erro tratada (NotFound) com caminho de volta à lista, sem crash. → *print E3*
+
+> Durante todo o roteiro, o console do Chrome mostra as transições de estado dos
+> cubits (`AppBlocObserver`) e, em debug, os logs do dio — use-os se algo divergir
+> do esperado.
+
+**Critério de passagem:** todos os passos observados sem erro não-tratado no
+console; vocabulário "Conteúdo/Conteúdos" na UI; slug derivado/editável/livre;
+`409` tratado com sugestão. Anexe os prints e me avise o resultado.
 
 ---
 
