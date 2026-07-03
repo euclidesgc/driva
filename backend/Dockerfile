@@ -29,6 +29,8 @@ COPY --from=build /app/package.json ./package.json
 
 EXPOSE 3000
 
-# Ainda não há migrations versionadas: sincroniza o schema no start e sobe.
+# Aplica as migrations versionadas no start e sobe. A migração de rename
+# `pages`->`contents` roda AUTOMATICAMENTE aqui no primeiro deploy que a contém
+# (por isso o backup do banco vem ANTES do merge — ver docs/feature-conteudos/test_plan.md).
 # DATABASE_URL / PORT / CORS_ORIGINS vêm do ambiente (Coolify), nunca do repo.
-CMD ["sh", "-c", "pnpm exec prisma db push --skip-generate && node dist/main.js"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main.js"]
