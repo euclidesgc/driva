@@ -21,13 +21,13 @@ class EditorPage extends StatelessWidget {
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
     // Deep link malformado não é crash, é tela tratada.
-    if (id == null || id.trim().isEmpty) return const _InvalidPageScreen();
+    if (id == null || id.trim().isEmpty) return const _InvalidContentScreen();
 
     return BlocProvider(
       create: (_) => EditorCubit(
-        loadPageUseCase: getIt<LoadPageUseCase>(),
+        loadContentUseCase: getIt<LoadContentUseCase>(),
         saveDraftUseCase: getIt<SaveDraftUseCase>(),
-      )..loadPage(id),
+      )..loadContent(id),
       child: const EditorPage(),
     );
   }
@@ -49,8 +49,8 @@ class EditorPage extends StatelessWidget {
                   Text(_messageFor(s.failure)),
                   const SizedBox(height: 12),
                   OutlinedButton(
-                    onPressed: () => context.goNamed('pages'),
-                    child: const Text('Voltar para as páginas'),
+                    onPressed: () => context.goNamed('contents'),
+                    child: const Text('Voltar para os conteúdos'),
                   ),
                 ],
               ),
@@ -64,7 +64,8 @@ class EditorPage extends StatelessWidget {
 
   String _messageFor(Failure failure) => switch (failure) {
     NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
-    NotFoundFailure() => 'Página não encontrada.',
+    NotFoundFailure() => 'Conteúdo não encontrado.',
+    ConflictFailure(message: final m) => m,
     ValidationFailure(message: final m) => 'Spec inválido: $m',
     UnexpectedFailure() => 'Algo deu errado ao abrir o editor.',
   };
@@ -179,14 +180,14 @@ class _DeleteIntent extends Intent {
 }
 
 /// id malformado na URL: fallback tratado, nunca crash.
-class _InvalidPageScreen extends StatelessWidget {
-  const _InvalidPageScreen();
+class _InvalidContentScreen extends StatelessWidget {
+  const _InvalidContentScreen();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: const Center(child: Text('Página inválida.')),
+      body: const Center(child: Text('Conteúdo inválido.')),
     );
   }
 }

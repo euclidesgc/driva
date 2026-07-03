@@ -127,8 +127,11 @@ Fatia vertical: renomeia os **dois** módulos e as rotas atomicamente, para o ap
 ## Progresso
 
 - Fase 1 — ✅ concluída (2026-07-02): `sdui_core` renomeado; `dart test packages/sdui_core` verde (30 testes), `dart analyze` limpo; QA aprovou, CISO liberado; PR #8 mergeado na integração `feature/conteudos`
-- Fase 2 — 🚧 em progresso (2026-07-02): `sdui_flutter` renomeado (`SduiView.content`) + fachada `DrivaContent` reservada; `flutter test packages/sdui_flutter` verde (7), `flutter analyze` do pacote limpo; QA aprovou (após ajuste do `pubspec`), CISO liberado; PR aberto para `feature/conteudos`
-- Fase 3 — não iniciada
+- Fase 2 — ✅ concluída (2026-07-02): `sdui_flutter` renomeado (`SduiView.content`) + fachada `DrivaContent` reservada; `flutter test packages/sdui_flutter` verde (7); QA aprovou, CISO liberado; PR #9 mergeado na integração `feature/conteudos`
+- Fase 3 — 🚧 em progresso (2026-07-02): `driva_editor` — `contents_module` + `editor_module` + rotas `/contents`; card com slug em destaque, form Nome+Descrição, `SlugUtil`, `ConflictFailure` (409 traduzido só na data). **`flutter analyze` da RAIZ verde** (chain Dart 1→2→3 fechado) + `flutter test apps/driva_editor` verde (20). QA aprovou, CISO liberado; PR aberto para `feature/conteudos`.
+  - Backlog (não-bloqueia): quando existir superfície de **edição de slug de conteúdo já criado**, reexibir o aviso não-bloqueante nela (hoje o aviso vive como `helperText` do campo Slug na criação).
+  - Para o gate geral pré-E2E (Fase 6): condicionar o `LogInterceptor` do `dio_client` a `!kReleaseMode`/flag de debug (pré-existente, fora do diff desta fase); confirmar `useFakeData:false` em `config/prod.json`.
+- Fase 4 — não iniciada
 - Fase 4 — não iniciada
 - Fase 5 — não iniciada
 - Fase 6 — não iniciada

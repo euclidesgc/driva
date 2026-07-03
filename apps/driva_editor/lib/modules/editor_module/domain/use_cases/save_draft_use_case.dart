@@ -8,13 +8,13 @@ class SaveDraftUseCase {
   final EditorRepository repository;
   const SaveDraftUseCase({required this.repository});
 
-  Future<Either<Failure, Unit>> call(PageSpec page) {
+  Future<Either<Failure, Unit>> call(ContentSpec content) {
     // Regra de integridade: nunca persistir um spec que o próprio kernel
     // rejeitaria (o editor só produz árvores válidas; isto é a trava).
-    final revalidated = parsePageSpec(page.toJson());
+    final revalidated = parseContentSpec(content.toJson());
     return revalidated.fold(
       (error) async => Left(ValidationFailure(error.message)),
-      (_) => repository.saveDraft(page),
+      (_) => repository.saveDraft(content),
     );
   }
 }

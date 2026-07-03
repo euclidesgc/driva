@@ -43,9 +43,9 @@ class WidgetTreePanel extends StatelessWidget {
             children: rows,
           ),
         ),
-        // Zona de soltar no fim da página (append na raiz).
+        // Zona de soltar no fim do conteúdo (append na raiz).
         _DropZone(
-          label: 'Soltar aqui adiciona ao fim da página',
+          label: 'Soltar aqui adiciona ao fim do conteúdo',
           onAccept: (payload) => switch (payload) {
             PaletteDragPayload(:final type) => onAddInto(
               type,
@@ -142,7 +142,7 @@ class _TreeRow extends StatelessWidget {
     if (node.type == 'button' && buttonLabel is String) {
       return '$base — “$buttonLabel”';
     }
-    return isRoot ? 'Página ($base)' : base;
+    return isRoot ? 'Conteúdo ($base)' : base;
   }
 
   @override
