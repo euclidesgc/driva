@@ -7,7 +7,7 @@ import 'renderer.dart';
 
 /// Ponto de entrada público: renderiza um nó do spec como árvore de widgets.
 ///
-/// No editor, o preview é `SduiView.page(spec, nodeWrapper: ...)` — a mesma
+/// No editor, o preview é `SduiView.content(spec, nodeWrapper: ...)` — a mesma
 /// árvore Dart em memória, sem iframe; cada emit do cubit re-renderiza.
 class SduiView extends StatelessWidget {
   const SduiView({
@@ -18,9 +18,11 @@ class SduiView extends StatelessWidget {
     this.nodeWrapper,
   });
 
-  /// Renderiza uma página inteira (a partir do `root`).
-  SduiView.page(
-    PageSpec spec, {
+  /// Renderiza um conteúdo inteiro (a partir do `root`).
+  ///
+  /// Recebe um [ContentSpec] já resolvido — não busca por slug nem faz rede.
+  SduiView.content(
+    ContentSpec spec, {
     Key? key,
     SduiRegistry? registry,
     SduiActionHandler? onAction,
