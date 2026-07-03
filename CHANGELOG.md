@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **driva_editor**: wordmark "Driva Builder" na home é um link para a própria home, com tipografia própria (fonte **Space Grotesk** empacotada, pesos 500/700) e "Driva" no laranja da marca.
+
 ### Corrigido
 
 - **driva_editor**: URLs limpas no Flutter Web via path URL strategy (`usePathUrlStrategy`) — `/pages` em vez de `/#/pages`. O SPA fallback do nginx (`try_files … /index.html`) já cobre o refresh direto.

@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/error.dart';
+import '../../../../core/widgets/app_wordmark.dart';
 import '../../../../injection.dart';
+import '../../pages_routes.dart';
 import '../../domain/entities/page_summary.dart';
 import '../../domain/use_cases/use_cases.dart';
 import 'cubit/page_list_cubit.dart';
@@ -26,7 +28,8 @@ class PageListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Driva Builder'),
+        titleSpacing: 16,
+        title: AppWordmark(onTap: () => context.goNamed(PagesRoutes.pagesName)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
