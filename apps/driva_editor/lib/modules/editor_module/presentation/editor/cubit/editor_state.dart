@@ -23,7 +23,7 @@ final class EditorLoadFailure extends EditorState {
 
 final class EditorReady extends EditorState {
   /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
-  final PageSpec document;
+  final ContentSpec document;
 
   final String? selectedNodeId;
   final DevicePreset device;
@@ -47,7 +47,7 @@ final class EditorReady extends EditorState {
   /// [selectedNodeId] usa função-getter para permitir "setar null"
   /// (armadilha do copyWith com campo nullable, cap. 12 do livro).
   EditorReady copyWith({
-    PageSpec? document,
+    ContentSpec? document,
     String? Function()? selectedNodeId,
     DevicePreset? device,
     double? zoom,

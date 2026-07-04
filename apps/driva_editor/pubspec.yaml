@@ -1,7 +1,7 @@
 name: driva_editor
 description: Editor web do driva — monta páginas Server-Driven UI como spec JSON, com preview fiel via sdui_flutter.
 publish_to: none
-version: 0.1.0
+version: 0.2.0
 resolution: workspace
 
 environment:
@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
   bloc: ^9.0.0
   dio: ^5.7.0
   equatable: ^2.0.7
@@ -17,8 +19,8 @@ dependencies:
   fpdart: ^1.1.1
   get_it: ^8.0.3
   go_router: ^16.0.0
-  sdui_core: ^0.1.0
-  sdui_flutter: ^0.1.0
+  sdui_core: ^0.2.0
+  sdui_flutter: ^0.2.0
   zard: ^1.3.0
 
 dev_dependencies:
@@ -41,4 +43,10 @@ flutter:
         - asset: fonts/public_sans/PublicSans-SemiBold.ttf
           weight: 600
         - asset: fonts/public_sans/PublicSans-Bold.ttf
+          weight: 700
+    - family: Space Grotesk
+      fonts:
+        - asset: fonts/space_grotesk/SpaceGrotesk-Medium.ttf
+          weight: 500
+        - asset: fonts/space_grotesk/SpaceGrotesk-Bold.ttf
           weight: 700

@@ -29,6 +29,16 @@ COPY --from=build /app/package.json ./package.json
 
 EXPOSE 3000
 
-# Ainda não há migrations versionadas: sincroniza o schema no start e sobe.
+# Aplica as migrations versionadas no start e sobe.
+#
+# Adoção do Prisma Migrate sobre um banco criado por `db push` (hml/prod): o
+# `migrate deploy` sozinho aborta com P3005 ("schema não vazio, sem histórico").
+# Por isso registramos a baseline (`0_baseline` = estado já deployado) ANTES do
+# deploy. O `resolve --applied` é idempotente na prática: no 1º deploy grava a
+# baseline; nos seguintes ele erra "já aplicada" (silenciado por `2>/dev/null`) e
+# segue. Só então `migrate deploy` aplica a `rename_pages_to_contents` (ou vira
+# no-op). O `&&` garante que o Nest só sobe se o migrate deploy suceder.
+# (Banco 100% vazio/novo não usa este caminho — resolver baseline sem o schema
+# faria o migrate deploy falhar de propósito; não há ambiente assim hoje.)
 # DATABASE_URL / PORT / CORS_ORIGINS vêm do ambiente (Coolify), nunca do repo.
-CMD ["sh", "-c", "pnpm exec prisma db push --skip-generate && node dist/main.js"]
+CMD ["sh", "-c", "pnpm exec prisma migrate resolve --applied 0_baseline 2>/dev/null; pnpm exec prisma migrate deploy && node dist/main.js"]

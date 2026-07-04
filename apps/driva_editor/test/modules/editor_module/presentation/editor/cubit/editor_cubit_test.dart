@@ -8,19 +8,19 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-class MockLoadPageUseCase extends Mock implements LoadPageUseCase {}
+class MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
 class MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
 
 void main() {
-  late MockLoadPageUseCase loadPage;
+  late MockLoadContentUseCase loadContent;
   late MockSaveDraftUseCase saveDraft;
 
-  const page = PageSpec(
+  const content = ContentSpec(
     specVersion: kSpecVersion,
-    id: 'pg_1',
+    id: 'ct_1',
     name: 'Home',
-    screenTarget: 'home',
+    slug: 'home',
     root: SduiNode(
       id: 'nd_root',
       type: 'column',
@@ -31,40 +31,43 @@ void main() {
     ),
   );
 
-  setUpAll(() => registerFallbackValue(page));
+  setUpAll(() => registerFallbackValue(content));
 
   setUp(() {
-    loadPage = MockLoadPageUseCase();
+    loadContent = MockLoadContentUseCase();
     saveDraft = MockSaveDraftUseCase();
   });
 
   EditorCubit build() =>
-      EditorCubit(loadPageUseCase: loadPage, saveDraftUseCase: saveDraft);
+      EditorCubit(loadContentUseCase: loadContent, saveDraftUseCase: saveDraft);
 
   EditorCubit buildLoaded() {
     final cubit = build();
-    cubit.emit(const EditorReady(document: page));
+    cubit.emit(const EditorReady(document: content));
     return cubit;
   }
 
-  group('loadPage', () {
+  group('loadContent', () {
     blocTest<EditorCubit, EditorState>(
       'emite Loading → Ready com o documento',
       build: build,
       setUp: () => when(
-        () => loadPage('pg_1'),
-      ).thenAnswer((_) async => const Right(page)),
-      act: (cubit) => cubit.loadPage('pg_1'),
-      expect: () => [const EditorLoading(), const EditorReady(document: page)],
+        () => loadContent('ct_1'),
+      ).thenAnswer((_) async => const Right(content)),
+      act: (cubit) => cubit.loadContent('ct_1'),
+      expect: () => [
+        const EditorLoading(),
+        const EditorReady(document: content),
+      ],
     );
 
     blocTest<EditorCubit, EditorState>(
       'emite Loading → LoadFailure na falha',
       build: build,
       setUp: () => when(
-        () => loadPage('pg_1'),
+        () => loadContent('ct_1'),
       ).thenAnswer((_) async => const Left(NotFoundFailure())),
-      act: (cubit) => cubit.loadPage('pg_1'),
+      act: (cubit) => cubit.loadContent('ct_1'),
       expect: () => [
         const EditorLoading(),
         const EditorLoadFailure(failure: NotFoundFailure()),
@@ -178,8 +181,8 @@ void main() {
       ).thenAnswer((_) async => const Right(unit)),
       act: (cubit) => cubit.save(),
       expect: () => [
-        const EditorReady(document: page, saveStatus: SaveStatus.saving),
-        const EditorReady(document: page, saveStatus: SaveStatus.saved),
+        const EditorReady(document: content, saveStatus: SaveStatus.saving),
+        const EditorReady(document: content, saveStatus: SaveStatus.saved),
       ],
     );
 
@@ -191,8 +194,8 @@ void main() {
       ).thenAnswer((_) async => const Left(NetworkFailure())),
       act: (cubit) => cubit.save(),
       expect: () => [
-        const EditorReady(document: page, saveStatus: SaveStatus.saving),
-        const EditorReady(document: page, saveStatus: SaveStatus.saveFailed),
+        const EditorReady(document: content, saveStatus: SaveStatus.saving),
+        const EditorReady(document: content, saveStatus: SaveStatus.saveFailed),
       ],
     );
   });

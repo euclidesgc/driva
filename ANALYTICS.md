@@ -2,8 +2,8 @@
 
 > O que cada módulo envia para analytics: evento, quando dispara, o que carrega.
 
-## I1 — Módulo Página (pages_module, editor_module)
+## Conteúdos (contents_module, editor_module)
 
-**Nenhum evento de analytics é enviado.** Decisão registrada no PRD do I1: instrumentação de produto fica para quando houver usuários além do time (provável I4, junto do workflow de publicação).
+**Nenhum evento de analytics é enviado.** Decisão registrada no PRD: instrumentação de produto fica para quando houver usuários além do time (junto do workflow de publicação/serving). O rename página → conteúdo **não** adicionou eventos.
 
-Quando entrar, os candidatos naturais são: página criada, bloco adicionado (por tipo), página salva, publicação.
+Quando entrar, os candidatos naturais são: conteúdo criado, colisão de slug resolvida (`suggestedSlug`), bloco adicionado (por tipo), conteúdo salvo, publicação.

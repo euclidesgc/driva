@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../cubit/editor_cubit.dart';
 
-/// Top bar do editor: voltar, identificação da página, status de salvamento
+/// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
 /// e a ação de salvar. Preview/Publish reais chegam nos próximos incrementos.
+///
+/// Assina só nome/slug/status: reconstrói ao salvar, não a cada tecla no canvas.
 class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const EditorTopBar({super.key, required this.state, required this.onSave});
-
-  final EditorReady state;
-  final VoidCallback onSave;
+  const EditorTopBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(56);
@@ -18,29 +18,45 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cubit = context.read<EditorCubit>();
+    final name = context.select<EditorCubit, String>(
+      (c) =>
+          c.state is EditorReady ? (c.state as EditorReady).document.name : '',
+    );
+    final slug = context.select<EditorCubit, String>(
+      (c) =>
+          c.state is EditorReady ? (c.state as EditorReady).document.slug : '',
+    );
+    final status = context.select<EditorCubit, SaveStatus>(
+      (c) => c.state is EditorReady
+          ? (c.state as EditorReady).saveStatus
+          : SaveStatus.saved,
+    );
+
     return AppBar(
       leadingWidth: 48,
       leading: IconButton(
-        tooltip: 'Voltar para as páginas',
+        tooltip: 'Voltar para os conteúdos',
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.goNamed('pages'),
+        onPressed: () => context.goNamed('contents'),
       ),
       titleSpacing: 0,
       title: Row(
         children: [
-          Text(state.document.name, style: theme.textTheme.titleMedium),
+          Text(name, style: theme.textTheme.titleMedium),
           const SizedBox(width: 12),
           Chip(
-            label: Text('Tela: ${state.document.screenTarget}'),
+            avatar: const Icon(Icons.tag, size: 16),
+            label: Text('Slug: $slug'),
             visualDensity: VisualDensity.compact,
           ),
         ],
       ),
       actions: [
-        _SaveIndicator(status: state.saveStatus),
+        _SaveIndicator(status: status),
         const SizedBox(width: 12),
         FilledButton.icon(
-          onPressed: state.saveStatus == SaveStatus.saving ? null : onSave,
+          onPressed: status == SaveStatus.saving ? null : cubit.save,
           icon: const Icon(Icons.save_outlined, size: 18),
           label: const Text('Salvar'),
         ),

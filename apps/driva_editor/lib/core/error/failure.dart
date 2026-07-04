@@ -33,6 +33,20 @@ final class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message = 'Recurso não encontrado.']);
 }
 
+/// Slug already taken within the project (backend `409`). Carries an optional
+/// free-slug suggestion; the UI falls back to a local suggestion when absent.
+final class ConflictFailure extends Failure {
+  const ConflictFailure({
+    this.suggestedSlug,
+    String message = 'Esse slug já está em uso neste projeto.',
+  }) : super(message);
+
+  final String? suggestedSlug;
+
+  @override
+  List<Object?> get props => [message, suggestedSlug];
+}
+
 /// Anything that escaped the typed cases — the honest "we did not foresee it".
 final class UnexpectedFailure extends Failure {
   const UnexpectedFailure([super.message = 'Erro inesperado.']);

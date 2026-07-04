@@ -8,10 +8,10 @@ Guia de configuração do projeto **Driva** no Coolify (painel). O deploy é **a
 
 | Ambiente | Branch | Frontend (Flutter Web) | Backend (Nest API) | Banco |
 |---|---|---|---|---|
-| **Homologação** (`hml`) | `develop` | `https://driva-hml.bmjtech.duckdns.org` | `https://driva-api-hml.bmjtech.duckdns.org` | Postgres (recurso Coolify) |
-| **Produção** (`prod`) | `main` | `https://driva.bmjtech.duckdns.org` | `https://driva-api.bmjtech.duckdns.org` | Postgres (recurso Coolify) |
+| **Homologação** (`hml`) | `develop` | `https://hml.driva.duckdns.org` | `https://api-hml.driva.duckdns.org` | Postgres (recurso Coolify) |
+| **Produção** (`prod`) | `main` | `https://driva.duckdns.org` | `https://api.driva.duckdns.org` | Postgres (recurso Coolify) |
 
-- O DuckDNS `bmjtech` tem wildcard: qualquer `*.bmjtech.duckdns.org` resolve para o servidor. Usar `https://` faz o Coolify emitir **Let's Encrypt automático** (portas 80/443 abertas).
+- O DuckDNS `driva` tem wildcard: qualquer `*.driva.duckdns.org` resolve para o servidor (`64.181.165.16`, confirmado por `dig`). Usar `https://` faz o Coolify emitir **Let's Encrypt automático** (portas 80/443 abertas). O `bmjtech.duckdns.org` é o host principal/infra compartilhada (ex.: Garage em `s3.bmjtech.duckdns.org`); o driva vive sob seu próprio `driva.duckdns.org`.
 - Repositório: `github.com/euclidesgc/driva`. Reuse a **GitHub App/Source** já conectada ao servidor.
 - **Nenhum segredo no repositório.** Toda config sensível é env/Build Variable no Coolify.
 
@@ -40,13 +40,14 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - **Base Directory**: `/backend`
    - **Dockerfile Location**: `/Dockerfile`  *(relativo ao Base Directory — **não** repita `backend/` aqui, senão o Coolify resolve `backend/backend` e o build falha)*
    - **Ports Exposes**: `3000`
-4. **Domains**: `https://driva-api-hml.bmjtech.duckdns.org` (hml) / `https://driva-api.bmjtech.duckdns.org` (prod).
+4. **Domains**: `https://api-hml.driva.duckdns.org` (hml) / `https://api.driva.duckdns.org` (prod).
 5. **Environment Variables** (runtime):
    - `DATABASE_URL` = a connection string interna do passo 1.
    - `PORT` = `3000`
-   - `CORS_ORIGINS` = `https://driva-hml.bmjtech.duckdns.org` (hml) / `https://driva.bmjtech.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
-6. Deploy. O container roda `prisma db push` (sincroniza o schema — ainda não há migrations versionadas) e sobe o Nest.
-7. Teste: `curl https://driva-api-hml.bmjtech.duckdns.org/v1/pages` deve responder `200` com uma lista JSON.
+   - `CORS_ORIGINS` = `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
+6. Deploy. O container **registra a baseline e roda `prisma migrate deploy`** automaticamente no start (`resolve --applied 0_baseline` idempotente + `migrate deploy`), então sobe o Nest.
+   > O banco de hml/prod foi criado por `db push` (sem histórico de migrations); `migrate deploy` sozinho abortaria com `P3005` ("schema não vazio"). O `CMD` do `backend/Dockerfile` resolve a baseline sozinho antes de migrar — **nenhum passo manual** (ver `variance_report.md` 002). Banco 100% novo/vazio não usa esse caminho.
+7. Teste: `curl https://api-hml.driva.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
 
 ### 3. Frontend (Flutter Web)
 
@@ -57,8 +58,8 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - **Dockerfile Location**: `/apps/driva_editor/Dockerfile`
    - **Ports Exposes**: `80`
 4. **Build Variable** (build-time — a URL da API é compilada no bundle do Flutter Web):
-   - `API_BASE_URL` = `https://driva-api-hml.bmjtech.duckdns.org` (hml) / `https://driva-api.bmjtech.duckdns.org` (prod).
-5. **Domains**: `https://driva-hml.bmjtech.duckdns.org` (hml) / `https://driva.bmjtech.duckdns.org` (prod).
+   - `API_BASE_URL` = `https://api-hml.driva.duckdns.org` (hml) / `https://api.driva.duckdns.org` (prod).
+5. **Domains**: `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod).
 6. Deploy. (O primeiro build do Flutter é demorado — baixa a imagem do SDK.)
 7. Teste: abra a URL do front; a lista de páginas deve carregar consumindo a API do mesmo ambiente, **sem erro de CORS** no console.
 
@@ -78,7 +79,7 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
 
 ## Notas e limites (I1)
 
-- **Sem migrations versionadas**: o backend usa `prisma db push` no start. Ao adotar migrations, trocar por `prisma migrate deploy`.
+- **Migrations versionadas** (a partir da feature Conteúdos): o backend roda `prisma migrate deploy` no start. A baseline (`0_baseline`) precisa ser resolvida uma vez por ambiente (passo 6). Config de hml e prod **conferida via API do Coolify em 2026-07-03** — env/build vars e domínios corretos.
 - **Branch protection**: `main` tem o ruleset `protect-main` (PR obrigatório, sem force-push). Mantenha ligado.
 - **CORS**: se um ambiente tiver mais de uma origem de frontend, liste-as em `CORS_ORIGINS` separadas por vírgula.
 - **Ordem de subida** importa: Postgres → Backend → Frontend.

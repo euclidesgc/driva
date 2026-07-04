@@ -12,15 +12,15 @@ void main() {
   late MockEditorRepository repository;
   late SaveDraftUseCase useCase;
 
-  const validPage = PageSpec(
+  const validContent = ContentSpec(
     specVersion: kSpecVersion,
-    id: 'pg_1',
+    id: 'ct_1',
     name: 'Home',
-    screenTarget: 'home',
+    slug: 'home',
     root: SduiNode(id: 'nd_root', type: 'column'),
   );
 
-  setUpAll(() => registerFallbackValue(validPage));
+  setUpAll(() => registerFallbackValue(validContent));
 
   setUp(() {
     repository = MockEditorRepository();
@@ -32,19 +32,19 @@ void main() {
       () => repository.saveDraft(any()),
     ).thenAnswer((_) async => const Right(unit));
 
-    final result = await useCase(validPage);
+    final result = await useCase(validContent);
 
     expect(result.isRight(), isTrue);
-    verify(() => repository.saveDraft(validPage)).called(1);
+    verify(() => repository.saveDraft(validContent)).called(1);
   });
 
   test('barra spec que o kernel rejeitaria, sem tocar o repositório', () async {
     // root que não é column: o editor nunca produz isso; a trava garante.
-    const invalid = PageSpec(
+    const invalid = ContentSpec(
       specVersion: kSpecVersion,
-      id: 'pg_1',
+      id: 'ct_1',
       name: 'Home',
-      screenTarget: 'home',
+      slug: 'home',
       root: SduiNode(id: 'nd_root', type: 'row'),
     );
 

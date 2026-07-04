@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 import 'core/config/app_config.dart';
-import 'core/dev/fake_pages_store.dart';
+import 'core/dev/fake_contents_store.dart';
 import 'core/network/network.dart';
+import 'modules/contents_module/contents_module.dart';
 import 'modules/editor_module/editor_module.dart';
-import 'modules/pages_module/pages_module.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -22,10 +22,10 @@ void setupInjection(AppConfig config) {
   getIt.registerLazySingleton<Dio>(() => createDio(getIt<AppConfig>()));
   if (config.useFakeData) {
     // Store em memória compartilhado pelos fakes dos módulos (dev/E2E).
-    getIt.registerLazySingleton<FakePagesStore>(FakePagesStore.new);
+    getIt.registerLazySingleton<FakeContentsStore>(FakeContentsStore.new);
   }
 
   // --- Module registrations ---
-  registerPagesModule(getIt);
+  registerContentsModule(getIt);
   registerEditorModule(getIt);
 }

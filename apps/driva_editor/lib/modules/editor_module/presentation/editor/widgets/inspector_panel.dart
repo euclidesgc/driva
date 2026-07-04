@@ -2,42 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../cubit/editor_cubit.dart';
 import 'palette_icons.dart';
 import 'prop_field_editor.dart';
 
 /// Inspector: o formulário do nó selecionado, 100% derivado do catálogo
-/// (WidgetDescriptor/PropField). Sem seleção, mostra as propriedades da
-/// página (o root column).
+/// (WidgetDescriptor/PropField). Sem seleção, mostra as propriedades do
+/// conteúdo (o root column).
+///
+/// Recebe o nó já resolvido pela [_InspectorArea] (via selector), então
+/// rebuilda só quando a seleção ou as props do nó inspecionado mudam.
 class InspectorPanel extends StatelessWidget {
   const InspectorPanel({
     super.key,
-    required this.state,
+    required this.node,
+    required this.isContent,
+    required this.contentName,
+    required this.contentSlug,
     required this.onUpdateProps,
     required this.onRemove,
   });
 
-  final EditorReady state;
+  final SduiNode node;
+  final bool isContent;
+  final String contentName;
+  final String contentSlug;
   final void Function(String nodeId, Map<String, dynamic> patch) onUpdateProps;
   final ValueChanged<String> onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final selected = state.selectedNode;
-    final node = selected ?? state.document.root;
     final descriptor = descriptorFor(node.type);
-    final isPage = selected == null || node.id == state.document.root.id;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _InspectorHeader(
-          title: isPage ? 'Página' : (descriptor?.label ?? node.type),
-          subtitle: isPage
-              ? '${state.document.name} · tela ${state.document.screenTarget}'
+          title: isContent ? 'Conteúdo' : (descriptor?.label ?? node.type),
+          subtitle: isContent
+              ? '$contentName · slug $contentSlug'
               : 'id ${node.id}',
-          iconType: isPage ? null : node.type,
-          onRemove: isPage ? null : () => onRemove(node.id),
+          iconType: isContent ? null : node.type,
+          onRemove: isContent ? null : () => onRemove(node.id),
         ),
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty

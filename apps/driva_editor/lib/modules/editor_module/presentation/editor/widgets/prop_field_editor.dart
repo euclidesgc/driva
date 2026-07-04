@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart' show curatedIconNames;
 
@@ -6,6 +7,10 @@ import '../../../../../core/theme/app_theme.dart';
 
 /// Fábrica `FieldKind → editor`: o Inspector deriva cada campo daqui.
 /// Emitir `null` em [onChanged] remove a chave (volta ao default do renderer).
+///
+/// Os editores de texto guardam um [TextEditingController] próprio e a
+/// identidade do campo vive na key do Inspector (`nodeId_fieldKey`), não no
+/// valor — assim o campo não é recriado a cada tecla e o foco permanece.
 class PropFieldEditor extends StatelessWidget {
   const PropFieldEditor({
     super.key,
@@ -96,7 +101,7 @@ class PropFieldEditor extends StatelessWidget {
   }
 }
 
-class _StringEditor extends StatelessWidget {
+class _StringEditor extends StatefulWidget {
   const _StringEditor({
     required this.field,
     required this.value,
@@ -108,20 +113,43 @@ class _StringEditor extends StatelessWidget {
   final ValueChanged<Object?> onChanged;
 
   @override
+  State<_StringEditor> createState() => _StringEditorState();
+}
+
+class _StringEditorState extends State<_StringEditor> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.value?.toString() ?? '',
+  );
+
+  @override
+  void didUpdateWidget(covariant _StringEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final external = widget.value?.toString() ?? '';
+    if (widget.value != oldWidget.value && external != _controller.text) {
+      _controller.text = external;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      // A key troca o controller interno quando o nó/campo muda.
-      key: ValueKey('${field.key}_${value ?? ''}_focusless'),
-      initialValue: value?.toString() ?? '',
+    return TextField(
+      controller: _controller,
       style: const TextStyle(fontSize: 13),
       decoration: const InputDecoration(isDense: true),
-      onChanged: (text) =>
-          onChanged(text.isEmpty && !field.isRequired ? null : text),
+      onChanged: (text) => widget.onChanged(
+        text.isEmpty && !widget.field.isRequired ? null : text,
+      ),
     );
   }
 }
 
-class _NumberEditor extends StatelessWidget {
+class _NumberEditor extends StatefulWidget {
   const _NumberEditor({
     required this.field,
     required this.value,
@@ -135,22 +163,53 @@ class _NumberEditor extends StatelessWidget {
   final bool isInt;
 
   @override
+  State<_NumberEditor> createState() => _NumberEditorState();
+}
+
+class _NumberEditorState extends State<_NumberEditor> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.value?.toString() ?? '',
+  );
+
+  num? _parse(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+    return widget.isInt
+        ? int.tryParse(trimmed)
+        : double.tryParse(trimmed.replaceAll(',', '.'));
+  }
+
+  @override
+  void didUpdateWidget(covariant _NumberEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Ressincroniza só em mudança externa e quando o número realmente difere:
+    // comparar por texto recolocaria o cursor no meio de "1." → "1.0".
+    if (widget.value != oldWidget.value &&
+        widget.value != _parse(_controller.text)) {
+      _controller.text = widget.value?.toString() ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      key: ValueKey('${field.key}_${value ?? ''}'),
-      initialValue: value?.toString() ?? '',
+    return TextField(
+      controller: _controller,
       style: const TextStyle(fontSize: 13),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: const InputDecoration(isDense: true, hintText: '—'),
       onChanged: (text) {
         if (text.trim().isEmpty) {
-          onChanged(null);
+          widget.onChanged(null);
           return;
         }
-        final parsed = isInt
-            ? int.tryParse(text.trim())
-            : double.tryParse(text.trim().replaceAll(',', '.'));
-        if (parsed != null) onChanged(parsed);
+        final parsed = _parse(text);
+        if (parsed != null) widget.onChanged(parsed);
       },
     );
   }
@@ -179,7 +238,7 @@ class _BoolEditor extends StatelessWidget {
   }
 }
 
-class _ColorEditor extends StatelessWidget {
+class _ColorEditor extends StatefulWidget {
   const _ColorEditor({
     required this.field,
     required this.value,
@@ -190,6 +249,11 @@ class _ColorEditor extends StatelessWidget {
   final Object? value;
   final ValueChanged<Object?> onChanged;
 
+  @override
+  State<_ColorEditor> createState() => _ColorEditorState();
+}
+
+class _ColorEditorState extends State<_ColorEditor> {
   static const _swatches = [
     '#E8602C',
     '#2F6BFF',
@@ -201,6 +265,10 @@ class _ColorEditor extends StatelessWidget {
     '#FFFFFF',
   ];
 
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.value?.toString() ?? '',
+  );
+
   Color? _parse(Object? v) {
     if (v is! String || !v.startsWith('#')) return null;
     var hex = v.substring(1);
@@ -210,8 +278,23 @@ class _ColorEditor extends StatelessWidget {
   }
 
   @override
+  void didUpdateWidget(covariant _ColorEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final external = widget.value?.toString() ?? '';
+    if (widget.value != oldWidget.value && external != _controller.text) {
+      _controller.text = external;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final current = _parse(value);
+    final current = _parse(widget.value);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,31 +318,31 @@ class _ColorEditor extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: TextFormField(
-                key: ValueKey('${field.key}_${value ?? ''}'),
-                initialValue: value?.toString() ?? '',
+              child: TextField(
+                controller: _controller,
                 style: const TextStyle(fontSize: 13),
+                inputFormatters: [_UpperCaseTextFormatter()],
                 decoration: const InputDecoration(
                   isDense: true,
                   hintText: '#RRGGBB',
                 ),
                 onChanged: (text) {
-                  final trimmed = text.trim().toUpperCase();
+                  final trimmed = text.trim();
                   if (trimmed.isEmpty) {
-                    onChanged(null);
+                    widget.onChanged(null);
                   } else if (_parse(trimmed) != null) {
-                    onChanged(trimmed);
+                    widget.onChanged(trimmed);
                   }
                 },
               ),
             ),
-            if (value != null)
+            if (widget.value != null)
               IconButton(
                 tooltip: 'Limpar cor',
                 iconSize: 16,
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.close),
-                onPressed: () => onChanged(null),
+                onPressed: () => widget.onChanged(null),
               ),
           ],
         ),
@@ -271,7 +354,7 @@ class _ColorEditor extends StatelessWidget {
               Tooltip(
                 message: hex,
                 child: InkWell(
-                  onTap: () => onChanged(hex),
+                  onTap: () => widget.onChanged(hex),
                   child: Container(
                     width: 18,
                     height: 18,
@@ -323,7 +406,7 @@ class _EnumEditor extends StatelessWidget {
   }
 }
 
-class _EdgeInsetsEditor extends StatelessWidget {
+class _EdgeInsetsEditor extends StatefulWidget {
   const _EdgeInsetsEditor({
     required this.field,
     required this.value,
@@ -334,50 +417,77 @@ class _EdgeInsetsEditor extends StatelessWidget {
   final Object? value;
   final ValueChanged<Object?> onChanged;
 
+  @override
+  State<_EdgeInsetsEditor> createState() => _EdgeInsetsEditorState();
+}
+
+class _EdgeInsetsEditorState extends State<_EdgeInsetsEditor> {
+  static const _sides = ['left', 'top', 'right', 'bottom'];
+
+  late final Map<String, TextEditingController> _controllers = {
+    for (final side in _sides)
+      side: TextEditingController(text: _side(side)?.toString() ?? ''),
+  };
+
   double? _side(String key) {
-    final map = value;
+    final map = widget.value;
     if (map is! Map) return null;
     if (map.containsKey('all')) return (map['all'] as num?)?.toDouble();
     return (map[key] as num?)?.toDouble();
   }
 
+  double? _parse(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+    return double.tryParse(trimmed.replaceAll(',', '.'));
+  }
+
+  @override
+  void didUpdateWidget(covariant _EdgeInsetsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value == oldWidget.value) return;
+    for (final side in _sides) {
+      final external = _side(side);
+      if (external != _parse(_controllers[side]!.text)) {
+        _controllers[side]!.text = external?.toString() ?? '';
+      }
+    }
+  }
+
   void _update(String key, double? side) {
-    final current = {
-      'left': _side('left'),
-      'top': _side('top'),
-      'right': _side('right'),
-      'bottom': _side('bottom'),
-      key: side,
-    };
+    final current = {for (final s in _sides) s: _side(s), key: side};
     if (current.values.every((v) => v == null)) {
-      onChanged(null);
+      widget.onChanged(null);
       return;
     }
-    onChanged({
+    widget.onChanged({
       for (final entry in current.entries)
         if (entry.value != null) entry.key: entry.value,
     });
   }
 
   @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Widget sideField(String key, String label) => Expanded(
-      child: TextFormField(
-        key: ValueKey('${field.key}_${key}_${_side(key) ?? ''}'),
-        initialValue: _side(key)?.toString() ?? '',
+      child: TextField(
+        controller: _controllers[key],
         style: const TextStyle(fontSize: 12),
         textAlign: TextAlign.center,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           isDense: true,
           labelText: label,
           labelStyle: const TextStyle(fontSize: 10),
         ),
-        onChanged: (text) => _update(
-          key,
-          text.trim().isEmpty
-              ? null
-              : double.tryParse(text.trim().replaceAll(',', '.')),
-        ),
+        onChanged: (text) => _update(key, _parse(text)),
       ),
     );
 
@@ -490,5 +600,15 @@ class _IconEditor extends StatelessWidget {
       ],
       onChanged: onChanged,
     );
+  }
+}
+
+class _UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }

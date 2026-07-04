@@ -1,6 +1,6 @@
 {
   "name": "driva-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Backend do driva — storage de specs SDUI (NestJS + Prisma + Postgres)",
   "scripts": {
@@ -9,7 +9,8 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {

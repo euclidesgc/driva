@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
@@ -10,17 +13,23 @@ import 'drag_payload.dart';
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
 /// renderizando o documento com o renderer REAL (`SduiView`) — preview fiel
 /// por construção. O `nodeWrapper` injeta seleção por clique e contorno.
+///
+/// Recebe só `device`/`zoom`; o preview do documento é assinado e **throttled**
+/// dentro de [_PreviewSurface], para digitação rápida não re-executar o
+/// renderer a cada tecla.
 class CanvasPanel extends StatelessWidget {
   const CanvasPanel({
     super.key,
-    required this.state,
+    required this.device,
+    required this.zoom,
     required this.onSelect,
     required this.onChangeDevice,
     required this.onChangeZoom,
     required this.onAddToRoot,
   });
 
-  final EditorReady state;
+  final DevicePreset device;
+  final double zoom;
   final ValueChanged<String?> onSelect;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
@@ -28,17 +37,17 @@ class CanvasPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final device = state.device;
     return Column(
       children: [
         _CanvasToolbar(
-          state: state,
+          device: device,
+          zoom: zoom,
           onChangeDevice: onChangeDevice,
           onChangeZoom: onChangeZoom,
         ),
         Expanded(
           child: DragTarget<DragPayload>(
-            // Soltar no canvas (fora da árvore) = adicionar ao fim da página.
+            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
             onAcceptWithDetails: (details) {
               if (details.data case PaletteDragPayload(:final type)) {
                 onAddToRoot(type);
@@ -52,12 +61,15 @@ class CanvasPanel extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Transform.scale(
-                  scale: state.zoom,
+                  scale: zoom,
                   alignment: Alignment.topCenter,
-                  child: _DeviceFrame(
-                    device: device,
-                    highlighted: candidates.isNotEmpty,
-                    child: _PreviewSurface(state: state, onSelect: onSelect),
+                  // Isola a pintura do preview do resto do editor.
+                  child: RepaintBoundary(
+                    child: _DeviceFrame(
+                      device: device,
+                      highlighted: candidates.isNotEmpty,
+                      child: _PreviewSurface(onSelect: onSelect),
+                    ),
                   ),
                 ),
               ),
@@ -71,12 +83,14 @@ class CanvasPanel extends StatelessWidget {
 
 class _CanvasToolbar extends StatelessWidget {
   const _CanvasToolbar({
-    required this.state,
+    required this.device,
+    required this.zoom,
     required this.onChangeDevice,
     required this.onChangeZoom,
   });
 
-  final EditorReady state;
+  final DevicePreset device;
+  final double zoom;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
 
@@ -105,14 +119,14 @@ class _CanvasToolbar extends StatelessWidget {
                   }, size: 16),
                 ),
             ],
-            selected: {state.device},
+            selected: {device},
             onSelectionChanged: (selection) => onChangeDevice(selection.single),
             showSelectedIcon: false,
             style: const ButtonStyle(visualDensity: VisualDensity.compact),
           ),
           const Spacer(),
           Text(
-            '${state.device.width.toInt()} × ${state.device.height.toInt()}',
+            '${device.width.toInt()} × ${device.height.toInt()}',
             style: const TextStyle(fontSize: 12, color: AppTheme.inkMuted),
           ),
           const SizedBox(width: 16),
@@ -120,17 +134,17 @@ class _CanvasToolbar extends StatelessWidget {
             tooltip: 'Diminuir zoom',
             iconSize: 18,
             icon: const Icon(Icons.zoom_out),
-            onPressed: () => onChangeZoom(state.zoom - 0.1),
+            onPressed: () => onChangeZoom(zoom - 0.1),
           ),
           Text(
-            '${(state.zoom * 100).round()}%',
+            '${(zoom * 100).round()}%',
             style: const TextStyle(fontSize: 12),
           ),
           IconButton(
             tooltip: 'Aumentar zoom',
             iconSize: 18,
             icon: const Icon(Icons.zoom_in),
-            onPressed: () => onChangeZoom(state.zoom + 0.1),
+            onPressed: () => onChangeZoom(zoom + 0.1),
           ),
         ],
       ),
@@ -180,22 +194,82 @@ class _DeviceFrame extends StatelessWidget {
   }
 }
 
-class _PreviewSurface extends StatelessWidget {
-  const _PreviewSurface({required this.state, required this.onSelect});
+/// Superfície do preview. Assina `document`/`selectedNodeId` direto do cubit,
+/// mas **throttla** a re-renderização do documento (o custo caro é o renderer
+/// real): a digitação rápida é coalescida numa janela curta, com render final
+/// garantido. A seleção reflete na hora (o contorno precisa ser imediato).
+class _PreviewSurface extends StatefulWidget {
+  const _PreviewSurface({required this.onSelect});
 
-  final EditorReady state;
   final ValueChanged<String?> onSelect;
 
   @override
+  State<_PreviewSurface> createState() => _PreviewSurfaceState();
+}
+
+class _PreviewSurfaceState extends State<_PreviewSurface> {
+  static const _throttle = Duration(milliseconds: 120);
+
+  late final EditorCubit _cubit = context.read<EditorCubit>();
+  late StreamSubscription<EditorState> _subscription;
+
+  late ContentSpec _rendered;
+  String? _selectedNodeId;
+  Timer? _cooldown;
+  bool _pendingRender = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = _cubit.state as EditorReady;
+    _rendered = state.document;
+    _selectedNodeId = state.selectedNodeId;
+    _subscription = _cubit.stream.listen(_onState);
+  }
+
+  void _onState(EditorState state) {
+    if (state is! EditorReady || !mounted) return;
+
+    if (state.selectedNodeId != _selectedNodeId) {
+      setState(() => _selectedNodeId = state.selectedNodeId);
+    }
+
+    if (state.document != _rendered) {
+      if (_cooldown?.isActive ?? false) {
+        _pendingRender = true;
+      } else {
+        _applyDocument();
+      }
+    }
+  }
+
+  void _applyDocument() {
+    final state = _cubit.state;
+    if (state is! EditorReady || !mounted) return;
+    setState(() => _rendered = state.document);
+    _pendingRender = false;
+    _cooldown = Timer(_throttle, () {
+      if (_pendingRender && mounted) _applyDocument();
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    _cooldown?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final document = state.document;
+    final document = _rendered;
     return GestureDetector(
-      // Clique no vazio limpa a seleção (volta às propriedades da página).
-      onTap: () => onSelect(null),
+      // Clique no vazio limpa a seleção (volta às propriedades do conteúdo).
+      onTap: () => widget.onSelect(null),
       child: document.root.children.isEmpty
           ? const _EmptyPreview()
           : SingleChildScrollView(
-              child: SduiView.page(
+              child: SduiView.content(
                 document,
                 onAction: (action) => ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -207,8 +281,8 @@ class _PreviewSurface extends StatelessWidget {
                 nodeWrapper: (node, built) => _SelectableNode(
                   node: node,
                   built: built,
-                  isSelected: node.id == state.selectedNodeId,
-                  onSelect: () => onSelect(node.id),
+                  isSelected: node.id == _selectedNodeId,
+                  onSelect: () => widget.onSelect(node.id),
                 ),
               ),
             ),
@@ -234,7 +308,7 @@ class _EmptyPreview extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Página vazia.\nArraste um widget da paleta para começar.',
+              'Conteúdo vazio.\nArraste um widget da paleta para começar.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.inkSecondary),
             ),
