@@ -14,6 +14,7 @@
 
 - **Conteúdos · Fase 3 — `driva_editor`**: tratamento de conflito de slug — `ConflictFailure` tipada (traduzida do `409` só na camada data) exibe o slug sugerido e "slug já em uso neste projeto"; util de slug puro (`SlugUtil`: `slugify`/`isValid`/`suggestFree`).
 - **Conteúdos · Fase 4 — `backend`**: `409 Conflict` em colisão de slug no projeto, com `suggestedSlug` (um slug livre, sufixo incremental) no corpo da resposta — o contrato casa com o `ConflictFailure` do editor.
+- **Conteúdos · Fase 6 — E2E + qualidade**: E2E por **rodadas** com prints **headless** gerados pelo QA (o dev só confere) — `e2e.sh` (contrato do backend por API, base de teste efêmera) + `e2e_shots.sh` (8 estados visuais: 4 por URL + 4 de interação dirigidos por **CDP puro**, `e2e_drive.mjs`, sem dependências). Varredura do critério-6: código/fixtures 100% renomeados; docs de estado atual (`CLAUDE.md`/`README.md`) realinhadas a `/v1/contents`.
 
 - **driva_editor**: wordmark "Driva Builder" na home é um link para a própria home, com tipografia própria (fonte **Space Grotesk** empacotada, pesos 500/700) e "Driva" no laranja da marca.
 
