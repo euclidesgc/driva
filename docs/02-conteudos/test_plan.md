@@ -38,39 +38,51 @@ destrutiva de Prisma) e valida, com `PASS/FAIL` explícito:
 (`.e2e-backend.log`) e o container/volume `driva-postgres` — todos encerrados por
 `e2e.sh down`. Nenhum arquivo de código é tocado.
 
-### Parte manual — só o que a API não enxerga (visual da UI)
+### Parte visual automatizada — `docs/02-conteudos/e2e_shots.sh` (o QA gera os prints)
 
-Com a stack no ar (após o script), rode o editor e confirme na tela (projeto
-`default`, lista começa vazia). Salve prints em `docs/02-conteudos/evidencias/rodada_MM/`.
+Com a stack no ar (após o `e2e.sh`), o QA captura os estados **alcançáveis por URL**
+por screenshot **headless** — o dev humano só **confere** as imagens, não opera o
+browser:
 
-> **Ícones como "tofu" (□) são cache do browser, não bug.** O `build/web` emite o
-> `MaterialIcons-Regular.otf` e o FontManifest corretos (verificado por screenshot
-> headless do build servido — os ícones renderizam). Se aparecerem □ no
-> `flutter run`, é **service worker/cache do Chrome no `localhost`** — e ele
-> **sobrevive** a `flutter clean` e a hard-refresh (Ctrl+Shift+R). A correção
-> **determinística** é lançar com um **perfil de Chrome descartável** (sem cache,
-> sem SW):
+```bash
+docs/02-conteudos/e2e.sh            # sobe a stack (Postgres efêmero + backend)
+docs/02-conteudos/e2e_shots.sh 03   # gera evidencias/rodada_03/{01_lista_vazia,02_lista_com_conteudos,03_editor_carregado,04_notfound}.png
+docs/02-conteudos/e2e.sh down
+```
+
+O harness faz build web (dev), semeia o projeto `default` via API, serve o `build/web`
+(com SPA fallback p/ deep links do path strategy) e fotografa cada rota. Cobre os
+pontos 1, 3, 5 (editor carregado) e 6 do checklist abaixo.
+
+> **Ícones como "tofu" (□) NÃO são bug de código nem de build.** O `build/web` emite
+> o `MaterialIcons-Regular.otf` + FontManifest corretos e os ícones renderizam
+> (provado pelos prints headless acima e no `e2e_shots.sh`). Tofu aparece só no
+> `flutter run` (debug) por **estado sujo do browser** (cache/SW) — e **não** cede a
+> `flutter clean` nem a hard-refresh. Fixes, em ordem:
+> 1. **Incognito** (sem cache/SW, sempre novo, nada a limpar):
+>    `flutter run -d chrome --web-browser-flag=--incognito --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`
+> 2. Se ainda houver □ no incognito, é o render de OTF no CanvasKit **debug**: rode
+>    o visual em **profile** (`flutter run --profile …`, caminho de render do release).
 >
-> ```bash
-> flutter run -d chrome \
->   --web-browser-flag=--user-data-dir=/tmp/driva-e2e-chrome \
->   --target apps/driva_editor/lib/main_dev.dart \
->   --dart-define-from-file=apps/driva_editor/config/dev.json
-> ```
->
-> (Apague `/tmp/driva-e2e-chrome` para forçar um perfil novo.) Alternativa rápida
-> de conferência sem `flutter run`: `flutter build web` e servir o `build/web`
-> numa **porta nova** (origem nova = sem SW anterior).
+> Não use `--user-data-dir=<pasta fixa>`: a pasta **persiste** e reacumula o cache —
+> não é um perfil novo. Para conferência, prefira os prints do `e2e_shots.sh`.
 
-1. A URL abre em `/contents` **sem `#`** (path strategy). → *print 1*
-2. Em "Novo conteúdo", digitar o **Nome deriva o Slug ao vivo** no campo. → *print 2*
-3. O card mostra o **slug em destaque** + o **"ID de suporte"** (CUID2). → *print 3*
-4. Criar dois `Home`: o 2º **reabre o diálogo com `home-2`** e a msg de slug em uso. → *print 4*
-5. Arrastar um widget → preview renderiza; **Ctrl+S** → "Salvo"; **F5** mantém. → *print 5*
-6. Acessar `/contents/nao-existe/edit` → **tela de NotFound tratada**, sem crash. → *print 6*
+### Parte manual — só os estados de INTERAÇÃO (o que nem a API nem a URL enxergam)
 
-**Critério de passagem:** `e2e.sh` verde (contrato do backend) **e** os 6 pontos
-visuais confirmados sem erro não-tratado no console. Ao terminar: `e2e.sh down`.
+O que exige clique/digitação dentro do canvas (não captável por URL — seria preciso
+`flutter_driver`, follow-up). Salve prints em `docs/02-conteudos/evidencias/rodada_MM/`:
+
+1. Em "Novo conteúdo", digitar o **Nome deriva o Slug ao vivo** no campo. → *print*
+2. Criar dois `Home`: o 2º **reabre o diálogo com `home-2`** e a msg de slug em uso. → *print*
+3. Arrastar um widget da paleta → **preview renderiza**; **Ctrl+S** → "Salvo". → *print*
+
+> Os estados por URL (lista vazia, lista com cards + "ID de suporte", editor
+> carregado, NotFound, `/contents` sem `#`) já saem prontos do `e2e_shots.sh` —
+> não precisa refazer à mão.
+
+**Critério de passagem:** `e2e.sh` verde (contrato) **+** os prints do `e2e_shots.sh`
+conferidos **+** os 3 pontos de interação acima sem erro não-tratado no console.
+Ao terminar: `e2e.sh down`.
 
 ---
 

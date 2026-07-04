@@ -20,11 +20,11 @@ Um script `sh` que sobe a stack local e valida o **máximo por API/CLI**, com `P
 
 Se a stack real **não** está pronta (ex.: backend ausente), aí sim instrumente o app: fakes no DI do flavor dev (honrando o contrato de verdade — erros e bordas, não só a interface) e `log()` (`dart:developer`) nos pontos que contam a história. **Prefixo `[e2e]` em tudo** e a lista completa (arquivos + trechos) no `test_plan.md` — é o mapa da limpeza no wrap. Prefira sempre o script à instrumentação de código.
 
-## 3. Roteiro manual — só o visual/UX
+## 3. Prints do visual — o QA gera; o humano confere
 
-No `docs/NN-<nome>/test_plan.md`, além de documentar o script, escreva o **checklist curto** do que só o humano confirma na tela (o que a API não vê): navegação/URL, derivação ao vivo em campo, render de preview, estados visuais, mensagens. Cada item: o que fazer, o que observar, qual print salvar. Nada de "teste a feature" — checklist de voo.
+Regra nova: **o QA gera os prints, o dev humano só confere.** Tudo que for **alcançável por URL** (lista vazia/cheia, cards, editor carregado, telas de erro/NotFound, URL sem `#`) o QA captura por **screenshot headless** (`google-chrome --headless=new … --screenshot`), num harness ao lado do `e2e.sh` — ex.: `docs/NN-<nome>/e2e_shots.sh`, que: build web (dev) → semeia via API o projeto que o app lê → serve o `build/web` **com SPA fallback** (deep links do path strategy) → fotografa cada rota em `evidencias/rodada_MM/`. Só sobra ao humano o que **exige interação dentro do canvas** (digitar → derivação ao vivo, drag-drop, reabrir diálogo) — isso o headless por URL não pega (seria `flutter_driver`; follow-up). No `test_plan.md`, o checklist manual encolhe para esses poucos estados de interação.
 
-> **Gotcha Flutter Web — ícones "tofu" (□):** quase sempre é **cache/service worker do Chrome no `localhost`**, não bug de código nem de build. O `build/web` emite `MaterialIcons-Regular.otf` + FontManifest corretos (confirme por screenshot headless do build servido antes de suspeitar do código). O SW **sobrevive** a `flutter clean` e a hard-refresh (Ctrl+Shift+R) — não confie neles. A correção **determinística** é lançar com um **perfil de Chrome descartável**: `flutter run -d chrome --web-browser-flag=--user-data-dir=/tmp/<feature>-e2e-chrome …`. O checklist visual deve trazer essa flag, não o hard-refresh.
+> **Gotcha Flutter Web — ícones "tofu" (□):** **não é bug de código nem de build.** O `build/web` emite `MaterialIcons-Regular.otf` + FontManifest corretos e os ícones renderizam (o próprio `e2e_shots.sh` prova por headless). Tofu aparece só no `flutter run` (debug) por **estado sujo do browser** — e **não** cede a `flutter clean` nem a hard-refresh. Fix: **incognito** (`flutter run -d chrome --web-browser-flag=--incognito …`) — sem cache/SW, novo a cada vez, nada a limpar; se persistir, é render de OTF no CanvasKit debug → rode o visual em **`--profile`** (caminho do release). **Nunca** use `--user-data-dir=<pasta fixa>`: persiste e reacumula o cache. Para conferência, os prints do harness dispensam o browser do dev.
 
 ## 4. Rodadas e evidências
 
@@ -35,9 +35,9 @@ docs/NN-<nome>/evidencias/rodada_01/   ← 1ª rodada
 docs/NN-<nome>/evidencias/rodada_02/   ← 2ª rodada (após correções), etc.
 ```
 
-Em cada `rodada_MM/` ficam: o **snapshot do script** usado (`e2e.sh`), os **logs** gerados e os **prints** do dev (`evidencia_01.png`, `02`, …). O ciclo:
+Em cada `rodada_MM/` ficam: o **snapshot do script** (`e2e.sh`/`e2e_shots.sh`), os **logs** e os **prints** (gerados pelo QA via harness headless; só os de interação vêm do dev). O ciclo:
 
-1. O dev roda o script + o visual e salva tudo na `rodada_MM/`.
+1. O dev roda `e2e.sh` + `e2e_shots.sh` (os prints por URL saem prontos) e **confere** as imagens; só os poucos estados de interação ele fotografa à mão. Tudo salvo na `rodada_MM/`.
 2. Se **tudo passou** → a feature segue para o wrap (limpeza + testes automatizados + DoD). Fim das rodadas.
 3. Se **achou problema/pediu mudança** → o time **analisa os logs, os prints e o código**, corrige o que for código e **ajusta o script** se preciso. Só então **avisa o dev** que a `rodada_MM+1` está pronta — e o dev roda de novo, salvando na próxima pasta.
 
