@@ -45,8 +45,8 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - `DATABASE_URL` = a connection string interna do passo 1.
    - `PORT` = `3000`
    - `CORS_ORIGINS` = `https://driva-hml.bmjtech.duckdns.org` (hml) / `https://driva.bmjtech.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
-6. Deploy. O container roda **`prisma migrate deploy`** (aplica as migrations pendentes) e sobe o Nest.
-   > **Pré-condição, uma vez por ambiente** (banco criado por `db push` antes das migrations versionadas): rode `pnpm exec prisma migrate resolve --applied 0_baseline` no terminal do container backend **antes** do primeiro deploy que traz as migrations — senão o `migrate deploy` aborta com `P3005`. Veja o roteiro OPS em [`../02-conteudos/test_plan.md`](../02-conteudos/test_plan.md).
+6. Deploy. O container **registra a baseline e roda `prisma migrate deploy`** automaticamente no start (`resolve --applied 0_baseline` idempotente + `migrate deploy`), então sobe o Nest.
+   > O banco de hml/prod foi criado por `db push` (sem histórico de migrations); `migrate deploy` sozinho abortaria com `P3005` ("schema não vazio"). O `CMD` do `backend/Dockerfile` resolve a baseline sozinho antes de migrar — **nenhum passo manual** (ver `variance_report.md` 002). Banco 100% novo/vazio não usa esse caminho.
 7. Teste: `curl https://driva-api-hml.bmjtech.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
 
 ### 3. Frontend (Flutter Web)
