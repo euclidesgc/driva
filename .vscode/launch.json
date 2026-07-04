@@ -42,6 +42,7 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/backend",
+      "preLaunchTask": "prepara backend (db + schema)",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "start:dev"],
       "console": "integratedTerminal",

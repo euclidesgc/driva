@@ -16,6 +16,14 @@
       "problemMatcher": []
     },
     {
+      "// prepara backend": "Sobe o Postgres, espera ficar pronto, gera o client e sincroniza o schema. É o preLaunchTask do backend — deixa o F5 do compound levantar tudo de uma vez.",
+      "label": "prepara backend (db + schema)",
+      "type": "shell",
+      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
       "label": "e2e (conteúdos)",
       "type": "shell",
       "command": "./docs/02-conteudos/e2e.sh",
