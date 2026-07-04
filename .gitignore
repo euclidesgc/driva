@@ -3,7 +3,8 @@
 build/
 *.iml
 .idea/
-.metadata
+# .metadata do Flutter DEVE ser versionado (marca o projeto como app Flutter + plataformas;
+# sem ele o VSCode dá "Unable to launch Flutter project in a Dart-only workspace").
 
 # Segredos — nunca versionar (ex.: COOLIFY_TOKEN)
 .env
