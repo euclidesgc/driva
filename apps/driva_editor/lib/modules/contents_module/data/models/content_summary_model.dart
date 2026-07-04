@@ -1,0 +1,45 @@
+import 'package:fpdart/fpdart.dart';
+import 'package:zard/zard.dart';
+
+import '../../../../core/error/error.dart';
+import '../../domain/entities/content_summary.dart';
+
+class ContentSummaryModel extends ContentSummary {
+  const ContentSummaryModel({
+    required super.id,
+    required super.name,
+    required super.slug,
+    required super.updatedAt,
+    super.description,
+  });
+
+  // A forma esperada do item de `GET /v1/contents`, declarada uma vez.
+  static final _schema = z.map({
+    'id': z.string().min(1),
+    'name': z.string().min(1),
+    'slug': z.string().min(1),
+    'description': z.string().optional(),
+    'updatedAt': z.date(),
+  });
+
+  /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
+  /// nunca um cast cru estourando.
+  static Either<Failure, ContentSummaryModel> tryParse(
+    Map<String, dynamic> map,
+  ) {
+    final result = _schema.safeParse(map);
+    if (!result.success) {
+      return Left(ValidationFailure(z.prettifyError(result.error!)));
+    }
+    final data = result.data!;
+    return Right(
+      ContentSummaryModel(
+        id: data['id'] as String,
+        name: data['name'] as String,
+        slug: data['slug'] as String,
+        description: data['description'] as String?,
+        updatedAt: data['updatedAt'] as DateTime,
+      ),
+    );
+  }
+}

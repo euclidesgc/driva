@@ -1,16 +1,17 @@
 # driva
 
-Plataforma de **Server-Driven UI** para apps Flutter: monte páginas num editor web, publique um **spec JSON**, e o app do cliente as renderiza sem republicar. Este repositório contém o editor (Flutter Web), o kernel do spec, o renderer e o backend.
+Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num editor web, publique um **spec JSON**, e o app do cliente os renderiza sem republicar. Este repositório contém o editor (Flutter Web), o kernel do spec, o renderer e o backend.
 
 ## Estrutura (Dart pub workspace)
 
 | Pasta | O que é |
 |---|---|
-| `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parsePageSpec`), catálogo de 14 primitivos, operações puras de árvore |
+| `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parseContentSpec`), catálogo de 14 primitivos, operações puras de árvore |
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e, futuramente, nos apps dos clientes |
-| `apps/driva_editor` | O editor (Flutter Web): lista de páginas + builder de 3 colunas com preview fiel |
-| `backend/` | NestJS + Prisma + Postgres: storage de specs (`/v1/pages`), tenant por `x-project-id` |
-| `docs/feature-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
+| `apps/driva_editor` | O editor (Flutter Web): lista de conteúdos + builder de 3 colunas com preview fiel |
+| `backend/` | NestJS + Prisma + Postgres: storage de specs (`/v1/contents`), tenant por `x-project-id` |
+| `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
+| `docs/02-conteudos/` | Docs vivas da feature Conteúdos (rename página→conteúdo: slug, CUID2, migração) |
 | `docs/livro-flutter/` | O livro que define a arquitetura e o método de trabalho (gabarito) |
 
 ## Rodando em dev
@@ -32,7 +33,7 @@ cd apps/driva_editor
 flutter run -d chrome --target lib/main_dev.dart --dart-define-from-file=config/dev.json
 ```
 
-Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fake (páginas em memória, com uma página de exemplo).
+Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fake (conteúdos em memória, com um conteúdo de exemplo).
 
 ## Qualidade
 
@@ -40,7 +41,7 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 flutter analyze                       # workspace inteiro
 dart test packages/sdui_core          # kernel (30 testes)
 flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (20 testes)
+flutter test apps/driva_editor        # editor (47 testes: cubits, slug, widget por estado, golden)
 ```
 
 ## Arquitetura (resumo)
@@ -49,7 +50,7 @@ Clean Architecture por módulo (`domain`/`data`/`presentation` + barrel público
 
 ## Incrementos
 
-- **I1 — Módulo Página** (este repositório): montar página com primitivos, editar props, preview fiel, salvar rascunho. ✅ implementado (E2E manual pendente — `docs/feature-modulo-pagina/test_plan.md`)
+- **I1 — Módulo Página** (renomeado para **Conteúdos**): montar conteúdo com primitivos, editar props, preview fiel, salvar rascunho; identidade por `slug` (referência do dev) + `id` CUID2. ✅ implementado + E2E (`docs/02-conteudos/`)
 - **I2** — condições de exibição + filtros por widget + simulação de usuário
 - **I3** — construtor de widget composto (estados + fonte de dados)
 - **I4** — workflow, papéis, versionamento, agendamento e serving

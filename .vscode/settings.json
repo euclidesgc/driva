@@ -1,0 +1,4 @@
+{
+  "// dart.projectSearchDepth": "O app Flutter está em apps/driva_editor (2 níveis abaixo da raiz do workspace). Sem isto o Dart/Flutter extension não acha o projeto e o launch falha com 'Unable to launch Flutter project in a Dart-only workspace'.",
+  "dart.projectSearchDepth": 4
+}

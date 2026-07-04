@@ -1,0 +1,53 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "editor ▶ FAKE (sem backend · dados em memória)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_editor",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/fake.json"]
+    },
+    {
+      "name": "editor ▶ local (dev · sobe backend + API localhost)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_editor",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome",
+      "preLaunchTask": "backend up (bg)",
+      "toolArgs": ["--dart-define-from-file=config/dev.json"]
+    },
+    {
+      "name": "editor ▶ hml (API homologação)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_editor",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/hml.json"]
+    },
+    {
+      "name": "editor ▶ prod (API produção)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_editor",
+      "program": "lib/main_prod.dart",
+      "deviceId": "chrome",
+      "toolArgs": ["--dart-define-from-file=config/prod.json"]
+    },
+    {
+      "name": "backend ▶ local (Nest watch · debug)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "preLaunchTask": "prepara backend (db + schema)",
+      "runtimeExecutable": "${env:HOME}/.local/share/pnpm/pnpm",
+      "runtimeArgs": ["run", "start:dev"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

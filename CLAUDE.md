@@ -7,8 +7,8 @@ Plataforma de **Server-Driven UI** para apps Flutter: o editor web (`apps/driva_
 - `packages/sdui_core` — kernel do spec. **Dart puro** (equatable, fpdart, zard; `package:flutter` proibido). Modelos, schema zard, catálogo de widgets, operações puras de árvore.
 - `packages/sdui_flutter` — renderer. Registry `type → builder`, `SduiView`. Depende só de `sdui_core`.
 - `apps/driva_editor` — o editor. Depende de `sdui_flutter` e `sdui_core`.
-- `backend/` — NestJS (fora do workspace Dart). Contrato REST em `/v1/pages`.
-- `docs/feature-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report).
+- `backend/` — NestJS (fora do workspace Dart). Contrato REST em `/v1/contents`.
+- `docs/NN-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report). **`NN`** é o número de sequência com dois dígitos, na ordem de desenvolvimento (`01`, `02`, …), para o dev enxergar a linha do tempo e saber onde está. Pastas de referência/apoio (`web-prototipe/`, `deploy/`, `specs/`) **não** são numeradas.
 
 ## O gabarito
 
@@ -39,7 +39,7 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 
 ## Método de trabalho (time de IA — cap. 22–23 do livro)
 
-O usuário fala **só com o tech-manager** (`.claude/agents/`). Fluxo: PM faz discovery e mata ambiguidades → `specs.md` → `prd.md` (humano aprova) → tech-lead escreve `plan.md` vivo (1 fase = 1 PR) → especialistas implementam fase a fase (QA valida + CISO revisa + humano revisa o PR) → gate CISO → E2E manual instrumentado (QA prepara, humano testa) → wrap + `final_report.md` → gate CISO → **só então** testes automatizados → DoD (testes verdes + docs vivas em dia). Desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
+O usuário fala **só com o tech-manager** (`.claude/agents/`). Fluxo: PM faz discovery e mata ambiguidades → `specs.md` → `prd.md` (humano aprova) → tech-lead escreve `plan.md` vivo (1 fase = 1 PR) → especialistas implementam fase a fase (QA valida + CISO revisa + humano revisa o PR) → gate CISO → E2E **por script, em rodadas** (QA prepara `e2e.sh` — contrato por API — e `e2e_shots.sh` — **prints headless** de todo o visual: estados por URL (`--screenshot`) e de interação no canvas (drag/digitação/salvar) dirigidos por **CDP** (`e2e_drive.mjs`, sem deps); o humano só **confere** os prints; evidências por rodada em `evidencias/rodada_MM/`; problema → time corrige/ajusta o script → próxima rodada) → wrap + `final_report.md` → gate CISO → **só então** testes automatizados → DoD (testes verdes + docs vivas em dia). Desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
 
 Comandos úteis: `dart pub get` (raiz), `flutter analyze`, `dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`, `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
 

@@ -1,0 +1,49 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "db up (postgres local)",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db down (postgres local)",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "// backend up (bg)": "Sobe Postgres + schema + Nest em watch, numa task de shell (PATH completo, acha o pnpm do nvm). É o preLaunchTask do 'editor ▶ local (dev)': roda em background e o editor só lança quando o Nest sobe (endsPattern). Um F5 levanta tudo.",
+      "label": "backend up (bg)",
+      "type": "shell",
+      "isBackground": true,
+      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate && pnpm start:dev",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": {
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Nest application successfully started"
+        }
+      }
+    },
+    {
+      "label": "prepara backend (db + schema)",
+      "type": "shell",
+      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "e2e (conteúdos)",
+      "type": "shell",
+      "command": "./docs/02-conteudos/e2e.sh",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

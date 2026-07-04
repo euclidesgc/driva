@@ -38,7 +38,7 @@ class CanvasPanel extends StatelessWidget {
         ),
         Expanded(
           child: DragTarget<DragPayload>(
-            // Soltar no canvas (fora da árvore) = adicionar ao fim da página.
+            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
             onAcceptWithDetails: (details) {
               if (details.data case PaletteDragPayload(:final type)) {
                 onAddToRoot(type);
@@ -190,12 +190,12 @@ class _PreviewSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final document = state.document;
     return GestureDetector(
-      // Clique no vazio limpa a seleção (volta às propriedades da página).
+      // Clique no vazio limpa a seleção (volta às propriedades do conteúdo).
       onTap: () => onSelect(null),
       child: document.root.children.isEmpty
           ? const _EmptyPreview()
           : SingleChildScrollView(
-              child: SduiView.page(
+              child: SduiView.content(
                 document,
                 onAction: (action) => ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -234,7 +234,7 @@ class _EmptyPreview extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Página vazia.\nArraste um widget da paleta para começar.',
+              'Conteúdo vazio.\nArraste um widget da paleta para começar.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.inkSecondary),
             ),

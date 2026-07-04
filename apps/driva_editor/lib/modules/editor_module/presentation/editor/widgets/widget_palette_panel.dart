@@ -103,7 +103,7 @@ class _PaletteItem extends StatelessWidget {
       ),
       childWhenDragging: Opacity(opacity: 0.4, child: tile),
       child: Tooltip(
-        message: 'Arraste para a página ou clique para adicionar',
+        message: 'Arraste para o conteúdo ou clique para adicionar',
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: onAdd,

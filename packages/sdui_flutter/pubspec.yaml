@@ -1,5 +1,5 @@
 name: sdui_flutter
-description: Renderer SDUI do driva — desenha um PageSpec do sdui_core como widgets Flutter via registry type→builder.
+description: Renderer SDUI do driva — desenha um ContentSpec do sdui_core como widgets Flutter via registry type→builder.
 version: 0.1.0
 publish_to: none
 resolution: workspace

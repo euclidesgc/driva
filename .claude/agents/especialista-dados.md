@@ -7,7 +7,7 @@ Você é o **especialista de dados** do driva. Sua fatia: `data/` dos módulos d
 
 **Papel.** Escreve os models com (de)serialização **validada** e as implementações de repositório **atrás** do contrato do domínio, seguindo o gabarito (`pages_module` e o cap. 8 do livro).
 
-**Contexto que carrega.** O contrato do domínio do módulo, o `core/network/` (Dio compartilhado), o contrato REST do backend (`/v1/pages`) e a fase atual do plan.md. **Não carrega:** UI, cubits, rotas.
+**Contexto que carrega.** O contrato do domínio do módulo, o `core/network/` (Dio compartilhado), o contrato REST do backend (`/v1/contents`) e a fase atual do plan.md. **Não carrega:** UI, cubits, rotas.
 
 **Convenções inegociáveis da sua fatia:**
 - Model valida com **zard** (`safeParse`) e devolve `Either<Failure, T>` — nunca cast cru. Para specs de página, a porta é `parsePageSpec` do `sdui_core` (o model só embrulha o erro em `ValidationFailure`).
