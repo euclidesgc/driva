@@ -24,6 +24,7 @@
 
 ### Corrigido
 
+- **driva_editor · Inspector**: campos de propriedade não perdem mais o foco ao digitar (antes, ao informar cada caractere — ex.: elevação do card — o campo era recriado e exigia reclicar). Os editores de texto/número/cor/espaçamento passam a usar `TextEditingController` com key de identidade estável (`nodeId_fieldKey`); a ressincronização por mudança externa é semântica nos numéricos, para não quebrar `1.` → `1.0` durante a digitação. _(roadmap item 1 / melhorias item 16)_
 - **driva_editor**: URLs limpas no Flutter Web via path URL strategy (`usePathUrlStrategy`) — `/pages` em vez de `/#/pages`. O SPA fallback do nginx (`try_files … /index.html`) já cobre o refresh direto.
 
 ## [0.1.0] — 2026-07-02 · I1: Módulo Página
