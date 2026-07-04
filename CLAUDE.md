@@ -45,6 +45,16 @@ O usuário fala **só com o tech-manager** (`.claude/agents/`). Fluxo: PM faz di
 
 Comandos úteis: `dart pub get` (raiz), `flutter analyze`, `dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`, `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
 
+## Economia de tokens (obrigatório)
+
+Custo de token é regra, não preferência. rtk (reescreve `git`/`grep`/`ls`/… via hook) e o grafo do CRG (`.code-review-graph/`, auto-atualizado por hook a cada edição) já estão ativos — **use-os**:
+
+- **Grafo antes de grep/read cru.** Para explorar/entender código, consulte primeiro os tools do MCP `code-review-graph` (`query_graph`, `get_review_context`, `detect_changes`, `semantic_search_nodes`, `get_impact_radius`). Só caia em `Grep`/`Read` quando o grafo não cobrir. (Vale para subagentes — inclua isso no prompt deles.)
+- **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
+- **Não reler** arquivo recém-editado (o harness rastreia o estado) nem redescrever o que já foi estabelecido.
+- **Respostas diretas**: sem tabela decorativa nem recapitulação longa; o que muda a decisão do humano, e só.
+- **Sessão nova a cada entrega.** Ao fechar um item do roadmap (mesmo checkpoint da faxina de branches + marcação `[x]`), **recomende ao humano iniciar uma sessão nova** para continuar — o `docs/roadmap.md` e as docs vivas dão a continuidade, e o histórico acumulado (caro por reenvio) zera. Não iniciar sessão nova no meio de uma tarefa.
+
 ## Git, branches e releases (GitFlow)
 
 Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacional:
