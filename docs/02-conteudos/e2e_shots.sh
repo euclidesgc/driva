@@ -127,6 +127,27 @@ else
   echo "${d}(node ausente — pulei os estados de interação; capture-os à mão pelo test_plan.md)${x}"
 fi
 
+# ---------- relatório em markdown (imagem + o que cada uma testa) ----------
+{
+  echo "# Rodada $ROUND — E2E visual (Conteúdos)"
+  echo
+  echo "> Prints gerados pelo QA (headless). O dev só confere. Backend validado à parte pelo \`e2e.sh\`."
+  echo
+  for row in \
+    "01_lista_vazia|Lista vazia|Rota /contents sem #; empty state com ícone, textos e CTA (ContentListEmpty)." \
+    "02_lista_com_conteudos|Lista com conteúdos|Cards: slug em destaque + ID de suporte (CUID2); ContentListLoaded." \
+    "03_editor_carregado|Editor carregado|/contents/:id/edit; paleta (ícones), canvas com device, inspector." \
+    "04_notfound|NotFound tratado|/contents/nao-existe/edit → tela de erro amigável, sem crash." \
+    "05_slug_ao_vivo|Slug derivado ao vivo|Digitar o Nome deriva o slug em tempo real (sanitização + validação)." \
+    "06_colisao_home2|Colisão de slug → home-2|Slug repetido auto-resolve para home-2 (409 + suggestedSlug)." \
+    "07_drag_preview|Drag-drop → preview|Arrastar Text da paleta → preview renderiza + inspector abre." \
+    "08_salvo|Salvar → Salvo|Após Salvar, indicador muda para \"Salvo\"."; do
+    IFS='|' read -r file title desc <<< "$row"
+    [ -s "$OUT/$file.png" ] || continue
+    echo "### $title"; echo "$desc"; echo; echo "![$title]($file.png)"; echo
+  done
+} > "$OUT/README.md"
+
 echo ""
-echo "${g}${b}Prints salvos em $OUT${x}"
-echo "${d}Confira as imagens — 01-04 por URL, 05-08 de interação. Nenhum clique manual necessário.${x}"
+echo "${g}${b}Prints + README.md salvos em $OUT${x}"
+echo "${d}Confira as imagens (o README.md descreve cada uma). Nenhum clique manual necessário.${x}"

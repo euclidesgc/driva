@@ -39,7 +39,7 @@ docs/NN-<nome>/evidencias/rodada_01/   ← 1ª rodada
 docs/NN-<nome>/evidencias/rodada_02/   ← 2ª rodada (após correções), etc.
 ```
 
-Em cada `rodada_MM/` ficam: o **snapshot do script** (`e2e.sh`/`e2e_shots.sh`), os **logs** e os **prints** (gerados pelo QA via harness headless; só os de interação vêm do dev). O ciclo:
+Em cada `rodada_MM/` ficam: o **snapshot do script** (`e2e.sh`/`e2e_shots.sh`), os **prints** (gerados pelo QA via harness headless) e um **`README.md`** que o `e2e_shots.sh` emite automaticamente — cada imagem com a descrição do que testa (é assim que o dev confere: abre o README e olha). O ciclo:
 
 1. O dev roda `e2e.sh` + `e2e_shots.sh` (os prints por URL saem prontos) e **confere** as imagens; só os poucos estados de interação ele fotografa à mão. Tudo salvo na `rodada_MM/`.
 2. Se **tudo passou** → a feature segue para o wrap (limpeza + testes automatizados + DoD). Fim das rodadas.
