@@ -62,7 +62,10 @@ void main() {
         find.text('Nenhum conteúdo ainda. Crie o primeiro.'),
         findsOneWidget,
       );
-      expect(find.text('Monte-o arrastando widgets no editor.'), findsOneWidget);
+      expect(
+        find.text('Monte-o arrastando widgets no editor.'),
+        findsOneWidget,
+      );
       // CTA na barra + CTA no corpo vazio.
       expect(find.text('Novo conteúdo'), findsNWidgets(2));
     });
@@ -98,7 +101,9 @@ void main() {
     testWidgets('Loaded renderiza o card com nome, slug e descrição', (
       tester,
     ) async {
-      await tester.pumpWidget(bootstrap(ContentListLoaded(contents: [content])));
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
 
       expect(find.text('Home'), findsWidgets);
       expect(find.text('home'), findsOneWidget);
@@ -113,7 +118,9 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
 
-      await tester.pumpWidget(bootstrap(ContentListLoaded(contents: [content])));
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
 
       expect(
         find.bySemanticsLabel(RegExp('Slug do conteúdo: home')),
@@ -128,7 +135,9 @@ void main() {
     });
 
     testWidgets('a ação de excluir tem tooltip descritivo', (tester) async {
-      await tester.pumpWidget(bootstrap(ContentListLoaded(contents: [content])));
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
 
       expect(find.byTooltip('Excluir conteúdo'), findsOneWidget);
     });
@@ -147,10 +156,7 @@ void main() {
       await openDialog(tester);
 
       // Campo 0 = Nome, campo 1 = Slug, campo 2 = Descrição.
-      await tester.enterText(
-        find.byType(TextFormField).at(0),
-        'Página Início',
-      );
+      await tester.enterText(find.byType(TextFormField).at(0), 'Página Início');
       await tester.pump();
 
       expect(find.text('pagina-inicio'), findsOneWidget);
@@ -159,7 +165,9 @@ void main() {
     testWidgets('derivação evita colisão com slug existente (home → home-2)', (
       tester,
     ) async {
-      await tester.pumpWidget(bootstrap(ContentListLoaded(contents: [content])));
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
       await openDialog(tester);
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Home');
@@ -180,10 +188,7 @@ void main() {
       await tester.tap(find.text('Criar'));
       await tester.pump();
 
-      expect(
-        find.textContaining('Use letras minúsculas'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Use letras minúsculas'), findsOneWidget);
       // O diálogo continua aberto: a validação impediu o submit.
       expect(find.text('Novo conteúdo'), findsWidgets);
       verifyNever(

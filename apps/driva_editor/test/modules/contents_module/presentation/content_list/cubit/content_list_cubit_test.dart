@@ -95,11 +95,12 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'conflito: não recarrega e devolve ConflictFailure com sugestão',
       build: build,
-      setUp: () => when(
-        () => createContent(name: 'Home', slug: 'home', description: null),
-      ).thenAnswer(
-        (_) async => const Left(ConflictFailure(suggestedSlug: 'home-2')),
-      ),
+      setUp: () =>
+          when(
+            () => createContent(name: 'Home', slug: 'home', description: null),
+          ).thenAnswer(
+            (_) async => const Left(ConflictFailure(suggestedSlug: 'home-2')),
+          ),
       act: (cubit) => cubit.create(name: 'Home', slug: 'home'),
       expect: () => <ContentListState>[],
       verify: (_) => verifyNever(() => getContents()),

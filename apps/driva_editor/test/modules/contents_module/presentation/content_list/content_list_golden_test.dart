@@ -26,7 +26,10 @@ void main() {
   setUpAll(() async {
     await loadAppFonts();
     final previous = goldenFileComparator as LocalFileComparator;
-    goldenFileComparator = _TolerantComparator(previous.basedir, threshold: 0.05);
+    goldenFileComparator = _TolerantComparator(
+      previous.basedir,
+      threshold: 0.05,
+    );
   });
 
   final content = ContentSummary(

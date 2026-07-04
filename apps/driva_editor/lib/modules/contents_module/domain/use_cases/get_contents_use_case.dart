@@ -12,8 +12,8 @@ class GetContentsUseCase {
     final result = await repository.getContents();
     // Regra da listagem: mais recente primeiro. Roda só no caminho de sucesso.
     return result.map(
-      (contents) => contents.toList()
-        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      (contents) =>
+          contents.toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
     );
   }
 }

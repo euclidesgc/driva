@@ -38,10 +38,8 @@ void main() {
     saveDraft = MockSaveDraftUseCase();
   });
 
-  EditorCubit build() => EditorCubit(
-    loadContentUseCase: loadContent,
-    saveDraftUseCase: saveDraft,
-  );
+  EditorCubit build() =>
+      EditorCubit(loadContentUseCase: loadContent, saveDraftUseCase: saveDraft);
 
   EditorCubit buildLoaded() {
     final cubit = build();
@@ -197,10 +195,7 @@ void main() {
       act: (cubit) => cubit.save(),
       expect: () => [
         const EditorReady(document: content, saveStatus: SaveStatus.saving),
-        const EditorReady(
-          document: content,
-          saveStatus: SaveStatus.saveFailed,
-        ),
+        const EditorReady(document: content, saveStatus: SaveStatus.saveFailed),
       ],
     );
   });

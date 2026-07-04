@@ -54,12 +54,5 @@ class ContentSpec extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-    specVersion,
-    id,
-    name,
-    slug,
-    description,
-    root,
-  ];
+  List<Object?> get props => [specVersion, id, name, slug, description, root];
 }

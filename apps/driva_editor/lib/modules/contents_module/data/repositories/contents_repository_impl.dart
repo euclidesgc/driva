@@ -65,7 +65,9 @@ class ContentsRepositoryImpl implements ContentsRepository {
     DioExceptionType.connectionError => const NetworkFailure(),
     DioExceptionType.badResponse => switch (e.response?.statusCode) {
       404 => const NotFoundFailure(),
-      409 => ConflictFailure(suggestedSlug: _suggestedSlugFrom(e.response?.data)),
+      409 => ConflictFailure(
+        suggestedSlug: _suggestedSlugFrom(e.response?.data),
+      ),
       400 => const ValidationFailure(),
       _ => const UnexpectedFailure(),
     },

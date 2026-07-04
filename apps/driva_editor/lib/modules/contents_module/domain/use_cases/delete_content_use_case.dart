@@ -9,6 +9,5 @@ class DeleteContentUseCase {
   final ContentsRepository repository;
   const DeleteContentUseCase({required this.repository});
 
-  Future<Either<Failure, Unit>> call(String id) =>
-      repository.deleteContent(id);
+  Future<Either<Failure, Unit>> call(String id) => repository.deleteContent(id);
 }

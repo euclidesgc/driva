@@ -137,7 +137,8 @@ class ContentListPage extends StatelessWidget {
           context,
         ).showSnackBar(SnackBar(content: Text(_messageFor(failure))));
       },
-      (content) => context.goNamed('editor', pathParameters: {'id': content.id}),
+      (content) =>
+          context.goNamed('editor', pathParameters: {'id': content.id}),
     );
   }
 }
@@ -155,7 +156,9 @@ class _ContentsGrid extends StatelessWidget {
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       childAspectRatio: 1.5,
-      children: [for (final content in contents) _ContentCard(content: content)],
+      children: [
+        for (final content in contents) _ContentCard(content: content),
+      ],
     );
   }
 }
