@@ -41,7 +41,7 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 flutter analyze                       # workspace inteiro
 dart test packages/sdui_core          # kernel (30 testes)
 flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (20 testes)
+flutter test apps/driva_editor        # editor (47 testes: cubits, slug, widget por estado, golden)
 ```
 
 ## Arquitetura (resumo)

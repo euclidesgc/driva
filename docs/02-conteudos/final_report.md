@@ -2,7 +2,7 @@
 
 > Relatório de entrega. Dono: QA. Atualizado em 2026-07-03.
 
-## Status: implementação + E2E completos · bateria automatizada em finalização · migração (Fase 5) é OPS do humano no merge para `develop`
+## Status: implementação + E2E + bateria automatizada completos (verdes) · migração (Fase 5) é OPS do humano no merge para `develop`
 
 As Fases 1–4 e 6 (E2E) estão implementadas e verificadas. A Fase 5 (migração
 destrutiva `pages`→`contents`) **roda sozinha no deploy** e é executada pelo humano
@@ -31,9 +31,10 @@ por projeto** (`@@unique([projectId, slug])`), derivada do Nome ao vivo e valida
 | `flutter analyze` (workspace) | ✅ **No issues found** |
 | `dart test packages/sdui_core` | ✅ 30 (schema/`parseContentSpec`, catálogo 14 primitivos, `tree_ops`) |
 | `flutter test packages/sdui_flutter` | ✅ 7 (contrato catálogo↔registry, fixture de conteúdo ponta a ponta, props→estilo, ações, `nodeWrapper`, fallback) |
-| `flutter test apps/driva_editor` | ✅ 20 (`ContentListCubit`: Loaded/Empty/Error, create→conteúdo, **`ConflictFailure`+sugestão**, delete; `EditorCubit`: load/mutações/save; `SaveDraftUseCase`) |
-| **Bateria da Fase 6 (nova)** | ⏳ em finalização (QA): `slug.dart` (slugify), widget tests por estado do sealed + a11y, golden(s) do card e empty state |
+| `flutter test apps/driva_editor` | ✅ **47** (era 20; **+27 na Fase 6**) |
+| ↳ Bateria da Fase 6 (nova) | ✅ `slug_test` (15: `isValid`/`slugify`/`suggestFree` + bordas); `content_list_page_test` (10: widget por estado do sealed — Loading/Empty/Error+retry/Loaded — com **a11y** Semantics/tooltip, + diálogo "Novo conteúdo": slug ao vivo, dedupe `home→home-2`, validação no cliente); `content_list_golden_test` (2: card + empty, fontes reais, comparador tolerante ao ruído subpixel) |
 | Contrato do backend (`e2e.sh`, Postgres efêmero) | ✅ **17/17** — POST 201 + `id` CUID2 + slug ecoado; envelope `kind:"content"`/`slug`/sem `screenTarget`; slug repetido→**409** com `suggestedSlug=home-2`; mesmo slug em outro projeto coexiste; slug inválido→400; PUT/GET/DELETE + 404 pós-delete |
+| **Total Flutter/Dart** | ✅ **84 testes** verdes (30 + 7 + 47), `flutter analyze` sem issues |
 
 ## E2E — por rodadas, com prints headless (novo padrão)
 
@@ -73,7 +74,6 @@ intermediários). Sem mudança de escopo/critérios; só topologia de merge.
 
 ## Pendente para fechar a feature
 
-- **Bateria automatizada (Fase 6)** — em finalização pelo QA; DoD exige verde.
 - **Fase 5 — migração** — roteiro OPS do humano (`test_plan.md`): backup → `resolve
   --applied 0_baseline` por ambiente → merge dispara `migrate deploy` → validação em
   hml antes de prod.

@@ -18,5 +18,8 @@ backend/.env
 # As cópias salvas como evidência em evidencias/rodada_MM/ NÃO são ignoradas.
 docs/*/.e2e-backend.*
 
+# Artefatos de diff de golden test (o Flutter gera em falha)
+**/test/**/failures/
+
 # Sistema
 .DS_Store
