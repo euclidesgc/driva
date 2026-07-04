@@ -73,7 +73,8 @@ class H(http.server.SimpleHTTPRequestHandler):
 http.server.HTTPServer(('127.0.0.1', port), H).serve_forever()
 PY
 python3 "$SPA" "$BUILD" "$PORT" & echo $! > "$SRVPID"
-trap 'kill "$(cat "$SRVPID" 2>/dev/null)" 2>/dev/null || true; rm -f "$SRVPID" "$SPA"' EXIT
+CDPPID="$HERE/.e2e-shots-chrome.pid"
+trap 'for p in "$SRVPID" "$CDPPID"; do kill "$(cat "$p" 2>/dev/null)" 2>/dev/null || true; rm -f "$p"; done; rm -f "$SPA"' EXIT
 i=0; until curl -sf -o /dev/null "$HOST/"; do i=$((i+1)); [ "$i" -ge 20 ] && { echo "${r}servidor estático não subiu${x}"; exit 1; }; sleep 0.3; done
 
 shot() { # nome url
@@ -109,6 +110,23 @@ shot 02_lista_com_conteudos "$HOST/contents"
 # 4) rota inexistente → NotFound tratado
 shot 04_notfound "$HOST/contents/nao-existe/edit"
 
+# ---------- estados de INTERAÇÃO (dirigidos por CDP; precisa de node) ----------
+if command -v node >/dev/null; then
+  echo ""
+  echo "${b}Interações (CDP headless): slug ao vivo, colisão→home-2, drag-drop→salvar${x}"
+  CDP_PORT="${SHOTS_CDP_PORT:-9223}"
+  "$CHROME" --headless=new --no-sandbox --disable-gpu --use-gl=swiftshader \
+    --hide-scrollbars --force-device-scale-factor=1 --window-size=1366,900 \
+    --remote-debugging-port="$CDP_PORT" --user-data-dir="$(mktemp -d)" about:blank \
+    >/dev/null 2>&1 & echo $! > "$CDPPID"
+  i=0; until curl -sf -o /dev/null "http://localhost:$CDP_PORT/json/version"; do i=$((i+1)); [ "$i" -ge 30 ] && { echo "${r}Chrome CDP não subiu${x}"; break; }; sleep 0.3; done
+  WEB_BASE="$HOST" API_BASE="$BASE" PROJECT="$PROJECT" OUT="$OUT" CDP_PORT="$CDP_PORT" \
+    node "$HERE/e2e_drive.mjs" || echo "${r}driver de interação falhou (veja acima)${x}"
+  kill "$(cat "$CDPPID" 2>/dev/null)" 2>/dev/null || true; rm -f "$CDPPID"
+else
+  echo "${d}(node ausente — pulei os estados de interação; capture-os à mão pelo test_plan.md)${x}"
+fi
+
 echo ""
 echo "${g}${b}Prints salvos em $OUT${x}"
-echo "${d}Confira as imagens. Estados de interação (slug ao vivo, drag-drop, diálogo home-2) seguem no checklist do test_plan.md.${x}"
+echo "${d}Confira as imagens — 01-04 por URL, 05-08 de interação. Nenhum clique manual necessário.${x}"

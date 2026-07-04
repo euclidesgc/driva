@@ -38,21 +38,35 @@ destrutiva de Prisma) e valida, com `PASS/FAIL` explícito:
 (`.e2e-backend.log`) e o container/volume `driva-postgres` — todos encerrados por
 `e2e.sh down`. Nenhum arquivo de código é tocado.
 
-### Parte visual automatizada — `docs/02-conteudos/e2e_shots.sh` (o QA gera os prints)
+### Parte visual automatizada — `docs/02-conteudos/e2e_shots.sh` (o QA gera TODOS os prints)
 
-Com a stack no ar (após o `e2e.sh`), o QA captura os estados **alcançáveis por URL**
-por screenshot **headless** — o dev humano só **confere** as imagens, não opera o
-browser:
+Com a stack no ar (após o `e2e.sh`), o QA captura **todo o visual** por screenshot
+**headless** — o dev humano só **confere** as imagens, nunca opera o browser:
 
 ```bash
 docs/02-conteudos/e2e.sh            # sobe a stack (Postgres efêmero + backend)
-docs/02-conteudos/e2e_shots.sh 03   # gera evidencias/rodada_03/{01_lista_vazia,02_lista_com_conteudos,03_editor_carregado,04_notfound}.png
+docs/02-conteudos/e2e_shots.sh 04   # gera os 8 prints em evidencias/rodada_04/
 docs/02-conteudos/e2e.sh down
 ```
 
-O harness faz build web (dev), semeia o projeto `default` via API, serve o `build/web`
-(com SPA fallback p/ deep links do path strategy) e fotografa cada rota. Cobre os
-pontos 1, 3, 5 (editor carregado) e 6 do checklist abaixo.
+Gera, em `evidencias/rodada_MM/`:
+
+| # | print | estado |
+|---|---|---|
+| 01 | `01_lista_vazia` | lista vazia (`/contents`, sem `#`) |
+| 02 | `02_lista_com_conteudos` | cards com slug em destaque + "ID de suporte" |
+| 03 | `03_editor_carregado` | editor de um conteúdo real (paleta, inspector) |
+| 04 | `04_notfound` | `/contents/nao-existe/edit` → NotFound tratado |
+| 05 | `05_slug_ao_vivo` | diálogo "Novo conteúdo": Nome → **slug derivado ao vivo** |
+| 06 | `06_colisao_home2` | slug repetido → resolve p/ **`home-2`** (ver achado abaixo) |
+| 07 | `07_drag_preview` | **drag-drop** da paleta → preview renderiza |
+| 08 | `08_salvo` | após **Salvar** → estado "Salvo" |
+
+Como funciona: **build web (dev)** → semeia `default` via API → serve o `build/web`
+(SPA fallback p/ deep links) → **01-04** por URL (`--screenshot`) e **05-08** dirigindo
+o canvas por **CDP** (`e2e_drive.mjs`, sem dependências: WebSocket/fetch nativos do
+Node). As coordenadas de clique/drag são acopladas ao layout **1366×900** — se a UI se
+mover, ajuste em `e2e_drive.mjs`.
 
 > **Ícones como "tofu" (□) NÃO são bug de código nem de build.** O `build/web` emite
 > o `MaterialIcons-Regular.otf` + FontManifest corretos e os ícones renderizam
@@ -67,22 +81,24 @@ pontos 1, 3, 5 (editor carregado) e 6 do checklist abaixo.
 > Não use `--user-data-dir=<pasta fixa>`: a pasta **persiste** e reacumula o cache —
 > não é um perfil novo. Para conferência, prefira os prints do `e2e_shots.sh`.
 
-### Parte manual — só os estados de INTERAÇÃO (o que nem a API nem a URL enxergam)
+### Achado da rodada — colisão de slug (comportamento ≠ spec)
 
-O que exige clique/digitação dentro do canvas (não captável por URL — seria preciso
-`flutter_driver`, follow-up). Salve prints em `docs/02-conteudos/evidencias/rodada_MM/`:
+Ao submeter um `Nome` cujo slug já existe no projeto, o esperado no plano era
+**"reabrir o diálogo com `home-2` e a msg de slug em uso"**. O **observado** (print
+`06_colisao_home2`, confirmado por captura a 500ms/1000ms) é outro: o app **fecha o
+diálogo, cria automaticamente com o slug sugerido (`home-2`) e navega para o editor**
+— sem aviso nem confirmação. O backend devolve `409 + suggestedSlug` (contrato ok); o
+**cliente auto-resolve** para o sugerido. **Decisão do dev pendente:** é o UX desejado
+(atualizar o plano) ou é bug (o diálogo deveria avisar/confirmar antes)?
 
-1. Em "Novo conteúdo", digitar o **Nome deriva o Slug ao vivo** no campo. → *print*
-2. Criar dois `Home`: o 2º **reabre o diálogo com `home-2`** e a msg de slug em uso. → *print*
-3. Arrastar um widget da paleta → **preview renderiza**; **Ctrl+S** → "Salvo". → *print*
+### Parte manual — nada além de conferir
 
-> Os estados por URL (lista vazia, lista com cards + "ID de suporte", editor
-> carregado, NotFound, `/contents` sem `#`) já saem prontos do `e2e_shots.sh` —
-> não precisa refazer à mão.
+Todos os 8 estados saem prontos do `e2e_shots.sh`. Ao dev sobra **conferir as imagens**
+e o console (sem erro não-tratado). Só volte ao modo manual se mudar a UI a ponto de
+as coordenadas do `e2e_drive.mjs` saírem do lugar (aí ajuste-as e regenere).
 
-**Critério de passagem:** `e2e.sh` verde (contrato) **+** os prints do `e2e_shots.sh`
-conferidos **+** os 3 pontos de interação acima sem erro não-tratado no console.
-Ao terminar: `e2e.sh down`.
+**Critério de passagem:** `e2e.sh` verde (contrato) **+** os 8 prints do `e2e_shots.sh`
+conferidos **+** ruling do dev sobre o achado da colisão. Ao terminar: `e2e.sh down`.
 
 ---
 

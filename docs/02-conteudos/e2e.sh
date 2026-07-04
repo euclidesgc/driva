@@ -79,7 +79,12 @@ echo "${b}E2E Conteúdos — subindo a stack local (Postgres de teste efêmero)$
 [ -f "$PIDFILE" ] && { kill "$(cat "$PIDFILE")" 2>/dev/null || true; rm -f "$PIDFILE"; sleep 1; }
 
 # ---------- Postgres: recriado LIMPO a cada run (base vazia → db push sem perda) ----------
-( cd "$ROOT/backend" && { docker compose down -v >/dev/null 2>&1 || true; docker compose up -d >/dev/null; } )
+( cd "$ROOT/backend" && {
+    if ! docker compose down -v >/dev/null 2>&1; then
+      echo "  ${r}aviso: 'docker compose down -v' falhou — a base pode NÃO estar limpa (verifique docker/volumes)${x}"
+    fi
+    docker compose up -d >/dev/null
+  } )
 i=0; until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do
   i=$((i+1)); [ "$i" -ge 30 ] && { echo "${r}Postgres não respondeu${x}"; exit 1; }; sleep 1
 done
