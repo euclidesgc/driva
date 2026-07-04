@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
+
 ### Alterado
 
 - **Infra · DNS próprio do projeto**: os domínios migraram de `*.bmjtech.duckdns.org` para o DuckDNS próprio `*.driva.duckdns.org` (wildcard, IP `64.181.165.16`). Produção = `driva.duckdns.org` (front) / `api.driva.duckdns.org` (API); homologação = `hml.driva.duckdns.org` (front) / `api-hml.driva.duckdns.org` (API). Atualiza `config/{hml,prod}.json` (`API_BASE_URL` compile-time), `docs/deploy/coolify.md`, `backend/.env.example`, `CLAUDE.md` e as skills de GitFlow. O `bmjtech.duckdns.org` fica só como host de infra compartilhada.
