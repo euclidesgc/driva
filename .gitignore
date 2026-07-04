@@ -14,9 +14,10 @@ node_modules/
 backend/dist/
 backend/.env
 
-# Artefatos transitórios do E2E na raiz da feature (o e2e.sh cria; `down` remove).
-# As cópias salvas como evidência em evidencias/rodada_MM/ NÃO são ignoradas.
-docs/*/.e2e-backend.*
+# Artefatos transitórios do E2E (o e2e.sh cria; `down` remove). São sobrescritos a
+# cada run — não são evidência (as evidências são os PNGs + o snapshot do e2e.sh).
+# double-star cobre a raiz da feature E as subpastas evidencias/rodada_MM/.
+docs/**/.e2e-backend.*
 
 # Artefatos de diff de golden test (o Flutter gera em falha)
 **/test/**/failures/
