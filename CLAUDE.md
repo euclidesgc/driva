@@ -69,5 +69,5 @@ Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacio
 
 - **CI é a cancela** (`.github/workflows/ci.yml`): em PR/push para `develop`/`main` roda `dart format` + `flutter analyze` + os testes (e `build` do backend). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
 - **Deploy = auto-deploy por branch** no **Coolify** (GitHub App): merge em **`develop` → homologação**, merge em **`main` → produção**. Detalhes e checklist do painel em **`docs/deploy/coolify.md`**.
-- Dois deployáveis por ambiente (frontend Flutter Web servido por nginx + backend Nest) + Postgres gerenciado. Domínios: `driva[-hml]` (front) e `driva-api[-hml]` (API) sob `bmjtech.duckdns.org` (prod sem sufixo).
+- Dois deployáveis por ambiente (frontend Flutter Web servido por nginx + backend Nest) + Postgres gerenciado. Domínios sob `driva.duckdns.org` (DNS próprio do projeto; wildcard): prod = `driva.duckdns.org` (front) / `api.driva.duckdns.org` (API); hml = `hml.driva.duckdns.org` (front) / `api-hml.driva.duckdns.org` (API). O `bmjtech.duckdns.org` é só o host principal/infra compartilhada.
 - **Segredo/URL/origem nunca no repo** — só como env/Build Variable no Coolify. A URL da API do front é **compile-time** (ARG `API_BASE_URL` no Dockerfile); o CORS do backend vem de `CORS_ORIGINS`.

@@ -14,7 +14,7 @@ Passos:
 4. Atualize o **CHANGELOG** na seção `Unreleased` no mesmo PR (Keep a Changelog).
 5. Antes de abrir o PR, traga a base: `git fetch origin && git merge --no-edit origin/develop` (ou rebase), resolva conflitos, rode a cancela local.
 6. Abra o PR para `develop`: `gh pr create --base develop --fill`. A CI (`.github/workflows/ci.yml`) roda no PR.
-7. Com a CI verde e a revisão do humano, faz-se o merge. O Coolify publica automaticamente em **homologação** (`develop` → `driva-hml.bmjtech.duckdns.org`).
+7. Com a CI verde e a revisão do humano, faz-se o merge. O Coolify publica automaticamente em **homologação** (`develop` → `hml.driva.duckdns.org`).
 8. Valide na URL de hml; delete o branch de suporte após o merge.
 
 Regras inegociáveis (o `docs/GITFLOW.md`, o CLAUDE.md e a CI cobram):
