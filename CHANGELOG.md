@@ -18,6 +18,10 @@
 
 - **driva_editor**: wordmark "Driva Builder" na home é um link para a própria home, com tipografia própria (fonte **Space Grotesk** empacotada, pesos 500/700) e "Driva" no laranja da marca.
 
+### Alterado
+
+- **driva_editor · editor (performance)**: o construtor deixa de reconstruir o workspace inteiro a cada tecla/tick de drag. Um único `BlocBuilder` no topo virou **escopo por painel** (`BlocSelector`/`context.select`): a paleta é construída uma vez (nunca rebuilda), a árvore só quando a **estrutura** ou a seleção mudam (props não a afetam), o inspector só quando o nó inspecionado muda, e a top bar só no nome/slug/status. O preview do canvas é isolado por `RepaintBoundary` e a re-renderização do documento (o custo caro: o renderer real) passa a ser **throttled** (~120 ms, com render final garantido) — mantendo o campo do Inspector e o estado instantâneos. _(roadmap item 3b)_
+
 ### Corrigido
 
 - **driva_editor**: URLs limpas no Flutter Web via path URL strategy (`usePathUrlStrategy`) — `/pages` em vez de `/#/pages`. O SPA fallback do nginx (`try_files … /index.html`) já cobre o refresh direto.
