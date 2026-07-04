@@ -68,18 +68,17 @@ o canvas por **CDP** (`e2e_drive.mjs`, sem dependências: WebSocket/fetch nativo
 Node). As coordenadas de clique/drag são acopladas ao layout **1366×900** — se a UI se
 mover, ajuste em `e2e_drive.mjs`.
 
-> **Ícones como "tofu" (□) NÃO são bug de código nem de build.** O `build/web` emite
-> o `MaterialIcons-Regular.otf` + FontManifest corretos e os ícones renderizam
-> (provado pelos prints headless acima e no `e2e_shots.sh`). Tofu aparece só no
-> `flutter run` (debug) por **estado sujo do browser** (cache/SW) — e **não** cede a
-> `flutter clean` nem a hard-refresh. Fixes, em ordem:
-> 1. **Incognito** (sem cache/SW, sempre novo, nada a limpar):
->    `flutter run -d chrome --web-browser-flag=--incognito --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`
-> 2. Se ainda houver □ no incognito, é o render de OTF no CanvasKit **debug**: rode
->    o visual em **profile** (`flutter run --profile …`, caminho de render do release).
->
-> Não use `--user-data-dir=<pasta fixa>`: a pasta **persiste** e reacumula o cache —
-> não é um perfil novo. Para conferência, prefira os prints do `e2e_shots.sh`.
+> **Ícones "tofu" (□) — CAUSA RAIZ (resolvida em `web/flutter_bootstrap.js`).**
+> No Chrome/Chromium com GPU, o Flutter auto-seleciona a variante **`chromium`** do
+> CanvasKit (`flutter.js`: `s = hasChromiumBreakIterators && hasImageCodecs && variant!=="full"`
+> → carrega `/chromium/canvaskit`). Essa variante usa APIs experimentais e, em alguns
+> drivers, **falha ao registrar a fonte de ícones OTF** (`MaterialIcons`, que é OTF; as
+> fontes de texto são TTF e passam). Os ícones viram "caracteres sem fonte" e o console
+> loga *"Could not find a set of Noto fonts to display all missing characters"*.
+> **Fix aplicado:** `web/flutter_bootstrap.js` força `canvasKitVariant: "full"` (variante
+> portável) — pega em `flutter run` (debug) e no build. Não era cache/SW nem bug de
+> código; era a seleção de variante do CanvasKit. Se reaparecer, confira se o
+> `flutter_bootstrap.js` custom ainda existe e traz `canvasKitVariant: "full"`.
 
 ### Colisão de slug — comportamento (aceito pelo dev em 2026-07-03)
 
