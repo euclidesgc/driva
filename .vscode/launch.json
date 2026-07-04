@@ -11,12 +11,13 @@
       "toolArgs": ["--dart-define-from-file=config/fake.json"]
     },
     {
-      "name": "editor ▶ local (dev · API localhost)",
+      "name": "editor ▶ local (dev · sobe backend + API localhost)",
       "type": "dart",
       "request": "launch",
       "cwd": "${workspaceFolder}/apps/driva_editor",
       "program": "lib/main_dev.dart",
       "deviceId": "chrome",
+      "preLaunchTask": "backend up (bg)",
       "toolArgs": ["--dart-define-from-file=config/dev.json"]
     },
     {
@@ -38,25 +39,15 @@
       "toolArgs": ["--dart-define-from-file=config/prod.json"]
     },
     {
-      "name": "backend ▶ local (Nest watch)",
+      "name": "backend ▶ local (Nest watch · debug)",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/backend",
       "preLaunchTask": "prepara backend (db + schema)",
-      "runtimeExecutable": "pnpm",
+      "runtimeExecutable": "${env:HOME}/.local/share/pnpm/pnpm",
       "runtimeArgs": ["run", "start:dev"],
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"]
-    }
-  ],
-  "compounds": [
-    {
-      "name": "stack ▶ full local (backend + editor)",
-      "configurations": [
-        "backend ▶ local (Nest watch)",
-        "editor ▶ local (dev · API localhost)"
-      ],
-      "stopAll": true
     }
   ]
 }

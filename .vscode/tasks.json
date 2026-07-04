@@ -16,7 +16,22 @@
       "problemMatcher": []
     },
     {
-      "// prepara backend": "Sobe o Postgres, espera ficar pronto, gera o client e sincroniza o schema. É o preLaunchTask do backend — deixa o F5 do compound levantar tudo de uma vez.",
+      "// backend up (bg)": "Sobe Postgres + schema + Nest em watch, numa task de shell (PATH completo, acha o pnpm do nvm). É o preLaunchTask do 'editor ▶ local (dev)': roda em background e o editor só lança quando o Nest sobe (endsPattern). Um F5 levanta tudo.",
+      "label": "backend up (bg)",
+      "type": "shell",
+      "isBackground": true,
+      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate && pnpm start:dev",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": {
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Nest application successfully started"
+        }
+      }
+    },
+    {
       "label": "prepara backend (db + schema)",
       "type": "shell",
       "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate",
