@@ -5,7 +5,7 @@ import '../../../../../core/theme/app_theme.dart';
 import 'drag_payload.dart';
 import 'palette_icons.dart';
 
-/// Árvore de widgets da página: seleção, remoção e drag-and-drop
+/// Árvore de widgets do conteúdo: seleção, remoção e drag-and-drop
 /// (reordenar/aninhar nós, soltar itens da paleta).
 class WidgetTreePanel extends StatelessWidget {
   const WidgetTreePanel({

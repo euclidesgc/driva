@@ -38,7 +38,7 @@ class CanvasPanel extends StatelessWidget {
         ),
         Expanded(
           child: DragTarget<DragPayload>(
-            // Soltar no canvas (fora da árvore) = adicionar ao fim da página.
+            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
             onAcceptWithDetails: (details) {
               if (details.data case PaletteDragPayload(:final type)) {
                 onAddToRoot(type);
