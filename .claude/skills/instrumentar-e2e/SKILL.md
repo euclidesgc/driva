@@ -24,7 +24,7 @@ Se a stack real **não** está pronta (ex.: backend ausente), aí sim instrument
 
 No `docs/NN-<nome>/test_plan.md`, além de documentar o script, escreva o **checklist curto** do que só o humano confirma na tela (o que a API não vê): navegação/URL, derivação ao vivo em campo, render de preview, estados visuais, mensagens. Cada item: o que fazer, o que observar, qual print salvar. Nada de "teste a feature" — checklist de voo.
 
-> **Gotcha Flutter Web:** mudança de fonte/ícone no `pubspec` **exige relaunch completo** (não hot-restart) e, no browser, hard-refresh (Ctrl+Shift+R) — senão o manifesto de fontes fica stale e os ícones viram "tofu" (□). Para o visual, sempre lance o editor **do zero** (na dúvida, `flutter clean` antes). O checklist deve dizer isso.
+> **Gotcha Flutter Web — ícones "tofu" (□):** quase sempre é **cache/service worker do Chrome no `localhost`**, não bug de código nem de build. O `build/web` emite `MaterialIcons-Regular.otf` + FontManifest corretos (confirme por screenshot headless do build servido antes de suspeitar do código). O SW **sobrevive** a `flutter clean` e a hard-refresh (Ctrl+Shift+R) — não confie neles. A correção **determinística** é lançar com um **perfil de Chrome descartável**: `flutter run -d chrome --web-browser-flag=--user-data-dir=/tmp/<feature>-e2e-chrome …`. O checklist visual deve trazer essa flag, não o hard-refresh.
 
 ## 4. Rodadas e evidências
 

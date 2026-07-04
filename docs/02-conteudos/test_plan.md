@@ -43,15 +43,24 @@ destrutiva de Prisma) e valida, com `PASS/FAIL` explícito:
 Com a stack no ar (após o script), rode o editor e confirme na tela (projeto
 `default`, lista começa vazia). Salve prints em `docs/02-conteudos/evidencias/rodada_MM/`.
 
-> **Lance do zero** (não reaproveite um `flutter run` antigo) e dê **hard-refresh
-> (Ctrl+Shift+R)** no browser. Mudança de fonte/ícone no `pubspec` exige rebuild
-> completo — build stale mostra ícones como "tofu" (□). Na dúvida: `flutter clean`
-> antes.
-
-```bash
-flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart \
-  --dart-define-from-file=apps/driva_editor/config/dev.json
-```
+> **Ícones como "tofu" (□) são cache do browser, não bug.** O `build/web` emite o
+> `MaterialIcons-Regular.otf` e o FontManifest corretos (verificado por screenshot
+> headless do build servido — os ícones renderizam). Se aparecerem □ no
+> `flutter run`, é **service worker/cache do Chrome no `localhost`** — e ele
+> **sobrevive** a `flutter clean` e a hard-refresh (Ctrl+Shift+R). A correção
+> **determinística** é lançar com um **perfil de Chrome descartável** (sem cache,
+> sem SW):
+>
+> ```bash
+> flutter run -d chrome \
+>   --web-browser-flag=--user-data-dir=/tmp/driva-e2e-chrome \
+>   --target apps/driva_editor/lib/main_dev.dart \
+>   --dart-define-from-file=apps/driva_editor/config/dev.json
+> ```
+>
+> (Apague `/tmp/driva-e2e-chrome` para forçar um perfil novo.) Alternativa rápida
+> de conferência sem `flutter run`: `flutter build web` e servir o `build/web`
+> numa **porta nova** (origem nova = sem SW anterior).
 
 1. A URL abre em `/contents` **sem `#`** (path strategy). → *print 1*
 2. Em "Novo conteúdo", digitar o **Nome deriva o Slug ao vivo** no campo. → *print 2*
