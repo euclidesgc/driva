@@ -81,15 +81,17 @@ mover, ajuste em `e2e_drive.mjs`.
 > Não use `--user-data-dir=<pasta fixa>`: a pasta **persiste** e reacumula o cache —
 > não é um perfil novo. Para conferência, prefira os prints do `e2e_shots.sh`.
 
-### Achado da rodada — colisão de slug (comportamento ≠ spec)
+### Colisão de slug — comportamento (aceito pelo dev em 2026-07-03)
 
-Ao submeter um `Nome` cujo slug já existe no projeto, o esperado no plano era
-**"reabrir o diálogo com `home-2` e a msg de slug em uso"**. O **observado** (print
-`06_colisao_home2`, confirmado por captura a 500ms/1000ms) é outro: o app **fecha o
-diálogo, cria automaticamente com o slug sugerido (`home-2`) e navega para o editor**
-— sem aviso nem confirmação. O backend devolve `409 + suggestedSlug` (contrato ok); o
-**cliente auto-resolve** para o sugerido. **Decisão do dev pendente:** é o UX desejado
-(atualizar o plano) ou é bug (o diálogo deveria avisar/confirmar antes)?
+Ao submeter um `Nome` cujo slug já existe no projeto, o app **fecha o diálogo, cria
+automaticamente com o slug ajustado (`home-2`) e abre o editor** (print
+`06_colisao_home2`). Bate com o PRD (§ Exceções): *"Backend `409` → editor mostra o
+slug ajustado sugerido e explica"*. O contrato é: backend devolve `409 + suggestedSlug`
+(coberto pelo `e2e.sh`), o cliente **auto-resolve** para o sugerido. **Este é o UX
+desejado** (menos fricção — o dev o confirmou; a descrição antiga "reabre o diálogo com
+aviso" era do test_plan, não do PRD, e foi corrigida). *Obs.: a explicação "slug já em
+uso" prevista no PRD é um aviso transitório — não aparece no print estático; confirmar
+que está sendo exibida é item de conferência do dev.*
 
 ### Parte manual — nada além de conferir
 
@@ -98,7 +100,7 @@ e o console (sem erro não-tratado). Só volte ao modo manual se mudar a UI a po
 as coordenadas do `e2e_drive.mjs` saírem do lugar (aí ajuste-as e regenere).
 
 **Critério de passagem:** `e2e.sh` verde (contrato) **+** os 8 prints do `e2e_shots.sh`
-conferidos **+** ruling do dev sobre o achado da colisão. Ao terminar: `e2e.sh down`.
+conferidos. Ao terminar: `e2e.sh down`.
 
 ---
 
