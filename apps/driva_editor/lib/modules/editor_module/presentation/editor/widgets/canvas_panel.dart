@@ -173,6 +173,11 @@ class _CanvasToolbar extends StatelessWidget {
   }
 }
 
+/// Moldura realista do dispositivo: corpo metálico com bezel, cantos
+/// arredondados, botões laterais e recorte de câmera (pill/punch-hole)
+/// derivados do [DevicePreset]. Puramente visual — desenhada com
+/// decorations/`CustomPaint`, sem dependência externa. A tela (a `child`) é
+/// clipada com as dimensões e o raio de cantos do device.
 class _DeviceFrame extends StatelessWidget {
   const _DeviceFrame({
     required this.device,
@@ -190,35 +195,186 @@ class _DeviceFrame extends StatelessWidget {
   final double maxHeight;
   final Widget child;
 
+  static const _bodyColor = Color(0xFF1B1D21);
+  static const _rimColor = Color(0xFF3A3D44);
+  static const _buttonColor = Color(0xFF2A2D33);
+
   @override
   Widget build(BuildContext context) {
+    final bezel = device.bezel;
+    final bodyRadius = device.cornerRadius + bezel;
+    final buttonWidth = bezel * 0.55;
     final screenHeight = math.min(device.height, maxHeight);
-    return Container(
-      width: device.width + 24,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1E22),
-        borderRadius: BorderRadius.circular(36),
-        border: highlighted
-            ? Border.all(color: AppTheme.primary, width: 2)
-            : null,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 24,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: SizedBox(
-          width: device.width,
-          height: screenHeight,
-          child: ColoredBox(color: Colors.white, child: child),
+
+    return Semantics(
+      label:
+          'Moldura ${device.label} (${device.width.toInt()}'
+          '×${device.height.toInt()})',
+      child: Padding(
+        // Espaço para os botões laterais transbordarem o corpo.
+        padding: EdgeInsets.symmetric(horizontal: buttonWidth),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            _SideButton(
+              alignment: Alignment.centerLeft,
+              width: buttonWidth,
+              color: _buttonColor,
+              top: device.height * 0.20,
+              length: device.height * 0.10,
+            ),
+            _SideButton(
+              alignment: Alignment.centerRight,
+              width: buttonWidth,
+              color: _buttonColor,
+              top: device.height * 0.16,
+              length: device.height * 0.06,
+            ),
+            _SideButton(
+              alignment: Alignment.centerRight,
+              width: buttonWidth,
+              color: _buttonColor,
+              top: device.height * 0.26,
+              length: device.height * 0.12,
+            ),
+            Container(
+              padding: EdgeInsets.all(bezel),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF25282E), _bodyColor],
+                ),
+                borderRadius: BorderRadius.circular(bodyRadius),
+                border: Border.all(color: _rimColor, width: 1),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40000000),
+                    blurRadius: 32,
+                    offset: Offset(0, 16),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(device.cornerRadius),
+                    child: SizedBox(
+                      width: device.width,
+                      height: screenHeight,
+                      child: ColoredBox(color: Colors.white, child: child),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: _CameraCutout(notch: device.notch),
+                    ),
+                  ),
+                  if (highlighted)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              device.cornerRadius,
+                            ),
+                            border: Border.all(
+                              color: AppTheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+}
+
+/// Botão físico lateral (power/volume) desenhado meio para fora do corpo.
+class _SideButton extends StatelessWidget {
+  const _SideButton({
+    required this.alignment,
+    required this.width,
+    required this.color,
+    required this.top,
+    required this.length,
+  });
+
+  final Alignment alignment;
+  final double width;
+  final Color color;
+  final double top;
+  final double length;
+
+  @override
+  Widget build(BuildContext context) {
+    final left = alignment == Alignment.centerLeft;
+    return Positioned(
+      top: top,
+      left: left ? -width / 2 : null,
+      right: left ? null : -width / 2,
+      child: Container(
+        width: width,
+        height: length,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.horizontal(
+            left: left ? const Radius.circular(3) : Radius.zero,
+            right: left ? Radius.zero : const Radius.circular(3),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Recorte da câmera sobre a tela: pill central ou furo pequeno (punch-hole).
+class _CameraCutout extends StatelessWidget {
+  const _CameraCutout({required this.notch});
+
+  final DeviceNotch notch;
+
+  static const _color = Color(0xFF0B0C0E);
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (notch) {
+      DeviceNotch.pill => Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Container(
+            width: 90,
+            height: 26,
+            decoration: BoxDecoration(
+              color: _color,
+              borderRadius: BorderRadius.circular(13),
+            ),
+          ),
+        ),
+      ),
+      DeviceNotch.punchHole => Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Container(
+            width: 14,
+            height: 14,
+            decoration: const BoxDecoration(
+              color: _color,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ),
+    };
   }
 }
 
