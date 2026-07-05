@@ -15,13 +15,16 @@ class ThemeModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final mode = context.select<ThemeCubit, AppThemeMode>((c) => c.state.mode);
     return Semantics(
       button: true,
       label: 'Tema — atual: ${_labelFor(mode)}',
       child: PopupMenuButton<AppThemeMode>(
         tooltip: 'Tema',
-        icon: Icon(_iconFor(mode)),
+        icon: Icon(_iconFor(mode), color: theme.colorScheme.onSurface),
+        iconColor: theme.colorScheme.onSurface,
+        color: theme.colorScheme.surface,
         initialValue: mode,
         onSelected: (selected) => context.read<ThemeCubit>().setMode(selected),
         itemBuilder: (context) => [

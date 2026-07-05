@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +23,8 @@ void main() {
       initialState: ThemeState(mode),
     );
     return MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       home: Scaffold(
         appBar: AppBar(
           actions: [
@@ -42,6 +45,14 @@ void main() {
 
     expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
     expect(find.byTooltip('Tema'), findsOneWidget);
+  });
+
+  testWidgets('icone usa cor de contraste da superficie', (tester) async {
+    await tester.pumpWidget(harness(AppThemeMode.light));
+
+    final icon = tester.widget<Icon>(find.byIcon(Icons.light_mode_outlined));
+
+    expect(icon.color, AppTheme.light.colorScheme.onSurface);
   });
 
   testWidgets('tem semantica de botao anunciando o modo atual', (tester) async {
