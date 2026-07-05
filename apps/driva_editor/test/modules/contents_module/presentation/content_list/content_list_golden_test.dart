@@ -5,6 +5,7 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/content_list_page.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
+import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,8 @@ import '../../../../support/app_fonts.dart';
 
 class MockContentListCubit extends MockCubit<ContentListState>
     implements ContentListCubit {}
+
+class MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
 // Goldens dos estados visuais estáveis da lista de conteúdos. As fontes reais
 // do app são carregadas em setUpAll para o baseline não sair com "tofu"/Ahem.
@@ -51,13 +54,22 @@ void main() {
       const Stream<ContentListState>.empty(),
       initialState: state,
     );
+    final themeCubit = MockThemeCubit();
+    whenListen(
+      themeCubit,
+      const Stream<ThemeState>.empty(),
+      initialState: const ThemeState(AppThemeMode.light),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: BlocProvider<ContentListCubit>.value(
-          value: cubit,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<ContentListCubit>.value(value: cubit),
+            BlocProvider<ThemeCubit>.value(value: themeCubit),
+          ],
           child: const ContentListPage(),
         ),
       ),
