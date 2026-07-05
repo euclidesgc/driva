@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Alterado
+
+- **driva_editor · canvas (molduras de dispositivo)**: as três caixas simples de tamanho (Smartphone / Android / Tablet) viraram **molduras realistas** — corpo metálico com bezel, cantos arredondados, botões laterais e recorte de câmera (pill no Smartphone; punch-hole no Android e no Tablet). Puramente visual em Flutter (decorations + `ClipRRect` + `Stack`), sem dependência externa. A tela renderizada (o preview do spec via `SduiView`) continua com as dimensões corretas de cada device, agora clipada com o raio de cantos do aparelho; a moldura ganha `Semantics` com o rótulo do device. `DevicePreset` passa a descrever `bezel`, `cornerRadius` e `notch` (novo enum `DeviceNotch`). _(roadmap item 6)_
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado
