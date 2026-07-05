@@ -5,6 +5,7 @@
 ### Alterado
 
 - **driva_editor · canvas (mock do dispositivo)**: a altura do mock passa a ser limitada à viewport do canvas. Em monitores grandes o dispositivo cabe na tela sem forçar a rolagem da área inteira; a rolagem só aparece quando a viewport é **menor** que o mock, e nesse caso acontece **dentro da própria moldura** (o preview rola pelo `SingleChildScrollView` já existente). Implementado com `LayoutBuilder` + teto de altura (`min(device.height, alturaDisponível)`) no `_DeviceFrame`, descontando padding externo/moldura e o fator de zoom. _(roadmap item 4 / melhorias item 12)_
+- **driva_editor · lista de conteúdos (navegação)**: criar um conteúdo não pisca mais um spinner na lista antes de abrir o construtor. No sucesso, `ContentListCubit.create()` deixa de fazer `await load()` (spinner `ContentListLoading` + round-trip `getContents()` inútil, que repintava uma grade prestes a ser destruída pelas rotas flat) e navega direto ao editor. A exclusão virou **otimista**: o card some na hora (`Loaded(n-1)` ou `Empty`), a API é chamada em seguida e, em falha, `load()` reconcilia (o card reaparece) com snackbar estático — sem spinner full-screen apagando a grade. Data/domain intocados. _(roadmap item 2 / melhorias item 10)_
 
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
