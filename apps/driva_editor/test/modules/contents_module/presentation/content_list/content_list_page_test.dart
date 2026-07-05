@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/content_list_page.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
@@ -153,6 +154,47 @@ void main() {
       );
 
       expect(find.byTooltip('Excluir conteúdo'), findsOneWidget);
+    });
+  });
+
+  group('exclusão otimista', () {
+    Future<void> confirmDelete(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Excluir conteúdo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Excluir'));
+      await tester.pump();
+    }
+
+    testWidgets('confirmar exclusão chama delete do cubit com o id do card', (
+      tester,
+    ) async {
+      when(
+        () => cubit.delete('ct_1'),
+      ).thenAnswer((_) async => const Right(unit));
+
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
+      await confirmDelete(tester);
+
+      verify(() => cubit.delete('ct_1')).called(1);
+    });
+
+    testWidgets('falha ao excluir exibe snackbar de erro', (tester) async {
+      when(
+        () => cubit.delete('ct_1'),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
+      await confirmDelete(tester);
+      await tester.pump();
+
+      expect(
+        find.text('Não foi possível excluir. Tente de novo.'),
+        findsOneWidget,
+      );
     });
   });
 
