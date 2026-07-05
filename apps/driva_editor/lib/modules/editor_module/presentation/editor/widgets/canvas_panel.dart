@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,54 +48,34 @@ class CanvasPanel extends StatelessWidget {
           onChangeZoom: onChangeZoom,
         ),
         Expanded(
-          child: LayoutBuilder(
-            builder: (context, viewport) {
-              // Altura do mock limitada à viewport do canvas: em monitores
-              // grandes ele cabe sem rolar a tela inteira; quando a viewport
-              // é menor que o mock ele rola DENTRO da própria moldura
-              // (`SingleChildScrollView` do preview). Descontamos o padding
-              // externo (32×2) e a moldura (12×2), e dividimos pelo zoom porque
-              // o `Transform.scale` encolhe o mock antes de ir para a tela.
-              const outerPadding = 32.0 * 2;
-              const framePadding = 12.0 * 2;
-              final available =
-                  (viewport.maxHeight - outerPadding) / zoom - framePadding;
-              final frameMaxHeight =
-                  viewport.maxHeight.isFinite && available > 0
-                  ? available
-                  : device.height;
-
-              return DragTarget<DragPayload>(
-                // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
-                onAcceptWithDetails: (details) {
-                  if (details.data case PaletteDragPayload(:final type)) {
-                    onAddToRoot(type);
-                  }
-                },
-                builder: (context, candidates, _) => InteractiveViewer(
-                  constrained: false,
-                  boundaryMargin: const EdgeInsets.all(64),
-                  minScale: 1,
-                  maxScale: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Transform.scale(
-                      scale: zoom,
-                      alignment: Alignment.topCenter,
-                      // Isola a pintura do preview do resto do editor.
-                      child: RepaintBoundary(
-                        child: _DeviceFrame(
-                          device: device,
-                          highlighted: candidates.isNotEmpty,
-                          maxHeight: frameMaxHeight,
-                          child: _PreviewSurface(onSelect: onSelect),
-                        ),
-                      ),
+          child: DragTarget<DragPayload>(
+            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
+            onAcceptWithDetails: (details) {
+              if (details.data case PaletteDragPayload(:final type)) {
+                onAddToRoot(type);
+              }
+            },
+            builder: (context, candidates, _) => InteractiveViewer(
+              constrained: false,
+              boundaryMargin: const EdgeInsets.all(64),
+              minScale: 1,
+              maxScale: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Transform.scale(
+                  scale: zoom,
+                  alignment: Alignment.topCenter,
+                  // Isola a pintura do preview do resto do editor.
+                  child: RepaintBoundary(
+                    child: _DeviceFrame(
+                      device: device,
+                      highlighted: candidates.isNotEmpty,
+                      child: _PreviewSurface(onSelect: onSelect),
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       ],
@@ -185,17 +164,11 @@ class _DeviceFrame extends StatelessWidget {
   const _DeviceFrame({
     required this.device,
     required this.highlighted,
-    required this.maxHeight,
     required this.child,
   });
 
   final DevicePreset device;
   final bool highlighted;
-
-  /// Teto para a altura da tela do mock. Quando menor que `device.height`, a
-  /// moldura encolhe para caber na viewport e o preview rola por dentro; caso
-  /// contrário o mock aparece na sua altura nominal.
-  final double maxHeight;
   final Widget child;
 
   static const _bodyColor = Color(0xFF1B1D21);
@@ -207,7 +180,6 @@ class _DeviceFrame extends StatelessWidget {
     final bezel = device.bezel;
     final bodyRadius = device.cornerRadius + bezel;
     final buttonWidth = bezel * 0.55;
-    final screenHeight = math.min(device.height, maxHeight);
 
     return Semantics(
       label:
@@ -271,7 +243,7 @@ class _DeviceFrame extends StatelessWidget {
                     borderRadius: BorderRadius.circular(device.cornerRadius),
                     child: SizedBox(
                       width: device.width,
-                      height: screenHeight,
+                      height: device.height,
                       child: ColoredBox(color: Colors.white, child: child),
                     ),
                   ),
@@ -408,6 +380,10 @@ class _PreviewSurfaceState extends State<_PreviewSurface> {
 
   late ContentSpec _rendered;
   String? _selectedNodeId;
+
+  /// Nó sob o cursor. Estado **efêmero e local do canvas**: não vai ao cubit
+  /// (não rebuilda o editor inteiro nem persiste), só realça o contorno.
+  String? _hoveredNodeId;
   Timer? _cooldown;
   bool _pendingRender = false;
 
@@ -477,7 +453,15 @@ class _PreviewSurfaceState extends State<_PreviewSurface> {
                   node: node,
                   built: built,
                   isSelected: node.id == _selectedNodeId,
+                  isHovered: node.id == _hoveredNodeId,
                   onSelect: () => widget.onSelect(node.id),
+                  onHover: (hovering) {
+                    if (!mounted) return;
+                    final id = hovering ? node.id : null;
+                    if (hovering && _hoveredNodeId == node.id) return;
+                    if (!hovering && _hoveredNodeId != node.id) return;
+                    setState(() => _hoveredNodeId = id);
+                  },
                 ),
               ),
             ),
@@ -543,16 +527,25 @@ class _SelectableNode extends StatelessWidget {
     required this.node,
     required this.built,
     required this.isSelected,
+    required this.isHovered,
     required this.onSelect,
+    required this.onHover,
   });
 
   final SduiNode node;
   final Widget built;
   final bool isSelected;
+  final bool isHovered;
   final VoidCallback onSelect;
+  final ValueChanged<bool> onHover;
 
   static const _unwrappable = {'spacer'};
   static const _hintColor = Color(0x66A0A4AD);
+
+  /// Contorno de hover: laranja da marca com opacidade baixa — reforço leve,
+  /// abaixo da seleção sólida na precedência. A tag/nome continuam sendo o
+  /// sinal permanente (o hover não é o único indicador).
+  static final _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
 
   @override
   Widget build(BuildContext context) {
@@ -560,34 +553,48 @@ class _SelectableNode extends StatelessWidget {
 
     final descriptor = descriptorFor(node.type);
     final label = descriptor?.label ?? node.type;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onSelect,
-      child: Semantics(
-        label: label,
-        selected: isSelected,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            if (isSelected)
-              DecoratedBox(
-                position: DecorationPosition.foreground,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.primary, width: 2),
+    return MouseRegion(
+      onEnter: (_) => onHover(true),
+      onExit: (_) => onHover(false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onSelect,
+        child: Semantics(
+          label: label,
+          selected: isSelected,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (isSelected)
+                DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.primary, width: 2),
+                  ),
+                  child: built,
+                )
+              else if (isHovered)
+                DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: _hoverColor, width: 1.5),
+                  ),
+                  child: built,
+                )
+              else
+                CustomPaint(
+                  foregroundPainter: const DashedBorderPainter(
+                    color: _hintColor,
+                  ),
+                  child: built,
                 ),
-                child: built,
-              )
-            else
-              CustomPaint(
-                foregroundPainter: const DashedBorderPainter(color: _hintColor),
-                child: built,
+              Positioned(
+                top: -18,
+                left: 0,
+                child: _NodeTag(label: label, isSelected: isSelected),
               ),
-            Positioned(
-              top: -18,
-              left: 0,
-              child: _NodeTag(label: label, isSelected: isSelected),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
