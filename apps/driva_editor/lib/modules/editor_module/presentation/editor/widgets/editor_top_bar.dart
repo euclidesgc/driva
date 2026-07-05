@@ -81,15 +81,13 @@ class _SaveIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Cor + ícone + texto: a cor nunca é o único sinal (acessibilidade).
+    // Cinza secundario acompanha o tema (onSurfaceVariant) — legivel no dark.
+    final neutral = Theme.of(context).colorScheme.onSurfaceVariant;
+    // Cor + icone + texto: a cor nunca e o unico sinal (acessibilidade).
     final (icon, label, color) = switch (status) {
       SaveStatus.saved => (Icons.check_circle, 'Salvo', AppTheme.success),
-      SaveStatus.dirty => (
-        Icons.edit_outlined,
-        'Não salvo',
-        AppTheme.inkSecondary,
-      ),
-      SaveStatus.saving => (Icons.sync, 'Salvando…', AppTheme.inkSecondary),
+      SaveStatus.dirty => (Icons.edit_outlined, 'Não salvo', neutral),
+      SaveStatus.saving => (Icons.sync, 'Salvando…', neutral),
       SaveStatus.saveFailed => (
         Icons.error_outline,
         'Falha ao salvar',

@@ -35,32 +35,52 @@ void main() {
     );
   }
 
-  testWidgets('mostra ícone e tooltip do modo atual (sinal além da cor)', (
+  testWidgets('mostra o icone do modo atual (sinal alem da cor)', (
     tester,
   ) async {
     await tester.pumpWidget(harness(AppThemeMode.dark));
 
     expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
-    expect(find.byTooltip('Tema: escuro (toque para sistema)'), findsOneWidget);
+    expect(find.byTooltip('Tema'), findsOneWidget);
   });
 
-  testWidgets('tem semântica de botão anunciando estado e próxima ação', (
+  testWidgets('tem semantica de botao anunciando o modo atual', (tester) async {
+    await tester.pumpWidget(harness(AppThemeMode.light));
+
+    expect(find.bySemanticsLabel('Tema — atual: Claro'), findsOneWidget);
+  });
+
+  testWidgets('abre o menu com as tres opcoes (claro/escuro/sistema)', (
     tester,
   ) async {
     await tester.pumpWidget(harness(AppThemeMode.light));
 
-    expect(
-      find.bySemanticsLabel('Tema: claro. Toque para escuro.'),
-      findsOneWidget,
-    );
+    await tester.tap(find.byType(ThemeModeButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Claro'), findsOneWidget);
+    expect(find.text('Escuro'), findsOneWidget);
+    expect(find.text('Sistema'), findsOneWidget);
   });
 
-  testWidgets('toque avança claro → escuro', (tester) async {
+  testWidgets('selecionar uma opcao aplica o modo no cubit', (tester) async {
     when(() => cubit.setMode(any())).thenAnswer((_) async {});
     await tester.pumpWidget(harness(AppThemeMode.light));
 
     await tester.tap(find.byType(ThemeModeButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Escuro'));
+    await tester.pumpAndSettle();
 
     verify(() => cubit.setMode(AppThemeMode.dark)).called(1);
+  });
+
+  testWidgets('a opcao ativa e marcada com um check', (tester) async {
+    await tester.pumpWidget(harness(AppThemeMode.system));
+
+    await tester.tap(find.byType(ThemeModeButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.check), findsOneWidget);
   });
 }
