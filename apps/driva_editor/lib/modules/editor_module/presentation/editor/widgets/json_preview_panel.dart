@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
 import 'json_highlighter.dart';
 
@@ -107,20 +107,21 @@ class _JsonToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(bottom: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        color: colors.panel,
+        border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.data_object, size: 16, color: AppTheme.inkMuted),
+          Icon(Icons.data_object, size: 16, color: colors.inkMuted),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             'JSON do spec (somente-leitura)',
-            style: TextStyle(fontSize: 12, color: AppTheme.inkSecondary),
+            style: TextStyle(fontSize: 12, color: colors.inkSecondary),
           ),
           const Spacer(),
           // Estado do copiar não fica só na cor: ícone + rótulo mudam juntos.
@@ -129,13 +130,13 @@ class _JsonToolbar extends StatelessWidget {
             icon: Icon(
               copied ? Icons.check : Icons.copy_all_outlined,
               size: 16,
-              color: copied ? AppTheme.success : AppTheme.ink,
+              color: copied ? colors.success : colors.inkPrimary,
             ),
             label: Text(
               copied ? 'Copiado' : 'Copiar',
               style: TextStyle(
                 fontSize: 12,
-                color: copied ? AppTheme.success : AppTheme.ink,
+                color: copied ? colors.success : colors.inkPrimary,
               ),
             ),
           ),
@@ -153,8 +154,9 @@ class _JsonView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const base = TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.5);
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return ColoredBox(
-      color: AppTheme.surface,
+      color: colors.panel,
       child: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
