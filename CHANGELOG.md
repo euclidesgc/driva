@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **driva_editor · canvas (feedback ao soltar no mock)**: cada componente no mock passa a exibir uma **borda tracejada discreta + tag pequena com o nome** mesmo sem estar selecionado, para o usuário perceber que há algo ali quando o componente é pequeno ou vazio (recém-solto). A seleção mantém o contorno sólido laranja + tag destacada. A moldura do dispositivo ganha um **glow** quando o `DragTarget` está prestes a receber o drop (reforça o hover). Cada nó recebe `Semantics(label, selected)` para leitores de tela (cor não é o único sinal). Borda via `CustomPaint`/`DashedBorderPainter` próprio — sem dependência nova. _(roadmap item 5)_
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado
