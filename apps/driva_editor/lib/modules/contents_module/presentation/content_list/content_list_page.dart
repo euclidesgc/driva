@@ -238,7 +238,15 @@ class _ContentCard extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed ?? false) await cubit.delete(content.id);
+    if (!(confirmed ?? false)) return;
+    final result = await cubit.delete(content.id);
+    if (!context.mounted) return;
+    result.fold(
+      (_) => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível excluir. Tente de novo.')),
+      ),
+      (_) {},
+    );
   }
 }
 
