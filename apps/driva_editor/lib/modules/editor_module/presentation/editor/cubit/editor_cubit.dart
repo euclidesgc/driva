@@ -110,7 +110,12 @@ class EditorCubit extends Cubit<EditorState> {
     final current = state;
     if (current is! EditorReady) return;
     final root = current.document.root;
-    if (root == null || id == root.id) return;
+    if (root == null) return;
+    // Excluir a raiz esvazia o conteúdo (volta ao estado-vazio): não é fixa.
+    if (id == root.id) {
+      _emitDocument(current, null, selectedNodeId: null);
+      return;
+    }
     final newRoot = sdui.removeNode(root, id);
     final selection = current.selectedNodeId == id
         ? null

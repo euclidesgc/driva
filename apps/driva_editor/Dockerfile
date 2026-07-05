@@ -22,7 +22,8 @@ RUN flutter build web --release \
     --target lib/main_prod.dart \
     --dart-define=API_BASE_URL=${API_BASE_URL} \
     --dart-define=DEFAULT_PROJECT_ID=${DEFAULT_PROJECT_ID} \
-    --dart-define=USE_FAKE_DATA=false
+    --dart-define=USE_FAKE_DATA=false \
+    --pwa-strategy=none
 
 # ---- serve (nginx) ----
 FROM nginx:alpine AS serve

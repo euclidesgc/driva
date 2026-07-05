@@ -5,13 +5,11 @@ import '../../../../../core/theme/editor_colors.dart';
 import 'drag_payload.dart';
 import 'palette_icons.dart';
 
-/// Paleta de widgets: itens arrastáveis para a árvore/canvas, agrupados por
-/// categoria, com busca. Clique também adiciona (teclado/acessibilidade).
+/// Paleta de widgets: itens **arrastáveis** para a árvore/canvas, agrupados
+/// por categoria, com busca. Adicionar é só por drag-and-drop (o clique não
+/// adiciona — o usuário controla onde solta).
 class WidgetPalettePanel extends StatefulWidget {
-  const WidgetPalettePanel({super.key, required this.onAdd});
-
-  /// Adiciona o primitivo no alvo atual (nó selecionado ou raiz).
-  final ValueChanged<String> onAdd;
+  const WidgetPalettePanel({super.key});
 
   @override
   State<WidgetPalettePanel> createState() => _WidgetPalettePanelState();
@@ -74,10 +72,7 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                           runSpacing: 8,
                           children: [
                             for (final descriptor in entry.value)
-                              _PaletteItem(
-                                descriptor: descriptor,
-                                onAdd: () => widget.onAdd(descriptor.type),
-                              ),
+                              _PaletteItem(descriptor: descriptor),
                           ],
                         ),
                       ),
@@ -91,10 +86,9 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
 }
 
 class _PaletteItem extends StatelessWidget {
-  const _PaletteItem({required this.descriptor, required this.onAdd});
+  const _PaletteItem({required this.descriptor});
 
   final WidgetDescriptor descriptor;
-  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -106,13 +100,9 @@ class _PaletteItem extends StatelessWidget {
         child: Opacity(opacity: 0.85, child: tile),
       ),
       childWhenDragging: Opacity(opacity: 0.4, child: tile),
-      child: Tooltip(
-        message: 'Arraste para o conteúdo ou clique para adicionar',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onAdd,
-          child: tile,
-        ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: Tooltip(message: 'Arraste para o conteúdo', child: tile),
       ),
     );
   }

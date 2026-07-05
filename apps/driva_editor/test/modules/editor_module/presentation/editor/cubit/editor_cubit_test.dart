@@ -157,6 +157,21 @@ void main() {
     );
 
     blocTest<EditorCubit, EditorState>(
+      'removeNode na raiz esvazia o conteúdo e limpa a seleção',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.selectNode('nd_root');
+        cubit.removeNode('nd_root');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root, isNull);
+        expect(state.selectedNodeId, isNull);
+        expect(state.saveStatus, SaveStatus.dirty);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
       'updateProps faz merge e null remove a chave',
       build: buildLoaded,
       act: (cubit) {

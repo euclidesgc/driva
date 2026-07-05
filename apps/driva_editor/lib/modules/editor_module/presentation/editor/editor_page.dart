@@ -145,7 +145,7 @@ class _LeftPanel extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  WidgetPalettePanel(onAdd: cubit.addNode),
+                  const WidgetPalettePanel(),
                   BlocSelector<EditorCubit, EditorState, String>(
                     // Assinatura de estrutura + seleção: props não a alteram,
                     // então editar uma propriedade NÃO reconstrói a árvore.
@@ -297,7 +297,9 @@ class _InspectorArea extends StatelessWidget {
         if (state is! EditorReady) return null;
         final root = state.document.root;
         final node = state.selectedNode ?? root;
-        final isContent = state.selectedNode == null || node?.id == root?.id;
+        // Selecionar a raiz a trata como um nó normal (com label + remover);
+        // "Conteúdo" é só a visão padrão quando nada está selecionado.
+        final isContent = state.selectedNode == null;
         return _InspectorVm(
           node: node,
           isContent: isContent,
