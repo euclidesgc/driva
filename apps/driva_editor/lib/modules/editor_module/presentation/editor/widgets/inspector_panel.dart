@@ -23,7 +23,9 @@ class InspectorPanel extends StatelessWidget {
     required this.onRemove,
   });
 
-  final SduiNode node;
+  /// Nó inspecionado. `null` só no conteúdo vazio (`isContent`), quando ainda
+  /// não há raiz — mostra apenas o cabeçalho do Conteúdo.
+  final SduiNode? node;
   final bool isContent;
   final String contentName;
   final String contentSlug;
@@ -32,8 +34,36 @@ class InspectorPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final descriptor = descriptorFor(node.type);
+    final node = this.node;
     final colors = Theme.of(context).extension<EditorColors>()!;
+
+    if (node == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _InspectorHeader(
+            title: 'Conteúdo',
+            subtitle: '$contentName · slug $contentSlug',
+            iconType: null,
+            onRemove: null,
+          ),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Conteúdo vazio. Adicione um widget para começar.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: colors.inkMuted, fontSize: 13),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final descriptor = descriptorFor(node.type);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

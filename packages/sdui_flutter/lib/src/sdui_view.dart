@@ -21,6 +21,7 @@ class SduiView extends StatelessWidget {
   /// Renderiza um conteúdo inteiro (a partir do `root`).
   ///
   /// Recebe um [ContentSpec] já resolvido — não busca por slug nem faz rede.
+  /// Conteúdo vazio (`spec.root == null`) renderiza nada ([SizedBox.shrink]).
   SduiView.content(
     ContentSpec spec, {
     Key? key,
@@ -35,18 +36,20 @@ class SduiView extends StatelessWidget {
          nodeWrapper: nodeWrapper,
        );
 
-  final SduiNode node;
+  final SduiNode? node;
   final SduiRegistry? registry;
   final SduiActionHandler? onAction;
   final SduiNodeWrapper? nodeWrapper;
 
   @override
   Widget build(BuildContext context) {
+    final root = node;
+    if (root == null) return const SizedBox.shrink();
     final renderer = SduiRenderer(
       registry ?? defaultRegistry,
       onAction: onAction,
       nodeWrapper: nodeWrapper,
     );
-    return renderer.render(context, node);
+    return renderer.render(context, root);
   }
 }

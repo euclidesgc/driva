@@ -19,21 +19,25 @@ class WidgetTreePanel extends StatelessWidget {
     required this.onMoveInto,
   });
 
-  final SduiNode root;
+  /// Raiz do conteúdo. `null` no conteúdo vazio — a árvore fica vazia e o único
+  /// alvo de soltar é a zona que **define a raiz** (primeiro widget).
+  final SduiNode? root;
   final String? selectedNodeId;
   final ValueChanged<String> onSelect;
   final ValueChanged<String> onRemove;
 
-  /// Cria um nó da paleta dentro de `parentId` em `index`.
-  final void Function(String type, String parentId, int index) onAddInto;
+  /// Cria um nó da paleta dentro de `parentId` em `index`. Com `parentId` null
+  /// (conteúdo vazio), o nó vira a raiz.
+  final void Function(String type, String? parentId, int index) onAddInto;
 
   /// Move um nó existente para `parentId` em `index`.
   final void Function(String nodeId, String parentId, int index) onMoveInto;
 
   @override
   Widget build(BuildContext context) {
+    final root = this.root;
     final rows = <Widget>[];
-    _buildRows(rows, root, depth: 0);
+    if (root != null) _buildRows(rows, root, root, depth: 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,27 +48,36 @@ class WidgetTreePanel extends StatelessWidget {
             children: rows,
           ),
         ),
-        // Zona de soltar no fim do conteúdo (append na raiz).
+        // Zona de soltar: no fim do conteúdo, ou — com o conteúdo vazio —
+        // definindo o primeiro widget como raiz.
         _DropZone(
-          label: 'Soltar aqui adiciona ao fim do conteúdo',
+          label: root == null
+              ? 'Solte um widget aqui para começar'
+              : 'Soltar aqui adiciona ao fim do conteúdo',
           onAccept: (payload) => switch (payload) {
             PaletteDragPayload(:final type) => onAddInto(
               type,
-              root.id,
-              root.children.length,
+              root?.id,
+              root?.children.length ?? 0,
             ),
-            NodeDragPayload(:final nodeId) => onMoveInto(
+            NodeDragPayload(:final nodeId) when root != null => onMoveInto(
               nodeId,
               root.id,
               root.children.length,
             ),
+            NodeDragPayload() => null,
           },
         ),
       ],
     );
   }
 
-  void _buildRows(List<Widget> rows, SduiNode node, {required int depth}) {
+  void _buildRows(
+    List<Widget> rows,
+    SduiNode root,
+    SduiNode node, {
+    required int depth,
+  }) {
     rows.add(
       _TreeRow(
         node: node,
@@ -73,20 +86,20 @@ class WidgetTreePanel extends StatelessWidget {
         isSelected: node.id == selectedNodeId,
         onSelect: () => onSelect(node.id),
         onRemove: node.id == root.id ? null : () => onRemove(node.id),
-        onAccept: (payload) => _dropOn(node, payload),
+        onAccept: (payload) => _dropOn(root, node, payload),
       ),
     );
     if (node.child != null) {
-      _buildRows(rows, node.child!, depth: depth + 1);
+      _buildRows(rows, root, node.child!, depth: depth + 1);
     }
     for (final child in node.children) {
-      _buildRows(rows, child, depth: depth + 1);
+      _buildRows(rows, root, child, depth: depth + 1);
     }
   }
 
   /// Soltar SOBRE um nó: quem aceita filhos recebe dentro (no fim); folha
   /// recebe como vizinho seguinte no pai.
-  void _dropOn(SduiNode target, DragPayload payload) {
+  void _dropOn(SduiNode root, SduiNode target, DragPayload payload) {
     final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
     final acceptsChildren =
         slot == SlotKind.multi ||

@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
 
 import '../model/content_spec.dart';
+import '../model/sdui_node.dart';
 import 'node_schema.dart';
 import 'spec_validation_error.dart';
 import 'spec_version.dart';
@@ -19,8 +20,9 @@ final _contentEnvelope = z.map({
 /// A única porta JSON → entidade do spec de conteúdo.
 ///
 /// Valida o envelope (zard), a versão do formato, e a árvore de nós
-/// (recursiva, contra o catálogo). `root` precisa ser um `column`: os blocos
-/// de topo do conteúdo são `root.children`.
+/// (recursiva, contra o catálogo). O `root` é **opcional**: ausente/null →
+/// `root == null` (conteúdo vazio, válido); presente → validado como um nó
+/// normal (qualquer tipo registrado no catálogo), recursivamente.
 Either<SpecValidationError, ContentSpec> parseContentSpec(
   Map<String, dynamic> json,
 ) {
@@ -39,26 +41,22 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
     );
   }
 
+  ContentSpec build(SduiNode? root) => ContentSpec(
+    specVersion: specVersion,
+    id: data['id'] as String,
+    name: data['name'] as String,
+    slug: data['slug'] as String,
+    description: data['description'] as String?,
+    root: root,
+  );
+
   final rawRoot = json['root'];
+  if (rawRoot == null) {
+    return Right(build(null));
+  }
   if (rawRoot is! Map) {
     return const Left(SpecValidationError('root: esperado um objeto'));
   }
 
-  return parseNode(rawRoot.cast<String, dynamic>()).flatMap((root) {
-    if (root.type != 'column') {
-      return Left(
-        SpecValidationError('root: precisa ser "column" (veio "${root.type}")'),
-      );
-    }
-    return Right(
-      ContentSpec(
-        specVersion: specVersion,
-        id: data['id'] as String,
-        name: data['name'] as String,
-        slug: data['slug'] as String,
-        description: data['description'] as String?,
-        root: root,
-      ),
-    );
-  });
+  return parseNode(rawRoot.cast<String, dynamic>()).map(build);
 }

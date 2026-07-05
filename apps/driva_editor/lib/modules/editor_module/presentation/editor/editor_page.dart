@@ -149,10 +149,12 @@ class _LeftPanel extends StatelessWidget {
                   BlocSelector<EditorCubit, EditorState, String>(
                     // Assinatura de estrutura + seleção: props não a alteram,
                     // então editar uma propriedade NÃO reconstrói a árvore.
-                    selector: (state) => state is EditorReady
-                        ? '${_structureKey(state.document.root)}#'
-                              '${state.selectedNodeId ?? ''}'
-                        : '',
+                    selector: (state) {
+                      if (state is! EditorReady) return '';
+                      final root = state.document.root;
+                      final structure = root == null ? '' : _structureKey(root);
+                      return '$structure#${state.selectedNodeId ?? ''}';
+                    },
                     builder: (context, _) {
                       final state = cubit.state;
                       if (state is! EditorReady) {
@@ -272,9 +274,10 @@ class _CanvasArea extends StatelessWidget {
         onChangeZoom: cubit.changeZoom,
         onAddToRoot: (type) {
           final state = cubit.state;
-          if (state is EditorReady) {
-            cubit.addNode(type, parentId: state.document.root.id);
-          }
+          if (state is! EditorReady) return;
+          final root = state.document.root;
+          // Conteúdo vazio: o nó vira a raiz (parentId null resolve isso).
+          cubit.addNode(type, parentId: root?.id);
         },
       ),
     );
@@ -292,9 +295,9 @@ class _InspectorArea extends StatelessWidget {
     return BlocSelector<EditorCubit, EditorState, _InspectorVm?>(
       selector: (state) {
         if (state is! EditorReady) return null;
-        final node = state.selectedNode ?? state.document.root;
-        final isContent =
-            state.selectedNode == null || node.id == state.document.root.id;
+        final root = state.document.root;
+        final node = state.selectedNode ?? root;
+        final isContent = state.selectedNode == null || node?.id == root?.id;
         return _InspectorVm(
           node: node,
           isContent: isContent,
@@ -324,7 +327,7 @@ class _InspectorVm {
     required this.contentSlug,
   });
 
-  final SduiNode node;
+  final SduiNode? node;
   final bool isContent;
   final String contentName;
   final String contentSlug;

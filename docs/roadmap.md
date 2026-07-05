@@ -31,6 +31,7 @@ _Depende só do editor atual; independente de backend e de categorias._
 - `[x]` **7. Painel de preview do JSON em tempo real.** _(item 14)_ Exibir o JSON do spec sendo gerado, numa aba/janela destacável — lado a lado com o mock ou alternando entre eles (estilo painéis do VS Code). **Precede o item 8.**
 - `[x]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_ Depende do painel do item 7.
 - `[ ]` **8b. Legibilidade avançada do JSON.** _(polimento; surgiu do review)_ Números de linha já entregues; falta destacar a **chave-pai** e casar `{`/`}` (abre/fecha) quando o cursor está próximo, e permitir **dobrar seções**. Baixa prioridade.
+- `[x]` **8c. Raiz livre (página nasce vazia; 1º widget vira a raiz).** _(surgiu do produto; estilo FlutterFlow)_ O kernel deixa de impor uma `column` fixa: `ContentSpec.root` vira opcional (`SduiNode? root`), `parseContentSpec` aceita `root` ausente/null e valida qualquer tipo do catálogo como raiz. Conteúdo novo (backend + fake store) nasce **sem `root`**; o editor mostra um estado-vazio (drop tracejado) e o primeiro widget adicionado — de qualquer tipo — vira a raiz selecionada. Renderer desenha vazio com `root == null`.
 
 ## Marco 2 — Catálogo de widgets (track contínuo)
 
