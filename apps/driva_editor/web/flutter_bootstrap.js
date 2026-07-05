@@ -6,16 +6,28 @@
 // o console loga "Could not find a set of Noto fonts...". A variante `full`
 // (portável) renderiza os ícones em qualquer ambiente. Forçamos `full` aqui.
 //
-// Tokens `{{...}}` são preenchidos pelo flutter build/run (flutter.js, build
-// config e versão do service worker). NÃO remova — sem eles o app não sobe.
+// Tokens `{{...}}` são preenchidos pelo flutter build/run (flutter.js e build
+// config). NÃO remova — sem eles o app não sobe.
 {{flutter_js}}
 {{flutter_build_config}}
 
-_flutter.loader.load({
-  config: {
-    canvasKitVariant: "full",
-  },
-  serviceWorkerSettings: {
-    serviceWorkerVersion: {{flutter_service_worker_version}},
-  },
+const serviceWorkerCleanup = (() => {
+  if (!("serviceWorker" in navigator)) {
+    return Promise.resolve();
+  }
+  return navigator.serviceWorker.getRegistrations()
+    .then((registrations) => Promise.all(
+      registrations.map((registration) => registration.unregister()),
+    ))
+    .catch((error) => {
+      console.warn("Nao foi possivel limpar service workers antigos:", error);
+    });
+})();
+
+serviceWorkerCleanup.finally(() => {
+  _flutter.loader.load({
+    config: {
+      canvasKitVariant: "full",
+    },
+  });
 });

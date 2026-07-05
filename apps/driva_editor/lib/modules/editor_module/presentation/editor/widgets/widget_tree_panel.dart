@@ -85,7 +85,7 @@ class WidgetTreePanel extends StatelessWidget {
         isRoot: node.id == root.id,
         isSelected: node.id == selectedNodeId,
         onSelect: () => onSelect(node.id),
-        onRemove: node.id == root.id ? null : () => onRemove(node.id),
+        onRemove: () => onRemove(node.id),
         onAccept: (payload) => _dropOn(root, node, payload),
       ),
     );
@@ -222,7 +222,6 @@ class _TreeRow extends StatelessWidget {
       },
     );
 
-    if (isRoot) return row;
     return Draggable<DragPayload>(
       data: NodeDragPayload(node.id),
       feedback: Material(

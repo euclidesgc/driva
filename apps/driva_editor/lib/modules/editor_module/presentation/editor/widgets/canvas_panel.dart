@@ -433,7 +433,7 @@ class _PreviewSurfaceState extends State<_PreviewSurface> {
   Widget build(BuildContext context) {
     final document = _rendered;
     final root = document.root;
-    final isEmpty = root == null || root.children.isEmpty;
+    final isEmpty = root == null;
     return GestureDetector(
       // Clique no vazio limpa a seleção (volta às propriedades do conteúdo).
       onTap: () => widget.onSelect(null),
@@ -498,8 +498,7 @@ class _EmptyPreview extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Arraste um widget aqui ou clique num widget da '
-                    'paleta para começar.',
+                    'Arraste um widget da paleta até aqui para começar.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: colors.inkSecondary),
                   ),
