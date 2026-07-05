@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../core/error/error.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/theme/widgets/resizable_split_view.dart';
 import '../../../../injection.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -85,6 +85,7 @@ class _EditorWorkspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
 
     return Shortcuts(
       shortcuts: {
@@ -103,14 +104,14 @@ class _EditorWorkspace extends StatelessWidget {
         },
         child: Focus(
           autofocus: true,
-          child: const Scaffold(
-            appBar: EditorTopBar(),
+          child: Scaffold(
+            appBar: const EditorTopBar(),
             body: ResizableSplitView(
-              left: _LeftPanel(),
-              center: _CenterArea(),
+              left: const _LeftPanel(),
+              center: const _CenterArea(),
               right: ColoredBox(
-                color: AppTheme.surface,
-                child: _InspectorArea(),
+                color: colors.panel,
+                child: const _InspectorArea(),
               ),
             ),
           ),
@@ -128,8 +129,9 @@ class _LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return ColoredBox(
-      color: AppTheme.surface,
+      color: colors.panel,
       child: DefaultTabController(
         length: 2,
         child: Column(
@@ -189,14 +191,15 @@ class _CenterArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return DefaultTabController(
       length: 2,
       child: Column(
         children: [
           Container(
-            decoration: const BoxDecoration(
-              color: AppTheme.surface,
-              border: Border(bottom: BorderSide(color: AppTheme.border)),
+            decoration: BoxDecoration(
+              color: colors.panel,
+              border: Border(bottom: BorderSide(color: colors.border)),
             ),
             child: const TabBar(
               isScrollable: true,
@@ -216,11 +219,11 @@ class _CenterArea extends StatelessWidget {
               ],
             ),
           ),
-          const Expanded(
+          Expanded(
             child: TabBarView(
               children: [
-                ColoredBox(color: AppTheme.canvas, child: _CanvasArea()),
-                JsonPreviewPanel(),
+                ColoredBox(color: colors.canvasBackdrop, child: _CanvasArea()),
+                const JsonPreviewPanel(),
               ],
             ),
           ),

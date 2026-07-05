@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import '../../../../preferences_module/preferences_module.dart';
 import '../cubit/editor_cubit.dart';
 
@@ -83,9 +83,10 @@ class _SaveIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     // Cinza secundario acompanha o tema (onSurfaceVariant) — legivel no dark.
     final neutral = Theme.of(context).colorScheme.onSurfaceVariant;
+    final success = Theme.of(context).extension<EditorColors>()!.success;
     // Cor + icone + texto: a cor nunca e o unico sinal (acessibilidade).
     final (icon, label, color) = switch (status) {
-      SaveStatus.saved => (Icons.check_circle, 'Salvo', AppTheme.success),
+      SaveStatus.saved => (Icons.check_circle, 'Salvo', success),
       SaveStatus.dirty => (Icons.edit_outlined, 'Não salvo', neutral),
       SaveStatus.saving => (Icons.sync, 'Salvando…', neutral),
       SaveStatus.saveFailed => (

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Corrigido
+
+- **driva_editor · temas claro/escuro (contraste)**: painéis, backdrop e labels deixam de ficar claros no tema escuro. A causa eram dezenas de usos de cores de UI como `static const` em `AppTheme` (`surface`, `canvas`, `border`, `ink`, `inkSecondary`, `inkMuted`, `primaryTint`, `success` e as variantes `*Dark`), que não reagiam ao `themeMode`. Introduz `EditorColors` (`ThemeExtension`, com `copyWith`/`lerp` e instâncias `light`/`dark`) com 9 tokens theme-aware (`canvasBackdrop`, `panel`, `panelAlt`, `inkPrimary`, `inkSecondary`, `inkMuted`, `border`, `primaryTint`, `success`), registrado em `AppTheme.light`/`dark`. Todos os widgets do editor (canvas/device frame, paleta, árvore, inspector, top bar, preview de JSON, split view, editor page) passam a ler as cores via `Theme.of(context).extension<EditorColors>()`. Paleta recalibrada para **WCAG AA** (texto ≥ 4.5:1; muted ≥ 4.0:1). A troca de tema (`ThemeCubit`/`app_widget.dart`) segue intacta; o laranja da marca (`AppTheme.primary`), a tela branca do dispositivo e o bezel escuro do frame foram preservados.
+
 ### Adicionado
 
 - **Catálogo · controles de formulário (roadmap item 9, incremento 1)**: três novos primitivos, seguindo a regra de ouro do spec (descriptor no `widget_catalog.dart` do `sdui_core` + builder no registry do `sdui_flutter` + fixture; nada hardcoded no editor). `textField` (props `label`, `hint`, `value`, `helperText`, `obscureText`, `enabled`, `filled`), `switch` (props `value`, `label`, `enabled`, `activeColor`) e `checkbox` (props `value`, `label`, `enabled`, `activeColor`) — todos folhas na categoria Interação. O preview é **estático** (o `value` vem das props; a interação no editor não muta estado real). `switch`/`checkbox` viram `SwitchListTile`/`CheckboxListTile` quando há `label`, senão o controle simples. Paleta e Inspector derivam do catálogo; ícones da paleta adicionados para os três tipos.

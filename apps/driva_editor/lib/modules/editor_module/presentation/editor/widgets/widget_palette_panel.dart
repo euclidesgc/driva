@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import 'drag_payload.dart';
 import 'palette_icons.dart';
 
@@ -60,7 +60,11 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                         child: Text(
                           entry.key,
                           style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: AppTheme.inkMuted),
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).extension<EditorColors>()!.inkMuted,
+                              ),
                         ),
                       ),
                       Padding(
@@ -121,18 +125,23 @@ class _PaletteTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
       width: 76,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.border),
+        color: colors.panel,
+        border: Border.all(color: colors.border),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(paletteIconFor(descriptor.type), size: 22, color: AppTheme.ink),
+          Icon(
+            paletteIconFor(descriptor.type),
+            size: 22,
+            color: colors.inkPrimary,
+          ),
           const SizedBox(height: 6),
           Text(
             descriptor.label,
