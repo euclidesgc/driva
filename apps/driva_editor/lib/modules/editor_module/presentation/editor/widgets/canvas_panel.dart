@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,34 +47,54 @@ class CanvasPanel extends StatelessWidget {
           onChangeZoom: onChangeZoom,
         ),
         Expanded(
-          child: DragTarget<DragPayload>(
-            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
-            onAcceptWithDetails: (details) {
-              if (details.data case PaletteDragPayload(:final type)) {
-                onAddToRoot(type);
-              }
-            },
-            builder: (context, candidates, _) => InteractiveViewer(
-              constrained: false,
-              boundaryMargin: const EdgeInsets.all(64),
-              minScale: 1,
-              maxScale: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Transform.scale(
-                  scale: zoom,
-                  alignment: Alignment.topCenter,
-                  // Isola a pintura do preview do resto do editor.
-                  child: RepaintBoundary(
-                    child: _DeviceFrame(
-                      device: device,
-                      highlighted: candidates.isNotEmpty,
-                      child: _PreviewSurface(onSelect: onSelect),
+          child: LayoutBuilder(
+            builder: (context, viewport) {
+              // Altura do mock limitada à viewport do canvas: em monitores
+              // grandes ele cabe sem rolar a tela inteira; quando a viewport
+              // é menor que o mock ele rola DENTRO da própria moldura
+              // (`SingleChildScrollView` do preview). Descontamos o padding
+              // externo (32×2) e a moldura (12×2), e dividimos pelo zoom porque
+              // o `Transform.scale` encolhe o mock antes de ir para a tela.
+              const outerPadding = 32.0 * 2;
+              const framePadding = 12.0 * 2;
+              final available =
+                  (viewport.maxHeight - outerPadding) / zoom - framePadding;
+              final frameMaxHeight =
+                  viewport.maxHeight.isFinite && available > 0
+                  ? available
+                  : device.height;
+
+              return DragTarget<DragPayload>(
+                // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
+                onAcceptWithDetails: (details) {
+                  if (details.data case PaletteDragPayload(:final type)) {
+                    onAddToRoot(type);
+                  }
+                },
+                builder: (context, candidates, _) => InteractiveViewer(
+                  constrained: false,
+                  boundaryMargin: const EdgeInsets.all(64),
+                  minScale: 1,
+                  maxScale: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Transform.scale(
+                      scale: zoom,
+                      alignment: Alignment.topCenter,
+                      // Isola a pintura do preview do resto do editor.
+                      child: RepaintBoundary(
+                        child: _DeviceFrame(
+                          device: device,
+                          highlighted: candidates.isNotEmpty,
+                          maxHeight: frameMaxHeight,
+                          child: _PreviewSurface(onSelect: onSelect),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ],
@@ -156,15 +177,22 @@ class _DeviceFrame extends StatelessWidget {
   const _DeviceFrame({
     required this.device,
     required this.highlighted,
+    required this.maxHeight,
     required this.child,
   });
 
   final DevicePreset device;
   final bool highlighted;
+
+  /// Teto para a altura da tela do mock. Quando menor que `device.height`, a
+  /// moldura encolhe para caber na viewport e o preview rola por dentro; caso
+  /// contrário o mock aparece na sua altura nominal.
+  final double maxHeight;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = math.min(device.height, maxHeight);
     return Container(
       width: device.width + 24,
       padding: const EdgeInsets.all(12),
@@ -186,7 +214,7 @@ class _DeviceFrame extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: SizedBox(
           width: device.width,
-          height: device.height,
+          height: screenHeight,
           child: ColoredBox(color: Colors.white, child: child),
         ),
       ),
