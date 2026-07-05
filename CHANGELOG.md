@@ -6,6 +6,10 @@
 
 - **driva_editor · canvas (feedback ao soltar no mock)**: cada componente no mock passa a exibir uma **borda tracejada discreta + tag pequena com o nome** mesmo sem estar selecionado, para o usuário perceber que há algo ali quando o componente é pequeno ou vazio (recém-solto). A seleção mantém o contorno sólido laranja + tag destacada. A moldura do dispositivo ganha um **glow** quando o `DragTarget` está prestes a receber o drop (reforça o hover). Cada nó recebe `Semantics(label, selected)` para leitores de tela (cor não é o único sinal). Borda via `CustomPaint`/`DashedBorderPainter` próprio — sem dependência nova. _(roadmap item 5)_
 
+### Alterado
+
+- **driva_editor · lista de conteúdos (navegação)**: criar um conteúdo não pisca mais um spinner na lista antes de abrir o construtor. No sucesso, `ContentListCubit.create()` deixa de fazer `await load()` (spinner `ContentListLoading` + round-trip `getContents()` inútil, que repintava uma grade prestes a ser destruída pelas rotas flat) e navega direto ao editor. A exclusão virou **otimista**: o card some na hora (`Loaded(n-1)` ou `Empty`), a API é chamada em seguida e, em falha, `load()` reconcilia (o card reaparece) com snackbar estático — sem spinner full-screen apagando a grade. Data/domain intocados. _(roadmap item 2 / melhorias item 10)_
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado
