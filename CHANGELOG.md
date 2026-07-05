@@ -4,7 +4,7 @@
 
 ### Adicionado
 
-- **driva_editor · tema dark + persistência**: novo `preferences_module` (Clean Architecture completa) introduz a **camada de preferências locais** do editor, sobre `shared_preferences`. `AppTheme.dark` coerente com o design system (mesmo laranja da marca sobre base escura) soma-se ao `AppTheme.light`. Um `ThemeCubit` vive acima do `MaterialApp` e dirige o `themeMode` (claro/escuro/sistema); a opção é **persistida localmente** e recarregada antes do primeiro frame (sem flash do padrão). Controle de alternância na top bar da lista e do editor — `ThemeModeButton` com ícone próprio por modo, tooltip e `Semantics` (a cor nunca é o único sinal). Esta camada de armazenamento local é a base que o **item 17 (offline-first)** vai reaproveitar. _(roadmap item 3)_
+- **driva_editor · tema dark + persistência**: novo `preferences_module` (Clean Architecture completa) introduz a **camada de preferências locais** do editor, sobre `shared_preferences`. `AppTheme.dark` coerente com o design system (mesmo laranja da marca sobre base escura) soma-se ao `AppTheme.light`. Um `ThemeCubit` vive acima do `MaterialApp` e dirige o `themeMode` (claro/escuro/sistema); a opção é **persistida localmente** e recarregada antes do primeiro frame (sem flash do padrão). Controle de tema na top bar da lista e do editor — `ThemeModeButton` abre um menu com as três opções (claro/escuro/sistema), cada item com ícone + rótulo pt-BR e a opção ativa marcada com check; tooltip e `Semantics` (a cor nunca é o único sinal). Esta camada de armazenamento local é a base que o **item 17 (offline-first)** vai reaproveitar. _(roadmap item 3)_
 
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
