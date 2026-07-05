@@ -77,8 +77,11 @@ class EditorCubit extends Cubit<EditorState> {
       case SlotKind.single when target.child == null:
         newRoot = sdui.setChild(root, target.id, node);
       // Alvo é folha (ou single ocupado): entra na raiz, depois do alvo se
-      // ele for bloco de topo.
+      // ele for bloco de topo. Se a raiz não tem slot multi, não há lista onde
+      // criar um "irmão" sem trocar a própria raiz; nesse caso não muta.
       case SlotKind.single || SlotKind.none:
+        final rootSlot = descriptorFor(root.type)?.slot ?? SlotKind.none;
+        if (rootSlot != SlotKind.multi) return;
         final topIndex = root.children.indexWhere(
           (child) => child.id == target.id,
         );
