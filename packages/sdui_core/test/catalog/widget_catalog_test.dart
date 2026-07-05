@@ -70,6 +70,41 @@ void main() {
       }
     });
 
+    test('textField expõe props abrangentes e não expõe mais filled', () {
+      final descriptor = descriptorFor('textField')!;
+      final byKey = {for (final f in descriptor.fields) f.key: f};
+
+      expect(byKey.containsKey('filled'), isFalse);
+
+      final borderStyle = byKey['borderStyle']!;
+      expect(borderStyle.kind, FieldKind.enumeration);
+      expect(borderStyle.enumValues, <String>[
+        'outline',
+        'underline',
+        'filled',
+      ]);
+      expect(borderStyle.defaultValue, 'outline');
+
+      final keyboardType = byKey['keyboardType']!;
+      expect(keyboardType.kind, FieldKind.enumeration);
+      expect(keyboardType.enumValues, <String>[
+        'text',
+        'number',
+        'email',
+        'phone',
+        'url',
+      ]);
+      expect(keyboardType.defaultValue, 'text');
+
+      final maxLength = byKey['maxLength']!;
+      expect(maxLength.kind, FieldKind.intNum);
+      expect(maxLength.defaultValue, isNull);
+
+      final prefixIcon = byKey['prefixIcon']!;
+      expect(prefixIcon.kind, FieldKind.iconName);
+      expect(prefixIcon.defaultValue, isNull);
+    });
+
     test('descriptorFor devolve null para tipo desconhecido', () {
       expect(descriptorFor('carousel3d'), isNull);
       expect(descriptorFor('text'), isNotNull);

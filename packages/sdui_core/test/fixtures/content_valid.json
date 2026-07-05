@@ -92,7 +92,9 @@
           "label": "Cupom",
           "hint": "Digite seu cupom",
           "value": "PROMO10",
-          "enabled": true
+          "enabled": true,
+          "borderStyle": "outline",
+          "keyboardType": "text"
         }
       },
       {

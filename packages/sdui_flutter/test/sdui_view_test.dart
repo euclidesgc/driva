@@ -113,6 +113,54 @@ void main() {
     );
   });
 
+  testWidgets('textField mapeia borderStyle nas três variantes', (
+    tester,
+  ) async {
+    Future<InputDecoration> decorationFor(String borderStyle) async {
+      final node = SduiNode(
+        id: 'tf',
+        type: 'textField',
+        properties: {'label': 'X', 'borderStyle': borderStyle},
+      );
+      await tester.pumpWidget(_host(SduiView(node: node)));
+      return tester.widget<TextField>(find.byType(TextField)).decoration!;
+    }
+
+    final outline = await decorationFor('outline');
+    expect(outline.border, isA<OutlineInputBorder>());
+    expect(outline.filled, isFalse);
+
+    final underline = await decorationFor('underline');
+    expect(underline.border, isA<UnderlineInputBorder>());
+    expect(underline.filled, isFalse);
+
+    final filled = await decorationFor('filled');
+    expect(filled.border, isA<OutlineInputBorder>());
+    expect(filled.filled, isTrue);
+  });
+
+  testWidgets('textField aplica keyboardType, maxLength e prefixIcon', (
+    tester,
+  ) async {
+    const node = SduiNode(
+      id: 'tf',
+      type: 'textField',
+      properties: {
+        'label': 'Telefone',
+        'keyboardType': 'phone',
+        'maxLength': 11,
+        'prefixIcon': 'person',
+      },
+    );
+
+    await tester.pumpWidget(_host(const SduiView(node: node)));
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.keyboardType, TextInputType.phone);
+    expect(field.maxLength, 11);
+    expect(find.byIcon(Icons.person), findsOneWidget);
+  });
+
   testWidgets('switch e checkbox sem label caem no controle simples', (
     tester,
   ) async {

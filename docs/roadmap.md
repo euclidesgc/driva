@@ -37,6 +37,8 @@ _Depende só do editor atual; independente de backend e de categorias._
 
 - `[-]` **9. Ampliar o catálogo usando o FlutterFlow como referência.** _(item -1)_ Guiar-se pelo FlutterFlow para decidir quais widgets teremos e como suas propriedades são modeladas/editadas. Track contínuo que alimenta paleta e Inspector. **Depende do item 1** (edição de propriedade precisa funcionar).
   - **Incremento 1 (controles de formulário):** `textField`, `switch`, `checkbox` — três novos descriptors + builders + fixture, preview estático. Paleta/Inspector derivam do catálogo, sem código por tipo no editor.
+  - **Incremento 2 (`textField` abrangente):** props do `textField` ampliadas à la FlutterFlow — `filled` (bool) vira `borderStyle` (enum `outline`/`underline`/`filled`); adiciona `keyboardType` (enum), `maxLength` (int) e `prefixIcon` (iconName). Só descriptor + builder + fixture; o Inspector já deriva os editores do `FieldKind`.
+- `[ ]` **9b. Editores de propriedade avançados no Inspector (estados + binding).** _(baixa/média prioridade)_ A componentização do editor de propriedade **por tipo** (`FieldKind`→editor) já existe; falta a camada de **estados e binding** que o FlutterFlow tem: (a) **estados múltiplos** por propriedade — forma expandida detalhada ↔ contraída com presets (ex.: `padding` com 4 lados individuais vs. atalho "todos"); (b) **"set from variable" / binding** por propriedade — alternar entre **valor fixo** e **expressão `{{binding}}`** (o binding já é dado no spec; o app cliente o executa, o editor só o edita). **Depende do item 1** e alimenta todo o track do catálogo.
 
 ## Marco 3 — Organização de conteúdos: categorias, busca e paginação
 
