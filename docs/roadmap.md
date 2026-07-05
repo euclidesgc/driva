@@ -33,7 +33,8 @@ _Depende só do editor atual; independente de backend e de categorias._
 
 ## Marco 2 — Catálogo de widgets (track contínuo)
 
-- `[ ]` **9. Ampliar o catálogo usando o FlutterFlow como referência.** _(item -1)_ Guiar-se pelo FlutterFlow para decidir quais widgets teremos e como suas propriedades são modeladas/editadas. Track contínuo que alimenta paleta e Inspector. **Depende do item 1** (edição de propriedade precisa funcionar).
+- `[-]` **9. Ampliar o catálogo usando o FlutterFlow como referência.** _(item -1)_ Guiar-se pelo FlutterFlow para decidir quais widgets teremos e como suas propriedades são modeladas/editadas. Track contínuo que alimenta paleta e Inspector. **Depende do item 1** (edição de propriedade precisa funcionar).
+  - **Incremento 1 (controles de formulário):** `textField`, `switch`, `checkbox` — três novos descriptors + builders + fixture, preview estático. Paleta/Inspector derivam do catálogo, sem código por tipo no editor.
 
 ## Marco 3 — Organização de conteúdos: categorias, busca e paginação
 

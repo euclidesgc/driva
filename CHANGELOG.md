@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **Catálogo · controles de formulário (roadmap item 9, incremento 1)**: três novos primitivos, seguindo a regra de ouro do spec (descriptor no `widget_catalog.dart` do `sdui_core` + builder no registry do `sdui_flutter` + fixture; nada hardcoded no editor). `textField` (props `label`, `hint`, `value`, `helperText`, `obscureText`, `enabled`, `filled`), `switch` (props `value`, `label`, `enabled`, `activeColor`) e `checkbox` (props `value`, `label`, `enabled`, `activeColor`) — todos folhas na categoria Interação. O preview é **estático** (o `value` vem das props; a interação no editor não muta estado real). `switch`/`checkbox` viram `SwitchListTile`/`CheckboxListTile` quando há `label`, senão o controle simples. Paleta e Inspector derivam do catálogo; ícones da paleta adicionados para os três tipos.
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado

@@ -50,6 +50,71 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
     expect(find.byType(Divider), findsOneWidget);
     expect(find.byType(Card), findsOneWidget);
+    expect(find.byType(TextFormField), findsOneWidget);
+    expect(find.text('Receber novidades'), findsOneWidget);
+    expect(find.text('Aceito os termos'), findsOneWidget);
+  });
+
+  testWidgets('controles de formulário renderizam com label (list tiles)', (
+    tester,
+  ) async {
+    const node = SduiNode(
+      id: 'root',
+      type: 'column',
+      children: [
+        SduiNode(
+          id: 'tf',
+          type: 'textField',
+          properties: {'label': 'Nome', 'value': 'Ana'},
+        ),
+        SduiNode(
+          id: 'sw',
+          type: 'switch',
+          properties: {'value': true, 'label': 'Ativo'},
+        ),
+        SduiNode(
+          id: 'cb',
+          type: 'checkbox',
+          properties: {'value': true, 'label': 'Concordo'},
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(_host(const SduiView(node: node)));
+
+    final field = tester.widget<TextFormField>(find.byType(TextFormField));
+    expect(field.initialValue, 'Ana');
+
+    expect(find.byType(SwitchListTile), findsOneWidget);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isTrue,
+    );
+    expect(find.byType(CheckboxListTile), findsOneWidget);
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      isTrue,
+    );
+  });
+
+  testWidgets('switch e checkbox sem label caem no controle simples', (
+    tester,
+  ) async {
+    const node = SduiNode(
+      id: 'root',
+      type: 'row',
+      children: [
+        SduiNode(id: 'sw', type: 'switch', properties: {'value': false}),
+        SduiNode(id: 'cb', type: 'checkbox', properties: {'value': true}),
+      ],
+    );
+
+    await tester.pumpWidget(_host(const SduiView(node: node)));
+
+    expect(find.byType(SwitchListTile), findsNothing);
+    expect(find.byType(CheckboxListTile), findsNothing);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
   });
 
   testWidgets('props planas viram estilo (texto e container)', (tester) async {

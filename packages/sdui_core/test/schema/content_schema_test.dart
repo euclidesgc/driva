@@ -23,15 +23,20 @@ void main() {
       expect(content!.id, 'ct_home_promo');
       expect(content.slug, 'home');
       expect(content.root.type, 'column');
-      expect(content.root.children, hasLength(5));
+      expect(content.root.children, hasLength(8));
 
       final banner = content.root.children.first;
       expect(banner.type, 'container');
       expect(banner.properties['color'], '#6C4CF1');
       expect(banner.child?.type, 'text');
 
-      final cta = content.root.children.last;
+      final cta = content.root.children.firstWhere((n) => n.type == 'button');
       expect(cta.events['onPressed'], isA<List<dynamic>>());
+
+      final field = content.root.children.firstWhere(
+        (n) => n.type == 'textField',
+      );
+      expect(field.properties['value'], 'PROMO10');
     });
 
     test('roundtrip: toJson de um conteúdo parseado re-parseia igual', () {
