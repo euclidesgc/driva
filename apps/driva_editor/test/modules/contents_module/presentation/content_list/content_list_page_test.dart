@@ -124,6 +124,20 @@ void main() {
       expect(find.text('Vitrine principal'), findsOneWidget);
       expect(find.text('ID de suporte: ct_1'), findsOneWidget);
     });
+
+    testWidgets('barra mantém o controle de tema em largura compacta', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(763, 1081));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
+
+      expect(find.byType(ThemeModeButton), findsOneWidget);
+      expect(find.byTooltip('Tema'), findsOneWidget);
+    });
   });
 
   group('acessibilidade do card (cor não é o único sinal)', () {
