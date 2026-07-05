@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../core/error/error.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/theme/widgets/resizable_split_view.dart';
 import '../../../../injection.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -84,6 +84,7 @@ class _EditorWorkspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
 
     return Shortcuts(
       shortcuts: {
@@ -102,14 +103,17 @@ class _EditorWorkspace extends StatelessWidget {
         },
         child: Focus(
           autofocus: true,
-          child: const Scaffold(
-            appBar: EditorTopBar(),
+          child: Scaffold(
+            appBar: const EditorTopBar(),
             body: ResizableSplitView(
-              left: _LeftPanel(),
-              center: ColoredBox(color: AppTheme.canvas, child: _CanvasArea()),
+              left: const _LeftPanel(),
+              center: ColoredBox(
+                color: colors.canvasBackdrop,
+                child: const _CanvasArea(),
+              ),
               right: ColoredBox(
-                color: AppTheme.surface,
-                child: _InspectorArea(),
+                color: colors.panel,
+                child: const _InspectorArea(),
               ),
             ),
           ),
@@ -127,8 +131,9 @@ class _LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return ColoredBox(
-      color: AppTheme.surface,
+      color: colors.panel,
       child: DefaultTabController(
         length: 2,
         child: Column(

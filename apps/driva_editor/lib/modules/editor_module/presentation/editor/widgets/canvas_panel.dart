@@ -6,6 +6,7 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
 import '../device_preset.dart';
 import 'drag_payload.dart';
@@ -96,12 +97,13 @@ class _CanvasToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(bottom: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        color: colors.panel,
+        border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: Row(
         children: [
@@ -127,7 +129,7 @@ class _CanvasToolbar extends StatelessWidget {
           const Spacer(),
           Text(
             '${device.width.toInt()} × ${device.height.toInt()}',
-            style: const TextStyle(fontSize: 12, color: AppTheme.inkMuted),
+            style: TextStyle(fontSize: 12, color: colors.inkMuted),
           ),
           const SizedBox(width: 16),
           IconButton(
@@ -295,22 +297,23 @@ class _EmptyPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.swipe_left_alt_outlined,
               size: 40,
-              color: AppTheme.inkMuted,
+              color: colors.inkMuted,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               'Conteúdo vazio.\nArraste um widget da paleta para começar.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.inkSecondary),
+              style: TextStyle(color: colors.inkSecondary),
             ),
           ],
         ),

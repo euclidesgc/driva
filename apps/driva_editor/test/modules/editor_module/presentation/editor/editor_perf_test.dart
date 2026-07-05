@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
@@ -39,6 +40,7 @@ void main() {
   tearDown(() => cubit.close());
 
   Widget harness() => MaterialApp(
+    theme: AppTheme.light,
     home: BlocProvider.value(value: cubit, child: const EditorPage()),
   );
 

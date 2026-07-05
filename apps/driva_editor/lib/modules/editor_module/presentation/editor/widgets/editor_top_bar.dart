@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
 
 /// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
@@ -78,15 +78,16 @@ class _SaveIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     // Cor + ícone + texto: a cor nunca é o único sinal (acessibilidade).
     final (icon, label, color) = switch (status) {
-      SaveStatus.saved => (Icons.check_circle, 'Salvo', AppTheme.success),
+      SaveStatus.saved => (Icons.check_circle, 'Salvo', colors.success),
       SaveStatus.dirty => (
         Icons.edit_outlined,
         'Não salvo',
-        AppTheme.inkSecondary,
+        colors.inkSecondary,
       ),
-      SaveStatus.saving => (Icons.sync, 'Salvando…', AppTheme.inkSecondary),
+      SaveStatus.saving => (Icons.sync, 'Salvando…', colors.inkSecondary),
       SaveStatus.saveFailed => (
         Icons.error_outline,
         'Falha ao salvar',

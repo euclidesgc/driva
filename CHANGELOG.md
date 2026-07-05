@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Corrigido
+
+- **driva_editor · temas (contraste/acessibilidade)**: os temas light/dark deixam de ter contraste ruim — em especial o **dark**, onde painéis, backdrop e labels apareciam claros. Causa raiz: ~45 usos de `AppTheme.{surface,canvas,border,ink,inkSecondary,inkMuted,primaryTint,success}` eram `static const` (valores fixos do tema claro) e não reagiam ao tema. Introduzido o `ThemeExtension` **`EditorColors`** (tokens semânticos `canvasBackdrop`/`panel`/`panelAlt`/`inkPrimary`/`inkSecondary`/`inkMuted`/`border`/`primaryTint`/`success`, com `copyWith`/`lerp` e instâncias `light`/`dark`), registrado em `ThemeData.extensions` de `AppTheme.light`/`AppTheme.dark`. Os widgets passam a ler as cores theme-aware via `Theme.of(context).extension<EditorColors>()`. A paleta foi recalibrada para **WCAG AA** (texto ≥ 4.5:1; muted ≥ 4.0:1) e o `ColorScheme`/`inputDecorationTheme` alinhados aos tokens. O fundo do canvas atrás do mock passa a seguir `canvasBackdrop` (some o cinza-claro no dark); a laranja da marca (`AppTheme.primary`) e a tela branca do dispositivo previsto ficam fixas de propósito. `MaterialApp` passa a expor `darkTheme` + `themeMode: system`.
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado

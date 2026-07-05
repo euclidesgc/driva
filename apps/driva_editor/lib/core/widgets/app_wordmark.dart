@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../theme/editor_colors.dart';
 
 class AppWordmark extends StatelessWidget {
   const AppWordmark({super.key, this.onTap});
@@ -9,9 +10,10 @@ class AppWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const label = Text.rich(
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    final label = Text.rich(
       TextSpan(
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Space Grotesk',
           fontSize: 20,
           fontWeight: FontWeight.w700,
@@ -19,13 +21,13 @@ class AppWordmark extends StatelessWidget {
           height: 1,
         ),
         children: [
-          TextSpan(
+          const TextSpan(
             text: 'Driva',
             style: TextStyle(color: AppTheme.primary),
           ),
           TextSpan(
             text: ' Builder',
-            style: TextStyle(color: AppTheme.ink),
+            style: TextStyle(color: colors.inkPrimary),
           ),
         ],
       ),
@@ -41,8 +43,8 @@ class AppWordmark extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: label,
           ),
         ),

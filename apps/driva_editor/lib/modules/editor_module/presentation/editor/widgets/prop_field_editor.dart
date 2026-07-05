@@ -4,6 +4,7 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart' show curatedIconNames;
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 
 /// Fábrica `FieldKind → editor`: o Inspector deriva cada campo daqui.
 /// Emitir `null` em [onChanged] remove a chave (volta ao default do renderer).
@@ -25,6 +26,7 @@ class PropFieldEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final editor = switch (field.kind) {
       FieldKind.string => _StringEditor(
         field: field,
@@ -84,10 +86,7 @@ class PropFieldEditor extends StatelessWidget {
             children: [
               Text(
                 field.label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.inkSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: colors.inkSecondary),
               ),
               if (field.isRequired)
                 const Text(' *', style: TextStyle(color: AppTheme.primary)),
@@ -294,6 +293,7 @@ class _ColorEditorState extends State<_ColorEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final current = _parse(widget.value);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,14 +305,14 @@ class _ColorEditorState extends State<_ColorEditor> {
               height: 24,
               decoration: BoxDecoration(
                 color: current ?? Colors.transparent,
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: colors.border),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: current == null
-                  ? const Icon(
+                  ? Icon(
                       Icons.format_color_reset_outlined,
                       size: 14,
-                      color: AppTheme.inkMuted,
+                      color: colors.inkMuted,
                     )
                   : null,
             ),
@@ -360,7 +360,7 @@ class _ColorEditorState extends State<_ColorEditor> {
                     height: 18,
                     decoration: BoxDecoration(
                       color: _parse(hex),
-                      border: Border.all(color: AppTheme.border),
+                      border: Border.all(color: colors.border),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -386,17 +386,18 @@ class _EnumEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final current = field.enumValues.contains(value) ? value! as String : null;
     return DropdownButtonFormField<String?>(
       initialValue: current,
       isDense: true,
-      style: const TextStyle(fontSize: 13, color: AppTheme.ink),
+      style: TextStyle(fontSize: 13, color: colors.inkPrimary),
       decoration: const InputDecoration(isDense: true),
       items: [
         if (!field.isRequired)
-          const DropdownMenuItem<String?>(
+          DropdownMenuItem<String?>(
             value: null,
-            child: Text('—', style: TextStyle(color: AppTheme.inkMuted)),
+            child: Text('—', style: TextStyle(color: colors.inkMuted)),
           ),
         for (final option in field.enumValues)
           DropdownMenuItem(value: option, child: Text(option)),
@@ -524,6 +525,7 @@ class _AlignmentEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -543,12 +545,12 @@ class _AlignmentEditor extends StatelessWidget {
                       margin: const EdgeInsets.all(1),
                       decoration: BoxDecoration(
                         color: value == alignment
-                            ? AppTheme.primaryTint
-                            : AppTheme.surface,
+                            ? colors.primaryTint
+                            : colors.panel,
                         border: Border.all(
                           color: value == alignment
                               ? AppTheme.primary
-                              : AppTheme.border,
+                              : colors.border,
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -557,7 +559,7 @@ class _AlignmentEditor extends StatelessWidget {
                         size: 8,
                         color: value == alignment
                             ? AppTheme.primary
-                            : AppTheme.inkMuted,
+                            : colors.inkMuted,
                       ),
                     ),
                   ),
@@ -582,18 +584,19 @@ class _IconEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final names = curatedIconNames;
     final current = names.contains(value) ? value! as String : null;
     return DropdownButtonFormField<String?>(
       initialValue: current,
       isDense: true,
-      style: const TextStyle(fontSize: 13, color: AppTheme.ink),
+      style: TextStyle(fontSize: 13, color: colors.inkPrimary),
       decoration: const InputDecoration(isDense: true),
       items: [
         if (!field.isRequired)
-          const DropdownMenuItem<String?>(
+          DropdownMenuItem<String?>(
             value: null,
-            child: Text('—', style: TextStyle(color: AppTheme.inkMuted)),
+            child: Text('—', style: TextStyle(color: colors.inkMuted)),
           ),
         for (final name in names)
           DropdownMenuItem(value: name, child: Text(name)),

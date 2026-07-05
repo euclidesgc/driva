@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import 'palette_icons.dart';
 import 'prop_field_editor.dart';
 
@@ -31,6 +32,7 @@ class InspectorPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final descriptor = descriptorFor(node.type);
 
     return Column(
@@ -46,10 +48,10 @@ class InspectorPanel extends StatelessWidget {
         ),
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'Sem propriedades editáveis.',
-                    style: TextStyle(color: AppTheme.inkMuted, fontSize: 13),
+                    style: TextStyle(color: colors.inkMuted, fontSize: 13),
                   ),
                 )
               : ListView(
@@ -102,10 +104,11 @@ class _InspectorHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: Row(
         children: [
@@ -122,10 +125,7 @@ class _InspectorHeader extends StatelessWidget {
                 Text(title, style: theme.textTheme.titleSmall),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.inkMuted,
-                  ),
+                  style: TextStyle(fontSize: 11, color: colors.inkMuted),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -151,15 +151,16 @@ class _GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 2),
       child: Text(
         label.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 10,
           letterSpacing: 0.6,
           fontWeight: FontWeight.w600,
-          color: AppTheme.inkMuted,
+          color: colors.inkMuted,
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import 'drag_payload.dart';
 import 'palette_icons.dart';
 
@@ -147,6 +148,7 @@ class _TreeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final row = DragTarget<DragPayload>(
       onWillAcceptWithDetails: (details) => switch (details.data) {
         NodeDragPayload(:final nodeId) => nodeId != node.id,
@@ -165,9 +167,9 @@ class _TreeRow extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.primaryTint
+                    ? colors.primaryTint
                     : highlighted
-                    ? AppTheme.canvas
+                    ? colors.canvasBackdrop
                     : null,
                 border: Border(
                   left: BorderSide(
@@ -181,9 +183,7 @@ class _TreeRow extends StatelessWidget {
                   Icon(
                     paletteIconFor(node.type),
                     size: 16,
-                    color: isSelected
-                        ? AppTheme.primary
-                        : AppTheme.inkSecondary,
+                    color: isSelected ? AppTheme.primary : colors.inkSecondary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -217,7 +217,7 @@ class _TreeRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: colors.panel,
             border: Border.all(color: AppTheme.primary),
             borderRadius: BorderRadius.circular(6),
           ),
@@ -237,6 +237,7 @@ class _DropZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return DragTarget<DragPayload>(
       onAcceptWithDetails: (details) => onAccept(details.data),
       builder: (context, candidates, _) {
@@ -245,9 +246,9 @@ class _DropZone extends StatelessWidget {
           margin: const EdgeInsets.all(12),
           height: 44,
           decoration: BoxDecoration(
-            color: active ? AppTheme.primaryTint : null,
+            color: active ? colors.primaryTint : null,
             border: Border.all(
-              color: active ? AppTheme.primary : AppTheme.border,
+              color: active ? AppTheme.primary : colors.border,
               style: BorderStyle.solid,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -257,7 +258,7 @@ class _DropZone extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: active ? AppTheme.primary : AppTheme.inkMuted,
+                color: active ? AppTheme.primary : colors.inkMuted,
               ),
             ),
           ),
