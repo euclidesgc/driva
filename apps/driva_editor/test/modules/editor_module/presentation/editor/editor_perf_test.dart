@@ -1,6 +1,8 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
+import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +12,8 @@ import 'package:sdui_core/sdui_core.dart';
 class _MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
 class _MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
+
+class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
 ContentSpec _docWithText(String text) => ContentSpec(
   specVersion: kSpecVersion,
@@ -27,6 +31,7 @@ ContentSpec _docWithText(String text) => ContentSpec(
 
 void main() {
   late EditorCubit cubit;
+  late _MockThemeCubit themeCubit;
 
   setUp(() {
     cubit = EditorCubit(
@@ -34,12 +39,24 @@ void main() {
       saveDraftUseCase: _MockSaveDraftUseCase(),
     );
     cubit.emit(EditorReady(document: _docWithText('A')));
+    themeCubit = _MockThemeCubit();
+    whenListen(
+      themeCubit,
+      const Stream<ThemeState>.empty(),
+      initialState: const ThemeState(AppThemeMode.light),
+    );
   });
 
   tearDown(() => cubit.close());
 
   Widget harness() => MaterialApp(
-    home: BlocProvider.value(value: cubit, child: const EditorPage()),
+    home: MultiBlocProvider(
+      providers: [
+        BlocProvider<EditorCubit>.value(value: cubit),
+        BlocProvider<ThemeCubit>.value(value: themeCubit),
+      ],
+      child: const EditorPage(),
+    ),
   );
 
   void enlarge(WidgetTester tester) {

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../preferences_module/preferences_module.dart';
 import '../cubit/editor_cubit.dart';
 
 /// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
@@ -53,6 +54,8 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
+        const ThemeModeButton(),
+        const SizedBox(width: 8),
         _SaveIndicator(status: status),
         const SizedBox(width: 12),
         FilledButton.icon(
