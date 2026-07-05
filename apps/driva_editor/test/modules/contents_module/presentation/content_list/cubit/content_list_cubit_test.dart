@@ -26,6 +26,14 @@ void main() {
     updatedAt: DateTime(2026, 7, 1),
   );
 
+  final other = ContentSummary(
+    id: 'ct_2',
+    name: 'Sobre',
+    slug: 'sobre',
+    description: null,
+    updatedAt: DateTime(2026, 7, 2),
+  );
+
   setUp(() {
     getContents = MockGetContentsUseCase();
     createContent = MockCreateContentUseCase();
@@ -76,20 +84,17 @@ void main() {
 
   group('create', () {
     blocTest<ContentListCubit, ContentListState>(
-      'sucesso: recarrega a lista e devolve o conteúdo criado',
+      'sucesso: não emite estado nem recarrega — devolve o conteúdo criado',
       build: build,
-      setUp: () {
-        when(
-          () => createContent(name: 'Home', slug: 'home', description: null),
-        ).thenAnswer((_) async => Right(content));
-        when(() => getContents()).thenAnswer((_) async => Right([content]));
+      setUp: () => when(
+        () => createContent(name: 'Home', slug: 'home', description: null),
+      ).thenAnswer((_) async => Right(content)),
+      act: (cubit) async {
+        final result = await cubit.create(name: 'Home', slug: 'home');
+        expect(result, Right<Failure, ContentSummary>(content));
       },
-      act: (cubit) => cubit.create(name: 'Home', slug: 'home'),
-      expect: () => [
-        const ContentListLoading(),
-        ContentListLoaded(contents: [content]),
-      ],
-      verify: (_) => verify(() => getContents()).called(1),
+      expect: () => <ContentListState>[],
+      verify: (_) => verifyNever(() => getContents()),
     );
 
     blocTest<ContentListCubit, ContentListState>(
@@ -109,16 +114,56 @@ void main() {
 
   group('delete', () {
     blocTest<ContentListCubit, ContentListState>(
-      'recarrega após excluir',
+      'sucesso otimista: remove o card na hora sem Loading nem reload',
       build: build,
+      seed: () => ContentListLoaded(contents: [content, other]),
+      setUp: () => when(
+        () => deleteContent('ct_1'),
+      ).thenAnswer((_) async => const Right(unit)),
+      act: (cubit) async {
+        final result = await cubit.delete('ct_1');
+        expect(result, const Right<Failure, Unit>(unit));
+      },
+      expect: () => [
+        ContentListLoaded(contents: [other]),
+      ],
+      verify: (_) => verifyNever(() => getContents()),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'sucesso otimista: excluir o último card vira Empty',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content]),
+      setUp: () => when(
+        () => deleteContent('ct_1'),
+      ).thenAnswer((_) async => const Right(unit)),
+      act: (cubit) => cubit.delete('ct_1'),
+      expect: () => [const ContentListEmpty()],
+      verify: (_) => verifyNever(() => getContents()),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'falha: remove otimista, reconcilia via load() e devolve Left',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content, other]),
       setUp: () {
         when(
           () => deleteContent('ct_1'),
-        ).thenAnswer((_) async => const Right(unit));
-        when(() => getContents()).thenAnswer((_) async => const Right([]));
+        ).thenAnswer((_) async => const Left(NetworkFailure()));
+        when(
+          () => getContents(),
+        ).thenAnswer((_) async => Right([content, other]));
       },
-      act: (cubit) => cubit.delete('ct_1'),
-      expect: () => [const ContentListLoading(), const ContentListEmpty()],
+      act: (cubit) async {
+        final result = await cubit.delete('ct_1');
+        expect(result, const Left<Failure, Unit>(NetworkFailure()));
+      },
+      expect: () => [
+        ContentListLoaded(contents: [other]),
+        const ContentListLoading(),
+        ContentListLoaded(contents: [content, other]),
+      ],
+      verify: (_) => verify(() => getContents()).called(1),
     );
   });
 }
