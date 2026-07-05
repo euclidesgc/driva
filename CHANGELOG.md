@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **driva_editor · editor · painel de preview do JSON ao vivo**: a área central do editor ganha abas ao estilo VS Code — **Mock** (o canvas de sempre) e **JSON** (o spec do conteúdo serializado em tempo real). O painel JSON é **somente-leitura** (texto selecionável), com botão de **Copiar** (clipboard, feedback "Copiado" por ícone + rótulo, não só cor) e **syntax highlight** por um highlighter próprio sem dependências (chaves, strings, números, `true`/`false`/`null` e pontuação colorem via `TextSpan`). Reaproveita `ContentSpec.toJson()` do `sdui_core`; a re-serialização é **throttled** (~200 ms, com render final garantido), no mesmo espírito do preview do canvas. _(roadmap itens 7 e 8)_
+
 ## [0.2.0] — 2026-07-04 · Conteúdos + perf do editor + DNS próprio
 
 ### Alterado
