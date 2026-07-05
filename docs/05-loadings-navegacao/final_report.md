@@ -21,4 +21,4 @@ Fora do escopo (confirmado legítimo): o `EditorLoading` do editor é necessári
 **E2E visual** — a critério do dev humano, a prova visual (criar → editor sem flash; excluir some o card na hora) foi feita **manualmente** em homologação após o merge (opção "PR direto, E2E manual"). Ponto a conferir no uso: ao voltar do editor para a lista, a grade remonta fresca (rotas flat) e reflete o conteúdo recém-criado — comportamento esperado do PRD.
 
 ## Entrega
-PR → `develop`. Roadmap item 2 marcado `[x]`. QA validou as 2 fases; gate CISO passou em ambas.
+PR #20 → `develop`. Roadmap item 2 marcado `[x]`. QA validou as 2 fases; gate CISO passou em ambas.
