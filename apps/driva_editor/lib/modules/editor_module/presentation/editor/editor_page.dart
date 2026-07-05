@@ -14,6 +14,7 @@ import 'device_preset.dart';
 import 'widgets/canvas_panel.dart';
 import 'widgets/editor_top_bar.dart';
 import 'widgets/inspector_panel.dart';
+import 'widgets/json_preview_panel.dart';
 import 'widgets/widget_palette_panel.dart';
 import 'widgets/widget_tree_panel.dart';
 
@@ -106,7 +107,7 @@ class _EditorWorkspace extends StatelessWidget {
             appBar: EditorTopBar(),
             body: ResizableSplitView(
               left: _LeftPanel(),
-              center: ColoredBox(color: AppTheme.canvas, child: _CanvasArea()),
+              center: _CenterArea(),
               right: ColoredBox(
                 color: AppTheme.surface,
                 child: _InspectorArea(),
@@ -175,6 +176,71 @@ class _LeftPanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Área central com abas ao estilo VS Code: alterna entre o **Mock** (canvas)
+/// e o **JSON** do spec ao vivo. Só a casca (a `TabBar`) vive aqui; cada aba
+/// assina sua própria fatia do cubit, então trocar de aba não reconstrói a
+/// outra desnecessariamente.
+class _CenterArea extends StatelessWidget {
+  const _CenterArea();
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              color: AppTheme.surface,
+              border: Border(bottom: BorderSide(color: AppTheme.border)),
+            ),
+            child: const TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              tabs: [
+                Tab(
+                  height: 40,
+                  child: _CenterTabLabel(icon: Icons.smartphone, label: 'Mock'),
+                ),
+                Tab(
+                  height: 40,
+                  child: _CenterTabLabel(
+                    icon: Icons.data_object,
+                    label: 'JSON',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(
+            child: TabBarView(
+              children: [
+                ColoredBox(color: AppTheme.canvas, child: _CanvasArea()),
+                JsonPreviewPanel(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CenterTabLabel extends StatelessWidget {
+  const _CenterTabLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [Icon(icon, size: 16), const SizedBox(width: 6), Text(label)],
     );
   }
 }

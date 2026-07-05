@@ -18,18 +18,18 @@ _Sem dependências entre si; vêm primeiro porque tornam todo o resto viável ou
 
 - `[x]` **1. Corrigir o bug de foco no Inspector (0-dep).** _(item 16)_ Ao digitar em qualquer campo de propriedade (ex.: elevação do card), o editor perde o foco após cada tecla e exige reclicar. Causa: a `ValueKey` do `TextFormField` inclui o valor, então cada `onChanged` recria o campo. **Precede o item 9 (catálogo)** — sem isso, editar propriedades é inviável.
 - `[x]` **2. Enxugar loadings e rebuilds da navegação.** _(item 10)_ Remover o loading desnecessário ao criar conteúdo (ele pisca antes de ir ao construtor) e cortar rebuilds à toa nas telas de carregamento. A transição em si já está boa — o alvo é o flash de load. **Entregue:** create navega direto ao editor (sem `await load()`/spinner) e exclusão otimista (card some na hora, reconcilia em falha). Docs em `docs/05-loadings-navegacao/`.
-- `[ ]` **3. Tema light + dark com persistência.** _(item 0)_ Hoje só existe `AppTheme.light`. Adicionar o dark e persistir a opção ao sair (introduz a camada de preferências local que o **item 15 (offline-first)** reaproveita).
+- `[x]` **3. Tema light + dark com persistência.** _(item 0)_ Hoje só existe `AppTheme.light`. Adicionar o dark e persistir a opção ao sair (introduz a camada de preferências local que o **item 15 (offline-first)** reaproveita).
 - `[x]` **3b. Aliviar o peso do editor ao digitar/arrastar (escopo de rebuilds).** _(perf; surgiu do uso)_ Um único `BlocBuilder` no topo reconstrói o editor inteiro (paleta + árvore + canvas + inspector) a cada tecla/tick de drag, e o canvas re-executa o renderer real do Flutter toda vez. Escopar rebuilds por painel (`BlocSelector`/`buildWhen`), isolar o canvas (`RepaintBoundary`) e **throttlar só o preview caro** (mantendo campo e estado instantâneos). Sem dependências; destrava a sensação de leveza de tudo depois (inclusive o item 9).
 
 ## Marco 1 — Polimento do construtor (canvas)
 
 _Depende só do editor atual; independente de backend e de categorias._
 
-- `[ ]` **4. Altura máxima do mock do dispositivo.** _(item 12)_ Limitar a altura do mock para não rolar a tela em monitores grandes (mantendo rolagem só quando a tela do usuário for menor que o mock).
+- `[x]` **4. Altura máxima do mock do dispositivo.** _(item 12)_ Limitar a altura do mock para não rolar a tela em monitores grandes (mantendo rolagem só quando a tela do usuário for menor que o mock).
 - `[x]` **5. Feedback visual ao soltar um componente no mock.** _(item 11)_ Componente solto no dispositivo mostra borda tracejada + uma tag pequena com o nome, para o usuário perceber que há algo ali.
-- `[ ]` **6. Molduras de dispositivo realistas.** _(item 13)_ Trocar as 3 caixas de tamanho por molduras críveis de Android, iPhone e Tablet (aproximar do device real, como no app de exemplo).
-- `[ ]` **7. Painel de preview do JSON em tempo real.** _(item 14)_ Exibir o JSON do spec sendo gerado, numa aba/janela destacável — lado a lado com o mock ou alternando entre eles (estilo painéis do VS Code). **Precede o item 8.**
-- `[ ]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_ Depende do painel do item 7.
+- `[x]` **6. Molduras de dispositivo realistas.** _(item 13)_ Trocar as 3 caixas de tamanho por molduras críveis de Android, iPhone e Tablet (aproximar do device real, como no app de exemplo).
+- `[x]` **7. Painel de preview do JSON em tempo real.** _(item 14)_ Exibir o JSON do spec sendo gerado, numa aba/janela destacável — lado a lado com o mock ou alternando entre eles (estilo painéis do VS Code). **Precede o item 8.**
+- `[x]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_ Depende do painel do item 7.
 
 ## Marco 2 — Catálogo de widgets (track contínuo)
 
