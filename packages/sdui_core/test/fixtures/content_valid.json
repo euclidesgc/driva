@@ -84,6 +84,26 @@
             { "action": "navigate", "params": { "to": "/promocoes" } }
           ]
         }
+      },
+      {
+        "id": "nd_field",
+        "type": "textField",
+        "props": {
+          "label": "Cupom",
+          "hint": "Digite seu cupom",
+          "value": "PROMO10",
+          "enabled": true
+        }
+      },
+      {
+        "id": "nd_switch",
+        "type": "switch",
+        "props": { "value": true, "label": "Receber novidades" }
+      },
+      {
+        "id": "nd_checkbox",
+        "type": "checkbox",
+        "props": { "value": false, "label": "Aceito os termos" }
       }
     ]
   }
