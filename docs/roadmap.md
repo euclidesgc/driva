@@ -26,7 +26,7 @@ _Sem dependências entre si; vêm primeiro porque tornam todo o resto viável ou
 _Depende só do editor atual; independente de backend e de categorias._
 
 - `[x]` **4. Altura máxima do mock do dispositivo.** _(item 12)_ Limitar a altura do mock para não rolar a tela em monitores grandes (mantendo rolagem só quando a tela do usuário for menor que o mock).
-- `[ ]` **5. Feedback visual ao soltar um componente no mock.** _(item 11)_ Componente solto no dispositivo mostra borda tracejada + uma tag pequena com o nome, para o usuário perceber que há algo ali.
+- `[x]` **5. Feedback visual ao soltar um componente no mock.** _(item 11)_ Componente solto no dispositivo mostra borda tracejada + uma tag pequena com o nome, para o usuário perceber que há algo ali.
 - `[x]` **6. Molduras de dispositivo realistas.** _(item 13)_ Trocar as 3 caixas de tamanho por molduras críveis de Android, iPhone e Tablet (aproximar do device real, como no app de exemplo).
 - `[x]` **7. Painel de preview do JSON em tempo real.** _(item 14)_ Exibir o JSON do spec sendo gerado, numa aba/janela destacável — lado a lado com o mock ou alternando entre eles (estilo painéis do VS Code). **Precede o item 8.**
 - `[x]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_ Depende do painel do item 7.

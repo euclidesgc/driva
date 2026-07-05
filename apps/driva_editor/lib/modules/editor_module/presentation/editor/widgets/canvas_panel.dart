@@ -9,6 +9,7 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../cubit/editor_cubit.dart';
 import '../device_preset.dart';
+import 'dashed_border_painter.dart';
 import 'drag_payload.dart';
 
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
@@ -248,12 +249,18 @@ class _DeviceFrame extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(bodyRadius),
                 border: Border.all(color: _rimColor, width: 1),
-                boxShadow: const [
-                  BoxShadow(
+                boxShadow: [
+                  const BoxShadow(
                     color: Color(0x40000000),
                     blurRadius: 32,
                     offset: Offset(0, 16),
                   ),
+                  if (highlighted)
+                    const BoxShadow(
+                      color: Color(0x66E8602C),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
                 ],
               ),
               child: Stack(
@@ -503,7 +510,12 @@ class _EmptyPreview extends StatelessWidget {
   }
 }
 
-/// Contorno + rótulo de seleção sobre o widget renderizado.
+/// Contorno + rótulo sobre o widget renderizado.
+///
+/// Seleção = contorno sólido + tag destacada. Fora de seleção, cada nó recebe
+/// uma **borda tracejada discreta + tag pequena com o nome**, para o usuário
+/// perceber que há um componente ali mesmo quando ele é pequeno ou vazio
+/// (feedback ao soltar no mock).
 ///
 /// `spacer`/tipos de flex NÃO são envolvidos (precisam ser filhos diretos de
 /// Row/Column) — eles se selecionam pela árvore.
@@ -521,41 +533,68 @@ class _SelectableNode extends StatelessWidget {
   final VoidCallback onSelect;
 
   static const _unwrappable = {'spacer'};
+  static const _hintColor = Color(0x66A0A4AD);
 
   @override
   Widget build(BuildContext context) {
     if (_unwrappable.contains(node.type)) return built;
 
     final descriptor = descriptorFor(node.type);
+    final label = descriptor?.label ?? node.type;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onSelect,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          DecoratedBox(
-            position: DecorationPosition.foreground,
-            decoration: BoxDecoration(
-              border: isSelected
-                  ? Border.all(color: AppTheme.primary, width: 2)
-                  : null,
-            ),
-            child: built,
-          ),
-          if (isSelected)
+      child: Semantics(
+        label: label,
+        selected: isSelected,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (isSelected)
+              DecoratedBox(
+                position: DecorationPosition.foreground,
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.primary, width: 2),
+                ),
+                child: built,
+              )
+            else
+              CustomPaint(
+                foregroundPainter: const DashedBorderPainter(color: _hintColor),
+                child: built,
+              ),
             Positioned(
               top: -18,
               left: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                color: AppTheme.primary,
-                child: Text(
-                  descriptor?.label ?? node.type,
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
-                ),
-              ),
+              child: _NodeTag(label: label, isSelected: isSelected),
             ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tag pequena com o nome do componente. Destacada quando selecionado; discreta
+/// (só um sinal a mais de "há algo aqui") caso contrário.
+class _NodeTag extends StatelessWidget {
+  const _NodeTag({required this.label, required this.isSelected});
+
+  final String label;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      color: isSelected ? AppTheme.primary : const Color(0xCC3A3D44),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        ),
       ),
     );
   }
