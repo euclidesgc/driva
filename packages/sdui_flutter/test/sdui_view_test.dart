@@ -55,6 +55,22 @@ void main() {
     expect(find.text('Aceito os termos'), findsOneWidget);
   });
 
+  testWidgets('conteúdo sem root (vazio) renderiza nada, sem quebrar', (
+    tester,
+  ) async {
+    const content = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_vazio',
+      name: 'Vazio',
+      slug: 'vazio',
+    );
+
+    await tester.pumpWidget(_host(SduiView.content(content)));
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SizedBox), findsWidgets);
+  });
+
   testWidgets('controles de formulário renderizam com label (list tiles)', (
     tester,
   ) async {

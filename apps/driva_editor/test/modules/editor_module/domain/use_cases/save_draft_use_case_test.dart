@@ -39,18 +39,41 @@ void main() {
   });
 
   test('barra spec que o kernel rejeitaria, sem tocar o repositório', () async {
-    // root que não é column: o editor nunca produz isso; a trava garante.
+    // Folha (text) com filhos viola o contrato de slot: o editor nunca produz
+    // isso; a trava garante.
     const invalid = ContentSpec(
       specVersion: kSpecVersion,
       id: 'ct_1',
       name: 'Home',
       slug: 'home',
-      root: SduiNode(id: 'nd_root', type: 'row'),
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'text',
+        properties: {'data': 'oi'},
+        children: [SduiNode(id: 'nd_x', type: 'text')],
+      ),
     );
 
     final result = await useCase(invalid);
 
     expect(result.getLeft().toNullable(), isA<ValidationFailure>());
     verifyNever(() => repository.saveDraft(any()));
+  });
+
+  test('persiste um conteúdo vazio (sem root)', () async {
+    const empty = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_1',
+      name: 'Home',
+      slug: 'home',
+    );
+    when(
+      () => repository.saveDraft(any()),
+    ).thenAnswer((_) async => const Right(unit));
+
+    final result = await useCase(empty);
+
+    expect(result.isRight(), isTrue);
+    verify(() => repository.saveDraft(empty)).called(1);
   });
 }

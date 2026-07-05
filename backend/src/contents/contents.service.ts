@@ -54,6 +54,9 @@ export class ContentsService {
           },
           select: { id: true },
         });
+        // Conteúdo novo nasce VAZIO (sem `root`): o primeiro widget adicionado
+        // no editor vira a raiz, de qualquer tipo. O backend não interpreta o
+        // spec — só o monta válido de saída.
         const spec = {
           specVersion: SPEC_VERSION,
           kind: 'content',
@@ -63,7 +66,6 @@ export class ContentsService {
           ...(dto.description !== undefined
             ? { description: dto.description }
             : {}),
-          root: { id: `nd_root_${created.id}`, type: 'column' },
         };
         return tx.content.update({
           where: { id: created.id },

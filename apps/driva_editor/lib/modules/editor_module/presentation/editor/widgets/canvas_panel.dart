@@ -456,10 +456,12 @@ class _PreviewSurfaceState extends State<_PreviewSurface> {
   @override
   Widget build(BuildContext context) {
     final document = _rendered;
+    final root = document.root;
+    final isEmpty = root == null || root.children.isEmpty;
     return GestureDetector(
       // Clique no vazio limpa a seleção (volta às propriedades do conteúdo).
       onTap: () => widget.onSelect(null),
-      child: document.root.children.isEmpty
+      child: isEmpty
           ? const _EmptyPreview()
           : SingleChildScrollView(
               child: SduiView.content(
@@ -490,26 +492,37 @@ class _EmptyPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     // Este hint fica sobre a tela BRANCA do dispositivo (superfície do app
     // previsto), não sobre os painéis do editor — usa a paleta clara fixa para
-    // manter contraste AA mesmo com o editor no tema escuro.
+    // manter contraste AA mesmo com o editor no tema escuro. A moldura tracejada
+    // convida a soltar/clicar o primeiro widget (que vira a raiz).
     const colors = EditorColors.light;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.swipe_left_alt_outlined,
-              size: 40,
-              color: colors.inkMuted,
+    return Semantics(
+      label: 'Conteúdo vazio. Adicione o primeiro widget.',
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: CustomPaint(
+            foregroundPainter: DashedBorderPainter(color: colors.border),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_box_outlined,
+                    size: 40,
+                    color: colors.inkMuted,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Arraste um widget aqui ou clique num widget da '
+                    'paleta para começar.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: colors.inkSecondary),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Conteúdo vazio.\nArraste um widget da paleta para começar.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: colors.inkSecondary),
-            ),
-          ],
+          ),
         ),
       ),
     );

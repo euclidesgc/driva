@@ -40,9 +40,11 @@ final class EditorReady extends EditorState {
 
   /// Nó selecionado (ou `null`). Derivado — nunca guardado à parte, para não
   /// dessincronizar com o documento.
-  SduiNode? get selectedNode => selectedNodeId == null
-      ? null
-      : sdui.findNode(document.root, selectedNodeId!);
+  SduiNode? get selectedNode {
+    final root = document.root;
+    if (selectedNodeId == null || root == null) return null;
+    return sdui.findNode(root, selectedNodeId!);
+  }
 
   /// [selectedNodeId] usa função-getter para permitir "setar null"
   /// (armadilha do copyWith com campo nullable, cap. 12 do livro).
