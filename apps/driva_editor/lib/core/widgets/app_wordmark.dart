@@ -9,9 +9,12 @@ class AppWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const label = Text.rich(
+    // " Builder" acompanha o brilho do tema (onSurface): tinta escura no claro,
+    // clara no escuro — nao some sobre o canvas dark. "Driva" mantem o laranja
+    // da marca, que contrasta nos dois temas.
+    final label = Text.rich(
       TextSpan(
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Space Grotesk',
           fontSize: 20,
           fontWeight: FontWeight.w700,
@@ -19,13 +22,13 @@ class AppWordmark extends StatelessWidget {
           height: 1,
         ),
         children: [
-          TextSpan(
+          const TextSpan(
             text: 'Driva',
             style: TextStyle(color: AppTheme.primary),
           ),
           TextSpan(
             text: ' Builder',
-            style: TextStyle(color: AppTheme.ink),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
         ],
       ),
@@ -41,8 +44,8 @@ class AppWordmark extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: label,
           ),
         ),

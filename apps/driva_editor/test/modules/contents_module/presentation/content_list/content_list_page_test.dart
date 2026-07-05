@@ -1,9 +1,11 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/content_list_page.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
+import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +15,8 @@ import '../../../../support/app_fonts.dart';
 
 class MockContentListCubit extends MockCubit<ContentListState>
     implements ContentListCubit {}
+
+class MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
 void main() {
   setUpAll(loadAppFonts);
@@ -26,9 +30,16 @@ void main() {
   );
 
   late MockContentListCubit cubit;
+  late MockThemeCubit themeCubit;
 
   setUp(() {
     cubit = MockContentListCubit();
+    themeCubit = MockThemeCubit();
+    whenListen(
+      themeCubit,
+      const Stream<ThemeState>.empty(),
+      initialState: const ThemeState(AppThemeMode.light),
+    );
   });
 
   Widget bootstrap(ContentListState state) {
@@ -39,8 +50,11 @@ void main() {
     );
     return MaterialApp(
       theme: AppTheme.light,
-      home: BlocProvider<ContentListCubit>.value(
-        value: cubit,
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider<ContentListCubit>.value(value: cubit),
+          BlocProvider<ThemeCubit>.value(value: themeCubit),
+        ],
         child: const ContentListPage(),
       ),
     );
@@ -140,6 +154,47 @@ void main() {
       );
 
       expect(find.byTooltip('Excluir conteúdo'), findsOneWidget);
+    });
+  });
+
+  group('exclusão otimista', () {
+    Future<void> confirmDelete(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Excluir conteúdo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Excluir'));
+      await tester.pump();
+    }
+
+    testWidgets('confirmar exclusão chama delete do cubit com o id do card', (
+      tester,
+    ) async {
+      when(
+        () => cubit.delete('ct_1'),
+      ).thenAnswer((_) async => const Right(unit));
+
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
+      await confirmDelete(tester);
+
+      verify(() => cubit.delete('ct_1')).called(1);
+    });
+
+    testWidgets('falha ao excluir exibe snackbar de erro', (tester) async {
+      when(
+        () => cubit.delete('ct_1'),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      await tester.pumpWidget(
+        bootstrap(ContentListLoaded(contents: [content])),
+      );
+      await confirmDelete(tester);
+      await tester.pump();
+
+      expect(
+        find.text('Não foi possível excluir. Tente de novo.'),
+        findsOneWidget,
+      );
     });
   });
 
