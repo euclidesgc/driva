@@ -91,6 +91,7 @@ class _JsonPreviewPanelState extends State<JsonPreviewPanel> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _JsonToolbar(copied: _copied, onCopy: _copy),
         Expanded(child: _JsonView(json: _json)),
@@ -155,23 +156,64 @@ class _JsonView extends StatelessWidget {
   Widget build(BuildContext context) {
     const base = TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.5);
     final colors = Theme.of(context).extension<EditorColors>()!;
+    final lineCount = '\n'.allMatches(json).length + 1;
+    // Rolagem vertical envolve gutter + texto (sobem juntos); só o texto rola
+    // na horizontal. O padding vertical fica no scroll externo para o gutter
+    // e o texto começarem na mesma linha (mesmo `height` → alinhados 1:1).
     return ColoredBox(
       color: colors.panel,
       child: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
           primary: true,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SelectableText.rich(
-                TextSpan(children: JsonHighlighter.highlight(json, base: base)),
-                style: base,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _LineGutter(count: lineCount, style: base, colors: colors),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SelectableText.rich(
+                    TextSpan(
+                      children: JsonHighlighter.highlight(json, base: base),
+                    ),
+                    style: base,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LineGutter extends StatelessWidget {
+  const _LineGutter({
+    required this.count,
+    required this.style,
+    required this.colors,
+  });
+
+  final int count;
+  final TextStyle style;
+  final EditorColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final numbers = [for (var i = 1; i <= count; i++) '$i'].join('\n');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: colors.border)),
+      ),
+      child: Text(
+        numbers,
+        textAlign: TextAlign.right,
+        style: style.copyWith(color: colors.inkMuted),
       ),
     );
   }
