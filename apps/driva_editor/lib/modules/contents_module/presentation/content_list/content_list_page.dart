@@ -243,7 +243,9 @@ class _ContentCard extends StatelessWidget {
     if (!context.mounted) return;
     result.fold(
       (_) => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível excluir. Tente de novo.')),
+        const SnackBar(
+          content: Text('Não foi possível excluir. Tente de novo.'),
+        ),
       ),
       (_) {},
     );
