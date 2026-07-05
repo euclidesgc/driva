@@ -237,6 +237,48 @@ void main() {
     );
   });
 
+  group('raiz livre sem slot multi', () {
+    const leafRootContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_leaf',
+      name: 'Leaf',
+      slug: 'leaf',
+      root: SduiNode(id: 'nd_root_text', type: 'text'),
+    );
+
+    const occupiedSingleRootContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_single',
+      name: 'Single',
+      slug: 'single',
+      root: SduiNode(
+        id: 'nd_root_container',
+        type: 'container',
+        child: SduiNode(id: 'nd_text', type: 'text'),
+      ),
+    );
+
+    EditorCubit buildWith(ContentSpec document) {
+      final cubit = build();
+      cubit.emit(EditorReady(document: document));
+      return cubit;
+    }
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode em raiz folha não cria children inválido',
+      build: () => buildWith(leafRootContent),
+      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_text'),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode em raiz single já ocupada não cria sibling inválido',
+      build: () => buildWith(occupiedSingleRootContent),
+      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_container'),
+      expect: () => <EditorState>[],
+    );
+  });
+
   group('save', () {
     blocTest<EditorCubit, EditorState>(
       'sucesso: saving → saved',
