@@ -1,6 +1,6 @@
 name: sdui_flutter
 description: Renderer SDUI do driva — desenha um ContentSpec do sdui_core como widgets Flutter via registry type→builder.
-version: 0.2.0
+version: 0.3.0
 publish_to: none
 resolution: workspace
 
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sdui_core: ^0.2.0
+  sdui_core: ^0.3.0
 
 dev_dependencies:
   flutter_test:

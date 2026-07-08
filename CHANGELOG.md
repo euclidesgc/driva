@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-08 · Editor: UX rodada 01, root opcional, controles de formulário
+
 ### Corrigido
 
 - **driva_editor · botão de tema (contraste)**: o controle de tema da top bar deixa de depender da cor herdada pelo `PopupMenuButton` e passa a aplicar explicitamente `onSurface` no ícone. Isso evita o botão invisível em fundo claro/escuro mesmo quando ele está presente no widget tree.
@@ -11,6 +13,7 @@
 
 ### Adicionado
 
+- **backend · endpoint `/health` dedicado**: novo `HealthController` responde `GET /health` (fora do prefixo `/v1`) para o healthcheck do Coolify, desacoplando o liveness da API de negócio.
 - **Catálogo · controles de formulário (roadmap item 9, incremento 1)**: três novos primitivos, seguindo a regra de ouro do spec (descriptor no `widget_catalog.dart` do `sdui_core` + builder no registry do `sdui_flutter` + fixture; nada hardcoded no editor). `textField` (props `label`, `hint`, `value`, `helperText`, `obscureText`, `enabled`, `filled`), `switch` (props `value`, `label`, `enabled`, `activeColor`) e `checkbox` (props `value`, `label`, `enabled`, `activeColor`) — todos folhas na categoria Interação. O preview é **estático** (o `value` vem das props; a interação no editor não muta estado real). `switch`/`checkbox` viram `SwitchListTile`/`CheckboxListTile` quando há `label`, senão o controle simples. Paleta e Inspector derivam do catálogo; ícones da paleta adicionados para os três tipos.
 - **driva_editor · canvas (realce no hover dos nós)**: ao passar o mouse sobre um componente no mock, ele ganha um **contorno de realce** (laranja da marca a 40% de opacidade, borda de 1,5px) — como no FlutterFlow, para o usuário identificar o elemento sem clicar. Precedência visual: **seleção** (contorno sólido laranja) > **hover** (contorno leve) > borda tracejada/tag já existentes. O `hoveredId` é estado **efêmero e local do canvas** (no `StatefulWidget` do preview, via `MouseRegion` onEnter/onExit — não vai ao cubit, não rebuilda o editor inteiro nem persiste). Acessibilidade: o hover é reforço, não o único sinal (a tag/nome permanecem). _(roadmap item 5)_
 - **driva_editor · canvas (feedback ao soltar no mock)**: cada componente no mock passa a exibir uma **borda tracejada discreta + tag pequena com o nome** mesmo sem estar selecionado, para o usuário perceber que há algo ali quando o componente é pequeno ou vazio (recém-solto). A seleção mantém o contorno sólido laranja + tag destacada. A moldura do dispositivo ganha um **glow** quando o `DragTarget` está prestes a receber o drop (reforça o hover). Cada nó recebe `Semantics(label, selected)` para leitores de tela (cor não é o único sinal). Borda via `CustomPaint`/`DashedBorderPainter` próprio — sem dependência nova. _(roadmap item 5)_
