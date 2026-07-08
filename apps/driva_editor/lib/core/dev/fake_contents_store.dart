@@ -35,13 +35,14 @@ class FakeContentsStore {
     String? description,
   }) {
     final id = 'ct_${_sequence++}';
+    // Conteúdo novo nasce VAZIO (sem root): o primeiro widget adicionado no
+    // editor vira a raiz, de qualquer tipo.
     final content = ContentSpec(
       specVersion: kSpecVersion,
       id: id,
       name: name,
       slug: slug,
       description: description,
-      root: SduiNode(id: 'nd_root_$id', type: 'column'),
     );
     _contents[id] = content;
     _updatedAt[id] = DateTime.now();

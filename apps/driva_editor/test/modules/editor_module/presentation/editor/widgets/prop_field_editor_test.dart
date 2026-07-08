@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,7 @@ class _InspectorHarnessState extends State<_InspectorHarness> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: AppTheme.light,
       home: Scaffold(
         body: PropFieldEditor(
           key: ValueKey('node-1_${widget.field.key}'),
@@ -113,6 +115,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: AppTheme.light,
           home: Scaffold(
             body: PropFieldEditor(
               key: const ValueKey('node-A_text'),
@@ -127,6 +130,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: AppTheme.light,
           home: Scaffold(
             body: PropFieldEditor(
               key: const ValueKey('node-B_text'),

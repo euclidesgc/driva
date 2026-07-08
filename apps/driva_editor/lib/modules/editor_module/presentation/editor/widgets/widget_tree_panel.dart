@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/editor_colors.dart';
 import 'drag_payload.dart';
 import 'palette_icons.dart';
 
@@ -18,21 +19,25 @@ class WidgetTreePanel extends StatelessWidget {
     required this.onMoveInto,
   });
 
-  final SduiNode root;
+  /// Raiz do conteúdo. `null` no conteúdo vazio — a árvore fica vazia e o único
+  /// alvo de soltar é a zona que **define a raiz** (primeiro widget).
+  final SduiNode? root;
   final String? selectedNodeId;
   final ValueChanged<String> onSelect;
   final ValueChanged<String> onRemove;
 
-  /// Cria um nó da paleta dentro de `parentId` em `index`.
-  final void Function(String type, String parentId, int index) onAddInto;
+  /// Cria um nó da paleta dentro de `parentId` em `index`. Com `parentId` null
+  /// (conteúdo vazio), o nó vira a raiz.
+  final void Function(String type, String? parentId, int index) onAddInto;
 
   /// Move um nó existente para `parentId` em `index`.
   final void Function(String nodeId, String parentId, int index) onMoveInto;
 
   @override
   Widget build(BuildContext context) {
+    final root = this.root;
     final rows = <Widget>[];
-    _buildRows(rows, root, depth: 0);
+    if (root != null) _buildRows(rows, root, root, depth: 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -43,27 +48,36 @@ class WidgetTreePanel extends StatelessWidget {
             children: rows,
           ),
         ),
-        // Zona de soltar no fim do conteúdo (append na raiz).
+        // Zona de soltar: no fim do conteúdo, ou — com o conteúdo vazio —
+        // definindo o primeiro widget como raiz.
         _DropZone(
-          label: 'Soltar aqui adiciona ao fim do conteúdo',
+          label: root == null
+              ? 'Solte um widget aqui para começar'
+              : 'Soltar aqui adiciona ao fim do conteúdo',
           onAccept: (payload) => switch (payload) {
             PaletteDragPayload(:final type) => onAddInto(
               type,
-              root.id,
-              root.children.length,
+              root?.id,
+              root?.children.length ?? 0,
             ),
-            NodeDragPayload(:final nodeId) => onMoveInto(
+            NodeDragPayload(:final nodeId) when root != null => onMoveInto(
               nodeId,
               root.id,
               root.children.length,
             ),
+            NodeDragPayload() => null,
           },
         ),
       ],
     );
   }
 
-  void _buildRows(List<Widget> rows, SduiNode node, {required int depth}) {
+  void _buildRows(
+    List<Widget> rows,
+    SduiNode root,
+    SduiNode node, {
+    required int depth,
+  }) {
     rows.add(
       _TreeRow(
         node: node,
@@ -71,21 +85,21 @@ class WidgetTreePanel extends StatelessWidget {
         isRoot: node.id == root.id,
         isSelected: node.id == selectedNodeId,
         onSelect: () => onSelect(node.id),
-        onRemove: node.id == root.id ? null : () => onRemove(node.id),
-        onAccept: (payload) => _dropOn(node, payload),
+        onRemove: () => onRemove(node.id),
+        onAccept: (payload) => _dropOn(root, node, payload),
       ),
     );
     if (node.child != null) {
-      _buildRows(rows, node.child!, depth: depth + 1);
+      _buildRows(rows, root, node.child!, depth: depth + 1);
     }
     for (final child in node.children) {
-      _buildRows(rows, child, depth: depth + 1);
+      _buildRows(rows, root, child, depth: depth + 1);
     }
   }
 
   /// Soltar SOBRE um nó: quem aceita filhos recebe dentro (no fim); folha
   /// recebe como vizinho seguinte no pai.
-  void _dropOn(SduiNode target, DragPayload payload) {
+  void _dropOn(SduiNode root, SduiNode target, DragPayload payload) {
     final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
     final acceptsChildren =
         slot == SlotKind.multi ||
@@ -147,6 +161,7 @@ class _TreeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     final row = DragTarget<DragPayload>(
       onWillAcceptWithDetails: (details) => switch (details.data) {
         NodeDragPayload(:final nodeId) => nodeId != node.id,
@@ -165,9 +180,9 @@ class _TreeRow extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.primaryTint
+                    ? colors.primaryTint
                     : highlighted
-                    ? AppTheme.canvas
+                    ? colors.canvasBackdrop
                     : null,
                 border: Border(
                   left: BorderSide(
@@ -181,9 +196,7 @@ class _TreeRow extends StatelessWidget {
                   Icon(
                     paletteIconFor(node.type),
                     size: 16,
-                    color: isSelected
-                        ? AppTheme.primary
-                        : AppTheme.inkSecondary,
+                    color: isSelected ? AppTheme.primary : colors.inkSecondary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -209,7 +222,6 @@ class _TreeRow extends StatelessWidget {
       },
     );
 
-    if (isRoot) return row;
     return Draggable<DragPayload>(
       data: NodeDragPayload(node.id),
       feedback: Material(
@@ -217,7 +229,7 @@ class _TreeRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: colors.panel,
             border: Border.all(color: AppTheme.primary),
             borderRadius: BorderRadius.circular(6),
           ),
@@ -237,6 +249,7 @@ class _DropZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return DragTarget<DragPayload>(
       onAcceptWithDetails: (details) => onAccept(details.data),
       builder: (context, candidates, _) {
@@ -245,9 +258,9 @@ class _DropZone extends StatelessWidget {
           margin: const EdgeInsets.all(12),
           height: 44,
           decoration: BoxDecoration(
-            color: active ? AppTheme.primaryTint : null,
+            color: active ? colors.primaryTint : null,
             border: Border.all(
-              color: active ? AppTheme.primary : AppTheme.border,
+              color: active ? AppTheme.primary : colors.border,
               style: BorderStyle.solid,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -257,7 +270,7 @@ class _DropZone extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: active ? AppTheme.primary : AppTheme.inkMuted,
+                color: active ? AppTheme.primary : colors.inkMuted,
               ),
             ),
           ),

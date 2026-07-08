@@ -82,8 +82,8 @@ void main() {
       act: (cubit) => cubit.addNode('button'),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(state.document.root.children, hasLength(3));
-        final added = state.document.root.children.last;
+        expect(state.document.root!.children, hasLength(3));
+        final added = state.document.root!.children.last;
         expect(added.type, 'button');
         expect(added.properties['label'], 'Botão');
         expect(state.selectedNodeId, added.id);
@@ -100,7 +100,7 @@ void main() {
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        final banner = findNode(state.document.root, 'nd_banner')!;
+        final banner = findNode(state.document.root!, 'nd_banner')!;
         expect(banner.child?.type, 'text');
       },
     );
@@ -114,7 +114,7 @@ void main() {
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(state.document.root.children.map((n) => n.type), [
+        expect(state.document.root!.children.map((n) => n.type), [
           'container',
           'text',
           'divider',
@@ -128,7 +128,7 @@ void main() {
       act: (cubit) => cubit.moveNode('nd_text', 'nd_root', 0),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(state.document.root.children.map((n) => n.id), [
+        expect(state.document.root!.children.map((n) => n.id), [
           'nd_text',
           'nd_banner',
         ]);
@@ -151,8 +151,23 @@ void main() {
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(findNode(state.document.root, 'nd_text'), isNull);
+        expect(findNode(state.document.root!, 'nd_text'), isNull);
         expect(state.selectedNodeId, isNull);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'removeNode na raiz esvazia o conteúdo e limpa a seleção',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit.selectNode('nd_root');
+        cubit.removeNode('nd_root');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root, isNull);
+        expect(state.selectedNodeId, isNull);
+        expect(state.saveStatus, SaveStatus.dirty);
       },
     );
 
@@ -165,10 +180,102 @@ void main() {
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        final text = findNode(state.document.root, 'nd_text')!;
+        final text = findNode(state.document.root!, 'nd_text')!;
         expect(text.properties['fontSize'], 20.0);
         expect(text.properties.containsKey('data'), isFalse);
       },
+    );
+  });
+
+  group('conteúdo vazio (root null)', () {
+    const emptyContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_vazio',
+      name: 'Vazio',
+      slug: 'vazio',
+    );
+
+    EditorCubit buildEmpty() {
+      final cubit = build();
+      cubit.emit(const EditorReady(document: emptyContent));
+      return cubit;
+    }
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode com root null: o nó vira a raiz e fica selecionado',
+      build: buildEmpty,
+      act: (cubit) => cubit.addNode('container'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final root = state.document.root;
+        expect(root, isNotNull);
+        expect(root!.type, 'container');
+        expect(state.selectedNodeId, root.id);
+        expect(state.saveStatus, SaveStatus.dirty);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'primeiro widget pode ser de qualquer tipo (não só column)',
+      build: buildEmpty,
+      act: (cubit) => cubit.addNode('text'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root?.type, 'text');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'mutações sem raiz (move/remove/updateProps) não fazem nada',
+      build: buildEmpty,
+      act: (cubit) {
+        cubit.moveNode('x', 'y', 0);
+        cubit.removeNode('x');
+        cubit.updateProps('x', {'a': 1});
+      },
+      expect: () => <EditorState>[],
+    );
+  });
+
+  group('raiz livre sem slot multi', () {
+    const leafRootContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_leaf',
+      name: 'Leaf',
+      slug: 'leaf',
+      root: SduiNode(id: 'nd_root_text', type: 'text'),
+    );
+
+    const occupiedSingleRootContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_single',
+      name: 'Single',
+      slug: 'single',
+      root: SduiNode(
+        id: 'nd_root_container',
+        type: 'container',
+        child: SduiNode(id: 'nd_text', type: 'text'),
+      ),
+    );
+
+    EditorCubit buildWith(ContentSpec document) {
+      final cubit = build();
+      cubit.emit(EditorReady(document: document));
+      return cubit;
+    }
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode em raiz folha não cria children inválido',
+      build: () => buildWith(leafRootContent),
+      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_text'),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNode em raiz single já ocupada não cria sibling inválido',
+      build: () => buildWith(occupiedSingleRootContent),
+      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_container'),
+      expect: () => <EditorState>[],
     );
   });
 

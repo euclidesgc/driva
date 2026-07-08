@@ -22,16 +22,21 @@ void main() {
       expect(content, isNotNull, reason: result.toString());
       expect(content!.id, 'ct_home_promo');
       expect(content.slug, 'home');
-      expect(content.root.type, 'column');
-      expect(content.root.children, hasLength(5));
+      expect(content.root!.type, 'column');
+      expect(content.root!.children, hasLength(8));
 
-      final banner = content.root.children.first;
+      final banner = content.root!.children.first;
       expect(banner.type, 'container');
       expect(banner.properties['color'], '#6C4CF1');
       expect(banner.child?.type, 'text');
 
-      final cta = content.root.children.last;
+      final cta = content.root!.children.firstWhere((n) => n.type == 'button');
       expect(cta.events['onPressed'], isA<List<dynamic>>());
+
+      final field = content.root!.children.firstWhere(
+        (n) => n.type == 'textField',
+      );
+      expect(field.properties['value'], 'PROMO10');
     });
 
     test('roundtrip: toJson de um conteúdo parseado re-parseia igual', () {
@@ -60,13 +65,56 @@ void main() {
       expect(parseContentSpec(json).isLeft(), isTrue);
     });
 
-    test('rejeita root que não é column', () {
+    test('root ausente é válido: conteúdo vazio (root null)', () {
+      final json = _loadFixture('content_valid.json')..remove('root');
+
+      final content = parseContentSpec(json).getRight().toNullable();
+
+      expect(content, isNotNull);
+      expect(content!.root, isNull);
+    });
+
+    test('root null explícito é válido: conteúdo vazio', () {
+      final json = _loadFixture('content_valid.json')..['root'] = null;
+
+      final content = parseContentSpec(json).getRight().toNullable();
+
+      expect(content, isNotNull);
+      expect(content!.root, isNull);
+    });
+
+    test('root de qualquer tipo do catálogo é aceito (não só column)', () {
       final json = _loadFixture('content_valid.json');
-      json['root'] = {'id': 'nd_root', 'type': 'row'};
+      json['root'] = {
+        'id': 'nd_root',
+        'type': 'container',
+        'props': {'color': '#112233'},
+        'child': {
+          'id': 'nd_text',
+          'type': 'text',
+          'props': {'data': 'oi'},
+        },
+      };
 
-      final error = parseContentSpec(json).getLeft().toNullable();
+      final content = parseContentSpec(json).getRight().toNullable();
 
-      expect(error!.message, contains('column'));
+      expect(content, isNotNull, reason: parseContentSpec(json).toString());
+      expect(content!.root?.type, 'container');
+      expect(content.root?.child?.type, 'text');
+    });
+
+    test('toJson sem root omite a chave', () {
+      final content = ContentSpec(
+        specVersion: kSpecVersion,
+        id: 'ct_vazio',
+        name: 'Vazio',
+        slug: 'vazio',
+      );
+
+      final json = content.toJson();
+
+      expect(json.containsKey('root'), isFalse);
+      expect(parseContentSpec(json).getRight().toNullable(), equals(content));
     });
 
     test('rejeita nó com tipo fora do catálogo', () {

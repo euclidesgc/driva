@@ -4,15 +4,16 @@ import 'sdui_node.dart';
 
 /// O spec de um conteúdo SDUI (specVersion 1).
 ///
-/// O [root] é sempre um nó `column`: os blocos de topo do conteúdo são
-/// `root.children`. O [slug] identifica o conteúdo dentro do projeto.
+/// O [root] é **opcional**: um conteúdo recém-criado nasce vazio (`root == null`)
+/// e o primeiro widget adicionado pelo usuário vira a raiz — de qualquer tipo do
+/// catálogo, não só `column`. O [slug] identifica o conteúdo dentro do projeto.
 class ContentSpec extends Equatable {
   const ContentSpec({
     required this.specVersion,
     required this.id,
     required this.name,
     required this.slug,
-    required this.root,
+    this.root,
     this.description,
   });
 
@@ -21,15 +22,17 @@ class ContentSpec extends Equatable {
   final String name;
   final String slug;
   final String? description;
-  final SduiNode root;
+  final SduiNode? root;
 
+  /// Cópia imutável. [root] usa função-getter para permitir "setar null"
+  /// (a armadilha do copyWith com campo nullable, capítulo 12 do livro).
   ContentSpec copyWith({
     int? specVersion,
     String? id,
     String? name,
     String? slug,
     String? description,
-    SduiNode? root,
+    SduiNode? Function()? root,
   }) {
     return ContentSpec(
       specVersion: specVersion ?? this.specVersion,
@@ -37,7 +40,7 @@ class ContentSpec extends Equatable {
       name: name ?? this.name,
       slug: slug ?? this.slug,
       description: description ?? this.description,
-      root: root ?? this.root,
+      root: root != null ? root() : this.root,
     );
   }
 
@@ -49,7 +52,7 @@ class ContentSpec extends Equatable {
       'name': name,
       'slug': slug,
       if (description != null) 'description': description,
-      'root': root.toJson(),
+      if (root != null) 'root': root!.toJson(),
     };
   }
 

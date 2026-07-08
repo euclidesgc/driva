@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_widget.dart';
 import 'core/config/app_config.dart';
@@ -30,7 +31,6 @@ Future<void> bootstrap(AppConfig config) async {
       usePathUrlStrategy();
 
       Bloc.observer = const AppBlocObserver();
-      setupInjection(config);
 
       FlutterError.onError = (FlutterErrorDetails details) {
         log(
@@ -46,7 +46,15 @@ Future<void> bootstrap(AppConfig config) async {
         return true;
       };
 
-      runApp(const AppWidget());
+      // Armazenamento local resolvido antes do primeiro frame — o tema
+      // persistido já sobe aplicado, sem flash do padrão. Roda dentro da zona
+      // guardada, então falhas aqui caem nas redes de segurança acima.
+      unawaited(
+        SharedPreferences.getInstance().then((prefs) {
+          setupInjection(config, prefs);
+          runApp(const AppWidget());
+        }),
+      );
     },
     (Object error, StackTrace stack) {
       log('Uncaught zone error', name: 'app', error: error, stackTrace: stack);

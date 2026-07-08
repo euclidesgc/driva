@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('widgetCatalog', () {
-    test('tem os 14 primitivos do I1', () {
+    test('tem os primitivos do catálogo (14 do I1 + form inputs)', () {
       expect(
         widgetCatalog.keys,
         containsAll(<String>[
@@ -15,6 +15,9 @@ void main() {
           'image',
           'icon',
           'button',
+          'textField',
+          'switch',
+          'checkbox',
           'card',
           'divider',
           'sizedBox',
@@ -23,7 +26,15 @@ void main() {
           'spacer',
         ]),
       );
-      expect(widgetCatalog, hasLength(14));
+      expect(widgetCatalog, hasLength(17));
+    });
+
+    test('controles de formulário são folhas na categoria Interação', () {
+      for (final type in <String>['textField', 'switch', 'checkbox']) {
+        final descriptor = descriptorFor(type)!;
+        expect(descriptor.slot, SlotKind.none, reason: type);
+        expect(descriptor.category, WidgetCategories.interaction, reason: type);
+      }
     });
 
     test('descriptor é consistente: type espelha a chave', () {
@@ -57,6 +68,41 @@ void main() {
           }
         }
       }
+    });
+
+    test('textField expõe props abrangentes e não expõe mais filled', () {
+      final descriptor = descriptorFor('textField')!;
+      final byKey = {for (final f in descriptor.fields) f.key: f};
+
+      expect(byKey.containsKey('filled'), isFalse);
+
+      final borderStyle = byKey['borderStyle']!;
+      expect(borderStyle.kind, FieldKind.enumeration);
+      expect(borderStyle.enumValues, <String>[
+        'outline',
+        'underline',
+        'filled',
+      ]);
+      expect(borderStyle.defaultValue, 'outline');
+
+      final keyboardType = byKey['keyboardType']!;
+      expect(keyboardType.kind, FieldKind.enumeration);
+      expect(keyboardType.enumValues, <String>[
+        'text',
+        'number',
+        'email',
+        'phone',
+        'url',
+      ]);
+      expect(keyboardType.defaultValue, 'text');
+
+      final maxLength = byKey['maxLength']!;
+      expect(maxLength.kind, FieldKind.intNum);
+      expect(maxLength.defaultValue, isNull);
+
+      final prefixIcon = byKey['prefixIcon']!;
+      expect(prefixIcon.kind, FieldKind.iconName);
+      expect(prefixIcon.defaultValue, isNull);
     });
 
     test('descriptorFor devolve null para tipo desconhecido', () {

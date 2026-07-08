@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../app_theme.dart';
+import '../editor_colors.dart';
 
 /// Layout de 3 colunas com divisores arrastáveis (padrão de editor desktop):
 /// painel esquerdo e direito com largura ajustável, centro flexível.
@@ -62,18 +62,16 @@ class _ResizeHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return MouseRegion(
       cursor: SystemMouseCursors.resizeColumn,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragUpdate: (details) => onDrag(details.delta.dx),
-        child: const SizedBox(
+        child: SizedBox(
           width: 6,
           child: Center(
-            child: SizedBox(
-              width: 1,
-              child: ColoredBox(color: AppTheme.border),
-            ),
+            child: SizedBox(width: 1, child: ColoredBox(color: colors.border)),
           ),
         ),
       ),

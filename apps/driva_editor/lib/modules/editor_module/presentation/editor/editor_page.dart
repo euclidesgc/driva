@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../core/error/error.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/theme/widgets/resizable_split_view.dart';
 import '../../../../injection.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -14,6 +14,7 @@ import 'device_preset.dart';
 import 'widgets/canvas_panel.dart';
 import 'widgets/editor_top_bar.dart';
 import 'widgets/inspector_panel.dart';
+import 'widgets/json_preview_panel.dart';
 import 'widgets/widget_palette_panel.dart';
 import 'widgets/widget_tree_panel.dart';
 
@@ -84,6 +85,7 @@ class _EditorWorkspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
 
     return Shortcuts(
       shortcuts: {
@@ -102,14 +104,14 @@ class _EditorWorkspace extends StatelessWidget {
         },
         child: Focus(
           autofocus: true,
-          child: const Scaffold(
-            appBar: EditorTopBar(),
+          child: Scaffold(
+            appBar: const EditorTopBar(),
             body: ResizableSplitView(
-              left: _LeftPanel(),
-              center: ColoredBox(color: AppTheme.canvas, child: _CanvasArea()),
+              left: const _LeftPanel(),
+              center: const _CenterArea(),
               right: ColoredBox(
-                color: AppTheme.surface,
-                child: _InspectorArea(),
+                color: colors.panel,
+                child: const _InspectorArea(),
               ),
             ),
           ),
@@ -127,8 +129,9 @@ class _LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final colors = Theme.of(context).extension<EditorColors>()!;
     return ColoredBox(
-      color: AppTheme.surface,
+      color: colors.panel,
       child: DefaultTabController(
         length: 2,
         child: Column(
@@ -142,14 +145,16 @@ class _LeftPanel extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  WidgetPalettePanel(onAdd: cubit.addNode),
+                  const WidgetPalettePanel(),
                   BlocSelector<EditorCubit, EditorState, String>(
                     // Assinatura de estrutura + seleção: props não a alteram,
                     // então editar uma propriedade NÃO reconstrói a árvore.
-                    selector: (state) => state is EditorReady
-                        ? '${_structureKey(state.document.root)}#'
-                              '${state.selectedNodeId ?? ''}'
-                        : '',
+                    selector: (state) {
+                      if (state is! EditorReady) return '';
+                      final root = state.document.root;
+                      final structure = root == null ? '' : _structureKey(root);
+                      return '$structure#${state.selectedNodeId ?? ''}';
+                    },
                     builder: (context, _) {
                       final state = cubit.state;
                       if (state is! EditorReady) {
@@ -179,6 +184,72 @@ class _LeftPanel extends StatelessWidget {
   }
 }
 
+/// Área central com abas ao estilo VS Code: alterna entre o **Mock** (canvas)
+/// e o **JSON** do spec ao vivo. Só a casca (a `TabBar`) vive aqui; cada aba
+/// assina sua própria fatia do cubit, então trocar de aba não reconstrói a
+/// outra desnecessariamente.
+class _CenterArea extends StatelessWidget {
+  const _CenterArea();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: colors.panel,
+              border: Border(bottom: BorderSide(color: colors.border)),
+            ),
+            child: const TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              tabs: [
+                Tab(
+                  height: 40,
+                  child: _CenterTabLabel(icon: Icons.smartphone, label: 'Mock'),
+                ),
+                Tab(
+                  height: 40,
+                  child: _CenterTabLabel(
+                    icon: Icons.data_object,
+                    label: 'JSON',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                ColoredBox(color: colors.canvasBackdrop, child: _CanvasArea()),
+                const JsonPreviewPanel(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CenterTabLabel extends StatelessWidget {
+  const _CenterTabLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [Icon(icon, size: 16), const SizedBox(width: 6), Text(label)],
+    );
+  }
+}
+
 /// Canvas central: reage só a `device`/`zoom` (o preview do documento é
 /// assinado e throttled dentro do próprio [CanvasPanel]).
 class _CanvasArea extends StatelessWidget {
@@ -203,9 +274,10 @@ class _CanvasArea extends StatelessWidget {
         onChangeZoom: cubit.changeZoom,
         onAddToRoot: (type) {
           final state = cubit.state;
-          if (state is EditorReady) {
-            cubit.addNode(type, parentId: state.document.root.id);
-          }
+          if (state is! EditorReady) return;
+          final root = state.document.root;
+          // Conteúdo vazio: o nó vira a raiz (parentId null resolve isso).
+          cubit.addNode(type, parentId: root?.id);
         },
       ),
     );
@@ -223,9 +295,11 @@ class _InspectorArea extends StatelessWidget {
     return BlocSelector<EditorCubit, EditorState, _InspectorVm?>(
       selector: (state) {
         if (state is! EditorReady) return null;
-        final node = state.selectedNode ?? state.document.root;
-        final isContent =
-            state.selectedNode == null || node.id == state.document.root.id;
+        final root = state.document.root;
+        final node = state.selectedNode ?? root;
+        // Selecionar a raiz a trata como um nó normal (com label + remover);
+        // "Conteúdo" é só a visão padrão quando nada está selecionado.
+        final isContent = state.selectedNode == null;
         return _InspectorVm(
           node: node,
           isContent: isContent,
@@ -255,7 +329,7 @@ class _InspectorVm {
     required this.contentSlug,
   });
 
-  final SduiNode node;
+  final SduiNode? node;
   final bool isContent;
   final String contentName;
   final String contentSlug;

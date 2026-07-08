@@ -32,7 +32,7 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 
 ## Regras do spec SDUI
 
-- Todo nó tem `id`, `type`, `props`; `events` e `children`/`child` opcionais. Página: `{specVersion, kind: "page", id, name, screenTarget, root}`; `root` é sempre `column`.
+- Todo nó tem `id`, `type`, `props`; `events` e `children`/`child` opcionais. Conteúdo: `{specVersion, kind: "content", id, name, slug, root?}`. **`root` é opcional (qualquer widget do catálogo, não só `column`)**: página vazia = sem `root` (`root: null`, chave omitida no JSON); o **primeiro widget adicionado vira a raiz**. Quando presente, `root` é validado como um nó normal contra o catálogo, recursivamente.
 - O JSON só vira entidade por `parsePageSpec` (zard) do `sdui_core` — nenhum `fromMap` cru fora dele.
 - Paleta, inspector e defaults derivam 100% do `widget_catalog.dart` (WidgetDescriptor/PropField). Novo primitivo = novo descriptor + novo builder + fixture; nada hardcoded no editor.
 - Binding `{{prop}}` e ações são **dados** — o editor não os executa (só o app cliente).

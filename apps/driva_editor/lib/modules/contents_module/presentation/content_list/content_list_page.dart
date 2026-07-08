@@ -6,6 +6,7 @@ import '../../../../core/error/error.dart';
 import '../../../../core/util/slug.dart';
 import '../../../../core/widgets/app_wordmark.dart';
 import '../../../../injection.dart';
+import '../../../preferences_module/preferences_module.dart';
 import '../../contents_routes.dart';
 import '../../domain/entities/content_summary.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -36,6 +37,8 @@ class ContentListPage extends StatelessWidget {
           onTap: () => context.goNamed(ContentsRoutes.contentsName),
         ),
         actions: [
+          const ThemeModeButton(),
+          const SizedBox(width: 4),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: FilledButton.icon(
@@ -238,7 +241,17 @@ class _ContentCard extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed ?? false) await cubit.delete(content.id);
+    if (!(confirmed ?? false)) return;
+    final result = await cubit.delete(content.id);
+    if (!context.mounted) return;
+    result.fold(
+      (_) => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível excluir. Tente de novo.'),
+        ),
+      ),
+      (_) {},
+    );
   }
 }
 

@@ -33,28 +33,34 @@ class ContentListCubit extends Cubit<ContentListState> {
     );
   }
 
-  /// Cria e recarrega. Devolve o resultado para a UI decidir a navegação
-  /// (ir direto para o editor do conteúdo criado) e tratar `ConflictFailure`.
+  /// Cria e devolve o resultado. No sucesso, não emite estado nem recarrega a
+  /// lista: a UI navega direto para o editor do conteúdo criado (sem flash de
+  /// loading). No conflito de slug e demais falhas, a UI trata pelo `Left`.
   Future<Either<Failure, ContentSummary>> create({
     required String name,
     required String slug,
     String? description,
   }) async {
-    final result = await createContent(
-      name: name,
-      slug: slug,
-      description: description,
-    );
-    if (!isClosed && result.isRight()) await load();
-    return result;
+    return createContent(name: name, slug: slug, description: description);
   }
 
-  Future<void> delete(String id) async {
+  /// Exclusão otimista: remove o card na hora sobre o `Loaded` atual (vira
+  /// `Empty` ao esvaziar) e devolve o resultado. Em falha, reconcilia com
+  /// `load()` (restaura a verdade do servidor) e devolve o `Left` para a UI
+  /// avisar via snackbar. Sem spinner full-screen no caminho de sucesso.
+  Future<Either<Failure, Unit>> delete(String id) async {
+    final current = state;
+    if (current is ContentListLoaded) {
+      final remaining = current.contents.where((c) => c.id != id).toList();
+      emit(
+        remaining.isEmpty
+            ? const ContentListEmpty()
+            : ContentListLoaded(contents: remaining),
+      );
+    }
     final result = await deleteContent(id);
-    if (isClosed) return;
-    // Erro ao excluir não derruba a lista: recarrega e a UI avisa via estado
-    // atual (o conteúdo some ou permanece).
-    result.fold((_) {}, (_) {});
-    await load();
+    if (isClosed) return result;
+    if (result.isLeft()) await load();
+    return result;
   }
 }
