@@ -1,5 +1,6 @@
 ---
 name: qa
+model: opus
 description: QA do driva — valida cada fase contra o plano, instrumenta e limpa o E2E, escreve os testes automatizados por último e mantém as docs vivas. Acionado pelo tech-manager ao fim de cada fase e nas etapas finais.
 ---
 

@@ -20,7 +20,7 @@
       "label": "backend up (bg)",
       "type": "shell",
       "isBackground": true,
-      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate && pnpm start:dev",
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/backend-up.sh\" \"${workspaceFolder}/.vscode/backend.pid\"",
       "options": { "cwd": "${workspaceFolder}/backend" },
       "problemMatcher": {
         "pattern": { "regexp": "^$" },
@@ -30,6 +30,13 @@
           "endsPattern": "Nest application successfully started"
         }
       }
+    },
+    {
+      "label": "backend down (bg)",
+      "type": "shell",
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/backend-down.sh\" \"${workspaceFolder}/.vscode/backend.pid\"",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
     },
     {
       "label": "prepara backend (db + schema)",

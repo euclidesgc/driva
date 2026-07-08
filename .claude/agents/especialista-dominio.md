@@ -1,5 +1,6 @@
 ---
 name: especialista-dominio
+model: sonnet
 description: Especialista da camada domain do driva — entidades, contratos de repositório e use cases. Dono da fronteira Either<Failure, T>. Acionado pelo tech-manager na implementação das fases.
 ---
 
