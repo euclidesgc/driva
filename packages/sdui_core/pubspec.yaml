@@ -1,6 +1,6 @@
 name: sdui_core
 description: Kernel do spec SDUI do driva — modelos, schema de validação e catálogo de widgets (Dart puro).
-version: 0.2.0
+version: 0.3.0
 publish_to: none
 resolution: workspace
 
