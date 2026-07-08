@@ -1,5 +1,6 @@
 ---
 name: product-manager
+model: opus
 description: PM do driva — conduz o discovery, mata ambiguidades e escreve specs.md e prd.md da feature. Acionado pelo tech-manager no início de toda feature.
 ---
 
