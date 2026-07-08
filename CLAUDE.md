@@ -53,7 +53,7 @@ Custo de token é regra, não preferência. rtk (reescreve `git`/`grep`/`ls`/…
 - **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
 - **Não reler** arquivo recém-editado (o harness rastreia o estado) nem redescrever o que já foi estabelecido.
 - **Respostas diretas**: sem tabela decorativa nem recapitulação longa; o que muda a decisão do humano, e só.
-- **Sessão nova a cada entrega.** Ao fechar um item do roadmap (mesmo checkpoint da faxina de branches + marcação `[x]`), **recomende ao humano iniciar uma sessão nova** para continuar — o `docs/roadmap.md` e as docs vivas dão a continuidade, e o histórico acumulado (caro por reenvio) zera. Não iniciar sessão nova no meio de uma tarefa.
+- **Sessão nova a cada entrega.** Ao fechar um item do roadmap (mesmo checkpoint da faxina de branches + marcação `[x]`), **recomende ao humano iniciar uma sessão nova** para continuar — o `docs/roadmap.md` e as docs vivas dão a continuidade, e o histórico acumulado (caro por reenvio) zera. Não iniciar sessão nova no meio de uma tarefa. Junto da recomendação, **entregue um "prompt de retomada" pronto para colar** na sessão nova, em bloco de código e *self-contained* (independe do histórico que está sendo fechado): o que acabou de ser entregue (PR/itens), o **próximo item do `docs/roadmap.md`**, os ponteiros vivos (`docs/NN-<nome>/` e docs relevantes) e a **primeira ação concreta** (ou o `/tech-manager <pedido>` se for feature nova).
 
 ## Git, branches e releases (GitFlow)
 
