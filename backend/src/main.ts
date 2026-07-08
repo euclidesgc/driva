@@ -10,7 +10,9 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
 
-  app.setGlobalPrefix('v1');
+  // Health fica fora do prefixo versionado: orquestrador (Coolify) bate
+  // sempre em /health, sem acoplar o healthcheck à versão da API.
+  app.setGlobalPrefix('v1', { exclude: ['health'] });
 
   // CORS: sempre libera `localhost` (porta aleatória do flutter run — permite
   // rodar o editor local apontando para a API de hml/prod ao testar). Em
