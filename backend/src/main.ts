@@ -18,8 +18,18 @@ async function bootstrap() {
   app.use(urlencoded({ limit: bodyLimit, extended: true }));
 
   // Cancela de entrada: DTOs validados, campos desconhecidos rejeitados.
+  // `transform: true` + `enableImplicitConversion` fazem query params
+  // (sempre string) virarem instâncias reais do DTO com os defaults e
+  // `@Type()` aplicados (ex.: `ListContentsQueryDto.limit` vira number,
+  // `sort`/`order` recebem o default quando ausentes) — necessário para o
+  // filtro/paginação de `GET /v1/contents`.
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
   );
 
   // Health fica fora do prefixo versionado: orquestrador (Coolify) bate
