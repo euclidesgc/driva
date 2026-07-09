@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **Projetos (hierarquia Projeto → Categoria → Conteúdo)**: nova entidade `Project` como topo do produto (ref. Squidex). Backend NestJS ganha CRUD `/v1/projects` (list/get/create/update/delete) com **upload de imagem** (multipart) atrás de um pipeline de segurança: detecção por magic bytes (PNG/JPEG/WebP; SVG rejeitado), reencode com sharp (strip EXIF, teto 2048px, anti decompression-bomb), chave UUID gerada no servidor, serving com `nosniff`, limite de body em duas camadas e rate-limit. Storage atrás de um port `StorageService` (adapter local default; adapter S3 pronto, ativado por env — Garage/R2 a decidir). `Content.projectId` vira FK real (`onDelete: Restrict`) com seed do projeto `default`; banco de dev recriado do zero.
+- **driva_editor · módulo de Projetos**: novo `projects_module` (domain/data/presentation) — home com cards de projeto (capa/imagem, avatar com inicial, descrição, empty state) fiel ao protótipo do Claude Design (`docs/web-prototipe/design-handoff-projetos/`), formulário criar/editar com drag-and-drop de imagem (import condicional web/VM), exclusão com confirmação e 409 amigável. A rota raiz `/` passa a ser a home de Projetos.
+
+### Alterado
+
+- **Deps backend**: `sharp`, `@aws-sdk/client-s3`, `@nestjs/throttler`; `multer` forçado a `^2.2.0` via pnpm overrides (CVEs de DoS); `file-type` substituído por detecção própria de magic bytes (CVE sem patch CJS). `pnpm audit` limpo.
+
 ## [0.3.0] — 2026-07-08 · Editor: UX rodada 01, root opcional, controles de formulário
 
 ### Corrigido

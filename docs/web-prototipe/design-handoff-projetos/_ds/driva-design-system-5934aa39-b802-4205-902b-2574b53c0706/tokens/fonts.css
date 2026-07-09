@@ -1,0 +1,8 @@
+/* ============================================================
+   Driva — Webfonts
+   UI/display: Geist · Code/spec: Geist Mono
+   NOTE: Loaded from Google Fonts for portability. For production
+   the team should self-host these (see README → Visual Foundations).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
