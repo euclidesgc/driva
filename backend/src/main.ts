@@ -1,9 +1,21 @@
+import { json, urlencoded } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { MAX_UPLOAD_BYTES } from './projects/image-pipeline';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Limite de body: o default ~100kb do Express estoura o upload de imagem
+  // de Project (F2). Alinhado ao teto do pipeline de upload (MAX_UPLOAD_BYTES
+  // + folga para o overhead do multipart/form-data em torno do arquivo).
+  // Multipart (`multipart/form-data`) não passa por aqui — quem limita o
+  // arquivo em si é o `FileInterceptor` (multer, limits.fileSize) no
+  // controller; isto cobre json/urlencoded para não deixar o default frouxo.
+  const bodyLimit = `${MAX_UPLOAD_BYTES + 1024 * 1024}b`;
+  app.use(json({ limit: bodyLimit }));
+  app.use(urlencoded({ limit: bodyLimit, extended: true }));
 
   // Cancela de entrada: DTOs validados, campos desconhecidos rejeitados.
   app.useGlobalPipes(
