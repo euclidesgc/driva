@@ -7,14 +7,21 @@ import 'package:sdui_core/sdui_core.dart';
 /// fluxo "criar na lista → abrir no editor" funcionar sem backend.
 /// Registrado no locator apenas quando `AppConfig.useFakeData` é true.
 class FakeContentsStore {
+  /// Id da categoria "Geral" — espelha a seed do backend e a raiz de
+  /// `CategoriesRepositoryFake`. Destino default quando a escrita omite
+  /// `categoryId`, como no contrato real.
+  static const defaultCategoryId = 'cat_geral';
+
   FakeContentsStore() {
     final sample = _sampleContent();
     _contents[sample.id] = sample;
     _updatedAt[sample.id] = DateTime.now();
+    _categoryOf[sample.id] = defaultCategoryId;
   }
 
   final Map<String, ContentSpec> _contents = {};
   final Map<String, DateTime> _updatedAt = {};
+  final Map<String, String> _categoryOf = {};
   int _sequence = 1;
 
   List<ContentSpec> get contents => _contents.values.toList(growable: false);
@@ -27,12 +34,17 @@ class FakeContentsStore {
 
   DateTime updatedAtOf(String id) => _updatedAt[id] ?? DateTime.now();
 
+  /// Categoria do conteúdo — sempre presente (todo conteúdo tem categoria,
+  /// "Geral" é o default), espelhando `categoryId` obrigatório do contrato.
+  String categoryIdOf(String id) => _categoryOf[id] ?? defaultCategoryId;
+
   ContentSpec? find(String id) => _contents[id];
 
   ContentSpec create({
     required String name,
     required String slug,
     String? description,
+    String? categoryId,
   }) {
     final id = 'ct_${_sequence++}';
     // Conteúdo novo nasce VAZIO (sem root): o primeiro widget adicionado no
@@ -46,6 +58,7 @@ class FakeContentsStore {
     );
     _contents[id] = content;
     _updatedAt[id] = DateTime.now();
+    _categoryOf[id] = categoryId ?? defaultCategoryId;
     return content;
   }
 
@@ -56,7 +69,17 @@ class FakeContentsStore {
 
   bool delete(String id) {
     _updatedAt.remove(id);
+    _categoryOf.remove(id);
     return _contents.remove(id) != null;
+  }
+
+  /// Move o conteúdo para outra categoria (espelha `PUT` com `categoryId`).
+  /// `false` quando o conteúdo não existe.
+  bool moveToCategory(String id, String categoryId) {
+    if (!_contents.containsKey(id)) return false;
+    _categoryOf[id] = categoryId;
+    _updatedAt[id] = DateTime.now();
+    return true;
   }
 
   /// Um conteúdo de exemplo para o editor nunca abrir vazio em dev.

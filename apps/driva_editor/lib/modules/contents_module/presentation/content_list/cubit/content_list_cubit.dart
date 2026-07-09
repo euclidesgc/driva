@@ -19,6 +19,9 @@ class ContentListCubit extends Cubit<ContentListState> {
     required this.deleteContent,
   }) : super(const ContentListLoading());
 
+  // TODO(P2/P16): expor filtro por categoria/busca e paginação infinita
+  // (usar `page.nextCursor`); por ora carrega só a primeira página, sem
+  // filtro, mantendo o comportamento atual da tela.
   Future<void> load() async {
     emit(const ContentListLoading());
     final result = await getContents();
@@ -26,9 +29,9 @@ class ContentListCubit extends Cubit<ContentListState> {
     emit(
       result.fold(
         (failure) => ContentListError(failure: failure),
-        (contents) => contents.isEmpty
+        (page) => page.items.isEmpty
             ? const ContentListEmpty()
-            : ContentListLoaded(contents: contents),
+            : ContentListLoaded(contents: page.items),
       ),
     );
   }

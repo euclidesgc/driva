@@ -2,46 +2,44 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
 
 import '../../../../core/error/error.dart';
-import '../../domain/entities/content_summary.dart';
+import '../../domain/entities/category.dart';
 
-class ContentSummaryModel extends ContentSummary {
-  const ContentSummaryModel({
+class CategoryModel extends Category {
+  const CategoryModel({
     required super.id,
+    required super.projectId,
     required super.name,
-    required super.slug,
-    required super.categoryId,
+    required super.createdAt,
     required super.updatedAt,
-    super.description,
+    super.parentId,
   });
 
-  // A forma esperada do item de `GET /v1/contents` (dentro do envelope
-  // `{ data, nextCursor }`) e do detalhe (`POST`/`PUT`), declarada uma vez.
+  // A forma esperada do item de `GET /v1/categories` e do detalhe
+  // (`POST`/`PUT /v1/categories/:id`), declarada uma vez.
   static final _schema = z.map({
     'id': z.string().min(1),
+    'projectId': z.string().min(1),
     'name': z.string().min(1),
-    'slug': z.string().min(1),
-    'categoryId': z.string().min(1),
-    'description': z.string().optional(),
+    'parentId': z.string().nullable().optional(),
+    'createdAt': z.date(),
     'updatedAt': z.date(),
   });
 
   /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
   /// nunca um cast cru estourando.
-  static Either<Failure, ContentSummaryModel> tryParse(
-    Map<String, dynamic> map,
-  ) {
+  static Either<Failure, CategoryModel> tryParse(Map<String, dynamic> map) {
     final result = _schema.safeParse(map);
     if (!result.success) {
       return Left(ValidationFailure(z.prettifyError(result.error!)));
     }
     final data = result.data!;
     return Right(
-      ContentSummaryModel(
+      CategoryModel(
         id: data['id'] as String,
+        projectId: data['projectId'] as String,
         name: data['name'] as String,
-        slug: data['slug'] as String,
-        categoryId: data['categoryId'] as String,
-        description: data['description'] as String?,
+        parentId: data['parentId'] as String?,
+        createdAt: data['createdAt'] as DateTime,
         updatedAt: data['updatedAt'] as DateTime,
       ),
     );
