@@ -8,6 +8,7 @@ import 'core/network/network.dart';
 import 'modules/contents_module/contents_module.dart';
 import 'modules/editor_module/editor_module.dart';
 import 'modules/preferences_module/preferences_module.dart';
+import 'modules/projects_module/projects_module.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -29,6 +30,7 @@ void setupInjection(AppConfig config, SharedPreferences prefs) {
 
   // --- Module registrations ---
   registerPreferencesModule(getIt, prefs);
+  registerProjectsModule(getIt);
   registerContentsModule(getIt);
   registerEditorModule(getIt);
 }

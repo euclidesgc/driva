@@ -7,7 +7,7 @@ import '../../../../core/util/slug.dart';
 import '../../../../core/widgets/app_wordmark.dart';
 import '../../../../injection.dart';
 import '../../../preferences_module/preferences_module.dart';
-import '../../contents_routes.dart';
+import '../../../projects_module/projects_module.dart';
 import '../../domain/entities/content_summary.dart';
 import '../../domain/use_cases/use_cases.dart';
 import 'cubit/content_list_cubit.dart';
@@ -34,7 +34,8 @@ class ContentListPage extends StatelessWidget {
       appBar: AppBar(
         titleSpacing: 16,
         title: AppWordmark(
-          onTap: () => context.goNamed(ContentsRoutes.contentsName),
+          // Projetos é o novo topo da hierarquia: a marca leva para lá.
+          onTap: () => context.goNamed(ProjectsRoutes.projectsName),
         ),
         actions: [
           const ThemeModeButton(),
