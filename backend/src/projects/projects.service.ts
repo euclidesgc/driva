@@ -45,12 +45,30 @@ export class ProjectsService {
     const imageKey = image
       ? await this.storage.put(image.buffer, image.contentType)
       : null;
-    const row = await this.prisma.project.create({
-      data: {
-        title: dto.title,
-        description: dto.description,
-        imageKey,
-      },
+    // A categoria raiz "Geral" nasce na MESMA transação do projeto (adendo
+    // pós-feature-09 do prd.md de docs/08, item 3): como `Content.categoryId`
+    // é NOT NULL e o default de escrita é a "Geral", todo projeto precisa
+    // da sua "Geral" antes de qualquer POST de conteúdo. Alternativas
+    // descartadas: trigger de banco (lógica escondida, difícil de
+    // testar/versionar) e seed só na migração (não cobre projetos criados em
+    // runtime).
+    const row = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.project.create({
+        data: {
+          title: dto.title,
+          description: dto.description,
+          imageKey,
+        },
+      });
+      await tx.category.create({
+        data: {
+          projectId: created.id,
+          name: 'Geral',
+          slug: 'geral',
+          parentId: null,
+        },
+      });
+      return created;
     });
     return this.toSummary(row);
   }
