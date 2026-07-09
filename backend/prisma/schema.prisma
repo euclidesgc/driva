@@ -7,14 +7,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// O novo topo da hierarquia (Projeto → Categorias → Conteúdos). Guarda só a
+/// CHAVE da imagem (`imageKey`) no storage — o binário nunca entra no
+/// Postgres (ver `src/storage/`). `id` CUID2 é o mesmo valor esperado no
+/// header `x-project-id`. `onDelete: Restrict` em `Content.project` impede
+/// apagar um projeto com conteúdos (o usuário esvazia antes).
+model Project {
+  id          String   @id @default(cuid(2))
+  title       String
+  description String?
+  imageKey    String?  @map("image_key")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  contents Content[]
+  // categories Category[]  // chega no item 10 — Project já nasce pronto p/ isso
+
+  @@map("projects")
+}
+
 /// Um conteúdo SDUI. O `spec` é JSONB opaco: o backend NÃO interpreta o
 /// conteúdo — o kernel de validação é Dart (`sdui_core`). Multi-tenant
-/// preparado por `projectId`; `slug` é a referência técnica única por projeto
-/// (papéis/workflow chegam no I4). Novos registros nascem com id CUID2;
-/// UUIDs legados permanecem válidos.
+/// preparado por `projectId` (FK para `Project`); `slug` é a referência
+/// técnica única por projeto (papéis/workflow chegam no I4). Novos registros
+/// nascem com id CUID2; UUIDs legados permanecem válidos.
 model Content {
   id          String   @id @default(cuid(2))
-  projectId   String   @default("default") @map("project_id")
+  projectId   String   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
   name        String
   slug        String
   description String?
