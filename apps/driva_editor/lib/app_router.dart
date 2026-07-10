@@ -21,6 +21,11 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRoutes = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: ProjectsRoutes.projects,
-  routes: [ProjectsRoutes.route, ContentsRoutes.route, EditorRoutes.route],
+  routes: [
+    ProjectsRoutes.route,
+    ProjectsRoutes.archivedRoute,
+    ContentsRoutes.route,
+    EditorRoutes.route,
+  ],
   onException: (context, state, router) => router.go(ProjectsRoutes.projects),
 );

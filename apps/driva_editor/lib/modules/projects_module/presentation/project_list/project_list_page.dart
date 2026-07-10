@@ -10,6 +10,7 @@ import '../../../contents_module/contents_module.dart';
 import '../../../preferences_module/preferences_module.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/use_cases/use_cases.dart';
+import '../../projects_routes.dart';
 import 'cubit/project_list_cubit.dart';
 import 'widgets/project_form_dialog.dart';
 
@@ -22,7 +23,7 @@ class ProjectListPage extends StatelessWidget {
         getProjects: getIt<GetProjectsUseCase>(),
         createProject: getIt<CreateProjectUseCase>(),
         updateProject: getIt<UpdateProjectUseCase>(),
-        deleteProject: getIt<DeleteProjectUseCase>(),
+        archiveProject: getIt<ArchiveProjectUseCase>(),
       )..load(),
       child: const ProjectListPage(),
     );
@@ -35,6 +36,17 @@ class ProjectListPage extends StatelessWidget {
         titleSpacing: 16,
         title: const AppWordmark(),
         actions: [
+          BlocBuilder<ProjectListCubit, ProjectListState>(
+            builder: (context, state) {
+              final archivedCount = switch (state) {
+                ProjectListLoaded(:final archivedCount) => archivedCount,
+                ProjectListEmpty(:final archivedCount) => archivedCount,
+                _ => 0,
+              };
+              return _ArchivedLinkButton(count: archivedCount);
+            },
+          ),
+          const SizedBox(width: 4),
           const ThemeModeButton(),
           const SizedBox(width: 4),
           Padding(
@@ -119,7 +131,31 @@ class ProjectListPage extends StatelessWidget {
           image: form.image,
           removeImage: form.removeImage,
         ),
-        onDelete: () => cubit.delete(project.id),
+        onArchive: () => cubit.archive(project.id),
+      ),
+    );
+  }
+}
+
+/// Link do header para a área de Arquivados; mostra a contagem quando > 0.
+class _ArchivedLinkButton extends StatelessWidget {
+  const _ArchivedLinkButton({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count > 0 ? 'Arquivados ($count)' : 'Arquivados';
+    return Tooltip(
+      message: 'Ver projetos arquivados',
+      child: Semantics(
+        button: true,
+        label: label,
+        child: TextButton.icon(
+          onPressed: () => context.goNamed(ProjectsRoutes.archivedName),
+          icon: const Icon(Icons.archive_outlined, size: 18),
+          label: Text(label),
+        ),
       ),
     );
   }

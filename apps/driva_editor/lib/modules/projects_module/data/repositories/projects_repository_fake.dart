@@ -33,10 +33,13 @@ class ProjectsRepositoryFake implements ProjectsRepository {
   int _sequence = 1;
 
   @override
-  Future<Either<Failure, List<Project>>> getProjects() async {
+  Future<Either<Failure, List<Project>>> getProjects({
+    bool archived = false,
+  }) async {
     await Future<void>.delayed(_latency);
-    final projects = _projects.values.toList()
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final projects =
+        _projects.values.where((p) => p.isArchived == archived).toList()
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return Right(projects);
   }
 
@@ -100,17 +103,38 @@ class ProjectsRepositoryFake implements ProjectsRepository {
   }
 
   @override
+  Future<Either<Failure, Project>> archiveProject(String id) async {
+    await Future<void>.delayed(_latency);
+    final current = _projects[id];
+    if (current == null) return const Left(NotFoundFailure());
+    final updated = current.copyWith(archivedAt: () => DateTime.now());
+    _projects[id] = updated;
+    return Right(updated);
+  }
+
+  @override
+  Future<Either<Failure, Project>> unarchiveProject(String id) async {
+    await Future<void>.delayed(_latency);
+    final current = _projects[id];
+    if (current == null) return const Left(NotFoundFailure());
+    final updated = current.copyWith(archivedAt: () => null);
+    _projects[id] = updated;
+    return Right(updated);
+  }
+
+  @override
   Future<Either<Failure, Unit>> deleteProject(String id) async {
     await Future<void>.delayed(_latency);
-    if (!_projects.containsKey(id)) return const Left(NotFoundFailure());
-    // Espelha o `onDelete: Restrict` do backend: no fake, só o projeto
-    // `default` é tratado como "com conteúdos" (é o que o resto do app usa).
-    if (id == 'default') {
+    final current = _projects[id];
+    if (current == null) return const Left(NotFoundFailure());
+    // Espelha a regra do backend: exclusão definitiva só é permitida com o
+    // projeto já arquivado.
+    if (!current.isArchived) {
       return const Left(
         ConflictFailure(
           message:
-              'Não é possível apagar um projeto que ainda tem categorias ou '
-              'conteúdos. Esvazie o projeto antes de apagá-lo.',
+              'Só é possível apagar definitivamente um projeto arquivado. '
+              'Arquive o projeto antes de excluí-lo.',
         ),
       );
     }

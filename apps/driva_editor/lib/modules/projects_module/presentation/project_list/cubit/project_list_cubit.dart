@@ -12,25 +12,36 @@ class ProjectListCubit extends Cubit<ProjectListState> {
   final GetProjectsUseCase getProjects;
   final CreateProjectUseCase createProject;
   final UpdateProjectUseCase updateProject;
-  final DeleteProjectUseCase deleteProject;
+  final ArchiveProjectUseCase archiveProject;
 
   ProjectListCubit({
     required this.getProjects,
     required this.createProject,
     required this.updateProject,
-    required this.deleteProject,
+    required this.archiveProject,
   }) : super(const ProjectListLoading());
 
+  /// Carrega a home (ativos) e a contagem de arquivados (para o link
+  /// "Arquivados (N)" do header) em paralelo.
   Future<void> load() async {
     emit(const ProjectListLoading());
-    final result = await getProjects();
+    final results = await Future.wait([
+      getProjects(),
+      getProjects(archived: true),
+    ]);
     if (isClosed) return;
+    final activeResult = results[0];
+    final archivedResult = results[1];
+    final archivedCount = archivedResult.fold((_) => 0, (p) => p.length);
     emit(
-      result.fold(
+      activeResult.fold(
         (failure) => ProjectListError(failure: failure),
         (projects) => projects.isEmpty
-            ? const ProjectListEmpty()
-            : ProjectListLoaded(projects: projects),
+            ? ProjectListEmpty(archivedCount: archivedCount)
+            : ProjectListLoaded(
+                projects: projects,
+                archivedCount: archivedCount,
+              ),
       ),
     );
   }
@@ -72,21 +83,25 @@ class ProjectListCubit extends Cubit<ProjectListState> {
     return result;
   }
 
-  /// Exclusão otimista: remove o card na hora sobre o `Loaded` atual (vira
-  /// `Empty` ao esvaziar) e devolve o resultado. Em falha (ex.: 409 por
-  /// `Restrict`), reconcilia com `load()` e devolve o `Left` para a UI
-  /// avisar via snackbar com a mensagem da Failure.
-  Future<Either<Failure, Unit>> delete(String id) async {
+  /// Arquivamento otimista (exclusão lógica): remove o card da home na hora
+  /// sobre o `Loaded` atual (vira `Empty` ao esvaziar) e devolve o
+  /// resultado. Em falha, reconcilia com `load()` e devolve o `Left` para a
+  /// UI avisar via snackbar com a mensagem da Failure.
+  Future<Either<Failure, Project>> archive(String id) async {
     final current = state;
     if (current is ProjectListLoaded) {
       final remaining = current.projects.where((p) => p.id != id).toList();
+      final archivedCount = current.archivedCount + 1;
       emit(
         remaining.isEmpty
-            ? const ProjectListEmpty()
-            : ProjectListLoaded(projects: remaining),
+            ? ProjectListEmpty(archivedCount: archivedCount)
+            : ProjectListLoaded(
+                projects: remaining,
+                archivedCount: archivedCount,
+              ),
       );
     }
-    final result = await deleteProject(id);
+    final result = await archiveProject(id);
     if (isClosed) return result;
     if (result.isLeft()) await load();
     return result;

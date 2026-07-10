@@ -30,4 +30,10 @@ void registerProjectsModule(GetIt getIt) {
   getIt.registerFactory(
     () => DeleteProjectUseCase(repository: getIt<ProjectsRepository>()),
   );
+  getIt.registerFactory(
+    () => ArchiveProjectUseCase(repository: getIt<ProjectsRepository>()),
+  );
+  getIt.registerFactory(
+    () => UnarchiveProjectUseCase(repository: getIt<ProjectsRepository>()),
+  );
 }

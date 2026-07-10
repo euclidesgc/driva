@@ -24,7 +24,7 @@ class ProjectFormDialog extends StatefulWidget {
     this.initialTitle,
     this.initialDescription,
     this.initialImageUrl,
-    this.onDelete,
+    this.onArchive,
   });
 
   final String title;
@@ -37,8 +37,10 @@ class ProjectFormDialog extends StatefulWidget {
   final Future<Either<Failure, Project>> Function(ProjectFormResult form)
   onSubmit;
 
-  /// Presente só no modo editar: exclui o projeto. `null` esconde a ação.
-  final Future<Either<Failure, Unit>> Function()? onDelete;
+  /// Presente só no modo editar: arquiva o projeto (exclusão lógica — ele
+  /// some da home mas não é apagado; fica acessível em "Arquivados").
+  /// `null` esconde a ação.
+  final Future<Either<Failure, Project>> Function()? onArchive;
 
   @override
   State<ProjectFormDialog> createState() => _ProjectFormDialogState();
@@ -137,15 +139,17 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
     UnexpectedFailure() => 'Algo deu errado. Tente de novo.',
   };
 
-  Future<void> _confirmDelete() async {
-    final onDelete = widget.onDelete;
-    if (onDelete == null) return;
+  Future<void> _confirmArchive() async {
+    final onArchive = widget.onArchive;
+    if (onArchive == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Excluir projeto?'),
+        title: const Text('Arquivar projeto?'),
         content: Text(
-          '"${widget.initialTitle}" será excluído. Essa ação não tem volta.',
+          '"${widget.initialTitle}" sai da lista de projetos, mas nada é '
+          'apagado — você pode restaurá-lo a qualquer momento em '
+          '"Arquivados".',
         ),
         actions: [
           TextButton(
@@ -154,7 +158,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Excluir'),
+            child: const Text('Arquivar'),
           ),
         ],
       ),
@@ -165,13 +169,11 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
       _submitting = true;
       _errorMessage = null;
     });
-    final result = await onDelete();
+    final result = await onArchive();
     if (!mounted) return;
     result.fold(
       (failure) => setState(() {
         _submitting = false;
-        // 409 (Restrict — projeto com conteúdos) chega aqui com a mensagem
-        // da própria Failure, sem mensagem genérica de erro.
         _errorMessage = _messageFor(failure);
       }),
       (_) => Navigator.of(context).pop(true),
@@ -259,15 +261,15 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
         ),
       ),
       actions: [
-        if (widget.onDelete != null)
+        if (widget.onArchive != null)
           TextButton.icon(
-            onPressed: _submitting ? null : _confirmDelete,
+            onPressed: _submitting ? null : _confirmArchive,
             icon: Icon(
-              Icons.delete_outline,
+              Icons.archive_outlined,
               color: Theme.of(context).colorScheme.error,
             ),
             label: Text(
-              'Excluir',
+              'Arquivar',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

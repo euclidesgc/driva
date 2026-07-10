@@ -14,6 +14,7 @@ class ProjectModel extends Project {
     required super.categoryCount,
     super.description,
     super.imageUrl,
+    super.archivedAt,
   });
 
   // A forma esperada do item de `GET /v1/projects` e do detalhe
@@ -28,6 +29,10 @@ class ProjectModel extends Project {
   //
   // `contentCount`/`categoryCount` — adendo P3 (`_count` do Prisma),
   // sempre presentes em ambos os payloads.
+  //
+  // `archivedAt` — feature de arquivamento: `null` quando ativo, ISO string
+  // quando arquivado. Nullable e opcional (payloads antigos/fake sem o
+  // campo continuam válidos).
   static final _schema = z.map({
     'id': z.string().min(1),
     'title': z.string().min(1),
@@ -37,6 +42,7 @@ class ProjectModel extends Project {
     'updatedAt': z.date(),
     'contentCount': z.int(),
     'categoryCount': z.int(),
+    'archivedAt': z.date().nullable().optional(),
   });
 
   /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
@@ -57,6 +63,7 @@ class ProjectModel extends Project {
         updatedAt: data['updatedAt'] as DateTime,
         contentCount: data['contentCount'] as int,
         categoryCount: data['categoryCount'] as int,
+        archivedAt: data['archivedAt'] as DateTime?,
       ),
     );
   }

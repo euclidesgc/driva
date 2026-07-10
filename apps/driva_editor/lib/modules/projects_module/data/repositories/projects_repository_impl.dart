@@ -11,9 +11,14 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   ProjectsRepositoryImpl(this.dio); // o Dio compartilhado, injetado
 
   @override
-  Future<Either<Failure, List<Project>>> getProjects() async {
+  Future<Either<Failure, List<Project>>> getProjects({
+    bool archived = false,
+  }) async {
     try {
-      final response = await dio.get<List<dynamic>>('/v1/projects');
+      final response = await dio.get<List<dynamic>>(
+        '/v1/projects',
+        queryParameters: {'status': archived ? 'archived' : 'active'},
+      );
       final raw = (response.data ?? const <dynamic>[])
           .cast<Map<String, dynamic>>();
       final projects = <Project>[];
@@ -88,6 +93,30 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   }
 
   @override
+  Future<Either<Failure, Project>> archiveProject(String id) async {
+    try {
+      final response = await dio.post<Map<String, dynamic>>(
+        '/v1/projects/$id/archive',
+      );
+      return ProjectModel.tryParse(response.data ?? const {});
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Project>> unarchiveProject(String id) async {
+    try {
+      final response = await dio.post<Map<String, dynamic>>(
+        '/v1/projects/$id/unarchive',
+      );
+      return ProjectModel.tryParse(response.data ?? const {});
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> deleteProject(String id) async {
     try {
       await dio.delete<void>('/v1/projects/$id');
@@ -108,21 +137,26 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   }
 
   // O único try/catch do módulo mora nesta classe: HTTP vira Failure aqui.
-  // Projeto não tem slug — o 409 aqui é o `onDelete: Restrict` do backend
-  // (delete de projeto com categorias/conteúdos), não colisão de slug.
-  // Reusa `ConflictFailure` com uma mensagem própria (sem `suggestedSlug`,
-  // que é específico de conteúdo) em vez de generalizar o core.
+  // Projeto não tem slug — o 409 aqui é conflito de estado do próprio
+  // arquivamento: exclusão definitiva (`DELETE`) só é permitida com o
+  // projeto já arquivado; tentar em um projeto ativo devolve 409. Reusa
+  // `ConflictFailure` com uma mensagem própria (sem `suggestedSlug`, que é
+  // específico de conteúdo) em vez de generalizar o core. Quando o backend
+  // manda uma mensagem própria no corpo, ela prevalece sobre o default.
   Failure _failureFor(DioException e) => switch (e.type) {
     DioExceptionType.connectionTimeout ||
     DioExceptionType.receiveTimeout ||
     DioExceptionType.connectionError => const NetworkFailure(),
     DioExceptionType.badResponse => switch (e.response?.statusCode) {
       404 => const NotFoundFailure(),
-      409 => const ConflictFailure(
-        message:
-            'Não é possível apagar um projeto que ainda tem categorias ou '
-            'conteúdos. Esvazie o projeto antes de apagá-lo.',
-      ),
+      409 => switch (_messageFrom(e.response?.data)) {
+        final String message => ConflictFailure(message: message),
+        null => const ConflictFailure(
+          message:
+              'Só é possível apagar definitivamente um projeto arquivado. '
+              'Arquive o projeto antes de excluí-lo.',
+        ),
+      },
       400 => switch (_messageFrom(e.response?.data)) {
         final String message => ValidationFailure(message),
         null => const ValidationFailure(),

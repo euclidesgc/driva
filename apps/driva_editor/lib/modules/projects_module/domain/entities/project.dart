@@ -17,6 +17,7 @@ class Project extends Equatable {
     required this.categoryCount,
     this.description,
     this.imageUrl,
+    this.archivedAt,
   });
 
   final String id;
@@ -39,6 +40,13 @@ class Project extends Equatable {
   /// Nº de categorias do projeto (`_count` do Prisma) — mesmo adendo P3.
   final int categoryCount;
 
+  /// `null` quando o projeto está ativo; setado no momento do arquivamento.
+  /// Exclusão lógica: o projeto some da home mas continua existindo até a
+  /// exclusão definitiva (só permitida quando arquivado).
+  final DateTime? archivedAt;
+
+  bool get isArchived => archivedAt != null;
+
   Project copyWith({
     String? id,
     String? title,
@@ -48,6 +56,7 @@ class Project extends Equatable {
     int? categoryCount,
     String? Function()? description,
     String? Function()? imageUrl,
+    DateTime? Function()? archivedAt,
   }) {
     return Project(
       id: id ?? this.id,
@@ -58,6 +67,7 @@ class Project extends Equatable {
       categoryCount: categoryCount ?? this.categoryCount,
       description: description != null ? description() : this.description,
       imageUrl: imageUrl != null ? imageUrl() : this.imageUrl,
+      archivedAt: archivedAt != null ? archivedAt() : this.archivedAt,
     );
   }
 
@@ -71,5 +81,6 @@ class Project extends Equatable {
     updatedAt,
     contentCount,
     categoryCount,
+    archivedAt,
   ];
 }
