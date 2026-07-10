@@ -10,10 +10,7 @@ import 'package:fpdart/fpdart.dart';
 /// release o diálogo virava um retângulo cinza (RenderErrorBox). O dialog não
 /// pode montar com erro em nenhum dos modos.
 void main() {
-  Future<void> pumpDialog(
-    WidgetTester tester, {
-    required bool editMode,
-  }) async {
+  Future<void> pumpDialog(WidgetTester tester, {required bool editMode}) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
