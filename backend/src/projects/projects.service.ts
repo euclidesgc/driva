@@ -17,7 +17,12 @@ type ProjectRow = {
   imageKey: string | null;
   createdAt: Date;
   updatedAt: Date;
+  _count?: { contents: number; categories: number };
 };
+
+const COUNTS_SELECT = {
+  _count: { select: { contents: true, categories: true } },
+} as const;
 
 @Injectable()
 export class ProjectsService {
@@ -36,6 +41,7 @@ export class ProjectsService {
         imageKey: true,
         createdAt: true,
         updatedAt: true,
+        ...COUNTS_SELECT,
       },
     });
     return rows.map((row) => this.toSummary(row));
@@ -70,11 +76,24 @@ export class ProjectsService {
       });
       return created;
     });
-    return this.toSummary(row);
+    // Projeto recém-criado nasce com a "Geral" (transação acima) e nenhum
+    // conteúdo — contadores fixos aqui evitam um round-trip extra de count().
+    return this.toSummary({ ...row, _count: { contents: 0, categories: 1 } });
   }
 
   async find(id: string) {
-    const project = await this.prisma.project.findUnique({ where: { id } });
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        imageKey: true,
+        createdAt: true,
+        updatedAt: true,
+        ...COUNTS_SELECT,
+      },
+    });
     if (!project) throw new NotFoundException();
     return this.toSummary(project);
   }
@@ -106,6 +125,15 @@ export class ProjectsService {
           ? { description: dto.description }
           : {}),
         ...(image || removeImage ? { imageKey } : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        imageKey: true,
+        createdAt: true,
+        updatedAt: true,
+        ...COUNTS_SELECT,
       },
     });
 
@@ -159,6 +187,8 @@ export class ProjectsService {
       imageUrl: row.imageKey ? `/v1/projects/${row.id}/image` : null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      contentCount: row._count?.contents ?? 0,
+      categoryCount: row._count?.categories ?? 0,
     };
   }
 

@@ -15,7 +15,17 @@ type CategoryRow = {
   slug: string;
   parentId: string | null;
   projectId: string;
+  _count?: { contents: number };
 };
+
+const CATEGORY_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  parentId: true,
+  projectId: true,
+  _count: { select: { contents: true } },
+} as const;
 
 @Injectable()
 export class CategoriesService {
@@ -25,13 +35,7 @@ export class CategoriesService {
     const rows = await this.prisma.category.findMany({
       where: { projectId },
       orderBy: { name: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        parentId: true,
-        projectId: true,
-      },
+      select: CATEGORY_SELECT,
     });
     return rows.map((row) => this.toSummary(row));
   }
@@ -49,15 +53,10 @@ export class CategoriesService {
           slug,
           parentId: dto.parentId ?? null,
         },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          parentId: true,
-          projectId: true,
-        },
+        select: CATEGORY_SELECT,
       });
-      return this.toSummary(row);
+      // Categoria recém-criada nunca tem conteúdo ainda.
+      return this.toSummary({ ...row, _count: { contents: 0 } });
     } catch (error) {
       if (this.isSlugConflict(error)) {
         return this.throwSlugConflict(projectId, slug);
@@ -90,13 +89,7 @@ export class CategoriesService {
           ...(dto.name !== undefined ? { name: dto.name } : {}),
           ...(movingParent ? { parentId: dto.parentId ?? null } : {}),
         },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          parentId: true,
-          projectId: true,
-        },
+        select: CATEGORY_SELECT,
       });
       return this.toSummary(row);
     } catch (error) {
@@ -178,6 +171,7 @@ export class CategoriesService {
       slug: row.slug,
       parentId: row.parentId,
       projectId: row.projectId,
+      contentCount: row._count?.contents ?? 0,
     };
   }
 
