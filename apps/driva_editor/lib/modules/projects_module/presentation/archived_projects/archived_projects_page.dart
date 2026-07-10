@@ -242,7 +242,10 @@ class _ArchivedProjectCard extends StatelessWidget {
                           message: 'Restaurar projeto para a lista ativa',
                           child: OutlinedButton.icon(
                             onPressed: () => _confirmRestore(context, project),
-                            icon: const Icon(Icons.unarchive_outlined, size: 16),
+                            icon: const Icon(
+                              Icons.unarchive_outlined,
+                              size: 16,
+                            ),
                             label: const Text('Restaurar'),
                           ),
                         ),
@@ -252,7 +255,8 @@ class _ArchivedProjectCard extends StatelessWidget {
                         message: 'Excluir definitivamente',
                         child: Semantics(
                           button: true,
-                          label: 'Excluir projeto ${project.title} '
+                          label:
+                              'Excluir projeto ${project.title} '
                               'definitivamente',
                           child: IconButton(
                             onPressed: () =>
@@ -355,7 +359,9 @@ class _ArchivedProjectCard extends StatelessWidget {
         SnackBar(content: Text(ArchivedProjectsPage._messageFor(failure))),
       ),
       (_) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"${project.title}" foi excluído definitivamente.')),
+        SnackBar(
+          content: Text('"${project.title}" foi excluído definitivamente.'),
+        ),
       ),
     );
   }
@@ -425,9 +431,8 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
             controller: _controller,
             autofocus: true,
             decoration: const InputDecoration(hintText: 'Nome do projeto'),
-            onChanged: (value) => setState(
-              () => _matches = value.trim() == widget.projectTitle,
-            ),
+            onChanged: (value) =>
+                setState(() => _matches = value.trim() == widget.projectTitle),
           ),
         ],
       ),
@@ -440,9 +445,7 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
           style: FilledButton.styleFrom(
             backgroundColor: theme.colorScheme.error,
           ),
-          onPressed: _matches
-              ? () => Navigator.of(context).pop(true)
-              : null,
+          onPressed: _matches ? () => Navigator.of(context).pop(true) : null,
           child: const Text('Excluir definitivamente'),
         ),
       ],

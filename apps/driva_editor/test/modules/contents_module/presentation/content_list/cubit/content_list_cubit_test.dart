@@ -52,9 +52,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Loaded quando há conteúdos',
       build: build,
-      setUp: () => when(() => getContents()).thenAnswer(
-        (_) async => Right(ContentsPage(items: [content])),
-      ),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [content]))),
       act: (cubit) => cubit.load(),
       expect: () => [
         const ContentListLoading(),
@@ -65,9 +65,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Empty quando não há conteúdos',
       build: build,
-      setUp: () => when(() => getContents()).thenAnswer(
-        (_) async => const Right(ContentsPage(items: [])),
-      ),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => const Right(ContentsPage(items: []))),
       act: (cubit) => cubit.load(),
       expect: () => [const ContentListLoading(), const ContentListEmpty()],
     );
@@ -154,9 +154,9 @@ void main() {
         when(
           () => deleteContent('ct_1'),
         ).thenAnswer((_) async => const Left(NetworkFailure()));
-        when(() => getContents()).thenAnswer(
-          (_) async => Right(ContentsPage(items: [content, other])),
-        );
+        when(
+          () => getContents(),
+        ).thenAnswer((_) async => Right(ContentsPage(items: [content, other])));
       },
       act: (cubit) async {
         final result = await cubit.delete('ct_1');
