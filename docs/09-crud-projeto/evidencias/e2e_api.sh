@@ -314,83 +314,219 @@ MOVED="$(jqr --arg id "$CNT_GERAL" '.data | map(select(.id==$id)) | length')"
 check "3.9 conteudo movido aparece no filtro do destino" "1" "$MOVED"
 
 # =====================================================================
-# BLOCO 4 - PROJETOS: DELETE guardas (depende do estado acumulado)
+# BLOCO 4 - PROJETOS: guarda de DELETE (arquive-antes-de-excluir)
 # =====================================================================
-section "BLOCO 4 - PROJETOS DELETE"
-
-# 4.1 DELETE de projeto COM conteudo -> 409 (PROJ_A tem varios conteudos)
-get_raw DELETE "/projects/$PROJ_A" "default"
-check "4.1 DELETE projeto com conteudo -> 409" "409" "$HTTP_STATUS" "body=$HTTP_BODY"
-
-# 4.2 DELETE de projeto sem conteudo mas com a "Geral" -> 409 (contrato atual).
 #
-#  DIVERGENCIA task-spec x contrato: a task pedia "204 para projeto vazio". Mas
-#  todo projeto nasce com a categoria "Geral" na MESMA transacao
-#  (ProjectsService.create), e Category.project e' `onDelete: Restrict`
-#  (schema.prisma). Nao existe caminho de API que deixe um projeto
-#  categoria-vazio no fluxo feliz, e mesmo so com a "Geral" o DELETE do projeto
-#  retorna 409 — a propria mensagem lista "conteudos/CATEGORIAS". Comportamento
-#  INTENCIONAL (documentado no schema/migration), nao defeito de codigo.
-#  Aqui asseramos o contrato REAL; a divergencia com a task-spec esta no
-#  relatorio da rodada.
-proj_mut -X POST "$BASE_URL/projects" -F "title=${TAG}-empty"
-PROJ_EMPTY="$(jqr '.id')"
-[ -n "$PROJ_EMPTY" ] && [ "$PROJ_EMPTY" != "null" ] && CREATED_PROJECTS+=("$PROJ_EMPTY")
-get_raw DELETE "/projects/$PROJ_EMPTY" "default"
-check "4.2 DELETE projeto so-com-Geral -> 409 (contrato atual; task pedia 204)" "409" "$HTTP_STATUS" "body=$HTTP_BODY"
+#  CONTRATO NOVO (feature/api-conteudos): DELETE deixou de depender de o
+#  projeto estar vazio. Agora `ProjectsService.remove` checa `archivedAt`
+#  ANTES de tudo: projeto ATIVO -> 409 "arquive o projeto antes de excluir";
+#  projeto ARQUIVADO -> 204 apagando em CASCATA (conteudos -> categorias ->
+#  projeto, numa unica $transaction que contorna o onDelete:Restrict do
+#  schema, que segue intacto pro fluxo normal). Os detalhes de arquivamento
+#  e cascade estao nos BLOCOS 6 e 7; aqui so a guarda basica do DELETE.
+section "BLOCO 4 - PROJETOS: guarda arquive-antes-de-excluir"
 
-# 4.2b caminho para APAGAR de fato: esvaziar a "Geral" e entao apagar o projeto -> 204
-GID="$(curl -s "$BASE_URL/categories" -H "x-project-id: $PROJ_EMPTY" | jq -r 'map(select(.slug=="geral"))[0].id')"
-DGERAL="$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/categories/$GID" -H "x-project-id: $PROJ_EMPTY")"
-check "4.2b apagar a Geral (projeto sem conteudo) -> 204" "204" "$DGERAL"
-get_raw DELETE "/projects/$PROJ_EMPTY" "default"
-if [ "$HTTP_STATUS" = "204" ]; then
-  pass "4.2b DELETE projeto sem categorias/conteudo -> 204"
-  NEW=(); for p in "${CREATED_PROJECTS[@]}"; do [ "$p" != "$PROJ_EMPTY" ] && NEW+=("$p"); done; CREATED_PROJECTS=("${NEW[@]}")
+# 4.1 DELETE de projeto ATIVO -> 409 com a mensagem "arquive ... antes"
+#     (independe de ter conteudo: PROJ_A esta ativo).
+get_raw DELETE "/projects/$PROJ_A" "default"
+check "4.1 DELETE projeto ativo -> 409" "409" "$HTTP_STATUS" "body=$HTTP_BODY"
+MSG="$(jqr '.message')"
+case "$MSG" in *arquive*) pass "4.1 mensagem 409 orienta arquivar antes ($MSG)";; *) fail "4.1 mensagem 409 orienta arquivar antes" "obtido=$MSG";; esac
+
+# =====================================================================
+# BLOCO 5 - STORAGE POR PASTA (key = <projectId>/midias/<uuid>.<ext>)
+# =====================================================================
+#
+#  A `imageKey` NAO e' exposta pela API (so sai `imageUrl` =
+#  /v1/projects/:id/image). Para provar o padrao da key — cujo PREFIXO e' o id
+#  do PROPRIO projeto — inspecionamos o storage local em disco (adapter default
+#  de dev; `LocalStorageService`, STORAGE_DRIVER=local). STORAGE_DIR aponta pro
+#  `.storage/` do backend (default: <repo>/backend/.storage; overridavel por
+#  env). Se o dir nao existir (ex.: STORAGE_DRIVER=s3), o bloco AVISA e pula a
+#  parte de disco, mantendo as checagens de serving via HTTP.
+section "BLOCO 5 - STORAGE POR PASTA"
+
+# raiz do repo a partir do proprio script (docs/09-crud-projeto/evidencias/)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+STORAGE_DIR="${STORAGE_DIR:-$REPO_ROOT/backend/.storage}"
+
+# 5.1 criar projeto COM PNG -> imageUrl aponta pro proprio id
+make_png "$TMP/storage.png"
+proj_mut -X POST "$BASE_URL/projects" -F "title=${TAG}-storage" -F "image=@$TMP/storage.png;type=image/png"
+PROJ_STO="$(jqr '.id')"
+check "5.1 criar projeto com PNG -> 201" "201" "$HTTP_STATUS" "body=$HTTP_BODY"
+[ -n "$PROJ_STO" ] && [ "$PROJ_STO" != "null" ] && CREATED_PROJECTS+=("$PROJ_STO")
+STO_URL="$(jqr '.imageUrl')"
+check "5.1 imageUrl == /v1/projects/<esse-id>/image" "/v1/projects/$PROJ_STO/image" "$STO_URL"
+
+# 5.2 imageKey em disco casa ^<projectId>/midias/<uuid>.(png|jpg|jpeg|webp)$
+if [ -d "$STORAGE_DIR" ]; then
+  # key = caminho relativo ao STORAGE_DIR do arquivo binario (ignora .meta)
+  KEY="$(cd "$STORAGE_DIR" && find "$PROJ_STO/midias" -type f ! -name '*.meta' 2>/dev/null | head -1)"
+  if [ -z "$KEY" ]; then
+    fail "5.2 imageKey no padrao <projectId>/midias/<uuid>.<ext>" "nenhum arquivo em $STORAGE_DIR/$PROJ_STO/midias"
+  elif printf '%s' "$KEY" | grep -Eq "^$PROJ_STO/midias/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(png|jpg|jpeg|webp)$"; then
+    pass "5.2 imageKey no padrao <projectId>/midias/<uuid>.<ext> ($KEY)"
+  else
+    fail "5.2 imageKey no padrao <projectId>/midias/<uuid>.<ext>" "obtido=$KEY"
+  fi
 else
-  fail "4.2b DELETE projeto sem categorias/conteudo -> 204" "obtido=$HTTP_STATUS body=$HTTP_BODY"
+  log "     ${C_DIM}5.2 STORAGE_DIR ausente ($STORAGE_DIR) — adapter nao-local; pulando checagem de key em disco${C_OFF}"
 fi
 
+# 5.3 GET /projects/:id/image -> 200 + content-type de imagem + nosniff
+HOST="${BASE_URL%/v1}"
+HDRS="$(curl -s -D - -o "$TMP/sto.bin" -w 'HTTP:%{http_code}\n' "$HOST$STO_URL")"
+STO_CODE="$(printf '%s' "$HDRS" | awk -F: '/^HTTP:/{print $2}' | tr -d ' \r')"
+STO_CT="$(printf '%s' "$HDRS" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print $2}' | head -1)"
+STO_NS="$(printf '%s' "$HDRS" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-content-type-options"{print tolower($2)}' | head -1)"
+check "5.3 GET /:id/image -> 200" "200" "$STO_CODE"
+case "$STO_CT" in image/*) pass "5.3 content-type de imagem ($STO_CT)";; *) fail "5.3 content-type de imagem" "obtido=$STO_CT";; esac
+check "5.3 X-Content-Type-Options: nosniff" "nosniff" "$STO_NS"
+
 # =====================================================================
-# CLEANUP — conteudos -> categorias -> projetos (ordem de FK Restrict)
+# BLOCO 6 - ARQUIVAR / RESTAURAR (soft delete via archivedAt)
+# =====================================================================
+#
+#  `?status=active` (default) some com o arquivado; `?status=archived` mostra;
+#  `archivedAt` vem ISO no arquivado e null no ativo; archive/unarchive sao
+#  idempotentes (2a chamada -> 200 no-op).
+section "BLOCO 6 - ARQUIVAR / RESTAURAR"
+
+# projeto dedicado ao ciclo de arquivamento
+proj_mut -X POST "$BASE_URL/projects" -F "title=${TAG}-arch"
+PROJ_ARCH="$(jqr '.id')"
+[ -n "$PROJ_ARCH" ] && [ "$PROJ_ARCH" != "null" ] && CREATED_PROJECTS+=("$PROJ_ARCH")
+check "6.0 criar projeto p/ arquivar -> 201" "201" "$HTTP_STATUS" "body=$HTTP_BODY"
+
+# 6.1 antes de arquivar: aparece em active, archivedAt null
+get_raw GET "/projects?status=active" "default"
+IN_ACTIVE="$(jqr --arg id "$PROJ_ARCH" 'map(select(.id==$id)) | length')"
+check "6.1 ativo listado em ?status=active" "1" "$IN_ACTIVE"
+ARCH_NULL="$(jqr --arg id "$PROJ_ARCH" 'map(select(.id==$id))[0].archivedAt')"
+check "6.1 archivedAt == null no ativo" "null" "$ARCH_NULL"
+
+# 6.2 POST /:id/archive -> 200 e archivedAt preenchido (ISO)
+proj_mut -X POST "$BASE_URL/projects/$PROJ_ARCH/archive"
+check "6.2 POST /:id/archive -> 200" "200" "$HTTP_STATUS" "body=$HTTP_BODY"
+ARCHED_AT="$(jqr '.archivedAt')"
+if printf '%s' "$ARCHED_AT" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}'; then
+  pass "6.2 archivedAt preenchido em ISO ($ARCHED_AT)"
+else
+  fail "6.2 archivedAt preenchido em ISO" "obtido=$ARCHED_AT"
+fi
+
+# 6.3 ?status=active NAO lista o arquivado; ?status=archived lista
+get_raw GET "/projects?status=active" "default"
+GONE_ACTIVE="$(jqr --arg id "$PROJ_ARCH" 'map(select(.id==$id)) | length')"
+check "6.3 arquivado SUMIU de ?status=active" "0" "$GONE_ACTIVE"
+get_raw GET "/projects?status=archived" "default"
+IN_ARCHIVED="$(jqr --arg id "$PROJ_ARCH" 'map(select(.id==$id)) | length')"
+check "6.3 arquivado LISTADO em ?status=archived" "1" "$IN_ARCHIVED"
+
+# 6.4 archive idempotente: 2a vez -> 200 no-op (archivedAt inalterado)
+proj_mut -X POST "$BASE_URL/projects/$PROJ_ARCH/archive"
+check "6.4 archive idempotente (2a vez) -> 200" "200" "$HTTP_STATUS" "body=$HTTP_BODY"
+check "6.4 archivedAt inalterado no no-op" "$ARCHED_AT" "$(jqr '.archivedAt')"
+
+# 6.5 POST /:id/unarchive -> 200, volta pro active, archivedAt null
+proj_mut -X POST "$BASE_URL/projects/$PROJ_ARCH/unarchive"
+check "6.5 POST /:id/unarchive -> 200" "200" "$HTTP_STATUS" "body=$HTTP_BODY"
+check "6.5 archivedAt == null apos restaurar" "null" "$(jqr '.archivedAt')"
+get_raw GET "/projects?status=active" "default"
+BACK_ACTIVE="$(jqr --arg id "$PROJ_ARCH" 'map(select(.id==$id)) | length')"
+check "6.5 restaurado volta a ?status=active" "1" "$BACK_ACTIVE"
+
+# 6.6 unarchive idempotente: 2a vez (ja ativo) -> 200 no-op
+proj_mut -X POST "$BASE_URL/projects/$PROJ_ARCH/unarchive"
+check "6.6 unarchive idempotente (ja ativo) -> 200" "200" "$HTTP_STATUS" "body=$HTTP_BODY"
+check "6.6 archivedAt segue null" "null" "$(jqr '.archivedAt')"
+
+# =====================================================================
+# BLOCO 7 - EXCLUSAO FISICA EM CASCATA (so arquivado; zera cats+conteudos)
+# =====================================================================
+#
+#  DELETE em ativo -> 409; arquivar -> DELETE -> 204; e os conteudos E
+#  categorias do projeto somem junto (cascade). A seed "Geral"/default de
+#  OUTROS projetos permanece intacta.
+section "BLOCO 7 - EXCLUSAO FISICA EM CASCATA"
+
+# projeto dedicado ao cascade, com 1 categoria extra + 2 conteudos
+proj_mut -X POST "$BASE_URL/projects" -F "title=${TAG}-cascade"
+PROJ_CAS="$(jqr '.id')"
+[ -n "$PROJ_CAS" ] && [ "$PROJ_CAS" != "null" ] && CREATED_PROJECTS+=("$PROJ_CAS")
+check "7.0 criar projeto p/ cascade -> 201" "201" "$HTTP_STATUS" "body=$HTTP_BODY"
+
+# 1 categoria extra (alem da Geral) + 2 conteudos
+req_json POST "/categories" "$PROJ_CAS" "{\"name\":\"Extra ${TAG}\"}"
+CAS_CAT="$(jqr '.id')"
+req_json POST "/contents" "$PROJ_CAS" "{\"name\":\"Cascade 1 ${TAG}\",\"slug\":\"cas-1-${RANDOM}\",\"categoryId\":\"$CAS_CAT\"}"
+req_json POST "/contents" "$PROJ_CAS" "{\"name\":\"Cascade 2 ${TAG}\",\"slug\":\"cas-2-${RANDOM}\"}"
+
+# baseline: 2 categorias (Geral + Extra), 2 conteudos
+CAS_CATS_BEFORE="$(curl -s "$BASE_URL/categories" -H "x-project-id: $PROJ_CAS" | jq -r 'length')"
+CAS_CNTS_BEFORE="$(curl -s "$BASE_URL/contents?limit=100" -H "x-project-id: $PROJ_CAS" | jq -r '.data | length')"
+check "7.1 baseline: 2 categorias (Geral+Extra)" "2" "$CAS_CATS_BEFORE"
+check "7.1 baseline: 2 conteudos" "2" "$CAS_CNTS_BEFORE"
+
+# baseline seed de OUTRO projeto (default) — a ser preservada
+DEF_CATS_BEFORE="$(curl -s "$BASE_URL/categories" -H "x-project-id: default" | jq -r 'length')"
+DEF_GERAL_BEFORE="$(curl -s "$BASE_URL/categories" -H "x-project-id: default" | jq -r 'map(select(.slug=="geral" and .parentId==null)) | length')"
+
+# 7.2 DELETE em ativo -> 409 "arquive antes"
+get_raw DELETE "/projects/$PROJ_CAS" "default"
+check "7.2 DELETE projeto ativo -> 409" "409" "$HTTP_STATUS" "body=$HTTP_BODY"
+case "$(jqr '.message')" in *arquive*) pass "7.2 mensagem 409 pede arquivar antes";; *) fail "7.2 mensagem 409 pede arquivar antes" "obtido=$(jqr '.message')";; esac
+
+# 7.3 arquivar -> DELETE -> 204
+proj_mut -X POST "$BASE_URL/projects/$PROJ_CAS/archive"
+check "7.3 arquivar antes de excluir -> 200" "200" "$HTTP_STATUS"
+get_raw DELETE "/projects/$PROJ_CAS" "default"
+if [ "$HTTP_STATUS" = "204" ]; then
+  pass "7.3 DELETE projeto arquivado -> 204"
+  # some do rastreio de cleanup: ja foi apagado aqui
+  NEW=(); for p in "${CREATED_PROJECTS[@]}"; do [ "$p" != "$PROJ_CAS" ] && NEW+=("$p"); done; CREATED_PROJECTS=("${NEW[@]}")
+else
+  fail "7.3 DELETE projeto arquivado -> 204" "obtido=$HTTP_STATUS body=$HTTP_BODY"
+fi
+
+# 7.4 projeto sumiu de active E archived
+get_raw GET "/projects?status=archived" "default"
+STILL_ARCH="$(jqr --arg id "$PROJ_CAS" 'map(select(.id==$id)) | length')"
+check "7.4 projeto excluido nao esta em ?status=archived" "0" "$STILL_ARCH"
+get_raw GET "/projects/$PROJ_CAS" "default"
+check "7.4 GET detalhe do excluido -> 404" "404" "$HTTP_STATUS"
+
+# 7.5 cascade: conteudos e categorias do projeto ZERARAM
+CAS_CATS_AFTER="$(curl -s "$BASE_URL/categories" -H "x-project-id: $PROJ_CAS" | jq -r 'length')"
+CAS_CNTS_AFTER="$(curl -s "$BASE_URL/contents?limit=100" -H "x-project-id: $PROJ_CAS" | jq -r '.data | length')"
+check "7.5 cascade: categorias do projeto zeraram" "0" "$CAS_CATS_AFTER"
+check "7.5 cascade: conteudos do projeto zeraram" "0" "$CAS_CNTS_AFTER"
+
+# 7.6 seed de OUTRO projeto (default) intacta
+DEF_CATS_AFTER="$(curl -s "$BASE_URL/categories" -H "x-project-id: default" | jq -r 'length')"
+DEF_GERAL_AFTER="$(curl -s "$BASE_URL/categories" -H "x-project-id: default" | jq -r 'map(select(.slug=="geral" and .parentId==null)) | length')"
+check "7.6 categorias do 'default' intactas (mesma contagem)" "$DEF_CATS_BEFORE" "$DEF_CATS_AFTER"
+check "7.6 'Geral' do 'default' preservada" "$DEF_GERAL_BEFORE" "$DEF_GERAL_AFTER"
+
+# =====================================================================
+# CLEANUP — arquive-e-apague em cascata (contrato novo do DELETE)
 # =====================================================================
 section "CLEANUP"
 CLEAN_ERR=0
 
-# Estrategia: para cada projeto criado nesta rodada, DRENA tudo pela API na
-# ordem exigida pelas FKs `Restrict`: conteudos -> categorias (folhas antes das
-# raizes, incluindo a "Geral" semeada) -> projeto. Nao depende do rastreio
-# granular de ids (a listagem por projeto e' a fonte da verdade), e a "Geral"
-# so e' apagada nos projetos DESTA rodada — nunca no `default`.
+# Estrategia (contrato novo): DELETE de projeto agora exige o projeto ARQUIVADO
+# e cascateia sozinho (conteudos -> categorias -> projeto numa $transaction).
+# Entao o cleanup e' so: archive (idempotente) -> DELETE (cascade). Nao precisa
+# drenar conteudos/categorias na mao, e a "Geral" some junto — mas so nos
+# projetos DESTA rodada; o `default` nunca e' tocado.
 drain_project() {
   local p="$1" st
-  # 1) conteudos (pagina cheia; repete ate esvaziar)
-  local guard=0
-  while :; do
-    local ids
-    ids="$(curl -s "$BASE_URL/contents?limit=100" -H "x-project-id: $p" | jq -r '.data[].id' 2>/dev/null)"
-    [ -z "$ids" ] && break
-    local id
-    for id in $ids; do
-      st="$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/contents/$id" -H "x-project-id: $p")"
-      case "$st" in 204|404) ;; *) CLEAN_ERR=$((CLEAN_ERR+1)); log "  ! conteudo $id: DELETE $st";; esac
-    done
-    guard=$((guard+1)); [ "$guard" -gt 50 ] && { log "  ! drenagem de conteudos travou em $p"; break; }
-  done
-  # 2) categorias: folhas antes das raizes (varias passadas ate zerar)
-  local pass
-  for pass in $(seq 1 10); do
-    local cats
-    cats="$(curl -s "$BASE_URL/categories" -H "x-project-id: $p" | jq -r '.[].id' 2>/dev/null)"
-    [ -z "$cats" ] && break
-    local removed=0 cid
-    for cid in $cats; do
-      st="$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/categories/$cid" -H "x-project-id: $p")"
-      case "$st" in 204|404) removed=$((removed+1)) ;; esac
-    done
-    [ "$removed" -eq 0 ] && break # so restam categorias bloqueadas por dependencia nao resolvida
-  done
-  # 3) projeto
+  # 1) arquiva (idempotente; 200 mesmo se ja arquivado, 404 se ja sumiu)
+  st="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/projects/$p/archive")"
+  case "$st" in 200|404) ;; *) log "  ! projeto $p: archive $st";; esac
+  # 2) DELETE em cascata (conteudos + categorias + projeto)
   st="$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/projects/$p" -H "x-project-id: default")"
   case "$st" in 204|404) ;; *) CLEAN_ERR=$((CLEAN_ERR+1)); log "  ! projeto $p: DELETE $st";; esac
 }
@@ -400,13 +536,28 @@ for p in "${CREATED_PROJECTS[@]:-}"; do
   drain_project "$p"
 done
 
-# verifica: nenhum projeto com o TAG desta rodada sobra na listagem
-get_raw GET "/projects" "default"
-LEFTOVER="$(jqr --arg t "$TAG" '[.[] | select(.title | test($t))] | length')"
-if [ "$CLEAN_ERR" -eq 0 ] && [ "$LEFTOVER" = "0" ]; then
-  pass "CLEANUP total: DB voltou ao estado inicial (0 residuo do TAG $TAG)"
+# verifica: nenhum projeto com o TAG desta rodada sobra — em active NEM archived
+get_raw GET "/projects?status=active" "default"
+LEFT_ACTIVE="$(jqr --arg t "$TAG" '[.[] | select(.title | test($t))] | length')"
+get_raw GET "/projects?status=archived" "default"
+LEFT_ARCHIVED="$(jqr --arg t "$TAG" '[.[] | select(.title | test($t))] | length')"
+LEFTOVER=$(( ${LEFT_ACTIVE:-0} + ${LEFT_ARCHIVED:-0} ))
+# storage: nenhum BINARIO de projeto desta rodada sobra em disco (adapter local).
+# Obs.: o LocalStorageService.delete remove o arquivo+.meta mas nao a pasta
+# vazia <projectId>/midias — dir vazio nao e' residuo (nenhum byte servivel);
+# so contamos ARQUIVOS remanescentes.
+STO_LEFT=0
+if [ -d "${STORAGE_DIR:-}" ]; then
+  for p in "${CREATED_PROJECTS[@]:-}"; do
+    [ -z "$p" ] && continue
+    n="$(find "$STORAGE_DIR/$p" -type f 2>/dev/null | wc -l | tr -d ' ')"
+    [ "${n:-0}" -gt 0 ] && STO_LEFT=$((STO_LEFT+1))
+  done
+fi
+if [ "$CLEAN_ERR" -eq 0 ] && [ "$LEFTOVER" = "0" ] && [ "$STO_LEFT" = "0" ]; then
+  pass "CLEANUP total: DB+storage voltaram ao estado inicial (0 residuo do TAG $TAG)"
 else
-  fail "CLEANUP total" "erros=$CLEAN_ERR residuo_projetos=$LEFTOVER — inspecione manualmente"
+  fail "CLEANUP total" "erros=$CLEAN_ERR residuo_active=$LEFT_ACTIVE residuo_archived=$LEFT_ARCHIVED storage_left=$STO_LEFT — inspecione manualmente"
 fi
 
 rm -rf "$TMP"
