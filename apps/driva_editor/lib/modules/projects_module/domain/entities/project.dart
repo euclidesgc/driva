@@ -13,6 +13,8 @@ class Project extends Equatable {
     required this.title,
     required this.createdAt,
     required this.updatedAt,
+    required this.contentCount,
+    required this.categoryCount,
     this.description,
     this.imageUrl,
   });
@@ -30,11 +32,20 @@ class Project extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Nº de conteúdos do projeto (`_count` do Prisma) — adendo P3 ao
+  /// contrato de `GET /v1/projects` da feature 09. Sempre presente.
+  final int contentCount;
+
+  /// Nº de categorias do projeto (`_count` do Prisma) — mesmo adendo P3.
+  final int categoryCount;
+
   Project copyWith({
     String? id,
     String? title,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? contentCount,
+    int? categoryCount,
     String? Function()? description,
     String? Function()? imageUrl,
   }) {
@@ -43,6 +54,8 @@ class Project extends Equatable {
       title: title ?? this.title,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      contentCount: contentCount ?? this.contentCount,
+      categoryCount: categoryCount ?? this.categoryCount,
       description: description != null ? description() : this.description,
       imageUrl: imageUrl != null ? imageUrl() : this.imageUrl,
     );
@@ -56,5 +69,7 @@ class Project extends Equatable {
     imageUrl,
     createdAt,
     updatedAt,
+    contentCount,
+    categoryCount,
   ];
 }

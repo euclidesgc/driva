@@ -10,5 +10,6 @@ class DeleteCategoryUseCase {
   final CategoriesRepository repository;
   const DeleteCategoryUseCase({required this.repository});
 
-  Future<Either<Failure, Unit>> call(String id) => repository.deleteCategory(id);
+  Future<Either<Failure, Unit>> call(String id) =>
+      repository.deleteCategory(id);
 }

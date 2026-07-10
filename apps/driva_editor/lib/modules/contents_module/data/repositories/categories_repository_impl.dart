@@ -55,10 +55,7 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
     try {
       final response = await dio.put<Map<String, dynamic>>(
         '/v1/categories/$id',
-        data: {
-          'name': ?name,
-          if (parentId != null) 'parentId': parentId(),
-        },
+        data: {'name': ?name, if (parentId != null) 'parentId': parentId()},
       );
       return CategoryModel.tryParse(response.data ?? const {});
     } on DioException catch (e) {

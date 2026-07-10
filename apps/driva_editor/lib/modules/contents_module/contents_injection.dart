@@ -19,7 +19,7 @@ void registerContentsModule(GetIt getIt) {
   );
   getIt.registerLazySingleton<CategoriesRepository>(
     () => getIt<AppConfig>().useFakeData
-        ? CategoriesRepositoryFake()
+        ? CategoriesRepositoryFake(getIt<FakeContentsStore>())
         : CategoriesRepositoryImpl(getIt<Dio>()),
   );
 

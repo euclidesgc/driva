@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 
+import '../../../../core/dev/fake_contents_store.dart';
 import '../../../../core/error/error.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/repositories/categories_repository.dart';
@@ -8,26 +9,43 @@ import '../../domain/repositories/categories_repository.dart';
 /// contrato de verdade: latência simulada, 409 de `Restrict` (categoria com
 /// filhos/conteúdos) e erros previstos. Nasce com uma árvore pequena de
 /// exemplo — "Geral" (raiz, como a seed do backend) com duas subcategorias.
+///
+/// [store] é o mesmo `FakeContentsStore` do `ContentsRepositoryFake` (os
+/// dois repositórios vivem no mesmo módulo/camada `data`) — usado só para
+/// computar `contentCount` real por categoria, espelhando o `_count` do
+/// Prisma no backend (conteúdos DIRETOS, sem somar subcategorias).
 class CategoriesRepositoryFake implements CategoriesRepository {
+  CategoriesRepositoryFake(this.store);
+
+  final FakeContentsStore store;
+
   static const _latency = Duration(milliseconds: 300);
   static const _generalId = 'cat_geral';
 
   // `Map` literal preserva ordem de inserção — usada como proxy de
   // "createdAt" já que a entidade não carrega timestamp (o backend não os
-  // devolve para categoria).
+  // devolve para categoria). `contentCount` fica placeholder (0) aqui: quem
+  // lê a contagem sempre passa pelo `_withCounts` abaixo.
   final Map<String, Category> _categories = {
-    _generalId: const Category(id: _generalId, projectId: 'default', name: 'Geral'),
+    _generalId: const Category(
+      id: _generalId,
+      projectId: 'default',
+      name: 'Geral',
+      contentCount: 0,
+    ),
     'cat_promocoes': const Category(
       id: 'cat_promocoes',
       projectId: 'default',
       name: 'Promoções',
       parentId: _generalId,
+      contentCount: 0,
     ),
     'cat_institucional': const Category(
       id: 'cat_institucional',
       projectId: 'default',
       name: 'Institucional',
       parentId: _generalId,
+      contentCount: 0,
     ),
   };
   int _sequence = 1;
@@ -35,7 +53,7 @@ class CategoriesRepositoryFake implements CategoriesRepository {
   @override
   Future<Either<Failure, List<Category>>> getCategories() async {
     await Future<void>.delayed(_latency);
-    return Right(_categories.values.toList());
+    return Right(_categories.values.map(_withCount).toList());
   }
 
   @override
@@ -55,9 +73,10 @@ class CategoriesRepositoryFake implements CategoriesRepository {
       projectId: 'default',
       name: name,
       parentId: parentId,
+      contentCount: 0,
     );
     _categories[id] = category;
-    return Right(category);
+    return Right(_withCount(category));
   }
 
   @override
@@ -79,7 +98,17 @@ class CategoriesRepositoryFake implements CategoriesRepository {
     }
     final updated = current.copyWith(name: name, parentId: parentId);
     _categories[id] = updated;
-    return Right(updated);
+    return Right(_withCount(updated));
+  }
+
+  /// Recalcula `contentCount` a partir do `store` compartilhado — os dois
+  /// fakes (categorias e conteúdos) enxergam o mesmo estado, então mover ou
+  /// criar/excluir conteúdo reflete na contagem sem estado duplicado.
+  Category _withCount(Category category) {
+    final count = store.contents
+        .where((content) => store.categoryIdOf(content.id) == category.id)
+        .length;
+    return category.copyWith(contentCount: count);
   }
 
   @override

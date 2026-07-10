@@ -21,9 +21,7 @@ class CreateCategoryUseCase {
     if (trimmedName.length > 120) {
       return Future.value(
         const Left(
-          ValidationFailure(
-            'O nome da categoria deve ter até 120 caracteres.',
-          ),
+          ValidationFailure('O nome da categoria deve ter até 120 caracteres.'),
         ),
       );
     }

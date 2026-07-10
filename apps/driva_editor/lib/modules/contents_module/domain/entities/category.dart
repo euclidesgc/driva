@@ -14,6 +14,7 @@ class Category extends Equatable {
     required this.id,
     required this.projectId,
     required this.name,
+    required this.contentCount,
     this.parentId,
   });
 
@@ -24,20 +25,26 @@ class Category extends Equatable {
   /// `null` quando o nó é raiz.
   final String? parentId;
 
+  /// Nº de conteúdos **diretos** desta categoria (não soma subcategorias) —
+  /// adendo P3, `_count` do Prisma em `GET /v1/categories`. Sempre presente.
+  final int contentCount;
+
   Category copyWith({
     String? id,
     String? projectId,
     String? name,
+    int? contentCount,
     String? Function()? parentId,
   }) {
     return Category(
       id: id ?? this.id,
       projectId: projectId ?? this.projectId,
       name: name ?? this.name,
+      contentCount: contentCount ?? this.contentCount,
       parentId: parentId != null ? parentId() : this.parentId,
     );
   }
 
   @override
-  List<Object?> get props => [id, projectId, name, parentId];
+  List<Object?> get props => [id, projectId, name, parentId, contentCount];
 }

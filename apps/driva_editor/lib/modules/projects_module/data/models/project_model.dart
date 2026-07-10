@@ -10,6 +10,8 @@ class ProjectModel extends Project {
     required super.title,
     required super.createdAt,
     required super.updatedAt,
+    required super.contentCount,
+    required super.categoryCount,
     super.description,
     super.imageUrl,
   });
@@ -23,6 +25,9 @@ class ProjectModel extends Project {
   // `createdAt` obrigatório em ambos os payloads (lista e detalhe) por
   // decisão VR-01 (variance_report.md): lista e detalhe têm a mesma
   // forma, alinhado ao `required` da entidade `Project` (domain/F3).
+  //
+  // `contentCount`/`categoryCount` — adendo P3 (`_count` do Prisma),
+  // sempre presentes em ambos os payloads.
   static final _schema = z.map({
     'id': z.string().min(1),
     'title': z.string().min(1),
@@ -30,6 +35,8 @@ class ProjectModel extends Project {
     'imageUrl': z.string().nullable().optional(),
     'createdAt': z.date(),
     'updatedAt': z.date(),
+    'contentCount': z.int(),
+    'categoryCount': z.int(),
   });
 
   /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
@@ -48,6 +55,8 @@ class ProjectModel extends Project {
         imageUrl: data['imageUrl'] as String?,
         createdAt: data['createdAt'] as DateTime,
         updatedAt: data['updatedAt'] as DateTime,
+        contentCount: data['contentCount'] as int,
+        categoryCount: data['categoryCount'] as int,
       ),
     );
   }

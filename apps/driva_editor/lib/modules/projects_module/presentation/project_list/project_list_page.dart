@@ -286,14 +286,11 @@ class _ProjectCardState extends State<_ProjectCard> {
   }
 }
 
-/// Contadores de "N categorias" / "N conteúdos" do rodapé do card.
-///
-/// O domain de Projeto (F3/F4) ainda não traz essas contagens — o backend
-/// desta rodada não as devolve. Em vez de quebrar o layout ou inventar um
-/// zero enganoso, o rodapé se oculta graciosamente quando a informação não
-/// existe (nenhuma contagem hoje é sempre "ausente"; o `Project` do domain
-/// não tem os campos). Quando o backend/domain passarem a expor
-/// `categoryCount`/`contentCount`, é só trocar este widget.
+/// Contadores de "N categorias" / "N conteúdos" do rodapé do card — fiel ao
+/// `.dc.html` (`p.catCount`/`p.contentCount`, ícone de pasta e de documento
+/// lado a lado). Adendo P3 ao contrato de `GET /v1/projects` (registrar em
+/// `docs/09-crud-projeto/variance_report.md`): os dois inteiros vêm sempre
+/// presentes de `Project`.
 class _ProjectFooterCounts extends StatelessWidget {
   const _ProjectFooterCounts({required this.project});
 
@@ -301,27 +298,38 @@ class _ProjectFooterCounts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sem dado de contagem disponível ainda: mantemos o espaço do rodapé
-    // (a linha divisória) mas sem números — evita "0 categorias" mentiroso.
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
-    return Text(
-      'Atualizado ${_relativeUpdatedAt(project.updatedAt)}',
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: colors.inkMuted,
-        fontSize: 12,
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: colors.inkMuted,
+      fontSize: 12,
+    );
+    return Semantics(
+      label:
+          '${project.categoryCount} '
+          '${project.categoryCount == 1 ? 'categoria' : 'categorias'}, '
+          '${project.contentCount} '
+          '${project.contentCount == 1 ? 'conteúdo' : 'conteúdos'}',
+      child: Row(
+        children: [
+          Icon(Icons.folder_outlined, size: 14, color: colors.inkMuted),
+          const SizedBox(width: 5),
+          Text(
+            '${project.categoryCount} '
+            '${project.categoryCount == 1 ? 'categoria' : 'categorias'}',
+            style: style,
+          ),
+          const SizedBox(width: 14),
+          Icon(Icons.description_outlined, size: 14, color: colors.inkMuted),
+          const SizedBox(width: 5),
+          Text(
+            '${project.contentCount} '
+            '${project.contentCount == 1 ? 'conteúdo' : 'conteúdos'}',
+            style: style,
+          ),
+        ],
       ),
     );
-  }
-
-  String _relativeUpdatedAt(DateTime updatedAt) {
-    final diff = DateTime.now().difference(updatedAt);
-    if (diff.inMinutes < 1) return 'agora';
-    if (diff.inHours < 1) return 'há ${diff.inMinutes} min';
-    if (diff.inDays < 1) return 'há ${diff.inHours} h';
-    if (diff.inDays < 30) return 'há ${diff.inDays} d';
-    return 'em ${updatedAt.day.toString().padLeft(2, '0')}/'
-        '${updatedAt.month.toString().padLeft(2, '0')}/${updatedAt.year}';
   }
 }
 

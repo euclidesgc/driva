@@ -20,6 +20,7 @@ import '../content_list/cubit/content_list_cubit.dart';
 import 'widgets/category_form_dialog.dart';
 import 'widgets/content_form_dialog.dart';
 import 'widgets/content_panel_view.dart';
+import 'widgets/move_content_dialog.dart';
 
 /// A tela do projeto: header (voltar a Projetos + nome do projeto) + árvore
 /// de categorias à esquerda + painel de conteúdos à direita. Fiel ao
@@ -30,9 +31,19 @@ import 'widgets/content_panel_view.dart';
 /// que toda chamada HTTP disparada por eles já saia com o `x-project-id`
 /// certo.
 class ProjectDetailPage extends StatelessWidget {
-  const ProjectDetailPage({super.key, required this.projectId});
+  const ProjectDetailPage({
+    super.key,
+    required this.projectId,
+    required this.projectFuture,
+  });
 
   final String projectId;
+
+  /// Busca o projeto (para o `title` do header) já disparada pelo
+  /// [pageBuilder] — a única forma de chamar `getIt` nesta tela. Sobrevive a
+  /// refresh porque é refeita a cada `pageBuilder` (rota), nunca depende de
+  /// estado em memória de outra tela.
+  final Future<Either<Failure, Project>> projectFuture;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
@@ -59,7 +70,10 @@ class ProjectDetailPage extends StatelessWidget {
           )..load(),
         ),
       ],
-      child: ProjectDetailPage(projectId: id),
+      child: ProjectDetailPage(
+        projectId: id,
+        projectFuture: getIt<GetProjectUseCase>()(id),
+      ),
     );
   }
 
@@ -68,25 +82,39 @@ class ProjectDetailPage extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          _ProjectDetailHeader(projectId: projectId),
+          _ProjectDetailHeader(
+            projectId: projectId,
+            projectFuture: projectFuture,
+          ),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
                   width: 272,
-                  child: CategoryTreeView(
-                    // TODO(P3): contagem por categoria e "Não categorizados"
-                    // dependem de um agregado que o backend ainda não expõe
-                    // (`GET /v1/contents` não devolve `count` por nó); a
-                    // árvore funciona sem os números.
-                    contentCountByCategory: const {},
-                    uncategorizedCount: null,
-                    onNewCategory: () => _openCategoryForm(context),
-                    onEditCategory: (category) =>
-                        _openCategoryForm(context, editing: category),
-                    onDeleteCategory: (category) =>
-                        _confirmDeleteCategory(context, category),
+                  child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
+                    builder: (context, treeState) {
+                      // "Não categorizados" não é uma `Category` — é o
+                      // pseudo-nó `categoryId: null`. O contrato P3 só
+                      // acrescentou `contentCount` a `GET /v1/categories`
+                      // (por nó real); não há agregado equivalente para o
+                      // pseudo-nó. Mantém `null` (a UI não inventa zero).
+                      return CategoryTreeView(
+                        contentCountByCategory: {
+                          for (final category
+                              in treeState is CategoryTreeLoaded
+                                  ? treeState.categories
+                                  : const <Category>[])
+                            category.id: category.contentCount,
+                        },
+                        uncategorizedCount: null,
+                        onNewCategory: () => _openCategoryForm(context),
+                        onEditCategory: (category) =>
+                            _openCategoryForm(context, editing: category),
+                        onDeleteCategory: (category) =>
+                            _confirmDeleteCategory(context, category),
+                      );
+                    },
                   ),
                 ),
                 VerticalDivider(
@@ -118,6 +146,8 @@ class ProjectDetailPage extends StatelessWidget {
                           onNewContent: () => _openContentForm(context),
                           onEditContent: (content) =>
                               _openContentForm(context, editing: content),
+                          onMoveContent: (content) =>
+                              _openMoveContentDialog(context, content),
                           onDeleteContent: (content) =>
                               _confirmDeleteContent(context, content),
                         );
@@ -352,12 +382,52 @@ class ProjectDetailPage extends StatelessWidget {
       (_) {},
     );
   }
+
+  /// Mover conteúdo entre categorias: dialog dedicado (seletor de categoria)
+  /// → `PUT /v1/contents/:id` com o novo `categoryId` (o backend já move e
+  /// valida mesmo projeto). Drag-and-drop card→árvore fica como polimento
+  /// futuro (fora do escopo desta fase); o dialog cobre o fluxo fim-a-fim.
+  static Future<void> _openMoveContentDialog(
+    BuildContext context,
+    ContentSummary content,
+  ) async {
+    final treeState = context.read<CategoryTreeCubit>().state;
+    final categories = treeState is CategoryTreeLoaded
+        ? treeState.categories
+        : const <Category>[];
+
+    final newCategoryId = await showDialog<String>(
+      context: context,
+      builder: (_) => MoveContentDialog(
+        contentName: content.name,
+        categories: categories,
+        currentCategoryId: content.categoryId,
+      ),
+    );
+    if (newCategoryId == null || !context.mounted) return;
+
+    final saved = await getIt<UpdateContentUseCase>()(
+      content.id,
+      categoryId: newCategoryId,
+    );
+    if (!context.mounted) return;
+    saved.fold(
+      (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_messageFor(failure)))),
+      (_) => context.read<ContentListCubit>().load(),
+    );
+  }
 }
 
 class _ProjectDetailHeader extends StatelessWidget {
-  const _ProjectDetailHeader({required this.projectId});
+  const _ProjectDetailHeader({
+    required this.projectId,
+    required this.projectFuture,
+  });
 
   final String projectId;
+  final Future<Either<Failure, Project>> projectFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -382,7 +452,12 @@ class _ProjectDetailHeader extends StatelessWidget {
             onTap: () => context.goNamed(ProjectsRoutes.projectsName),
           ),
           const SizedBox(width: 4),
-          Expanded(child: _ProjectTitle(projectId: projectId)),
+          Expanded(
+            child: _ProjectTitle(
+              projectId: projectId,
+              projectFuture: projectFuture,
+            ),
+          ),
           const ThemeModeButton(),
           const SizedBox(width: 4),
           FilledButton.icon(
@@ -398,29 +473,39 @@ class _ProjectDetailHeader extends StatelessWidget {
 
 /// Nome do projeto no header.
 ///
-/// TODO(infra/P3): `projects_module` não exporta `GetProjectUseCase` pelo
-/// barrel público (só rota + injection + a página de lista) — a
-/// `presentation` de `contents_module` não pode alcançar o `domain` de outro
-/// módulo por fora dele (regra "só o barrel público"). Até o barrel expor um
-/// jeito de ler um projeto por id, o header mostra o `id` como referência.
+/// Lê `GetProjectUseCase` (exposto pelo barrel público de `projects_module`
+/// — ver comentário em `projects_module.dart`) via o [Future] disparado no
+/// `pageBuilder` de [ProjectDetailPage]. Enquanto carrega ou se a busca
+/// falhar, cai para o `id` como referência (nunca quebra o header).
 class _ProjectTitle extends StatelessWidget {
-  const _ProjectTitle({required this.projectId});
+  const _ProjectTitle({required this.projectId, required this.projectFuture});
 
   final String projectId;
+  final Future<Either<Failure, Project>> projectFuture;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        projectId,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+    return FutureBuilder<Either<Failure, Project>>(
+      future: projectFuture,
+      builder: (context, snapshot) {
+        final loaded = snapshot.data;
+        final title = switch (loaded) {
+          Right(value: final project) => project.title,
+          _ => projectId,
+        };
+        return Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      },
     );
   }
 }

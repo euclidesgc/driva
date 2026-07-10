@@ -30,7 +30,9 @@ class ContentsRepositoryFake implements ContentsRepository {
   }) async {
     await Future<void>.delayed(_latency);
     if (limit < 1 || limit > 100) {
-      return const Left(ValidationFailure('O limite deve estar entre 1 e 100.'));
+      return const Left(
+        ValidationFailure('O limite deve estar entre 1 e 100.'),
+      );
     }
 
     var summaries = [
@@ -53,7 +55,9 @@ class ContentsRepositoryFake implements ContentsRepository {
     final normalizedQuery = query?.trim().toLowerCase();
     if (normalizedQuery != null && normalizedQuery.isNotEmpty) {
       summaries = summaries
-          .where((content) => content.name.toLowerCase().contains(normalizedQuery))
+          .where(
+            (content) => content.name.toLowerCase().contains(normalizedQuery),
+          )
           .toList();
     }
 

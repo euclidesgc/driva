@@ -24,6 +24,7 @@ class ContentPanelView extends StatefulWidget {
     required this.onOpenContent,
     required this.onNewContent,
     required this.onEditContent,
+    required this.onMoveContent,
     required this.onDeleteContent,
   });
 
@@ -31,6 +32,7 @@ class ContentPanelView extends StatefulWidget {
   final ValueChanged<ContentSummary> onOpenContent;
   final VoidCallback onNewContent;
   final ValueChanged<ContentSummary> onEditContent;
+  final ValueChanged<ContentSummary> onMoveContent;
   final ValueChanged<ContentSummary> onDeleteContent;
 
   @override
@@ -148,6 +150,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                   mode: _mode,
                   onOpen: widget.onOpenContent,
                   onEdit: widget.onEditContent,
+                  onMove: widget.onMoveContent,
                   onDelete: widget.onDeleteContent,
                 ),
               };
@@ -282,6 +285,7 @@ class _ContentsCollection extends StatelessWidget {
     required this.mode,
     required this.onOpen,
     required this.onEdit,
+    required this.onMove,
     required this.onDelete,
   });
 
@@ -289,6 +293,7 @@ class _ContentsCollection extends StatelessWidget {
   final ContentViewMode mode;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
   @override
@@ -302,6 +307,7 @@ class _ContentsCollection extends StatelessWidget {
           content: contents[index],
           onOpen: onOpen,
           onEdit: onEdit,
+          onMove: onMove,
           onDelete: onDelete,
         ),
       );
@@ -319,6 +325,7 @@ class _ContentsCollection extends StatelessWidget {
         content: contents[index],
         onOpen: onOpen,
         onEdit: onEdit,
+        onMove: onMove,
         onDelete: onDelete,
       ),
     );
@@ -330,12 +337,14 @@ class _ContentCard extends StatelessWidget {
     required this.content,
     required this.onOpen,
     required this.onEdit,
+    required this.onMove,
     required this.onDelete,
   });
 
   final ContentSummary content;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
   @override
@@ -356,6 +365,7 @@ class _ContentCard extends StatelessWidget {
                   _CardActions(
                     content: content,
                     onEdit: onEdit,
+                    onMove: onMove,
                     onDelete: onDelete,
                   ),
                 ],
@@ -384,12 +394,14 @@ class _ContentRow extends StatelessWidget {
     required this.content,
     required this.onOpen,
     required this.onEdit,
+    required this.onMove,
     required this.onDelete,
   });
 
   final ContentSummary content;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
   @override
@@ -428,6 +440,7 @@ class _ContentRow extends StatelessWidget {
               _CardActions(
                 content: content,
                 onEdit: onEdit,
+                onMove: onMove,
                 onDelete: onDelete,
               ),
             ],
@@ -442,11 +455,13 @@ class _CardActions extends StatelessWidget {
   const _CardActions({
     required this.content,
     required this.onEdit,
+    required this.onMove,
     required this.onDelete,
   });
 
   final ContentSummary content;
   final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
   @override
@@ -464,6 +479,21 @@ class _CardActions extends StatelessWidget {
               padding: const EdgeInsets.all(6),
               child: Icon(
                 Icons.edit_outlined,
+                size: 15,
+                color: colors.inkMuted,
+              ),
+            ),
+          ),
+        ),
+        Tooltip(
+          message: 'Mover conteúdo para outra categoria',
+          child: InkWell(
+            onTap: () => onMove(content),
+            borderRadius: BorderRadius.circular(7),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.drive_file_move_outline,
                 size: 15,
                 color: colors.inkMuted,
               ),
