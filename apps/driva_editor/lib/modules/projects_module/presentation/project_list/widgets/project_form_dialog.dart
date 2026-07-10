@@ -260,6 +260,13 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
           ),
         ),
       ),
+      // `actions` do AlertDialog vão para um OverflowBar (não é um Flex), então
+      // Spacer/Expanded ali estoura ("ParentDataWidget"). Para empurrar
+      // "Arquivar" à esquerda, usamos actionsAlignment e agrupamos
+      // Cancelar/Salvar num Row.
+      actionsAlignment: widget.onArchive != null
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.end,
       actions: [
         if (widget.onArchive != null)
           TextButton.icon(
@@ -273,20 +280,25 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-        const Spacer(),
-        TextButton(
-          onPressed: _submitting ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _submitting ? null : _submit,
-          child: _submitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Salvar projeto'),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _submitting ? null : _submit,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Salvar projeto'),
+            ),
+          ],
         ),
       ],
     );
