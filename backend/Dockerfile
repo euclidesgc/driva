@@ -19,6 +19,7 @@ RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
 # Testado manualmente: instalar este lockfile dentro de node:20-alpine puro
 # carrega `sharp` sem erro. Se um dia sharp mudar de estratégia de distribuição
 # e passar a exigir build script, rodar `pnpm approve-builds` e listar aqui.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Código e build (gera o Prisma Client e compila o Nest).
@@ -36,19 +37,20 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
 EXPOSE 3000
 
-# Aplica as migrations versionadas no start e sobe.
+# Aplica as migrations versionadas no start e sobe — via `docker-entrypoint.sh`,
+# que loga cada passo e, se `migrate deploy` falhar, imprime `migrate status`
+# (qual migration falhou/pendente) antes de abortar. Motiva: o container do
+# backend do #43 morria "no escuro" no start e o Coolify mantinha a imagem
+# anterior no ar (`/v1/projects` 404 em hml).
 #
 # Adoção do Prisma Migrate sobre um banco criado por `db push` (hml/prod): o
 # `migrate deploy` sozinho aborta com P3005 ("schema não vazio, sem histórico").
-# Por isso registramos a baseline (`0_baseline` = estado já deployado) ANTES do
-# deploy. O `resolve --applied` é idempotente na prática: no 1º deploy grava a
-# baseline; nos seguintes ele erra "já aplicada" (silenciado por `2>/dev/null`) e
-# segue. Só então `migrate deploy` aplica a `rename_pages_to_contents` (ou vira
-# no-op). O `&&` garante que o Nest só sobe se o migrate deploy suceder.
-# (Banco 100% vazio/novo não usa este caminho — resolver baseline sem o schema
-# faria o migrate deploy falhar de propósito; não há ambiente assim hoje.)
+# Por isso o entrypoint registra a baseline (`0_baseline` = estado já deployado)
+# ANTES do deploy (idempotente). Se `migrate deploy` falhar, o container aborta
+# com código != 0 (o Coolify marca o deploy como falho).
 # DATABASE_URL / PORT / CORS_ORIGINS vêm do ambiente (Coolify), nunca do repo.
-CMD ["sh", "-c", "pnpm exec prisma migrate resolve --applied 0_baseline 2>/dev/null; pnpm exec prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "./docker-entrypoint.sh"]
