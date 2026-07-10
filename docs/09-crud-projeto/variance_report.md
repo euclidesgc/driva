@@ -53,3 +53,30 @@ leitura. `find/update/remove/getImage` de projeto **não filtram por tenant**.
 Enquanto não houver auth real, o CRUD de projetos é efetivamente global.
 **Ação recomendada:** implementar auth (feature à parte) antes de expor em
 produção real ou habilitar o storage S3. Ver [[prd.md]] › Decisão 5.
+
+## Decisão de produto pendente — apagar projeto vs. `onDelete: Restrict` + seed "Geral"
+
+**Achado no E2E.** Com `Project→Category` = `onDelete: Restrict` (Decisão 1) **e**
+todo projeto nascendo com a categoria "Geral" na mesma transação, um projeto
+recém-criado (só com a "Geral", sem conteúdos) **não pode ser apagado pelo fluxo
+normal**: `DELETE /v1/projects/:id` retorna **409** porque ainda tem a categoria
+"Geral". O único caminho é drenar: apagar a "Geral" (204, se vazia) e só então o
+projeto (204). O E2E cobre os dois caminhos (409 do contrato real + 204 pela
+drenagem).
+
+**Consequência de UX.** A home de Projetos não consegue oferecer um "excluir
+projeto" que funcione sem antes o usuário apagar manualmente a categoria default
+— comportamento pouco intuitivo. A decisão `Restrict` foi tomada **antes** de
+existir o seed automático da "Geral"; a combinação das duas não foi reavaliada.
+
+**Opções para o humano decidir:**
+1. **Cascade Project→Category** (apagar projeto apaga suas categorias); manter
+   `Restrict` só em Category→Content (ou cascatear conteúdos também).
+2. Manter `Restrict` e o editor implementar a **drenagem** ao excluir projeto
+   (apaga categorias/conteúdos em ordem antes do projeto) — mais lógica no
+   cliente, mais requests.
+3. Manter como está (excluir projeto exige esvaziá-lo manualmente) — só se for
+   intencional proteger contra exclusão acidental.
+
+**Recomendação:** opção 1 (Cascade Project→Category), com confirmação dupla na
+UI. Não implementado — **aguarda decisão do humano** (muda schema/migração).
