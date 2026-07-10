@@ -39,6 +39,7 @@ void main() {
     id: 'ct_1',
     name: 'Home — vitrine',
     slug: 'home',
+    categoryId: 'cat_1',
     description: 'Página inicial do app do cliente.',
     updatedAt: DateTime(2026, 7, 1),
   );

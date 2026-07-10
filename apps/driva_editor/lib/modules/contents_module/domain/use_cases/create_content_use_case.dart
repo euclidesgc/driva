@@ -13,6 +13,7 @@ class CreateContentUseCase {
     required String name,
     required String slug,
     String? description,
+    String? categoryId,
   }) {
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
@@ -38,6 +39,7 @@ class CreateContentUseCase {
       description: (trimmedDescription?.isEmpty ?? true)
           ? null
           : trimmedDescription,
+      categoryId: categoryId,
     );
   }
 }

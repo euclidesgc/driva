@@ -8,9 +8,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ContentsService } from './contents.service';
 import { CreateContentDto } from './dto/create-content.dto';
+import { ListContentsQueryDto } from './dto/list-contents.query.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 
 /** Escopo de tenant vem do header `x-project-id` (auth real chega no I4). */
@@ -22,8 +24,11 @@ export class ContentsController {
   constructor(private readonly contents: ContentsService) {}
 
   @Get()
-  list(@Headers('x-project-id') projectId?: string) {
-    return this.contents.list(projectOf(projectId));
+  list(
+    @Query() query: ListContentsQueryDto,
+    @Headers('x-project-id') projectId?: string,
+  ) {
+    return this.contents.list(projectOf(projectId), query);
   }
 
   @Post()

@@ -9,15 +9,18 @@ class ContentSummaryModel extends ContentSummary {
     required super.id,
     required super.name,
     required super.slug,
+    required super.categoryId,
     required super.updatedAt,
     super.description,
   });
 
-  // A forma esperada do item de `GET /v1/contents`, declarada uma vez.
+  // A forma esperada do item de `GET /v1/contents` (dentro do envelope
+  // `{ data, nextCursor }`) e do detalhe (`POST`/`PUT`), declarada uma vez.
   static final _schema = z.map({
     'id': z.string().min(1),
     'name': z.string().min(1),
     'slug': z.string().min(1),
+    'categoryId': z.string().min(1),
     'description': z.string().optional(),
     'updatedAt': z.date(),
   });
@@ -37,6 +40,7 @@ class ContentSummaryModel extends ContentSummary {
         id: data['id'] as String,
         name: data['name'] as String,
         slug: data['slug'] as String,
+        categoryId: data['categoryId'] as String,
         description: data['description'] as String?,
         updatedAt: data['updatedAt'] as DateTime,
       ),

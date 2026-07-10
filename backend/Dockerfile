@@ -5,10 +5,20 @@
 # ---- build ----
 FROM node:20-alpine AS build
 WORKDIR /app
+# CI=true: garante instalação não-interativa (evita prompt de TTY do pnpm).
+ENV CI=true
 RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
 
 # Dependências primeiro (cache): manifests antes do código.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+#
+# `sharp` (upload de imagem de Project — F2) tem binário nativo via
+# optionalDependency `@img/sharp-linuxmusl-x64`: como este estágio JÁ roda em
+# node:20-alpine (musl), `pnpm install` aqui resolve e baixa o pacote musl
+# certo sozinho — sem apk extra (libvips vem estático dentro do pacote) e sem
+# build script (sharp não usa postinstall compilado, só o optional pré-built).
+# Testado manualmente: instalar este lockfile dentro de node:20-alpine puro
+# carrega `sharp` sem erro. Se um dia sharp mudar de estratégia de distribuição
+# e passar a exigir build script, rodar `pnpm approve-builds` e listar aqui.
 RUN pnpm install --frozen-lockfile
 
 # Código e build (gera o Prisma Client e compila o Nest).

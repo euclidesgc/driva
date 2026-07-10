@@ -22,6 +22,7 @@ void main() {
     id: 'ct_1',
     name: 'Home',
     slug: 'home',
+    categoryId: 'cat_1',
     description: 'Vitrine',
     updatedAt: DateTime(2026, 7, 1),
   );
@@ -30,6 +31,7 @@ void main() {
     id: 'ct_2',
     name: 'Sobre',
     slug: 'sobre',
+    categoryId: 'cat_1',
     description: null,
     updatedAt: DateTime(2026, 7, 2),
   );
@@ -50,8 +52,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Loaded quando há conteúdos',
       build: build,
-      setUp: () =>
-          when(() => getContents()).thenAnswer((_) async => Right([content])),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [content]))),
       act: (cubit) => cubit.load(),
       expect: () => [
         const ContentListLoading(),
@@ -62,8 +65,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Empty quando não há conteúdos',
       build: build,
-      setUp: () =>
-          when(() => getContents()).thenAnswer((_) async => const Right([])),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => const Right(ContentsPage(items: []))),
       act: (cubit) => cubit.load(),
       expect: () => [const ContentListLoading(), const ContentListEmpty()],
     );
@@ -152,7 +156,7 @@ void main() {
         ).thenAnswer((_) async => const Left(NetworkFailure()));
         when(
           () => getContents(),
-        ).thenAnswer((_) async => Right([content, other]));
+        ).thenAnswer((_) async => Right(ContentsPage(items: [content, other])));
       },
       act: (cubit) async {
         final result = await cubit.delete('ct_1');

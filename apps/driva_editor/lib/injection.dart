@@ -8,6 +8,7 @@ import 'core/network/network.dart';
 import 'modules/contents_module/contents_module.dart';
 import 'modules/editor_module/editor_module.dart';
 import 'modules/preferences_module/preferences_module.dart';
+import 'modules/projects_module/projects_module.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -21,7 +22,12 @@ final GetIt getIt = GetIt.instance;
 void setupInjection(AppConfig config, SharedPreferences prefs) {
   // --- Shared infra ---
   getIt.registerSingleton<AppConfig>(config);
-  getIt.registerLazySingleton<Dio>(() => createDio(getIt<AppConfig>()));
+  getIt.registerSingleton<ProjectScope>(
+    ProjectScope(initialProjectId: config.defaultProjectId),
+  );
+  getIt.registerLazySingleton<Dio>(
+    () => createDio(getIt<AppConfig>(), getIt<ProjectScope>()),
+  );
   if (config.useFakeData) {
     // Store em memória compartilhado pelos fakes dos módulos (dev/E2E).
     getIt.registerLazySingleton<FakeContentsStore>(FakeContentsStore.new);
@@ -29,6 +35,7 @@ void setupInjection(AppConfig config, SharedPreferences prefs) {
 
   // --- Module registrations ---
   registerPreferencesModule(getIt, prefs);
+  registerProjectsModule(getIt);
   registerContentsModule(getIt);
   registerEditorModule(getIt);
 }

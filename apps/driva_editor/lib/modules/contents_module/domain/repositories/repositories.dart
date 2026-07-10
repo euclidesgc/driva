@@ -1,3 +1,4 @@
+export 'categories_repository.dart';
 export 'contents_repository.dart';
 
 // Exportamos só o CONTRATO. A implementação vive no data e jamais é

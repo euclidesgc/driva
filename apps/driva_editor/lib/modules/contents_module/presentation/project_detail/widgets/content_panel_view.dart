@@ -1,0 +1,667 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../../core/error/error.dart';
+import '../../../../../core/theme/editor_colors.dart';
+import '../../../domain/entities/content_summary.dart';
+import '../../content_list/cubit/content_list_cubit.dart';
+
+enum ContentViewMode { grid, list }
+
+/// O painel de conteúdos à direita da tela do projeto: busca com debounce,
+/// alternância grade/lista e o `switch` exaustivo sobre `ContentListState`.
+///
+/// [categoryLabel]/[categoryCount] descrevem o nó selecionado na árvore (o
+/// header "Home · 2 conteúdos" do `.dc.html`); [onOpenContent] navega ao
+/// Construtor; [onNewContent]/[onEditContent]/[onDeleteContent] abrem os
+/// formulários/confirmações (donos do modal ficam em `ProjectDetailPage`).
+///
+/// [isAllContents] indica que o filtro atual é o pseudo-nó "Todos os
+/// conteúdos" (`categoryId: null`), não uma categoria real — muda a
+/// mensagem do estado vazio.
+class ContentPanelView extends StatefulWidget {
+  const ContentPanelView({
+    super.key,
+    required this.categoryLabel,
+    this.isAllContents = false,
+    required this.onOpenContent,
+    required this.onNewContent,
+    required this.onEditContent,
+    required this.onMoveContent,
+    required this.onDeleteContent,
+  });
+
+  final String categoryLabel;
+  final bool isAllContents;
+  final ValueChanged<ContentSummary> onOpenContent;
+  final VoidCallback onNewContent;
+  final ValueChanged<ContentSummary> onEditContent;
+  final ValueChanged<ContentSummary> onMoveContent;
+  final ValueChanged<ContentSummary> onDeleteContent;
+
+  @override
+  State<ContentPanelView> createState() => _ContentPanelViewState();
+}
+
+class _ContentPanelViewState extends State<ContentPanelView> {
+  static const _debounce = Duration(milliseconds: 300);
+
+  final _searchController = TextEditingController();
+  Timer? _debounceTimer;
+  ContentViewMode _mode = ContentViewMode.grid;
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounce, () {
+      if (!mounted) return;
+      context.read<ContentListCubit>().reloadWithFilter(
+        query: value.trim().isEmpty ? null : value.trim(),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.categoryLabel,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    BlocBuilder<ContentListCubit, ContentListState>(
+                      builder: (context, state) {
+                        final count = switch (state) {
+                          final ContentListLoaded s => s.contents.length,
+                          _ => null,
+                        };
+                        return Text(
+                          count == null
+                              ? ' '
+                              : '$count ${count == 1 ? 'conteúdo' : 'conteúdos'}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.inkMuted,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 220,
+                child: Semantics(
+                  textField: true,
+                  label: 'Buscar conteúdo',
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      prefixIcon: Icon(Icons.search, size: 18),
+                      hintText: 'Buscar conteúdo...',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              _ViewModeToggle(
+                mode: _mode,
+                onChanged: (mode) => setState(() => _mode = mode),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: BlocBuilder<ContentListCubit, ContentListState>(
+            builder: (context, state) {
+              return switch (state) {
+                ContentListLoading() => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                ContentListEmpty() => _EmptyContents(
+                  categoryLabel: widget.categoryLabel,
+                  isAllContents: widget.isAllContents,
+                  onCreate: widget.onNewContent,
+                ),
+                final ContentListError s => _PanelError(
+                  failure: s.failure,
+                  onRetry: () => context.read<ContentListCubit>().load(),
+                ),
+                final ContentListLoaded s => _ContentsCollection(
+                  contents: s.contents,
+                  mode: _mode,
+                  onOpen: widget.onOpenContent,
+                  onEdit: widget.onEditContent,
+                  onMove: widget.onMoveContent,
+                  onDelete: widget.onDeleteContent,
+                ),
+              };
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PanelError extends StatelessWidget {
+  const _PanelError({required this.failure, required this.onRetry});
+
+  final Failure failure;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = switch (failure) {
+      NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
+      NotFoundFailure() => 'Nada encontrado.',
+      ConflictFailure(message: final m) => m,
+      ValidationFailure(message: final m) => m,
+      UnexpectedFailure() => 'Algo deu errado.',
+    };
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: const Text('Tentar de novo'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ViewModeToggle extends StatelessWidget {
+  const _ViewModeToggle({required this.mode, required this.onChanged});
+
+  final ContentViewMode mode;
+  final ValueChanged<ContentViewMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: colors.panel,
+        border: Border.all(color: colors.border),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToggleButton(
+            tooltip: 'Grade',
+            icon: Icons.grid_view_rounded,
+            selected: mode == ContentViewMode.grid,
+            onPressed: () => onChanged(ContentViewMode.grid),
+          ),
+          _ToggleButton(
+            tooltip: 'Lista',
+            icon: Icons.view_list_rounded,
+            selected: mode == ContentViewMode.list,
+            onPressed: () => onChanged(ContentViewMode.list),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleButton extends StatelessWidget {
+  const _ToggleButton({
+    required this.tooltip,
+    required this.icon,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: tooltip,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            width: 30,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? colors.primaryTint : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: selected
+                  ? Border.all(color: theme.colorScheme.primary, width: 1)
+                  : null,
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: selected ? theme.colorScheme.primary : colors.inkMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContentsCollection extends StatelessWidget {
+  const _ContentsCollection({
+    required this.contents,
+    required this.mode,
+    required this.onOpen,
+    required this.onEdit,
+    required this.onMove,
+    required this.onDelete,
+  });
+
+  final List<ContentSummary> contents;
+  final ContentViewMode mode;
+  final ValueChanged<ContentSummary> onOpen;
+  final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
+  final ValueChanged<ContentSummary> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    if (mode == ContentViewMode.list) {
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        itemCount: contents.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) => _ContentRow(
+          content: contents[index],
+          onOpen: onOpen,
+          onEdit: onEdit,
+          onMove: onMove,
+          onDelete: onDelete,
+        ),
+      );
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 300 / 150,
+      ),
+      itemCount: contents.length,
+      itemBuilder: (context, index) => _ContentCard(
+        content: contents[index],
+        onOpen: onOpen,
+        onEdit: onEdit,
+        onMove: onMove,
+        onDelete: onDelete,
+      ),
+    );
+  }
+}
+
+class _ContentCard extends StatelessWidget {
+  const _ContentCard({
+    required this.content,
+    required this.onOpen,
+    required this.onEdit,
+    required this.onMove,
+    required this.onDelete,
+  });
+
+  final ContentSummary content;
+  final ValueChanged<ContentSummary> onOpen;
+  final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
+  final ValueChanged<ContentSummary> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => onOpen(content),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(15, 14, 15, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _SlugBadge(slug: content.slug)),
+                  _CardActions(
+                    content: content,
+                    onEdit: onEdit,
+                    onMove: onMove,
+                    onDelete: onDelete,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                content.name,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const Spacer(),
+              _SupportId(id: content.id),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContentRow extends StatelessWidget {
+  const _ContentRow({
+    required this.content,
+    required this.onOpen,
+    required this.onEdit,
+    required this.onMove,
+    required this.onDelete,
+  });
+
+  final ContentSummary content;
+  final ValueChanged<ContentSummary> onOpen;
+  final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
+  final ValueChanged<ContentSummary> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    return Material(
+      color: colors.panel,
+      borderRadius: BorderRadius.circular(11),
+      child: InkWell(
+        onTap: () => onOpen(content),
+        borderRadius: BorderRadius.circular(11),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: colors.border),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Row(
+            children: [
+              _SlugBadge(slug: content.slug),
+              const SizedBox(width: 14),
+              // Título com espaço generoso: na lista ele não espreme (só
+              // trunca em telas realmente estreitas), diferente do card de
+              // grade que reserva espaço fixo para as ações.
+              Expanded(
+                child: Text(
+                  content.name,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _CardActions(
+                content: content,
+                onEdit: onEdit,
+                onMove: onMove,
+                onDelete: onDelete,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardActions extends StatelessWidget {
+  const _CardActions({
+    required this.content,
+    required this.onEdit,
+    required this.onMove,
+    required this.onDelete,
+  });
+
+  final ContentSummary content;
+  final ValueChanged<ContentSummary> onEdit;
+  final ValueChanged<ContentSummary> onMove;
+  final ValueChanged<ContentSummary> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Tooltip(
+          message: 'Editar conteúdo',
+          child: InkWell(
+            onTap: () => onEdit(content),
+            borderRadius: BorderRadius.circular(7),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.edit_outlined,
+                size: 15,
+                color: colors.inkMuted,
+              ),
+            ),
+          ),
+        ),
+        Tooltip(
+          message: 'Mover conteúdo para outra categoria',
+          child: InkWell(
+            onTap: () => onMove(content),
+            borderRadius: BorderRadius.circular(7),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.drive_file_move_outline,
+                size: 15,
+                color: colors.inkMuted,
+              ),
+            ),
+          ),
+        ),
+        Tooltip(
+          message: 'Excluir conteúdo',
+          child: InkWell(
+            onTap: () => onDelete(content),
+            borderRadius: BorderRadius.circular(7),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.delete_outline,
+                size: 15,
+                color: colors.inkMuted,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Slug em destaque: ícone + rótulo textual "slug" (a cor não é o único
+/// sinal).
+class _SlugBadge extends StatelessWidget {
+  const _SlugBadge({required this.slug});
+
+  final String slug;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      label: 'Slug do conteúdo: $slug',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.colorScheme.primary),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tag, size: 14, color: theme.colorScheme.primary),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                slug,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.primary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SupportId extends StatelessWidget {
+  const _SupportId({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: 'ID de suporte — use ao reportar um problema.',
+      child: Semantics(
+        label: 'ID de suporte: $id',
+        child: Text(
+          '# ID de suporte: $id',
+          style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyContents extends StatelessWidget {
+  const _EmptyContents({
+    required this.categoryLabel,
+    this.isAllContents = false,
+    required this.onCreate,
+  });
+
+  final String categoryLabel;
+  final bool isAllContents;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 70, horizontal: 20),
+          decoration: BoxDecoration(
+            color: colors.panel,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colors.border, width: 1.5),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: colors.primaryTint,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.dashboard_customize_outlined,
+                  size: 24,
+                  color: Color(0xFFE8602C),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                isAllContents
+                    ? 'Nenhum conteúdo neste projeto ainda'
+                    : 'Nenhum conteúdo em "$categoryLabel"',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                isAllContents
+                    ? 'Crie o primeiro conteúdo do projeto.'
+                    : 'Crie o primeiro conteúdo desta categoria.',
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: onCreate,
+                icon: const Icon(Icons.add),
+                label: const Text('Novo conteúdo'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

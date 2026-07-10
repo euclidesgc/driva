@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/editor_colors.dart';
 import '../../../../preferences_module/preferences_module.dart';
+import '../../../../projects_module/projects_module.dart';
 import '../cubit/editor_cubit.dart';
 
 /// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
@@ -37,9 +38,11 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       leadingWidth: 48,
       leading: IconButton(
-        tooltip: 'Voltar para os conteúdos',
+        // Sem `projectId` no estado do editor ainda (TODO/P3): volta para a
+        // home de Projetos, sempre uma rota válida.
+        tooltip: 'Voltar para os projetos',
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.goNamed('contents'),
+        onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
       ),
       titleSpacing: 0,
       title: Row(
