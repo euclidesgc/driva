@@ -35,3 +35,21 @@ para incluir `createdAt`; lista e detalhe passam a ter a mesma forma.
 **Aguardando confirmação do humano.** Baixa relevância — é escolha de
 engenharia reversível. Se o humano preferir a lista enxuta (sem `createdAt`),
 a saída passa a ser a Opção B (split), com retrabalho no domain/data.
+
+## Débito de segurança — sem auth real (superfície ampliada)
+
+**Registro do gate CISO (APROVADO com follow-up).** O pipeline de upload de
+imagem foi auditado e aprovado (magic bytes próprios não-burláveis, reencode
+`sharp`, chave UUID de servidor, serving com `nosniff`, limite em duas camadas,
+rate-limit; `pnpm audit` limpo, `multer` sem CVE).
+
+**Follow-up não-bloqueante a priorizar antes de produção multi-tenant / de ligar
+`STORAGE_DRIVER=s3`:** a API não tem autenticação — o escopo de tenant vem do
+header `x-project-id`, **controlável pelo cliente**. Esse débito já existia em
+`contents`, mas com o CRUD de `Project` a superfície **cresceu**: agora um
+`x-project-id` forjado alcança operações **destrutivas e de upload**
+(`DELETE /v1/projects/:id`, `PUT /v1/projects/:id` com troca de imagem), não só
+leitura. `find/update/remove/getImage` de projeto **não filtram por tenant**.
+Enquanto não houver auth real, o CRUD de projetos é efetivamente global.
+**Ação recomendada:** implementar auth (feature à parte) antes de expor em
+produção real ou habilitar o storage S3. Ver [[prd.md]] › Decisão 5.
