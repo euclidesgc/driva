@@ -18,6 +18,10 @@
 
 - **Deps backend**: `sharp`, `@aws-sdk/client-s3`, `@nestjs/throttler`; `multer` forçado a `^2.2.0` via pnpm overrides (CVEs de DoS); `file-type` substituído por detecção própria de magic bytes (CVE sem patch CJS). `pnpm audit` limpo.
 
+### Corrigido
+
+- **driva_editor · Flutter Web (ícone de tema invisível por fonte em cache)**: o botão de tema aparecia como "tofu" (□) em perfis de navegador que já haviam visitado o app antes do recurso de tema, enquanto funcionava em aba anônima. Causa: o Flutter faz tree-shaking dos ícones num `MaterialIcons-Regular.otf` de **nome estável entre builds**, e o nginx servia fontes com `max-age=3600` — o navegador ficava preso a um subset antigo, sem os codepoints dos ícones do botão de tema. As fontes (`otf`/`ttf`/`woff`/`woff2`/…) passam a ser servidas com `no-cache, must-revalidate`, revalidando via ETag (304 quando iguais). O fix de contraste anterior (#38) não resolvia porque nunca foi um problema de cor.
+
 ## [0.3.0] — 2026-07-08 · Editor: UX rodada 01, root opcional, controles de formulário
 
 ### Corrigido
