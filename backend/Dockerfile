@@ -19,6 +19,7 @@ RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
 # Testado manualmente: instalar este lockfile dentro de node:20-alpine puro
 # carrega `sharp` sem erro. Se um dia sharp mudar de estratégia de distribuição
 # e passar a exigir build script, rodar `pnpm approve-builds` e listar aqui.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Código e build (gera o Prisma Client e compila o Nest).
