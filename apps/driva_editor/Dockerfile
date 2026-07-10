@@ -18,12 +18,19 @@ ARG DEFAULT_PROJECT_ID=default
 
 RUN flutter pub get
 WORKDIR /workspace/apps/driva_editor
+# --no-tree-shake-icons: NAO cortar a fonte de icones. Com tree-shaking o
+# MaterialIcons-Regular.otf vira um subset diferente a cada build (mesmo nome
+# de arquivo), entao um navegador com a fonte antiga em cache fica sem os
+# codepoints de icones novos (ex.: o botao de tema virava "tofu" □). Embarcando
+# a fonte COMPLETA, qualquer versao cacheada ja contem todos os icones — o bug
+# nao depende mais de cache-busting nem de o usuario limpar o cache.
 RUN flutter build web --release \
     --target lib/main_prod.dart \
     --dart-define=API_BASE_URL=${API_BASE_URL} \
     --dart-define=DEFAULT_PROJECT_ID=${DEFAULT_PROJECT_ID} \
     --dart-define=USE_FAKE_DATA=false \
-    --pwa-strategy=none
+    --pwa-strategy=none \
+    --no-tree-shake-icons
 RUN deploy/version_web_build.sh build/web
 RUN cp deploy/flutter_service_worker_kill.js build/web/flutter_service_worker.js
 
