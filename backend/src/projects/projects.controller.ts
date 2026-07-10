@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Res,
   UploadedFile,
   UseGuards,
@@ -18,7 +19,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Response } from 'express';
-import { ProjectsService } from './projects.service';
+import { ProjectsService, ProjectStatus } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { MAX_UPLOAD_BYTES, processUploadedImage } from './image-pipeline';
@@ -26,6 +27,10 @@ import { MAX_UPLOAD_BYTES, processUploadedImage } from './image-pipeline';
 /** Escopo de tenant vem do header `x-project-id`, no mesmo padrão de `contents`. */
 const projectOf = (header?: string) =>
   header && header.trim().length > 0 ? header.trim() : 'default';
+
+/** `?status=active|archived` — default `active` (home só mostra os não-arquivados). */
+const statusOf = (raw?: string): ProjectStatus =>
+  raw === 'archived' ? 'archived' : 'active';
 
 // Rate-limit dedicado ao upload (create/update com imagem) — mais restritivo
 // que o default global, pois reencode com sharp é a rota mais cara em CPU.
@@ -36,8 +41,11 @@ export class ProjectsController {
   constructor(private readonly projects: ProjectsService) {}
 
   @Get()
-  list(@Headers('x-project-id') projectId?: string) {
-    return this.projects.list(projectOf(projectId));
+  list(
+    @Headers('x-project-id') projectId?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.projects.list(projectOf(projectId), statusOf(status));
   }
 
   @Post()
@@ -88,6 +96,18 @@ export class ProjectsController {
   @HttpCode(204)
   remove(@Param('id') id: string) {
     return this.projects.remove(id);
+  }
+
+  @Post(':id/archive')
+  @HttpCode(200)
+  archive(@Param('id') id: string) {
+    return this.projects.archive(id);
+  }
+
+  @Post(':id/unarchive')
+  @HttpCode(200)
+  unarchive(@Param('id') id: string) {
+    return this.projects.unarchive(id);
   }
 
   /**
