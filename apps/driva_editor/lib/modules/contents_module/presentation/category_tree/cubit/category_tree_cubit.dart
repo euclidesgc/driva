@@ -46,7 +46,7 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
     );
   }
 
-  /// Seleciona um nó (ou `null` para "Não categorizados"). Puramente local —
+  /// Seleciona um nó (ou `null` para "Todos os conteúdos"). Puramente local —
   /// não recarrega a árvore; quem escuta a seleção (o painel de conteúdos)
   /// reage à mudança.
   void select(String? categoryId) {
@@ -85,7 +85,7 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
   }
 
   /// Em sucesso, some com o nó e — se ele era o selecionado — a seleção
-  /// volta para a raiz ("Não categorizados"). Em falha (ex.: 409 por ter
+  /// volta para "Todos os conteúdos". Em falha (ex.: 409 por ter
   /// conteúdos/subcategorias), a árvore não muda; a UI mostra a mensagem da
   /// `Failure`.
   Future<Either<Failure, Unit>> delete(String id) async {

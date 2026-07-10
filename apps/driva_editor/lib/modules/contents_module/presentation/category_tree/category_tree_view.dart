@@ -6,15 +6,20 @@ import '../../domain/entities/category.dart';
 import 'category_node.dart';
 import 'cubit/category_tree_cubit.dart';
 
-/// Árvore de categorias do painel esquerdo da tela do projeto. Fiel ao
-/// `.dc.html` (Driva Projetos): "Não categorizados" fixo no topo, divisor,
-/// depois a árvore recursiva por `parentId` com indentação, contador e ações
-/// de hover (editar/excluir).
+/// Árvore de categorias do painel esquerdo da tela do projeto: "Todos os
+/// conteúdos" fixo no topo (pseudo-nó `categoryId: null` — filtro "ver
+/// tudo", não uma categoria), divisor, depois a árvore recursiva por
+/// `parentId` com indentação, contador e ações de hover (editar/excluir).
+///
+/// Todo conteúdo tem `categoryId` obrigatório (default "Geral", semeada pelo
+/// backend) — não existe conteúdo "sem categoria". O pseudo-nó do topo é
+/// puramente um atalho de navegação para o projeto inteiro, por isso ganha
+/// ícone e estilo distintos das categorias reais abaixo dele.
 class CategoryTreeView extends StatelessWidget {
   const CategoryTreeView({
     super.key,
     required this.contentCountByCategory,
-    required this.uncategorizedCount,
+    required this.allContentsCount,
     required this.onNewCategory,
     required this.onEditCategory,
     required this.onDeleteCategory,
@@ -23,7 +28,11 @@ class CategoryTreeView extends StatelessWidget {
   /// Contagem de conteúdos por `categoryId` — a UI não inventa zero quando a
   /// contagem não foi carregada ainda (mostra vazio nesse caso).
   final Map<String, int> contentCountByCategory;
-  final int? uncategorizedCount;
+
+  /// Total de conteúdos do projeto (soma de todas as categorias) para o
+  /// pseudo-nó "Todos os conteúdos". `null` enquanto não carregado — a UI
+  /// não inventa zero.
+  final int? allContentsCount;
   final VoidCallback onNewCategory;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onDeleteCategory;
@@ -78,7 +87,7 @@ class CategoryTreeView extends StatelessWidget {
                   ),
                   final CategoryTreeLoaded s => _TreeList(
                     state: s,
-                    uncategorizedCount: uncategorizedCount,
+                    allContentsCount: allContentsCount,
                     contentCountByCategory: contentCountByCategory,
                     onEditCategory: onEditCategory,
                     onDeleteCategory: onDeleteCategory,
@@ -123,14 +132,14 @@ class _TreeError extends StatelessWidget {
 class _TreeList extends StatelessWidget {
   const _TreeList({
     required this.state,
-    required this.uncategorizedCount,
+    required this.allContentsCount,
     required this.contentCountByCategory,
     required this.onEditCategory,
     required this.onDeleteCategory,
   });
 
   final CategoryTreeLoaded state;
-  final int? uncategorizedCount;
+  final int? allContentsCount;
   final Map<String, int> contentCountByCategory;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onDeleteCategory;
@@ -145,15 +154,16 @@ class _TreeList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       children: [
         _CategoryRow(
-          label: 'Não categorizados',
-          icon: Icons.check_circle_outline,
+          label: 'Todos os conteúdos',
+          icon: Icons.apps_outlined,
           depth: 0,
           hasChildren: false,
           collapsed: false,
-          count: uncategorizedCount,
+          count: allContentsCount,
           selected: state.selectedCategoryId == null,
           onSelect: () => context.read<CategoryTreeCubit>().select(null),
           onToggle: null,
+          isAllContentsShortcut: true,
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -194,6 +204,7 @@ class _CategoryRow extends StatefulWidget {
     required this.onToggle,
     this.onEdit,
     this.onDelete,
+    this.isAllContentsShortcut = false,
   });
 
   final String label;
@@ -207,6 +218,12 @@ class _CategoryRow extends StatefulWidget {
   final VoidCallback? onToggle;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+
+  /// `true` só para o pseudo-nó "Todos os conteúdos": não é uma categoria
+  /// real, é um atalho de filtro. Ganha tratamento visual distinto (peso de
+  /// fonte sempre marcado, sem contador tabular) para não ser confundido com
+  /// irmão de "Geral" e demais categorias.
+  final bool isAllContentsShortcut;
 
   @override
   State<_CategoryRow> createState() => _CategoryRowState();
@@ -269,7 +286,9 @@ class _CategoryRowState extends State<_CategoryRow> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: widget.selected || widget.isAllContentsShortcut
+                    ? FontWeight.w700
+                    : FontWeight.w500,
                 color: widget.selected
                     ? theme.colorScheme.primary
                     : colors.inkPrimary,
@@ -312,9 +331,12 @@ class _CategoryRowState extends State<_CategoryRow> {
       child: Semantics(
         button: true,
         selected: widget.selected,
-        label: widget.count != null
-            ? '${widget.label}, ${widget.count} conteúdos'
-            : widget.label,
+        label: widget.isAllContentsShortcut
+            ? '${widget.label}, ver todos os conteúdos do projeto'
+                  '${widget.count != null ? ', ${widget.count} conteúdos' : ''}'
+            : (widget.count != null
+                  ? '${widget.label}, ${widget.count} conteúdos'
+                  : widget.label),
         child: InkWell(
           onTap: widget.onSelect,
           borderRadius: BorderRadius.circular(9),

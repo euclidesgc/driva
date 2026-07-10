@@ -24,7 +24,8 @@ final class CategoryTreeLoaded extends CategoryTreeState {
 
   final List<CategoryNode> forest;
 
-  /// `null` é o pseudo-nó "Não categorizados".
+  /// `null` é o pseudo-nó "Todos os conteúdos" (filtro "ver tudo", não uma
+  /// categoria real).
   final String? selectedCategoryId;
 
   final Set<String> collapsedIds;

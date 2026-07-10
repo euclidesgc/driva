@@ -94,20 +94,25 @@ class ProjectDetailPage extends StatelessWidget {
                   width: 272,
                   child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
                     builder: (context, treeState) {
-                      // "Não categorizados" não é uma `Category` — é o
-                      // pseudo-nó `categoryId: null`. O contrato P3 só
-                      // acrescentou `contentCount` a `GET /v1/categories`
-                      // (por nó real); não há agregado equivalente para o
-                      // pseudo-nó. Mantém `null` (a UI não inventa zero).
+                      // "Todos os conteúdos" não é uma `Category` — é o
+                      // pseudo-nó `categoryId: null` (filtro "ver tudo").
+                      // Todo conteúdo tem categoria obrigatória (default
+                      // "Geral"), então o total do projeto é a soma dos
+                      // `contentCount` de todas as categorias reais.
+                      final categories = treeState is CategoryTreeLoaded
+                          ? treeState.categories
+                          : const <Category>[];
                       return CategoryTreeView(
                         contentCountByCategory: {
-                          for (final category
-                              in treeState is CategoryTreeLoaded
-                                  ? treeState.categories
-                                  : const <Category>[])
+                          for (final category in categories)
                             category.id: category.contentCount,
                         },
-                        uncategorizedCount: null,
+                        allContentsCount: treeState is CategoryTreeLoaded
+                            ? categories.fold<int>(
+                                0,
+                                (sum, category) => sum + category.contentCount,
+                              )
+                            : null,
                         onNewCategory: () => _openCategoryForm(context),
                         onEditCategory: (category) =>
                             _openCategoryForm(context, editing: category),
@@ -139,6 +144,9 @@ class ProjectDetailPage extends StatelessWidget {
                       builder: (context, treeState) {
                         return ContentPanelView(
                           categoryLabel: _selectedCategoryLabel(treeState),
+                          isAllContents:
+                              treeState is CategoryTreeLoaded &&
+                              treeState.selectedCategoryId == null,
                           onOpenContent: (content) => context.goNamed(
                             EditorRoutes.editorName,
                             pathParameters: {'id': content.id},
@@ -166,7 +174,7 @@ class ProjectDetailPage extends StatelessWidget {
   String _selectedCategoryLabel(CategoryTreeState state) {
     if (state is! CategoryTreeLoaded) return ' ';
     final selectedId = state.selectedCategoryId;
-    if (selectedId == null) return 'Não categorizados';
+    if (selectedId == null) return 'Todos os conteúdos';
     for (final category in state.categories) {
       if (category.id == selectedId) return category.name;
     }

@@ -17,10 +17,15 @@ enum ContentViewMode { grid, list }
 /// header "Home · 2 conteúdos" do `.dc.html`); [onOpenContent] navega ao
 /// Construtor; [onNewContent]/[onEditContent]/[onDeleteContent] abrem os
 /// formulários/confirmações (donos do modal ficam em `ProjectDetailPage`).
+///
+/// [isAllContents] indica que o filtro atual é o pseudo-nó "Todos os
+/// conteúdos" (`categoryId: null`), não uma categoria real — muda a
+/// mensagem do estado vazio.
 class ContentPanelView extends StatefulWidget {
   const ContentPanelView({
     super.key,
     required this.categoryLabel,
+    this.isAllContents = false,
     required this.onOpenContent,
     required this.onNewContent,
     required this.onEditContent,
@@ -29,6 +34,7 @@ class ContentPanelView extends StatefulWidget {
   });
 
   final String categoryLabel;
+  final bool isAllContents;
   final ValueChanged<ContentSummary> onOpenContent;
   final VoidCallback onNewContent;
   final ValueChanged<ContentSummary> onEditContent;
@@ -139,6 +145,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                 ),
                 ContentListEmpty() => _EmptyContents(
                   categoryLabel: widget.categoryLabel,
+                  isAllContents: widget.isAllContents,
                   onCreate: widget.onNewContent,
                 ),
                 final ContentListError s => _PanelError(
@@ -586,9 +593,14 @@ class _SupportId extends StatelessWidget {
 }
 
 class _EmptyContents extends StatelessWidget {
-  const _EmptyContents({required this.categoryLabel, required this.onCreate});
+  const _EmptyContents({
+    required this.categoryLabel,
+    this.isAllContents = false,
+    required this.onCreate,
+  });
 
   final String categoryLabel;
+  final bool isAllContents;
   final VoidCallback onCreate;
 
   @override
@@ -623,14 +635,18 @@ class _EmptyContents extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                'Nenhum conteúdo em "$categoryLabel"',
+                isAllContents
+                    ? 'Nenhum conteúdo neste projeto ainda'
+                    : 'Nenhum conteúdo em "$categoryLabel"',
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 5),
               Text(
-                'Crie o primeiro conteúdo desta categoria.',
+                isAllContents
+                    ? 'Crie o primeiro conteúdo do projeto.'
+                    : 'Crie o primeiro conteúdo desta categoria.',
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
