@@ -80,3 +80,28 @@ existir o seed automático da "Geral"; a combinação das duas não foi reavalia
 
 **Recomendação:** opção 1 (Cascade Project→Category), com confirmação dupla na
 UI. Não implementado — **aguarda decisão do humano** (muda schema/migração).
+
+**DECISÃO DO HUMANO (2026-07-09) — exclusão em duas camadas (soft delete):**
+descartadas as opções acima em favor de um modelo melhor. Na home, o projeto é
+**arquivado** (soft delete: `Project.archivedAt`, some da lista, nada é apagado).
+Uma área **"Arquivados"** lista os arquivados, com **Restaurar** (unarchive) e
+**Excluir definitivamente** — este último faz o **cascade total** (conteúdos →
+categorias → projeto, em `$transaction` no service), com **confirmação dupla** na
+UI, e **só é permitido em projeto já arquivado** (`DELETE` em projeto ativo →
+409). O `onDelete: Restrict` do schema permanece intacto (a cascata é explícita
+no service, só para projeto arquivado). Implementado nesta rodada.
+
+## Auth — decisão do humano (2026-07-09)
+
+**ADIAR e aceitar o débito por ora.** Seguir com `x-project-id` em
+homologação/demo interno, com o risco registrado (seção acima). **Limite mantido:
+auth entra como feature antes de abrir para usuários reais em produção.** Ver
+[[prd.md]] › Decisão 5.
+
+## Storage — estrutura de pastas (decisão do humano, 2026-07-09)
+
+Storage escolhido: **Garage** (`s3.bmjtech.duckdns.org`, já na infra). As mídias
+passam a ser organizadas por projeto: a key vira **`<projectId>/midias/<uuid>.<ext>`**
+(pasta pelo **id** do projeto — estável e único, não o nome; nome do arquivo em
+UUID, exigência do CISO de key não-enumerável). Credenciais só via env no Coolify.
+Ligar o S3 depende da auth (ver acima) antes de produção real.

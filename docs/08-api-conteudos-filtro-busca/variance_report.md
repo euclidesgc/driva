@@ -22,8 +22,7 @@ simplificação que respeita a regra (um módulo, camadas limpas) em vez de cria
 duas fronteiras que precisariam ser furadas.
 
 **Status.** Não fere nenhuma regra do CLAUDE.md; QA confirmou camadas limpas.
-**Desvio do plano escrito → aguarda confirmação do humano.** Reversível (dá para
-extrair `categories_module` de volta se o time preferir), mas sem ganho claro.
+**CONFIRMADO pelo humano (2026-07-09):** manter a fusão.
 
 ## VR-08-02 — Pseudo-nó "Não categorizados" → "Todos os conteúdos"
 
@@ -43,5 +42,5 @@ primeiro item). "Geral" e demais categorias reais são os nós abaixo.
 
 **Nota.** O `.dc.html` do protótipo ainda diz "Não categorizados" (foi desenhado
 antes do modelo com `categoryId` obrigatório) — seguimos a semântica correta do
-dado, não o rótulo do protótipo. Alinhamento técnico, **sem aprovação pendente**;
-registrado para ciência.
+dado, não o rótulo do protótipo. **CONFIRMADO pelo humano (2026-07-09):** manter
+"Todos os conteúdos".
