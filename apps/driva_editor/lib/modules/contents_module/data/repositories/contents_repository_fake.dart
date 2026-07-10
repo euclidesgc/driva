@@ -110,6 +110,41 @@ class ContentsRepositoryFake implements ContentsRepository {
   }
 
   @override
+  Future<Either<Failure, ContentSummary>> updateContent(
+    String id, {
+    String? name,
+    String? slug,
+    String? description,
+    String? categoryId,
+  }) async {
+    await Future<void>.delayed(_latency);
+    final current = store.find(id);
+    if (current == null) return const Left(NotFoundFailure());
+    if (slug != null && slug != current.slug && store.slugExists(slug)) {
+      return Left(
+        ConflictFailure(suggestedSlug: SlugUtil.suggestFree(slug, store.slugs)),
+      );
+    }
+    final updated = current.copyWith(
+      name: name,
+      slug: slug,
+      description: description,
+    );
+    store.save(updated);
+    if (categoryId != null) store.moveToCategory(id, categoryId);
+    return Right(
+      ContentSummary(
+        id: updated.id,
+        name: updated.name,
+        slug: updated.slug,
+        categoryId: store.categoryIdOf(updated.id),
+        description: updated.description,
+        updatedAt: store.updatedAtOf(updated.id),
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, Unit>> deleteContent(String id) async {
     await Future<void>.delayed(_latency);
     if (!store.delete(id)) return const Left(NotFoundFailure());

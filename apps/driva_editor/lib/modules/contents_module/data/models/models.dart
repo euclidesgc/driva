@@ -1,3 +1,4 @@
+export 'category_model.dart';
 export 'content_summary_model.dart';
 export 'contents_page_model.dart';
 

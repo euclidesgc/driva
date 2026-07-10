@@ -279,10 +279,10 @@ class _ProjectCardState extends State<_ProjectCard> {
   }
 
   void _openProject(BuildContext context) {
-    // TODO(docs/08-P2): abrir a "tela do projeto" (árvore de categorias) é
-    // outra fase. Por ora o card leva à lista de conteúdos atual, sem trocar
-    // o escopo x-project-id ainda.
-    context.goNamed(ContentsRoutes.contentsName);
+    context.goNamed(
+      ContentsRoutes.projectDetailName,
+      pathParameters: {'id': widget.project.id},
+    );
   }
 }
 

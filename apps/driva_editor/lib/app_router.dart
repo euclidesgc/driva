@@ -13,9 +13,11 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 /// The router only knows the modules' public barrels and mounts their
 /// `XRoutes.route`. Named routes always; never `extra:` (lost on web refresh).
 ///
-/// A home de Projetos é a raiz (`/`) — o novo topo da hierarquia. A rota de
-/// conteúdos (`/contents`) segue existindo: o card de projeto ainda leva
-/// para lá (troca de escopo x-project-id fica para docs/08 P2).
+/// A home de Projetos é a raiz (`/`) — o novo topo da hierarquia. O clique no
+/// card de projeto leva à "tela do projeto" (`/projects/:id`, dona do
+/// `contents_module`: árvore de categorias + painel de conteúdos). Não há
+/// mais lista de conteúdos fora de um projeto — qualquer rota desconhecida
+/// (inclui a antiga `/contents`) cai no `onException` e volta para a home.
 final GoRouter appRoutes = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: ProjectsRoutes.projects,

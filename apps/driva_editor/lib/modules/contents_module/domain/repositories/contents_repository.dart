@@ -27,5 +27,16 @@ abstract interface class ContentsRepository {
     String? categoryId,
   });
 
+  /// Atualiza só os campos enviados. `categoryId` presente **move** o
+  /// conteúdo para outra categoria; ausente preserva a categoria atual
+  /// (contrato do `PUT`, ver `prd.md`).
+  Future<Either<Failure, ContentSummary>> updateContent(
+    String id, {
+    String? name,
+    String? slug,
+    String? description,
+    String? categoryId,
+  });
+
   Future<Either<Failure, Unit>> deleteContent(String id);
 }

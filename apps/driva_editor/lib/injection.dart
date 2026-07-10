@@ -22,7 +22,12 @@ final GetIt getIt = GetIt.instance;
 void setupInjection(AppConfig config, SharedPreferences prefs) {
   // --- Shared infra ---
   getIt.registerSingleton<AppConfig>(config);
-  getIt.registerLazySingleton<Dio>(() => createDio(getIt<AppConfig>()));
+  getIt.registerSingleton<ProjectScope>(
+    ProjectScope(initialProjectId: config.defaultProjectId),
+  );
+  getIt.registerLazySingleton<Dio>(
+    () => createDio(getIt<AppConfig>(), getIt<ProjectScope>()),
+  );
   if (config.useFakeData) {
     // Store em memória compartilhado pelos fakes dos módulos (dev/E2E).
     getIt.registerLazySingleton<FakeContentsStore>(FakeContentsStore.new);

@@ -12,29 +12,22 @@ class CategoriesRepositoryFake implements CategoriesRepository {
   static const _latency = Duration(milliseconds: 300);
   static const _generalId = 'cat_geral';
 
+  // `Map` literal preserva ordem de inserção — usada como proxy de
+  // "createdAt" já que a entidade não carrega timestamp (o backend não os
+  // devolve para categoria).
   final Map<String, Category> _categories = {
-    _generalId: Category(
-      id: _generalId,
-      projectId: 'default',
-      name: 'Geral',
-      createdAt: DateTime.now().subtract(const Duration(days: 3)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 3)),
-    ),
-    'cat_promocoes': Category(
+    _generalId: const Category(id: _generalId, projectId: 'default', name: 'Geral'),
+    'cat_promocoes': const Category(
       id: 'cat_promocoes',
       projectId: 'default',
       name: 'Promoções',
       parentId: _generalId,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
     ),
-    'cat_institucional': Category(
+    'cat_institucional': const Category(
       id: 'cat_institucional',
       projectId: 'default',
       name: 'Institucional',
       parentId: _generalId,
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 1)),
     ),
   };
   int _sequence = 1;
@@ -42,9 +35,7 @@ class CategoriesRepositoryFake implements CategoriesRepository {
   @override
   Future<Either<Failure, List<Category>>> getCategories() async {
     await Future<void>.delayed(_latency);
-    final categories = _categories.values.toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return Right(categories);
+    return Right(_categories.values.toList());
   }
 
   @override
@@ -59,14 +50,11 @@ class CategoriesRepositoryFake implements CategoriesRepository {
       );
     }
     final id = 'cat_fake_${_sequence++}';
-    final now = DateTime.now();
     final category = Category(
       id: id,
       projectId: 'default',
       name: name,
       parentId: parentId,
-      createdAt: now,
-      updatedAt: now,
     );
     _categories[id] = category;
     return Right(category);
@@ -89,11 +77,7 @@ class CategoriesRepositoryFake implements CategoriesRepository {
         );
       }
     }
-    final updated = current.copyWith(
-      name: name,
-      updatedAt: DateTime.now(),
-      parentId: parentId,
-    );
+    final updated = current.copyWith(name: name, parentId: parentId);
     _categories[id] = updated;
     return Right(updated);
   }

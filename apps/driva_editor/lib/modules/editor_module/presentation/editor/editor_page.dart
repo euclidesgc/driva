@@ -8,6 +8,7 @@ import '../../../../core/error/error.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/theme/widgets/resizable_split_view.dart';
 import '../../../../injection.dart';
+import '../../../projects_module/projects_module.dart';
 import '../../domain/use_cases/use_cases.dart';
 import 'cubit/editor_cubit.dart';
 import 'device_preset.dart';
@@ -56,8 +57,8 @@ class EditorPage extends StatelessWidget {
                 Text(_messageFor(s.failure)),
                 const SizedBox(height: 12),
                 OutlinedButton(
-                  onPressed: () => context.goNamed('contents'),
-                  child: const Text('Voltar para os conteúdos'),
+                  onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
+                  child: const Text('Voltar para os projetos'),
                 ),
               ],
             ),

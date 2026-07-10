@@ -63,6 +63,30 @@ class ContentsRepositoryImpl implements ContentsRepository {
   }
 
   @override
+  Future<Either<Failure, ContentSummary>> updateContent(
+    String id, {
+    String? name,
+    String? slug,
+    String? description,
+    String? categoryId,
+  }) async {
+    try {
+      final response = await dio.put<Map<String, dynamic>>(
+        '/v1/contents/$id',
+        data: {
+          'name': ?name,
+          'slug': ?slug,
+          'description': ?description,
+          'categoryId': ?categoryId,
+        },
+      );
+      return ContentSummaryModel.tryParse(response.data ?? const {});
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> deleteContent(String id) async {
     try {
       await dio.delete<void>('/v1/contents/$id');
