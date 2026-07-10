@@ -9,6 +9,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
 import { StorageService } from './storage.service';
+import { extensionFor } from './storage.util';
 
 /**
  * Adapter S3-compatível do port `StorageService` — pronto e codado, mas
@@ -23,10 +24,11 @@ import { StorageService } from './storage.service';
  *  - `S3_SECRET_KEY`  — secret access key.
  *  - `S3_REGION`      — região (default `auto`, aceito por Garage/R2).
  *
- * A key gravada é sempre um UUID gerado aqui (nunca o filename do cliente —
- * mesma regra do adapter local), e o content-type é fixado no valor
- * detectado pelo pipeline de upload (`image-pipeline.ts`), nunca inferido
- * pelo S3 a partir da extensão.
+ * A key gravada é `<prefix>/<uuid>.<ext>` — nome de arquivo sempre um UUID
+ * gerado aqui (nunca o filename do cliente — mesma regra do adapter local),
+ * `prefix` (ex.: `<projectId>/midias`) organiza por projeto dentro do bucket,
+ * e o content-type é fixado no valor detectado pelo pipeline de upload
+ * (`image-pipeline.ts`), nunca inferido pelo S3 a partir da extensão.
  */
 @Injectable()
 export class S3StorageService implements StorageService {
@@ -61,8 +63,12 @@ export class S3StorageService implements StorageService {
     );
   }
 
-  async put(buffer: Buffer, contentType: string): Promise<string> {
-    const key = randomUUID();
+  async put(
+    buffer: Buffer,
+    contentType: string,
+    prefix: string,
+  ): Promise<string> {
+    const key = `${prefix}/${randomUUID()}${extensionFor(contentType)}`;
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,

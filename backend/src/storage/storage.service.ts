@@ -10,10 +10,20 @@
  * O pipeline de segurança do upload (magic bytes, allowlist, reencode com
  * sharp, nome por UUID do servidor) é responsabilidade de quem CHAMA `put`
  * (o `ProjectsService`/pipeline da F2) — este port só move bytes.
+ *
+ * A key é organizada em pasta por projeto: `<prefix>/<uuid>.<ext>` (ex.:
+ * `<projectId>/midias/<uuid>.png`). `prefix` é opaco para o adapter — quem
+ * chama monta `'<projectId>/midias'`; o nome do arquivo continua sempre um
+ * UUID gerado pelo adapter (nunca o filename do cliente — key não-enumerável,
+ * exigência do CISO).
  */
 export abstract class StorageService {
-  /** Grava `buffer` sob uma key nova e a devolve. Não recebe filename do cliente. */
-  abstract put(buffer: Buffer, contentType: string): Promise<string>;
+  /** Grava `buffer` sob uma key nova (dentro de `prefix/`) e a devolve. Não recebe filename do cliente. */
+  abstract put(
+    buffer: Buffer,
+    contentType: string,
+    prefix: string,
+  ): Promise<string>;
 
   /** Lê o objeto gravado sob `key`. `null` quando a key não existe. */
   abstract get(
