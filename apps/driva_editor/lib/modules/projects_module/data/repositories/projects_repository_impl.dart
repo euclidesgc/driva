@@ -27,7 +27,7 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
         if (parsed.isLeft()) {
           return parsed.map((_) => <Project>[]);
         }
-        projects.add(parsed.getRight().toNullable()!);
+        projects.add(_resolveImageUrl(parsed.getRight().toNullable()!));
       }
       return Right(projects);
     } on DioException catch (e) {
@@ -39,7 +39,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   Future<Either<Failure, Project>> getProject(String id) async {
     try {
       final response = await dio.get<Map<String, dynamic>>('/v1/projects/$id');
-      return ProjectModel.tryParse(response.data ?? const {});
+      return ProjectModel.tryParse(
+        response.data ?? const {},
+      ).map(_resolveImageUrl);
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -61,7 +63,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
         '/v1/projects',
         data: formData,
       );
-      return ProjectModel.tryParse(response.data ?? const {});
+      return ProjectModel.tryParse(
+        response.data ?? const {},
+      ).map(_resolveImageUrl);
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -86,7 +90,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
         '/v1/projects/$id',
         data: formData,
       );
-      return ProjectModel.tryParse(response.data ?? const {});
+      return ProjectModel.tryParse(
+        response.data ?? const {},
+      ).map(_resolveImageUrl);
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -98,7 +104,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
       final response = await dio.post<Map<String, dynamic>>(
         '/v1/projects/$id/archive',
       );
-      return ProjectModel.tryParse(response.data ?? const {});
+      return ProjectModel.tryParse(
+        response.data ?? const {},
+      ).map(_resolveImageUrl);
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -110,7 +118,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
       final response = await dio.post<Map<String, dynamic>>(
         '/v1/projects/$id/unarchive',
       );
-      return ProjectModel.tryParse(response.data ?? const {});
+      return ProjectModel.tryParse(
+        response.data ?? const {},
+      ).map(_resolveImageUrl);
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
@@ -124,6 +134,24 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }
+  }
+
+  /// A API devolve `imageUrl` **relativa** (`/v1/projects/:id/image`). No
+  /// Flutter Web, uma URL relativa resolveria contra a origem do FRONT (nginx),
+  /// não da API — o `Image.network` bateria em `https://<front>/v1/...` → 404,
+  /// e o card cairia no gradiente (parecia "imagem não persistida"). Aqui, na
+  /// fronteira HTTP, resolvemos para absoluta usando a base do próprio Dio,
+  /// para a entidade carregar uma URL de fato servível. Idempotente: URL já
+  /// absoluta (ou nula/vazia) passa intacta.
+  Project _resolveImageUrl(Project project) {
+    final url = project.imageUrl;
+    if (url == null || url.isEmpty || url.startsWith('http')) return project;
+    final base = dio.options.baseUrl;
+    final trimmedBase = base.endsWith('/')
+        ? base.substring(0, base.length - 1)
+        : base;
+    final path = url.startsWith('/') ? url : '/$url';
+    return project.copyWith(imageUrl: () => '$trimmedBase$path');
   }
 
   MultipartFile _multipartFrom(ProjectImageInput image) {
