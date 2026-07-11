@@ -190,6 +190,9 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                 final ContentListLoaded s => _ContentsCollection(
                   contents: s.contents,
                   mode: _mode,
+                  hasMore: s.hasMore,
+                  isLoadingMore: s.isLoadingMore,
+                  onLoadMore: () => context.read<ContentListCubit>().loadMore(),
                   onOpen: widget.onOpenContent,
                   onEdit: widget.onEditContent,
                   onMove: widget.onMoveContent,
@@ -428,6 +431,9 @@ class _ContentsCollection extends StatelessWidget {
   const _ContentsCollection({
     required this.contents,
     required this.mode,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.onLoadMore,
     required this.onOpen,
     required this.onEdit,
     required this.onMove,
@@ -436,42 +442,119 @@ class _ContentsCollection extends StatelessWidget {
 
   final List<ContentSummary> contents;
   final ContentViewMode mode;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
   final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
+  /// Antecipa a próxima página ~1,5 tela antes do fim (rolagem sem "solavanco").
+  static const _prefetchExtent = 400.0;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (hasMore &&
+        !isLoadingMore &&
+        notification.metrics.axis == Axis.vertical &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - _prefetchExtent) {
+      onLoadMore();
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (mode == ContentViewMode.list) {
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-        itemCount: contents.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (context, index) => _ContentRow(
-          content: contents[index],
-          onOpen: onOpen,
-          onEdit: onEdit,
-          onMove: onMove,
-          onDelete: onDelete,
-        ),
-      );
-    }
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 300 / 150,
+    // Reserva espaço no rodapé para o loader não cobrir o último item.
+    final bottomPadding = isLoadingMore ? 64.0 : 24.0;
+    final Widget collection = mode == ContentViewMode.list
+        ? ListView.separated(
+            padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding),
+            itemCount: contents.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) => _ContentRow(
+              content: contents[index],
+              onOpen: onOpen,
+              onEdit: onEdit,
+              onMove: onMove,
+              onDelete: onDelete,
+            ),
+          )
+        : GridView.builder(
+            padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 300,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 300 / 150,
+            ),
+            itemCount: contents.length,
+            itemBuilder: (context, index) => _ContentCard(
+              content: contents[index],
+              onOpen: onOpen,
+              onEdit: onEdit,
+              onMove: onMove,
+              onDelete: onDelete,
+            ),
+          );
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: Stack(
+        children: [
+          collection,
+          if (isLoadingMore)
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: _LoadingMoreFooter(),
+            ),
+        ],
       ),
-      itemCount: contents.length,
-      itemBuilder: (context, index) => _ContentCard(
-        content: contents[index],
-        onOpen: onOpen,
-        onEdit: onEdit,
-        onMove: onMove,
-        onDelete: onDelete,
+    );
+  }
+}
+
+/// Rodapé de "carregando mais" do scroll infinito (pílula com spinner + texto;
+/// o texto garante que a informação não dependa só do movimento).
+class _LoadingMoreFooter extends StatelessWidget {
+  const _LoadingMoreFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    return Center(
+      child: Semantics(
+        liveRegion: true,
+        label: 'Carregando mais conteúdos',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: colors.panel,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 15,
+                height: 15,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Carregando mais…',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.inkMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

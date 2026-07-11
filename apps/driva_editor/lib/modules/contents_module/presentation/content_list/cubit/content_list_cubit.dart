@@ -43,8 +43,6 @@ class ContentListCubit extends Cubit<ContentListState> {
   ContentSort get currentSort => _sort;
   ContentSortOrder get currentOrder => _order;
 
-  // TODO(P16): paginação infinita (usar `page.nextCursor`); por ora carrega
-  // só a primeira página do filtro/busca correntes.
   Future<void> load() async {
     emit(const ContentListLoading());
     final result = await getContents(
@@ -59,7 +57,40 @@ class ContentListCubit extends Cubit<ContentListState> {
         (failure) => ContentListError(failure: failure),
         (page) => page.items.isEmpty
             ? const ContentListEmpty()
-            : ContentListLoaded(contents: page.items),
+            : ContentListLoaded(
+                contents: page.items,
+                nextCursor: page.nextCursor,
+              ),
+      ),
+    );
+  }
+
+  /// Carrega a próxima página (scroll infinito) e **anexa** ao final. No-op se
+  /// não há próxima página (`nextCursor == null`) ou já está carregando. Em
+  /// falha, mantém a lista e o cursor (o usuário pode tentar de novo rolando).
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! ContentListLoaded ||
+        current.isLoadingMore ||
+        current.nextCursor == null) {
+      return;
+    }
+    emit(current.copyWith(isLoadingMore: true));
+    final result = await getContents(
+      categoryId: _categoryId,
+      query: _query,
+      sort: _sort,
+      order: _order,
+      cursor: current.nextCursor,
+    );
+    if (isClosed) return;
+    emit(
+      result.fold(
+        (_) => current.copyWith(isLoadingMore: false),
+        (page) => ContentListLoaded(
+          contents: [...current.contents, ...page.items],
+          nextCursor: page.nextCursor,
+        ),
       ),
     );
   }
@@ -117,7 +148,7 @@ class ContentListCubit extends Cubit<ContentListState> {
       emit(
         remaining.isEmpty
             ? const ContentListEmpty()
-            : ContentListLoaded(contents: remaining),
+            : current.copyWith(contents: remaining),
       );
     }
     final result = await deleteContent(id);
