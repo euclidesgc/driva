@@ -126,4 +126,43 @@ void main() {
     // O inspector passa a mostrar o nó Text selecionado (não mais 'Conteúdo').
     expect(find.text('Text'), findsWidgets);
   });
+
+  // Regressão do item 8d: uma raiz que é um widget FOLHA (sem slot de filhos,
+  // ex.: um `text` sozinho) deve RENDERIZAR, não cair no estado-vazio. A
+  // condição de empty-state considera só `root == null` — se alguém voltar a
+  // incluir `root.children.isEmpty`, este teste quebra.
+  testWidgets(
+    'raiz folha renderiza — não mostra o estado-vazio (regressão 8d)',
+    (tester) async {
+      enlarge(tester);
+      cubit.emit(
+        EditorReady(
+          document: ContentSpec(
+            specVersion: kSpecVersion,
+            id: 'ct_1',
+            name: 'Home',
+            slug: 'home',
+            root: SduiNode(
+              id: 'nd_root',
+              type: 'text',
+              properties: {'data': 'SOLO'},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(harness());
+      await tester.pump();
+
+      expect(
+        find.text('Arraste um widget da paleta até aqui para começar.'),
+        findsNothing,
+      );
+      // A folha renderiza de verdade no canvas: um `Text` (não o EditableText do
+      // inspector, que também exibe o valor do prop 'data').
+      expect(
+        find.byWidgetPredicate((w) => w is Text && w.data == 'SOLO'),
+        findsOneWidget,
+      );
+    },
+  );
 }
