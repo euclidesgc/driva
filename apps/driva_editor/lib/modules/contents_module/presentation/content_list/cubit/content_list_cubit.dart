@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../../core/error/error.dart';
+import '../../../domain/entities/content_sort.dart';
 import '../../../domain/entities/content_summary.dart';
 import '../../../domain/use_cases/use_cases.dart';
 
@@ -19,21 +20,39 @@ class ContentListCubit extends Cubit<ContentListState> {
   String? _categoryId;
   String? _query;
 
+  /// Ordenação corrente — sempre do servidor (`GET /v1/contents` `sort`/`order`).
+  /// Default: mais recentes primeiro (`updatedAt` desc), como a home.
+  ContentSort _sort;
+  ContentSortOrder _order;
+
   ContentListCubit({
     required this.getContents,
     required this.createContent,
     required this.deleteContent,
     String? categoryId,
     String? query,
+    ContentSort sort = ContentSort.updatedAt,
+    ContentSortOrder order = ContentSortOrder.desc,
   }) : _categoryId = categoryId,
        _query = query,
+       _sort = sort,
+       _order = order,
        super(const ContentListLoading());
+
+  /// Ordenação corrente — a UI reflete estes valores no controle de ordenação.
+  ContentSort get currentSort => _sort;
+  ContentSortOrder get currentOrder => _order;
 
   // TODO(P16): paginação infinita (usar `page.nextCursor`); por ora carrega
   // só a primeira página do filtro/busca correntes.
   Future<void> load() async {
     emit(const ContentListLoading());
-    final result = await getContents(categoryId: _categoryId, query: _query);
+    final result = await getContents(
+      categoryId: _categoryId,
+      query: _query,
+      sort: _sort,
+      order: _order,
+    );
     if (isClosed) return;
     emit(
       result.fold(
@@ -55,6 +74,14 @@ class ContentListCubit extends Cubit<ContentListState> {
   }) {
     if (categoryId != null) _categoryId = categoryId();
     _query = query;
+    return load();
+  }
+
+  /// Troca a ordenação (campo e/ou direção) e recarrega da primeira página.
+  /// Preserva o filtro por categoria e a busca correntes.
+  Future<void> changeSort({ContentSort? sort, ContentSortOrder? order}) {
+    if (sort != null) _sort = sort;
+    if (order != null) _order = order;
     return load();
   }
 

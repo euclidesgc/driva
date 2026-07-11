@@ -86,6 +86,41 @@ void main() {
     );
   });
 
+  group('changeSort', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'muda campo e direção e recarrega passando sort/order ao use case',
+      build: build,
+      setUp: () => when(
+        () => getContents(sort: ContentSort.name, order: ContentSortOrder.asc),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [content]))),
+      act: (cubit) =>
+          cubit.changeSort(sort: ContentSort.name, order: ContentSortOrder.asc),
+      expect: () => [
+        const ContentListLoading(),
+        ContentListLoaded(contents: [content]),
+      ],
+      verify: (_) {
+        verify(
+          () =>
+              getContents(sort: ContentSort.name, order: ContentSortOrder.asc),
+        ).called(1);
+      },
+    );
+
+    test('getters refletem a ordenação corrente após changeSort', () async {
+      when(
+        () => getContents(sort: ContentSort.createdAt),
+      ).thenAnswer((_) async => const Right(ContentsPage(items: [])));
+      final cubit = build();
+      expect(cubit.currentSort, ContentSort.updatedAt);
+      expect(cubit.currentOrder, ContentSortOrder.desc);
+      await cubit.changeSort(sort: ContentSort.createdAt);
+      expect(cubit.currentSort, ContentSort.createdAt);
+      expect(cubit.currentOrder, ContentSortOrder.desc);
+      await cubit.close();
+    });
+  });
+
   group('create', () {
     blocTest<ContentListCubit, ContentListState>(
       'sucesso: não emite estado nem recarrega — devolve o conteúdo criado',
