@@ -121,6 +121,88 @@ void main() {
     });
   });
 
+  group('load (paginação)', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'guarda o nextCursor da primeira página',
+      build: build,
+      setUp: () => when(() => getContents()).thenAnswer(
+        (_) async => Right(ContentsPage(items: [content], nextCursor: 'c1')),
+      ),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        const ContentListLoading(),
+        ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      ],
+    );
+  });
+
+  group('loadMore', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'anexa a próxima página e atualiza o cursor',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(() => getContents(cursor: 'c1')).thenAnswer(
+        (_) async => Right(ContentsPage(items: [other], nextCursor: 'c2')),
+      ),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content, other], nextCursor: 'c2'),
+      ],
+      verify: (_) => verify(() => getContents(cursor: 'c1')).called(1),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'nextCursor nulo na resposta encerra a paginação (hasMore = false)',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(
+        () => getContents(cursor: 'c1'),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [other]))),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content, other]),
+      ],
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'no-op quando não há próxima página (nextCursor == null)',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content]),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => <ContentListState>[],
+      verify: (_) =>
+          verifyNever(() => getContents(cursor: any(named: 'cursor'))),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'falha mantém a lista e o cursor, só desliga o isLoadingMore',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(
+        () => getContents(cursor: 'c1'),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      ],
+    );
+  });
+
   group('create', () {
     blocTest<ContentListCubit, ContentListState>(
       'sucesso: não emite estado nem recarrega — devolve o conteúdo criado',
