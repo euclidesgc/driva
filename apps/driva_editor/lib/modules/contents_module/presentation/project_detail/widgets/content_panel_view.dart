@@ -575,44 +575,55 @@ class _ContentCard extends StatelessWidget {
   final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildContent(BuildContext context, {double opacity = 1}) {
     final theme = Theme.of(context);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => onOpen(content),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 14, 15, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: _SlugBadge(slug: content.slug)),
-                  _CardActions(
-                    content: content,
-                    onEdit: onEdit,
-                    onMove: onMove,
-                    onDelete: onDelete,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                content.name,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
+    return Opacity(
+      opacity: opacity,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => onOpen(content),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 14, 15, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _SlugBadge(slug: content.slug)),
+                    _CardActions(
+                      content: content,
+                      onEdit: onEdit,
+                      onMove: onMove,
+                      onDelete: onDelete,
+                    ),
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const Spacer(),
-              _SupportId(id: content.id),
-            ],
+                const SizedBox(height: 14),
+                Text(
+                  content.name,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Spacer(),
+                _SupportId(id: content.id),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DraggableContent(
+      content: content,
+      childWhenDragging: _buildContent(context, opacity: 0.4),
+      child: _buildContent(context),
     );
   }
 }
@@ -632,49 +643,60 @@ class _ContentRow extends StatelessWidget {
   final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildContent(BuildContext context, {double opacity = 1}) {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
-    return Material(
-      color: colors.panel,
-      borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        onTap: () => onOpen(content),
+    return Opacity(
+      opacity: opacity,
+      child: Material(
+        color: colors.panel,
         borderRadius: BorderRadius.circular(11),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.border),
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: Row(
-            children: [
-              _SlugBadge(slug: content.slug),
-              const SizedBox(width: 14),
-              // Título com espaço generoso: na lista ele não espreme (só
-              // trunca em telas realmente estreitas), diferente do card de
-              // grade que reserva espaço fixo para as ações.
-              Expanded(
-                child: Text(
-                  content.name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+        child: InkWell(
+          onTap: () => onOpen(content),
+          borderRadius: BorderRadius.circular(11),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              border: Border.all(color: colors.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(
+              children: [
+                _SlugBadge(slug: content.slug),
+                const SizedBox(width: 14),
+                // Título com espaço generoso: na lista ele não espreme (só
+                // trunca em telas realmente estreitas), diferente do card de
+                // grade que reserva espaço fixo para as ações.
+                Expanded(
+                  child: Text(
+                    content.name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              _CardActions(
-                content: content,
-                onEdit: onEdit,
-                onMove: onMove,
-                onDelete: onDelete,
-              ),
-            ],
+                _CardActions(
+                  content: content,
+                  onEdit: onEdit,
+                  onMove: onMove,
+                  onDelete: onDelete,
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DraggableContent(
+      content: content,
+      childWhenDragging: _buildContent(context, opacity: 0.4),
+      child: _buildContent(context),
     );
   }
 }
@@ -878,6 +900,98 @@ class _EmptyContents extends StatelessWidget {
                 onPressed: onCreate,
                 icon: const Icon(Icons.add),
                 label: const Text('Novo conteúdo'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Origem do drag-and-drop (feature 10, fase 2): embrulha o card/linha num
+/// `Draggable<ContentSummary>` com chip de feedback compacto, origem
+/// esmaecida enquanto arrasta e cursor "grab" + tooltip curta na origem.
+///
+/// O botão "mover" de [_CardActions] permanece como caminho acessível
+/// primário — o drag é só um atalho, nunca o único sinal (D6/CA10).
+class _DraggableContent extends StatelessWidget {
+  const _DraggableContent({
+    required this.content,
+    required this.child,
+    required this.childWhenDragging,
+  });
+
+  final ContentSummary content;
+  final Widget child;
+  final Widget childWhenDragging;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Arraste para mover de categoria',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: Semantics(
+          label: 'Conteúdo ${content.name}. Arraste para mover de categoria.',
+          child: Draggable<ContentSummary>(
+            data: content,
+            feedback: _ContentDragChip(content: content),
+            childWhenDragging: childWhenDragging,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Chip compacto que segue o cursor durante o arraste (D2): só o título,
+/// embrulhado em `Material` para não perder o tema no overlay do drag.
+class _ContentDragChip extends StatelessWidget {
+  const _ContentDragChip({required this.content});
+
+  final ContentSummary content;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 220),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: theme.colorScheme.primary, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.drag_indicator,
+                size: 15,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  content.name,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

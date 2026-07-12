@@ -13,6 +13,7 @@
 - **ProjectScope (tenant por projeto)**: o editor injeta o header `x-project-id` no Dio conforme o projeto em foco, escopando as chamadas de categorias e conteúdos ao projeto aberto.
 - **Arquivar projeto (soft delete) + área de Arquivados**: exclusão em duas camadas. Na home o projeto é **arquivado** (`Project.archivedAt`; some da lista, nada é apagado); a tela **`/projects/archived`** lista os arquivados com **Restaurar** e **Excluir definitivamente** (cascata total conteúdos→categorias→projeto em `$transaction`, só permitido em projeto arquivado — `DELETE` em ativo → 409; confirmação dupla exigindo digitar o título). Backend: `GET /v1/projects?status=active|archived`, `POST /v1/projects/:id/archive` e `/unarchive`, campo `archivedAt` no payload.
 - **Storage por pasta de projeto**: as imagens passam a ser gravadas em `<projectId>/midias/<uuid>.<ext>` (pasta pelo id do projeto, nome do arquivo em UUID); adapters local e S3 (Garage) compartilham o mesmo esquema de key.
+- **driva_editor · mover conteúdo por drag-and-drop (origem)**: card (grade) e linha (lista) do painel de conteúdos agora são `Draggable<ContentSummary>`, com chip compacto do título seguindo o cursor, origem esmaecida durante o arraste, cursor "grab" e tooltip curta ("Arraste para mover de categoria"). O botão "mover" permanece como caminho acessível primário — soltar sobre uma categoria ainda não move (fase seguinte).
 
 ### Alterado
 
