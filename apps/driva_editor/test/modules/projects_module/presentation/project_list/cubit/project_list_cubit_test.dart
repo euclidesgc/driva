@@ -56,10 +56,8 @@ void main() {
     blocTest<ProjectListCubit, ProjectListState>(
       'troca só o card afetado — uma emissão Loaded, sem Loading nem refetch',
       build: build,
-      seed: () => ProjectListLoaded(
-        projects: [proj('1'), proj('2')],
-        archivedCount: 3,
-      ),
+      seed: () =>
+          ProjectListLoaded(projects: [proj('1'), proj('2')], archivedCount: 3),
       setUp: () => when(
         () => updateProject(
           '1',
