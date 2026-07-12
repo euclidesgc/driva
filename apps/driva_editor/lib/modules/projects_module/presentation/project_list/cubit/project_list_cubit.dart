@@ -46,8 +46,10 @@ class ProjectListCubit extends Cubit<ProjectListState> {
     );
   }
 
-  /// Cria e recarrega a lista no sucesso (o card novo precisa aparecer na
-  /// home). No erro, a UI trata pelo `Left` sem tocar o estado atual.
+  /// Cria e insere o card novo **no topo** da lista `Loaded` atual, sem
+  /// `Loading` nem refetch (a home lista por `updatedAt desc`, então o recém-
+  /// criado é o mais recente). De `Empty` transiciona para `Loaded` com o
+  /// único card. No erro, a UI trata pelo `Left` sem tocar o estado.
   Future<Either<Failure, Project>> create({
     required String title,
     String? description,
@@ -59,7 +61,27 @@ class ProjectListCubit extends Cubit<ProjectListState> {
       image: image,
     );
     if (isClosed) return result;
-    if (result.isRight()) await load();
+    final current = state;
+    if (result.isRight()) {
+      final created = result.getRight().toNullable()!;
+      if (current is ProjectListLoaded) {
+        emit(
+          ProjectListLoaded(
+            projects: [created, ...current.projects],
+            archivedCount: current.archivedCount,
+          ),
+        );
+      } else if (current is ProjectListEmpty) {
+        emit(
+          ProjectListLoaded(
+            projects: [created],
+            archivedCount: current.archivedCount,
+          ),
+        );
+      } else {
+        await load();
+      }
+    }
     return result;
   }
 

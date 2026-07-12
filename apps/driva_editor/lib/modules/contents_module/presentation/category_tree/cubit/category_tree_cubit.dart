@@ -63,16 +63,28 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
     emit(current.copyWith(collapsedIds: collapsed));
   }
 
+  /// Cria e insere o nó novo na árvore atual, reconstruindo o forest a partir
+  /// da lista flat (o `buildForest` reordena por nome), sem `Loading` nem
+  /// refetch. No erro, a árvore não muda (a UI trata pelo `Left`).
   Future<Either<Failure, Category>> create({
     required String name,
     String? parentId,
   }) async {
     final result = await createCategory(name: name, parentId: parentId);
     if (isClosed) return result;
-    if (result.isRight()) await load();
+    final current = state;
+    if (result.isRight() && current is CategoryTreeLoaded) {
+      final created = result.getRight().toNullable()!;
+      emit(_withCategories(current, [...current.categories, created]));
+    } else if (result.isRight()) {
+      await load();
+    }
     return result;
   }
 
+  /// Renomeia/move e reflete só o nó afetado (troca na lista flat + rebuild do
+  /// forest, que já lida com o reparent via `parentId`), sem `Loading` nem
+  /// refetch.
   Future<Either<Failure, Category>> update(
     String id, {
     String? name,
@@ -80,25 +92,58 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
   }) async {
     final result = await updateCategory(id, name: name, parentId: parentId);
     if (isClosed) return result;
-    if (result.isRight()) await load();
+    final current = state;
+    if (result.isRight() && current is CategoryTreeLoaded) {
+      final updated = result.getRight().toNullable()!;
+      emit(
+        _withCategories(current, [
+          for (final c in current.categories) c.id == updated.id ? updated : c,
+        ]),
+      );
+    } else if (result.isRight()) {
+      await load();
+    }
     return result;
   }
 
-  /// Em sucesso, some com o nó e — se ele era o selecionado — a seleção
-  /// volta para "Todos os conteúdos". Em falha (ex.: 409 por ter
-  /// conteúdos/subcategorias), a árvore não muda; a UI mostra a mensagem da
-  /// `Failure`.
+  /// Em sucesso, some com o nó (in-place) e — se ele era o selecionado — a
+  /// seleção volta para "Todos os conteúdos". O delete só passa em nó folha
+  /// sem conteúdos (o backend restringe → 409), então remover só aquele id da
+  /// lista flat é seguro. Em falha, a árvore não muda; a UI mostra a `Failure`.
   Future<Either<Failure, Unit>> delete(String id) async {
     final result = await deleteCategory(id);
     if (isClosed) return result;
-    if (result.isRight()) {
-      final current = state;
-      final resetSelection =
-          current is CategoryTreeLoaded && current.selectedCategoryId == id;
+    final current = state;
+    if (result.isRight() && current is CategoryTreeLoaded) {
+      final categories = current.categories.where((c) => c.id != id).toList();
+      final collapsed = current.collapsedIds.contains(id)
+          ? (Set<String>.from(current.collapsedIds)..remove(id))
+          : current.collapsedIds;
+      emit(
+        current.copyWith(
+          categories: categories,
+          forest: CategoryNode.buildForest(categories),
+          collapsedIds: collapsed,
+          selectedCategoryId: current.selectedCategoryId == id
+              ? () => null
+              : null,
+        ),
+      );
+    } else if (result.isRight()) {
       await load();
-      if (isClosed) return result;
-      if (resetSelection) select(null);
     }
     return result;
+  }
+
+  /// Reemite o `Loaded` com uma nova lista flat + o forest reconstruído dela,
+  /// preservando seleção e nós recolhidos.
+  CategoryTreeLoaded _withCategories(
+    CategoryTreeLoaded current,
+    List<Category> categories,
+  ) {
+    return current.copyWith(
+      categories: categories,
+      forest: CategoryNode.buildForest(categories),
+    );
   }
 }

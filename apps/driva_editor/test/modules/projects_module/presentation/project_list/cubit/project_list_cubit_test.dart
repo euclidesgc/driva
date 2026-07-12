@@ -91,4 +91,36 @@ void main() {
       expect: () => const <ProjectListState>[],
     );
   });
+
+  group('create (insere o card sem rebuild da lista)', () {
+    final created = proj('novo');
+
+    blocTest<ProjectListCubit, ProjectListState>(
+      'insere no topo do Loaded atual, sem Loading nem refetch',
+      build: build,
+      seed: () => ProjectListLoaded(projects: [proj('1')], archivedCount: 2),
+      setUp: () => when(
+        () => createProject(title: 'Novo', description: null, image: null),
+      ).thenAnswer((_) async => Right(created)),
+      act: (cubit) => cubit.create(title: 'Novo'),
+      expect: () => [
+        ProjectListLoaded(projects: [created, proj('1')], archivedCount: 2),
+      ],
+      verify: (_) => verifyNever(() => getProjects()),
+    );
+
+    blocTest<ProjectListCubit, ProjectListState>(
+      'de Empty transiciona para Loaded com o card, preservando archivedCount',
+      build: build,
+      seed: () => const ProjectListEmpty(archivedCount: 5),
+      setUp: () => when(
+        () => createProject(title: 'Novo', description: null, image: null),
+      ).thenAnswer((_) async => Right(created)),
+      act: (cubit) => cubit.create(title: 'Novo'),
+      expect: () => [
+        ProjectListLoaded(projects: [created], archivedCount: 5),
+      ],
+      verify: (_) => verifyNever(() => getProjects()),
+    );
+  });
 }
