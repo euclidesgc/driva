@@ -23,12 +23,20 @@ import { extensionFor } from './storage.util';
  *  - `S3_ACCESS_KEY`  — access key id.
  *  - `S3_SECRET_KEY`  — secret access key.
  *  - `S3_REGION`      — região (default `auto`, aceito por Garage/R2).
+ *  - `S3_KEY_PREFIX`  — prefixo raiz opcional, para namespacear a app dentro de
+ *    um bucket compartilhado por vários serviços/ambientes (ex.: `driva-hml`).
+ *    Vazio = grava na raiz do bucket.
  *
- * A key gravada é `<prefix>/<uuid>.<ext>` — nome de arquivo sempre um UUID
- * gerado aqui (nunca o filename do cliente — mesma regra do adapter local),
- * `prefix` (ex.: `<projectId>/midias`) organiza por projeto dentro do bucket,
- * e o content-type é fixado no valor detectado pelo pipeline de upload
+ * A key gravada é `<keyPrefix>/<prefix>/<uuid>.<ext>` — nome de arquivo sempre
+ * um UUID gerado aqui (nunca o filename do cliente — mesma regra do adapter
+ * local), `prefix` (ex.: `<projectId>/midias`) organiza por projeto e
+ * `keyPrefix` (de `S3_KEY_PREFIX`) separa a app dentro do bucket. O
+ * content-type é fixado no valor detectado pelo pipeline de upload
  * (`image-pipeline.ts`), nunca inferido pelo S3 a partir da extensão.
+ *
+ * A key final (já com o `keyPrefix`) é o que `put` devolve e o que fica gravado
+ * em `Project.imageKey` — logo `get`/`delete` recebem a key completa e seguem
+ * consistentes mesmo que o `S3_KEY_PREFIX` mude depois.
  */
 @Injectable()
 export class S3StorageService implements StorageService {
@@ -36,12 +44,20 @@ export class S3StorageService implements StorageService {
   private readonly client: S3Client;
   private readonly bucket: string;
 
+  // Prefixo raiz opcional (`S3_KEY_PREFIX`), sem barras nas pontas — namespaceia
+  // a app dentro de um bucket compartilhado. Vazio = grava na raiz do bucket.
+  private readonly keyPrefix: string;
+
   constructor() {
     const endpoint = process.env.S3_ENDPOINT?.trim() || undefined;
     const bucket = process.env.S3_BUCKET?.trim();
     const accessKeyId = process.env.S3_ACCESS_KEY?.trim();
     const secretAccessKey = process.env.S3_SECRET_KEY?.trim();
     const region = process.env.S3_REGION?.trim() || 'auto';
+    this.keyPrefix = (process.env.S3_KEY_PREFIX?.trim() || '').replace(
+      /^\/+|\/+$/g,
+      '',
+    );
 
     if (!bucket || !accessKeyId || !secretAccessKey) {
       throw new Error(
@@ -59,7 +75,8 @@ export class S3StorageService implements StorageService {
       forcePathStyle: true,
     });
     this.logger.log(
-      `storage S3 pronto (bucket="${bucket}", endpoint="${endpoint ?? 'aws'}")`,
+      `storage S3 pronto (bucket="${bucket}", endpoint="${endpoint ?? 'aws'}"` +
+        `${this.keyPrefix ? `, keyPrefix="${this.keyPrefix}"` : ''})`,
     );
   }
 
@@ -68,7 +85,8 @@ export class S3StorageService implements StorageService {
     contentType: string,
     prefix: string,
   ): Promise<string> {
-    const key = `${prefix}/${randomUUID()}${extensionFor(contentType)}`;
+    const scoped = this.keyPrefix ? `${this.keyPrefix}/${prefix}` : prefix;
+    const key = `${scoped}/${randomUUID()}${extensionFor(contentType)}`;
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
