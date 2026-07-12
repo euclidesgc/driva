@@ -34,6 +34,7 @@ void main() {
     cubit = EditorCubit(
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
+      projectId: 'p1',
     );
     cubit.emit(EditorReady(document: _docWithText('hello')));
   });
