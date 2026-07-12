@@ -143,6 +143,12 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   /// fronteira HTTP, resolvemos para absoluta usando a base do próprio Dio,
   /// para a entidade carregar uma URL de fato servível. Idempotente: URL já
   /// absoluta (ou nula/vazia) passa intacta.
+  ///
+  /// A URL de serving é **estável** (`/v1/projects/:id/image`), então trocar a
+  /// capa não muda a URL e o `Image.network` do Flutter Web serviria a versão
+  /// antiga do cache. Anexamos `v=<updatedAt>` como cache-buster: o `updatedAt`
+  /// muda a cada escrita do projeto, então a URL só muda quando o projeto muda,
+  /// forçando o refetch da nova imagem sem quebrar cache quando nada mudou.
   Project _resolveImageUrl(Project project) {
     final url = project.imageUrl;
     if (url == null || url.isEmpty || url.startsWith('http')) return project;
@@ -151,7 +157,8 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
         ? base.substring(0, base.length - 1)
         : base;
     final path = url.startsWith('/') ? url : '/$url';
-    return project.copyWith(imageUrl: () => '$trimmedBase$path');
+    final version = project.updatedAt.millisecondsSinceEpoch;
+    return project.copyWith(imageUrl: () => '$trimmedBase$path?v=$version');
   }
 
   MultipartFile _multipartFrom(ProjectImageInput image) {

@@ -63,7 +63,12 @@ class ProjectListCubit extends Cubit<ProjectListState> {
     return result;
   }
 
-  /// Atualiza e recarrega a lista no sucesso (título/capa podem ter mudado).
+  /// Atualiza e reflete a mudança **só no card afetado** — troca aquele
+  /// `Project` na lista `Loaded` atual pelo retornado (título/capa novos, com
+  /// `imageUrl` já cache-busted), sem emitir `Loading` nem refetchar a lista
+  /// (nada de rebuild/flash da home inteira). No erro, não toca o estado (a UI
+  /// trata pelo `Left`). Estado fora de `Loaded` no sucesso (raro) reconcilia
+  /// com `load()`.
   Future<Either<Failure, Project>> update(
     String id, {
     String? title,
@@ -79,7 +84,22 @@ class ProjectListCubit extends Cubit<ProjectListState> {
       removeImage: removeImage,
     );
     if (isClosed) return result;
-    if (result.isRight()) await load();
+    final current = state;
+    if (current is ProjectListLoaded) {
+      result.map((updated) {
+        emit(
+          ProjectListLoaded(
+            projects: [
+              for (final p in current.projects)
+                p.id == updated.id ? updated : p,
+            ],
+            archivedCount: current.archivedCount,
+          ),
+        );
+      });
+    } else if (result.isRight()) {
+      await load();
+    }
     return result;
   }
 
