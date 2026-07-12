@@ -45,12 +45,23 @@ export class ContentsService {
       where.categoryId = query.categoryId;
     }
 
+    // Busca casa nome (fuzzy, normalizado), slug (fuzzy) ou id (exato — o
+    // valor que o usuário copia do card e cola). Os três num OR; combinado ao
+    // keyset do cursor por AND, para os dois filtros coexistirem sem que um
+    // sobrescreva o `where.OR` do outro.
+    const and: Prisma.ContentWhereInput[] = [];
+
     const q = query.q?.trim();
     if (q) {
-      where.nameNormalized = {
-        contains: normalizeName(q),
-        mode: 'insensitive',
-      };
+      and.push({
+        OR: [
+          {
+            nameNormalized: { contains: normalizeName(q), mode: 'insensitive' },
+          },
+          { slug: { contains: q, mode: 'insensitive' } },
+          { id: q },
+        ],
+      });
     }
 
     if (query.cursor) {
@@ -60,13 +71,19 @@ export class ContentsService {
       // respeitando a direção. Empates no campo de sort são desempatados
       // pelo id (Decisão 5 do prd.md de docs/08).
       const isAfter = order === 'asc';
-      where.OR = [
-        { [sort]: isAfter ? { gt: cursorField } : { lt: cursorField } },
-        {
-          [sort]: { equals: cursorField },
-          id: isAfter ? { gt: id } : { lt: id },
-        },
-      ];
+      and.push({
+        OR: [
+          { [sort]: isAfter ? { gt: cursorField } : { lt: cursorField } },
+          {
+            [sort]: { equals: cursorField },
+            id: isAfter ? { gt: id } : { lt: id },
+          },
+        ],
+      });
+    }
+
+    if (and.length > 0) {
+      where.AND = and;
     }
 
     const rows = await this.prisma.content.findMany({
