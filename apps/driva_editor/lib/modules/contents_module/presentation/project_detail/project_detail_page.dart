@@ -426,8 +426,10 @@ class ProjectDetailPage extends StatelessWidget {
 
   /// Move `content` para `targetCategoryId` via `UpdateContentUseCase` — o
   /// caminho único que o dialog "mover" **e** o drag-and-drop da árvore
-  /// compartilham. Sem otimismo: a lista só muda em sucesso, recarregando
-  /// **os dois** cubits (contadores da árvore + lista à direita).
+  /// compartilham. No sucesso, reflete a mudança **in-place**, sem refetch nem
+  /// flash e **sem trocar a categoria selecionada**: o conteúdo some da lista
+  /// da categoria de origem (à direita) e os contadores da árvore ajustam
+  /// (-1 origem / +1 destino). A tela continua onde o usuário estava.
   ///
   /// `offerUndo` já entra pronto na assinatura (o drag usa `true`, o dialog
   /// `false`) mas não faz nada ainda nesta fase — a ação "Desfazer" do
@@ -450,8 +452,11 @@ class ProjectDetailPage extends StatelessWidget {
         context,
       ).showSnackBar(SnackBar(content: Text(_messageFor(failure)))),
       (_) {
-        context.read<ContentListCubit>().load();
-        context.read<CategoryTreeCubit>().load();
+        context.read<ContentListCubit>().reflectMovedOut(content.id);
+        context.read<CategoryTreeCubit>().applyContentMove(
+          fromCategoryId: content.categoryId,
+          toCategoryId: targetCategoryId,
+        );
       },
     );
   }
