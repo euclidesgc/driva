@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../../../../injection.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/use_cases/use_cases.dart';
 import '../../projects_routes.dart';
+import '../widgets/project_card.dart';
 import 'cubit/archived_projects_cubit.dart';
 
 class ArchivedProjectsPage extends StatelessWidget {
@@ -122,7 +124,7 @@ class _ArchivedProjectsList extends StatelessWidget {
                 maxCrossAxisExtent: 340,
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
-                childAspectRatio: 300 / 268,
+                mainAxisExtent: 336,
               ),
               itemCount: projects.length,
               itemBuilder: (context, index) =>
@@ -143,138 +145,72 @@ class _ArchivedProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.extension<EditorColors>()!;
 
-    return Opacity(
-      // Visual atenuado (não é o único sinal — o badge textual abaixo
-      // marca "Arquivado" independente de cor/opacidade).
-      opacity: 0.72,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.panel,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 132,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ColoredBox(color: colors.panelAlt),
-                  if (project.imageUrl != null && project.imageUrl!.isNotEmpty)
-                    Image.network(
-                      project.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    ),
-                  Positioned(
-                    left: 12,
-                    top: 12,
-                    child: Semantics(
-                      label: 'Projeto arquivado',
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.55),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.archive_outlined,
-                              size: 12,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Arquivado',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+    return ProjectCard(
+      project: project,
+      attenuated: true,
+      coverOverlay: Positioned(
+        left: 12,
+        top: 12,
+        child: Semantics(
+          label: 'Projeto arquivado',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.archive_outlined,
+                  size: 12,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Arquivado',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: Row(
+        children: [
+          Expanded(
+            child: Tooltip(
+              message: 'Restaurar projeto para a lista ativa',
+              child: OutlinedButton.icon(
+                onPressed: () => _confirmRestore(context, project),
+                icon: const Icon(Icons.unarchive_outlined, size: 16),
+                label: const Text('Restaurar'),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.1,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    project.description?.isNotEmpty == true
-                        ? project.description!
-                        : 'Sem descrição.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colors.inkSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Tooltip(
-                          message: 'Restaurar projeto para a lista ativa',
-                          child: OutlinedButton.icon(
-                            onPressed: () => _confirmRestore(context, project),
-                            icon: const Icon(
-                              Icons.unarchive_outlined,
-                              size: 16,
-                            ),
-                            label: const Text('Restaurar'),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Tooltip(
-                        message: 'Excluir definitivamente',
-                        child: Semantics(
-                          button: true,
-                          label:
-                              'Excluir projeto ${project.title} '
-                              'definitivamente',
-                          child: IconButton(
-                            onPressed: () =>
-                                _confirmDeleteForever(context, project),
-                            icon: Icon(
-                              Icons.delete_forever_outlined,
-                              color: theme.colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Excluir definitivamente',
+            child: Semantics(
+              button: true,
+              label:
+                  'Excluir projeto ${project.title} '
+                  'definitivamente',
+              child: IconButton(
+                onPressed: () => _confirmDeleteForever(context, project),
+                icon: Icon(
+                  Icons.delete_forever_outlined,
+                  color: theme.colorScheme.error,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -389,9 +325,21 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
     super.dispose();
   }
 
+  Future<void> _copyTitle(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: widget.projectTitle));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nome copiado.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
     return AlertDialog(
       title: const Text('Confirmação final'),
       content: Column(
@@ -423,8 +371,36 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Digite "${widget.projectTitle}" para confirmar:',
+            'Digite o nome do projeto para confirmar:',
             style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            decoration: BoxDecoration(
+              color: colors.panelAlt,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colors.border),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SelectableText(
+                    widget.projectTitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Tooltip(
+                  message: 'Copiar nome do projeto',
+                  child: IconButton(
+                    icon: const Icon(Icons.copy_outlined, size: 18),
+                    onPressed: () => _copyTitle(context),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
