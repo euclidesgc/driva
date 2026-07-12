@@ -118,6 +118,12 @@ class ProjectDetailPage extends StatelessWidget {
                             _openCategoryForm(context, editing: category),
                         onDeleteCategory: (category) =>
                             _confirmDeleteCategory(context, category),
+                        onMoveContent: (content, categoryId) => _moveContent(
+                          context,
+                          content,
+                          categoryId,
+                          offerUndo: true,
+                        ),
                       );
                     },
                   ),
@@ -392,9 +398,10 @@ class ProjectDetailPage extends StatelessWidget {
   }
 
   /// Mover conteúdo entre categorias: dialog dedicado (seletor de categoria)
-  /// → `PUT /v1/contents/:id` com o novo `categoryId` (o backend já move e
-  /// valida mesmo projeto). Drag-and-drop card→árvore fica como polimento
-  /// futuro (fora do escopo desta fase); o dialog cobre o fluxo fim-a-fim.
+  /// → `_moveContent` (o mesmo caminho que o drag-and-drop usa) → `PUT
+  /// /v1/contents/:id` com o novo `categoryId` (o backend já move e valida
+  /// mesmo projeto). O dialog continua imediato, sem "Desfazer"
+  /// (`offerUndo: false`); é o caminho acessível primário.
   static Future<void> _openMoveContentDialog(
     BuildContext context,
     ContentSummary content,
@@ -414,9 +421,28 @@ class ProjectDetailPage extends StatelessWidget {
     );
     if (newCategoryId == null || !context.mounted) return;
 
+    await _moveContent(context, content, newCategoryId, offerUndo: false);
+  }
+
+  /// Move `content` para `targetCategoryId` via `UpdateContentUseCase` — o
+  /// caminho único que o dialog "mover" **e** o drag-and-drop da árvore
+  /// compartilham. Sem otimismo: a lista só muda em sucesso, recarregando
+  /// **os dois** cubits (contadores da árvore + lista à direita).
+  ///
+  /// `offerUndo` já entra pronto na assinatura (o drag usa `true`, o dialog
+  /// `false`) mas não faz nada ainda nesta fase — a ação "Desfazer" do
+  /// snackbar de sucesso é a Fase 4.
+  static Future<void> _moveContent(
+    BuildContext context,
+    ContentSummary content,
+    String targetCategoryId, {
+    required bool offerUndo,
+  }) async {
+    if (targetCategoryId == content.categoryId) return;
+
     final saved = await getIt<UpdateContentUseCase>()(
       content.id,
-      categoryId: newCategoryId,
+      categoryId: targetCategoryId,
     );
     if (!context.mounted) return;
     saved.fold(

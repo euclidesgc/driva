@@ -936,7 +936,11 @@ class _DraggableContent extends StatelessWidget {
           label: 'Conteúdo ${content.name}. Arraste para mover de categoria.',
           child: Draggable<ContentSummary>(
             data: content,
-            feedback: _ContentDragChip(content: content),
+            dragAnchorStrategy: pointerDragAnchorStrategy,
+            feedback: FractionalTranslation(
+              translation: const Offset(0.2, -1.15),
+              child: _ContentDragChip(content: content),
+            ),
             childWhenDragging: childWhenDragging,
             child: child,
           ),
