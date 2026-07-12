@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/error/error.dart';
 import '../../../../../core/theme/editor_colors.dart';
+import '../../../../../core/util/date_format.dart';
 import '../../../domain/entities/content_sort.dart';
 import '../../../domain/entities/content_summary.dart';
 import '../../content_list/cubit/content_list_cubit.dart';
@@ -609,6 +610,8 @@ class _ContentCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const Spacer(),
+                _UpdatedAt(updatedAt: content.updatedAt),
+                const SizedBox(height: 3),
                 _SupportId(id: content.id),
               ],
             ),
@@ -677,6 +680,9 @@ class _ContentRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 12),
+                _UpdatedAt(updatedAt: content.updatedAt),
+                const SizedBox(width: 6),
                 _CardActions(
                   content: content,
                   onEdit: onEdit,
@@ -802,6 +808,46 @@ class _SlugBadge extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.primary,
                 ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Data da última modificação (`updatedAt`) — ícone de relógio + texto, para
+/// que a informação não dependa só da cor. Fonte pequena e discreta; o valor
+/// exato (fuso local) aparece formatado e como rótulo de acessibilidade.
+class _UpdatedAt extends StatelessWidget {
+  const _UpdatedAt({required this.updatedAt});
+
+  final DateTime updatedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    final formatted = DateFormatUtil.dayMonthYearHourMinute(updatedAt);
+    return Tooltip(
+      message: 'Última modificação',
+      child: Semantics(
+        label: 'Modificado em $formatted',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.schedule, size: 12, color: colors.inkMuted),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                formatted,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.inkMuted,
+                  fontSize: 11,
+                ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
