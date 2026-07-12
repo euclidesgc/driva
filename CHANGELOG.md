@@ -17,6 +17,7 @@
 
 ### Alterado
 
+- **backend · storage S3 ganha prefixo raiz opcional (`S3_KEY_PREFIX`)**: o `S3StorageService` passa a ler `S3_KEY_PREFIX` e a prependê-lo na key (`<S3_KEY_PREFIX>/<projectId>/midias/<uuid>.<ext>`), para namespacear a app dentro de um **bucket compartilhado** por vários serviços/ambientes (o Garage do servidor usa um único bucket `shared`; convenção `hml-driva` / `driva`). Vazio preserva o comportamento anterior (grava na raiz do bucket). A key final já com o prefixo é o que fica gravado em `Project.imageKey`, então `get`/`delete` seguem consistentes. Documentado no `.env.example`.
 - **Deps backend**: `sharp`, `@aws-sdk/client-s3`, `@nestjs/throttler`; `multer` forçado a `^2.2.0` via pnpm overrides (CVEs de DoS); `file-type` substituído por detecção própria de magic bytes (CVE sem patch CJS). `pnpm audit` limpo.
 
 ### Corrigido
