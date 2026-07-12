@@ -153,7 +153,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                     decoration: const InputDecoration(
                       isDense: true,
                       prefixIcon: Icon(Icons.search, size: 18),
-                      hintText: 'Buscar conteúdo...',
+                      hintText: 'Buscar por nome, slug ou ID...',
                     ),
                   ),
                 ),
