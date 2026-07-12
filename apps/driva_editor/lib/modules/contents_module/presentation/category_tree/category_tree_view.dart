@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/editor_colors.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/content_summary.dart';
 import 'category_node.dart';
 import 'cubit/category_tree_cubit.dart';
 
@@ -23,6 +24,7 @@ class CategoryTreeView extends StatelessWidget {
     required this.onNewCategory,
     required this.onEditCategory,
     required this.onDeleteCategory,
+    required this.onMoveContent,
   });
 
   /// Contagem de conteúdos por `categoryId` — a UI não inventa zero quando a
@@ -36,6 +38,11 @@ class CategoryTreeView extends StatelessWidget {
   final VoidCallback onNewCategory;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onDeleteCategory;
+
+  /// Soltar um conteúdo arrastado (feature 10, fase 3) sobre uma categoria
+  /// real. O pseudo-nó "Todos os conteúdos" nunca chama isto — não é alvo de
+  /// drop.
+  final void Function(ContentSummary content, String categoryId) onMoveContent;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +98,7 @@ class CategoryTreeView extends StatelessWidget {
                     contentCountByCategory: contentCountByCategory,
                     onEditCategory: onEditCategory,
                     onDeleteCategory: onDeleteCategory,
+                    onMoveContent: onMoveContent,
                   ),
                 };
               },
@@ -136,6 +144,7 @@ class _TreeList extends StatelessWidget {
     required this.contentCountByCategory,
     required this.onEditCategory,
     required this.onDeleteCategory,
+    required this.onMoveContent,
   });
 
   final CategoryTreeLoaded state;
@@ -143,6 +152,7 @@ class _TreeList extends StatelessWidget {
   final Map<String, int> contentCountByCategory;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onDeleteCategory;
+  final void Function(ContentSummary content, String categoryId) onMoveContent;
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +174,7 @@ class _TreeList extends StatelessWidget {
           onSelect: () => context.read<CategoryTreeCubit>().select(null),
           onToggle: null,
           isAllContentsShortcut: true,
+          onAcceptContent: null,
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -185,6 +196,7 @@ class _TreeList extends StatelessWidget {
                 : null,
             onEdit: () => onEditCategory(node.category),
             onDelete: () => onDeleteCategory(node.category),
+            onAcceptContent: (content) => onMoveContent(content, node.id),
           ),
       ],
     );
@@ -205,6 +217,7 @@ class _CategoryRow extends StatefulWidget {
     this.onEdit,
     this.onDelete,
     this.isAllContentsShortcut = false,
+    required this.onAcceptContent,
   });
 
   final String label;
@@ -225,6 +238,11 @@ class _CategoryRow extends StatefulWidget {
   /// irmão de "Geral" e demais categorias.
   final bool isAllContentsShortcut;
 
+  /// Soltar um conteúdo arrastado sobre esta linha (feature 10, fase 3).
+  /// `null` para o pseudo-nó "Todos os conteúdos": ele não vira
+  /// `DragTarget`, nunca é alvo de drop.
+  final ValueChanged<ContentSummary>? onAcceptContent;
+
   @override
   State<_CategoryRow> createState() => _CategoryRowState();
 }
@@ -236,16 +254,42 @@ class _CategoryRowState extends State<_CategoryRow> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     final theme = Theme.of(context);
-    // A cor nunca é o único sinal de seleção: o nó ativo também ganha peso de
-    // fonte maior e um contorno (accent) — não só a tinta de fundo.
+
+    if (widget.onAcceptContent != null) {
+      return DragTarget<ContentSummary>(
+        onWillAcceptWithDetails: (_) => true,
+        onAcceptWithDetails: (details) => widget.onAcceptContent!(details.data),
+        builder: (context, candidateData, rejectedData) {
+          return _buildRow(
+            context,
+            colors,
+            theme,
+            isDropTarget: candidateData.isNotEmpty,
+          );
+        },
+      );
+    }
+    return _buildRow(context, colors, theme, isDropTarget: false);
+  }
+
+  Widget _buildRow(
+    BuildContext context,
+    EditorColors colors,
+    ThemeData theme, {
+    required bool isDropTarget,
+  }) {
+    // A cor nunca é o único sinal de seleção/highlight: o nó ativo (ou o
+    // alvo do drop) também ganha um contorno (accent) — não só a tinta de
+    // fundo.
+    final highlighted = widget.selected || isDropTarget;
     final row = Container(
       margin: EdgeInsets.only(left: widget.depth * 16.0, bottom: 2),
       decoration: BoxDecoration(
-        color: widget.selected
+        color: highlighted
             ? colors.primaryTint
             : (_hovered ? colors.panelAlt : Colors.transparent),
         borderRadius: BorderRadius.circular(9),
-        border: widget.selected
+        border: highlighted
             ? Border.all(color: theme.colorScheme.primary, width: 1)
             : null,
       ),
@@ -275,9 +319,7 @@ class _CategoryRowState extends State<_CategoryRow> {
           Icon(
             widget.icon,
             size: 16,
-            color: widget.selected
-                ? theme.colorScheme.primary
-                : colors.inkMuted,
+            color: highlighted ? theme.colorScheme.primary : colors.inkMuted,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -286,10 +328,10 @@ class _CategoryRowState extends State<_CategoryRow> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: widget.selected || widget.isAllContentsShortcut
+                fontWeight: highlighted || widget.isAllContentsShortcut
                     ? FontWeight.w700
                     : FontWeight.w500,
-                color: widget.selected
+                color: highlighted
                     ? theme.colorScheme.primary
                     : colors.inkPrimary,
               ),
