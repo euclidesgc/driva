@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/editor_colors.dart';
+import '../../../../contents_module/contents_module.dart';
 import '../../../../preferences_module/preferences_module.dart';
-import '../../../../projects_module/projects_module.dart';
 import '../cubit/editor_cubit.dart';
 
 /// Top bar do editor: voltar, identificação do conteúdo, status de salvamento
@@ -38,11 +38,14 @@ class EditorTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       leadingWidth: 48,
       leading: IconButton(
-        // Sem `projectId` no estado do editor ainda (TODO/P3): volta para a
-        // home de Projetos, sempre uma rota válida.
-        tooltip: 'Voltar para os projetos',
+        // Respeita a hierarquia projetos → categorias → Builder: o "voltar"
+        // do Builder retorna à tela do projeto (categorias), não à home.
+        tooltip: 'Voltar para o projeto',
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
+        onPressed: () => context.goNamed(
+          ContentsRoutes.projectDetailName,
+          pathParameters: {'id': cubit.projectId},
+        ),
       ),
       titleSpacing: 0,
       title: Row(

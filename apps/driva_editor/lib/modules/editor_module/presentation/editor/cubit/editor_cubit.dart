@@ -14,9 +14,15 @@ class EditorCubit extends Cubit<EditorState> {
   final LoadContentUseCase loadContentUseCase;
   final SaveDraftUseCase saveDraftUseCase;
 
+  /// Projeto ao qual o conteúdo aberto pertence (do `ProjectScope`, injetado
+  /// no `pageBuilder`). É o destino do "voltar" do editor — Builder → tela do
+  /// projeto (categorias), não a home de projetos.
+  final String projectId;
+
   EditorCubit({
     required this.loadContentUseCase,
     required this.saveDraftUseCase,
+    required this.projectId,
   }) : super(const EditorLoading());
 
   int _idSequence = 0;
