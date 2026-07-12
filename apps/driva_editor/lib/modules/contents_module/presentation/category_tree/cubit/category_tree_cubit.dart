@@ -101,4 +101,33 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
     }
     return result;
   }
+
+  /// Reflete um conteúdo movido entre categorias nos contadores da árvore,
+  /// **in-place**: -1 na origem, +1 no destino, sem refetch, sem `Loading` e
+  /// **sem resetar a seleção** — o usuário continua na categoria onde estava
+  /// (mesmo que ela fique vazia). No-op fora do `Loaded` ou origem == destino.
+  void applyContentMove({
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) {
+    final current = state;
+    if (current is! CategoryTreeLoaded || fromCategoryId == toCategoryId) {
+      return;
+    }
+    final categories = [
+      for (final c in current.categories)
+        if (c.id == fromCategoryId)
+          c.copyWith(contentCount: c.contentCount > 0 ? c.contentCount - 1 : 0)
+        else if (c.id == toCategoryId)
+          c.copyWith(contentCount: c.contentCount + 1)
+        else
+          c,
+    ];
+    emit(
+      current.copyWith(
+        categories: categories,
+        forest: CategoryNode.buildForest(categories),
+      ),
+    );
+  }
 }

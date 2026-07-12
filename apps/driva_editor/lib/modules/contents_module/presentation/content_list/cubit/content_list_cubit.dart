@@ -156,4 +156,21 @@ class ContentListCubit extends Cubit<ContentListState> {
     if (result.isLeft()) await load();
     return result;
   }
+
+  /// Reflete um conteúdo que saiu da categoria atualmente filtrada (foi movido
+  /// para outra) removendo-o da lista **in-place** — sem refetch nem flash.
+  /// Na vista "Todos os conteúdos" (`_categoryId == null`) o conteúdo continua
+  /// visível (só trocou de categoria), então não faz nada. Ao esvaziar, vira
+  /// `Empty` (a categoria selecionada segue exibida, agora sem conteúdos).
+  void reflectMovedOut(String contentId) {
+    if (_categoryId == null) return;
+    final current = state;
+    if (current is! ContentListLoaded) return;
+    final remaining = current.contents.where((c) => c.id != contentId).toList();
+    emit(
+      remaining.isEmpty
+          ? const ContentListEmpty()
+          : current.copyWith(contents: remaining),
+    );
+  }
 }
