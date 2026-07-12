@@ -423,7 +423,10 @@ class ProjectDetailPage extends StatelessWidget {
       (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(_messageFor(failure)))),
-      (_) => context.read<ContentListCubit>().load(),
+      (_) {
+        context.read<ContentListCubit>().load();
+        context.read<CategoryTreeCubit>().load();
+      },
     );
   }
 }
