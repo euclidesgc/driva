@@ -204,7 +204,7 @@ class _ProjectsHome extends StatelessWidget {
                 maxCrossAxisExtent: 340,
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
-                childAspectRatio: 300 / 268,
+                mainAxisExtent: 290,
               ),
               itemCount: projects.length,
               itemBuilder: (context, index) =>

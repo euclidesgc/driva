@@ -122,7 +122,7 @@ class _ArchivedProjectsList extends StatelessWidget {
                 maxCrossAxisExtent: 340,
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
-                childAspectRatio: 300 / 268,
+                mainAxisExtent: 312,
               ),
               itemCount: projects.length,
               itemBuilder: (context, index) =>
@@ -224,15 +224,19 @@ class _ArchivedProjectCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    project.description?.isNotEmpty == true
-                        ? project.description!
-                        : 'Sem descrição.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colors.inkSecondary,
+                  SizedBox(
+                    height: 38,
+                    child: Text(
+                      project.description?.isNotEmpty == true
+                          ? project.description!
+                          : 'Sem descrição.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.inkSecondary,
+                        height: 1.5,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 14),
                   Row(

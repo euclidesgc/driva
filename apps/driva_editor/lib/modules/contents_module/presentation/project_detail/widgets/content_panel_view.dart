@@ -489,7 +489,7 @@ class _ContentsCollection extends StatelessWidget {
               maxCrossAxisExtent: 300,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 300 / 150,
+              mainAxisExtent: 162,
             ),
             itemCount: contents.length,
             itemBuilder: (context, index) => _ContentCard(
