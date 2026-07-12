@@ -5,6 +5,11 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockDio extends Mock implements Dio {}
 
+// `updatedAt` da fixture — a `imageUrl` resolvida ganha `?v=<epoch>` como
+// cache-buster (a URL de serving é estável, então versionamos pelo updatedAt).
+const _updatedAt = '2026-07-11T00:00:00.000Z';
+final _version = DateTime.parse(_updatedAt).millisecondsSinceEpoch;
+
 void main() {
   late _MockDio dio;
   late ProjectsRepositoryImpl repository;
@@ -14,7 +19,7 @@ void main() {
     'title': 'Projeto',
     'imageUrl': imageUrl,
     'createdAt': '2026-07-11T00:00:00.000Z',
-    'updatedAt': '2026-07-11T00:00:00.000Z',
+    'updatedAt': _updatedAt,
     'contentCount': 0,
     'categoryCount': 1,
     'archivedAt': null,
@@ -53,7 +58,7 @@ void main() {
         final projects = result.getRight().toNullable()!;
         expect(
           projects.single.imageUrl,
-          'https://api-hml.driva.duckdns.org/v1/projects/p1/image',
+          'https://api-hml.driva.duckdns.org/v1/projects/p1/image?v=$_version',
         );
       },
     );
@@ -69,7 +74,7 @@ void main() {
 
       expect(
         result.getRight().toNullable()!.imageUrl,
-        'https://api-hml.driva.duckdns.org/v1/projects/p1/image',
+        'https://api-hml.driva.duckdns.org/v1/projects/p1/image?v=$_version',
       );
     });
 
