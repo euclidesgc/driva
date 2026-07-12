@@ -183,6 +183,10 @@ export class ContentsService {
         ? await this.assertCategoryInProject(projectId, dto.categoryId)
         : undefined;
     try {
+      // `updateMany` mantém o escopo por tenant (o `where` carrega o
+      // projectId) e detecta "não existe" pelo count — mas não devolve a
+      // linha. Como o PUT responde o resumo atualizado (simétrico ao POST,
+      // que o editor consome após mover/renomear), lê a linha de volta.
       const result = await this.prisma.content.updateMany({
         where: { id, projectId },
         data: {
@@ -206,6 +210,20 @@ export class ContentsService {
       }
       throw error;
     }
+
+    const updated = await this.prisma.content.findFirst({
+      where: { id, projectId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        categoryId: true,
+        updatedAt: true,
+      },
+    });
+    if (!updated) throw new NotFoundException();
+    return this.toSummary(updated);
   }
 
   async remove(projectId: string, id: string) {
