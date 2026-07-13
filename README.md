@@ -8,10 +8,12 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num edito
 |---|---|
 | `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parseContentSpec`), catálogo de 14 primitivos, operações puras de árvore |
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e, futuramente, nos apps dos clientes |
-| `apps/driva_editor` | O editor (Flutter Web): lista de conteúdos + builder de 3 colunas com preview fiel |
-| `backend/` | NestJS + Prisma + Postgres: storage de specs (`/v1/contents`), tenant por `x-project-id` |
+| `apps/driva_editor` | O editor (Flutter Web): AppBar global com breadcrumb (via `ShellRoute`) + home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel |
+| `backend/` | NestJS + Prisma + Postgres: hierarquia Projeto → Categoria → Conteúdo (`/v1/projects`, `/v1/categories`, `/v1/contents`), tenant por `x-project-id` |
 | `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
 | `docs/02-conteudos/` | Docs vivas da feature Conteúdos (rename página→conteúdo: slug, CUID2, migração) |
+| `docs/09-crud-projeto/` | Docs vivas do CRUD de Projeto (upload seguro, StorageService, `Content.projectId` FK) |
+| `docs/08-api-conteudos-filtro-busca/` | Docs vivas da API de conteúdos (envelope/cursor/busca) + Categorias + tela do projeto |
 | `docs/livro-flutter/` | O livro que define a arquitetura e o método de trabalho (gabarito) |
 
 ## Rodando em dev
@@ -41,12 +43,14 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 flutter analyze                       # workspace inteiro
 dart test packages/sdui_core          # kernel (30 testes)
 flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (47 testes: cubits, slug, widget por estado, golden)
+flutter test apps/driva_editor        # editor (124 testes: cubits, slug, widget por estado, shell/breadcrumb, golden)
 ```
 
 ## Arquitetura (resumo)
 
 Clean Architecture por módulo (`domain`/`data`/`presentation` + barrel público só com rota e DI), Cubit + estados sealed, `Either<Failure, T>` (fpdart), validação zard na borda, get_it via `pageBuilder`, go_router, **zero build_runner**. Regras completas no [CLAUDE.md](CLAUDE.md); o método de trabalho com o time de IA está em `.claude/agents/` e `.claude/skills/`.
+
+**Hierarquia do produto:** Projeto → Categoria → Conteúdo. `/v1/projects` guarda os projetos (com upload de imagem atrás de um pipeline de segurança e storage por port), `/v1/categories` a árvore de categorias por projeto, e `/v1/contents` os specs — a listagem responde um envelope `{ data, nextCursor }` com keyset cursor, busca acento-insensível, sort e filtro por categoria. Tenant por header `x-project-id` (auth real chega no I4).
 
 ## Incrementos
 

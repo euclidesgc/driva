@@ -41,13 +41,14 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - **Dockerfile Location**: `/Dockerfile`  *(relativo ao Base Directory — **não** repita `backend/` aqui, senão o Coolify resolve `backend/backend` e o build falha)*
    - **Ports Exposes**: `3000`
 4. **Domains**: `https://api-hml.driva.duckdns.org` (hml) / `https://api.driva.duckdns.org` (prod).
-5. **Environment Variables** (runtime):
+5. **Watch Paths** (Configuration → General): `backend/**` — só rebuilda quando o commit toca o backend. Veja [Watch Paths](#watch-paths--evitar-rebuild-cruzado).
+6. **Environment Variables** (runtime):
    - `DATABASE_URL` = a connection string interna do passo 1.
    - `PORT` = `3000`
    - `CORS_ORIGINS` = `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
-6. Deploy. O container **registra a baseline e roda `prisma migrate deploy`** automaticamente no start (`resolve --applied 0_baseline` idempotente + `migrate deploy`), então sobe o Nest.
+7. Deploy. O container **registra a baseline e roda `prisma migrate deploy`** automaticamente no start (`resolve --applied 0_baseline` idempotente + `migrate deploy`), então sobe o Nest.
    > O banco de hml/prod foi criado por `db push` (sem histórico de migrations); `migrate deploy` sozinho abortaria com `P3005` ("schema não vazio"). O `CMD` do `backend/Dockerfile` resolve a baseline sozinho antes de migrar — **nenhum passo manual** (ver `variance_report.md` 002). Banco 100% novo/vazio não usa esse caminho.
-7. Teste: `curl https://api-hml.driva.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
+8. Teste: `curl https://api-hml.driva.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
 
 ### 3. Frontend (Flutter Web)
 
@@ -60,15 +61,43 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
 4. **Build Variable** (build-time — a URL da API é compilada no bundle do Flutter Web):
    - `API_BASE_URL` = `https://api-hml.driva.duckdns.org` (hml) / `https://api.driva.duckdns.org` (prod).
 5. **Domains**: `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod).
-6. Deploy. (O primeiro build do Flutter é demorado — baixa a imagem do SDK.)
-7. Teste: abra a URL do front; a lista de páginas deve carregar consumindo a API do mesmo ambiente, **sem erro de CORS** no console.
+6. **Watch Paths** (Configuration → General), uma por linha — o front builda da raiz e depende do workspace Dart inteiro:
+   ```
+   apps/**
+   packages/**
+   pubspec.yaml
+   pubspec.lock
+   ```
+   Veja [Watch Paths](#watch-paths--evitar-rebuild-cruzado).
+7. Deploy. (O primeiro build do Flutter é demorado — baixa a imagem do SDK.)
+8. Teste: abra a URL do front; a lista de páginas deve carregar consumindo a API do mesmo ambiente, **sem erro de CORS** no console.
 
 ---
 
+## Watch Paths — evitar rebuild cruzado
+
+**Problema:** front e back são **dois recursos** apontando para a mesma branch com Automatic Deployment. Sem filtro, um merge em `develop` que mexe só em `apps/` rebuilda **os dois** — o back sobe à toa (build lento, container reiniciado, migration rodando sem motivo).
+
+**Solução nativa do Coolify:** cada recurso tem um campo **Watch Paths** (Configuration → General) com globs (um por linha). O Coolify lê o diff do commit e **só builda o recurso se algum arquivo casar**. É determinístico (inferido do diff), não depende de label de PR nem de passo manual.
+
+| Recurso | Watch Paths | Rebuilda quando… |
+|---|---|---|
+| **Backend** | `backend/**` | o commit toca `backend/` |
+| **Frontend** | `apps/**`, `packages/**`, `pubspec.yaml`, `pubspec.lock` | o commit toca o app ou o workspace Dart |
+
+Resultado: PR só de front → só o front sobe; só de back → só o back; tocou os dois → os dois. Config só no painel — **não há nada no repositório para isso**.
+
+Notas:
+- **Use `**`, não `*`.** O matcher do Coolify (`globToRegex` em `app/Models/Application.php`) traduz `*` para `[^/]*` (**para na barra** — não cruza diretório) e `**` para `.*` (cruza qualquer profundidade). Como todo arquivo do app é aninhado (`apps/driva_editor/lib/…`), `apps/*` **não casa nada** e o deploy é pulado; `apps/**` casa. Nomes de arquivo na raiz sem barra (`pubspec.yaml`) casam exatos.
+- **Um padrão por linha — nunca separados por vírgula.** O Coolify faz `explode("\n", watch_paths)`: `apps/**, packages/**` numa linha vira **um** padrão literal (com vírgula) que não casa nada. Cada glob na sua própria linha.
+- **Config conferível/ajustável pela API** (`PATCH /api/v1/applications/{uuid}` com `{"watch_paths": "linha1\nlinha2"}`) — mais confiável que digitar no textarea do painel, que foi onde as vírgulas entraram.
+- Mudança só em `docs/`, `.github/`, `README.md` etc. **não** casa nenhum dos dois → nenhum deploy (correto: não afeta o que roda).
+- Isto é **só o deploy (Coolify)**. O CI (`.github/workflows/ci.yml`) continua rodando os dois jobs em todo PR de propósito — é a cancela de merge, e afiná-lo com `paths:` arriscaria travar o branch protection por *required checks* pendentes.
+
 ## Como o fluxo fica no dia a dia
 
-- Merge de um PR em **`develop`** → Coolify rebuilda e publica **hml** automaticamente. Teste em `driva-hml…`.
-- Uma **release** (PR `release/* → main`, veja a skill `publicar-release`) → Coolify publica **prod**.
+- Merge de um PR em **`develop`** → Coolify rebuilda e publica **hml** automaticamente — **só o(s) recurso(s) cujos Watch Paths casaram** com o diff. Teste em `driva-hml…`.
+- Uma **release** (PR `release/* → main`, veja a skill `publicar-release`) → Coolify publica **prod** (idem: só o que mudou).
 - Um **hotfix** (`hotfix/* → main`) → publica prod; lembre de trazer de volta para `develop`.
 
 ## Troubleshooting

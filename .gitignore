@@ -14,6 +14,9 @@ build/
 node_modules/
 backend/dist/
 backend/.env
+# Adapter local do StorageService (dev) — binários de objetos armazenados,
+# nunca versionados; fora de qualquer webroot servido estaticamente.
+backend/.storage/
 
 # Artefatos transitórios do E2E (o e2e.sh cria; `down` remove). São sobrescritos a
 # cada run — não são evidência (as evidências são os PNGs + o snapshot do e2e.sh).
@@ -25,3 +28,4 @@ docs/**/.e2e-backend.*
 
 # Sistema
 .DS_Store
+.claude/settings.local.json

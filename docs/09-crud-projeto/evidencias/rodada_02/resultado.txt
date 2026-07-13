@@ -1,0 +1,150 @@
+E2E API — Projetos/Categorias/Conteudos + Arquivamento + Storage por pasta — rodada 02
+Backend: NestJS local :3000 (/v1) · Postgres :5433 (dev) · branch feature/api-conteudos
+Script: docs/09-crud-projeto/evidencias/e2e_api.sh (idempotente, auto-limpante)
+Resultado: 90 PASS / 0 FAIL · cleanup total (DB + storage voltaram ao estado inicial)
+
+NOVIDADES DA RODADA 02 (cobrem o contrato novo de feature/api-conteudos):
+  BLOCO 5 - STORAGE POR PASTA: imageKey em disco casa
+    ^<projectId>/midias/<uuid>.(png|jpg|jpeg|webp)$ (prefixo = id do proprio
+    projeto); GET /:id/image -> 200 + content-type de imagem + nosniff.
+  BLOCO 6 - ARQUIVAR/RESTAURAR (soft delete): ?status=active nao lista o
+    arquivado, ?status=archived lista; archivedAt ISO no arquivado / null no
+    ativo; archive e unarchive idempotentes (2a chamada -> 200 no-op).
+  BLOCO 7 - EXCLUSAO FISICA EM CASCATA: DELETE em ativo -> 409 "arquive ...
+    antes"; arquivar -> DELETE -> 204; 1 categoria extra + 2 conteudos ZERARAM
+    junto (cascade); seed "Geral"/default de OUTRO projeto intacta.
+
+MUDANCA DE CONTRATO vs rodada 01 (o desvio da r01 deixou de existir):
+  A divergencia documentada na r01 ("DELETE de projeto vazio -> 409 por causa
+  do onDelete:Restrict; task pedia 204") FOI RESOLVIDA por feature/api-conteudos.
+  Agora ProjectsService.remove checa archivedAt ANTES: projeto ATIVO -> 409
+  ("arquive o projeto antes de excluir", independente de ter conteudo);
+  projeto ARQUIVADO -> 204 em CASCATA (conteudos -> categorias -> projeto numa
+  $transaction unica que contorna o Restrict do schema, que segue intacto pro
+  fluxo normal). O BLOCO 4 e o CLEANUP foram reescritos para esse contrato
+  (arquive-e-apague), e a checagem drena-a-Geral da r01 foi removida.
+
+SEM divergencia backend x editor nesta rodada. O que o editor assume bate:
+  - ?status=active|archived (default active) -> confirmado (BLOCO 6).
+  - archivedAt ISO/null -> confirmado (6.2/6.5).
+  - 409 "arquive antes" no DELETE de ativo -> confirmado (4.1/7.2).
+  - cascade zera conteudos+categorias -> confirmado (7.5).
+  - key <projectId>/midias/<uuid>.<ext> (prefixo = id do projeto) -> confirmado
+    em disco (5.2); OBS: imageKey NAO e' exposto pela API (so imageUrl =
+    /v1/projects/:id/image) — a checagem da key e' via storage local em disco.
+  OBS de mapeamento (nao e' bug): o pipeline grava image/jpeg como extensao
+  .jpg (nunca .jpeg); a regex da task aceita png|jpg|jpeg|webp, entao casa.
+
+------------------------------------------------------------------------
+
+=== PRE-FLIGHT ===
+PASS backend acessivel em :3000/health
+
+=== BLOCO 1 - PROJETOS ===
+PASS 1.1 criar projeto sem imagem -> 201
+PASS 1.1 contentCount == 0
+PASS 1.1 categoryCount == 1 (Geral na transacao)
+PASS 1.1 imageUrl == null (sem imagem)
+PASS 1.2 criar projeto com PNG -> 201
+PASS 1.2 imageUrl nao-nulo (/v1/projects/e138cd086mkcclio6oqol3zw/image)
+PASS 1.3 GET imageUrl content-type de imagem (image/png)
+PASS 1.3 header X-Content-Type-Options: nosniff
+PASS 1.4 upload SVG -> 400
+PASS 1.5 upload forjado (magic bytes falsos) -> 400
+PASS 1.6 upload oversize (>8MB) -> 413
+PASS 1.7 listar projetos -> 200
+PASS 1.7 projeto A presente na listagem
+PASS 1.7 cards trazem contadores
+PASS 1.8 GET detalhe do projeto A -> 200
+PASS 1.8 detalhe.id == projeto A
+PASS 1.9 PUT titulo/descricao -> 200
+PASS 1.9 titulo atualizado
+PASS 1.10 PUT removeImage -> 200
+PASS 1.10 imageUrl == null apos remove
+
+=== BLOCO 2 - CATEGORIAS ===
+PASS 2.1 criar categoria raiz -> 201
+PASS 2.1 parentId == null (raiz)
+PASS 2.1 projectId == PROJ_A
+PASS 2.2 criar categoria aninhada -> 201
+PASS 2.2 parentId == raiz
+PASS 2.3 listar categorias -> 200
+PASS 2.3 flat com projectId e contentCount
+PASS 2.4 renomear categoria -> 200
+PASS 2.4 name atualizado
+PASS 2.5 mover categoria (novo parentId) -> 200
+PASS 2.5 parentId refletido
+PASS 2.6 mover criando ciclo -> 400
+PASS 2.7 DELETE categoria com subcategoria -> 409
+PASS 2.8 DELETE categoria com conteudo -> 409
+
+=== BLOCO 3 - CONTEUDOS ===
+PASS 3.1 criar conteudo sem categoryId -> 201
+PASS 3.1 categoryId == Geral do projeto
+PASS 3.2 criar conteudo com categoryId valido -> 201
+PASS 3.2 categoryId refletido
+PASS 3.3 categoryId de outro projeto -> 400/404 (400)
+PASS 3.4 GET /contents envelope -> 200
+PASS 3.4 envelope {data,nextCursor}
+PASS 3.4 pagina 1 tem 20 itens
+PASS 3.4 nextCursor presente
+PASS 3.4 paginas 1 e 2 sem repeticao
+PASS 3.5 busca 'sao' acha 'São Paulo'
+PASS 3.6 filtro categoryId: todos do no exato
+PASS 3.6 filtro categoryId inclui o conteudo esperado
+PASS 3.7 sort=name asc -> 200
+PASS 3.7 lista ordenada por name asc
+PASS 3.8 limit=0 -> 400
+PASS 3.8 limit=500 -> 400
+PASS 3.9 PUT categoryId (mover) -> 200
+PASS 3.9 conteudo movido aparece no filtro do destino
+
+=== BLOCO 4 - PROJETOS: guarda arquive-antes-de-excluir ===
+PASS 4.1 DELETE projeto ativo -> 409
+PASS 4.1 mensagem 409 orienta arquivar antes (arquive o projeto antes de excluir)
+
+=== BLOCO 5 - STORAGE POR PASTA ===
+PASS 5.1 criar projeto com PNG -> 201
+PASS 5.1 imageUrl == /v1/projects/<esse-id>/image
+PASS 5.2 imageKey no padrao <projectId>/midias/<uuid>.<ext> (o12sr7fbx8qrkyrr47hxq3v1/midias/6836fa42-8e6a-46cf-bd90-dfa456951d5e.png)
+PASS 5.3 GET /:id/image -> 200
+PASS 5.3 content-type de imagem (image/png)
+PASS 5.3 X-Content-Type-Options: nosniff
+
+=== BLOCO 6 - ARQUIVAR / RESTAURAR ===
+PASS 6.0 criar projeto p/ arquivar -> 201
+PASS 6.1 ativo listado em ?status=active
+PASS 6.1 archivedAt == null no ativo
+PASS 6.2 POST /:id/archive -> 200
+PASS 6.2 archivedAt preenchido em ISO (2026-07-10T03:23:47.262Z)
+PASS 6.3 arquivado SUMIU de ?status=active
+PASS 6.3 arquivado LISTADO em ?status=archived
+PASS 6.4 archive idempotente (2a vez) -> 200
+PASS 6.4 archivedAt inalterado no no-op
+PASS 6.5 POST /:id/unarchive -> 200
+PASS 6.5 archivedAt == null apos restaurar
+PASS 6.5 restaurado volta a ?status=active
+PASS 6.6 unarchive idempotente (ja ativo) -> 200
+PASS 6.6 archivedAt segue null
+
+=== BLOCO 7 - EXCLUSAO FISICA EM CASCATA ===
+PASS 7.0 criar projeto p/ cascade -> 201
+PASS 7.1 baseline: 2 categorias (Geral+Extra)
+PASS 7.1 baseline: 2 conteudos
+PASS 7.2 DELETE projeto ativo -> 409
+PASS 7.2 mensagem 409 pede arquivar antes
+PASS 7.3 arquivar antes de excluir -> 200
+PASS 7.3 DELETE projeto arquivado -> 204
+PASS 7.4 projeto excluido nao esta em ?status=archived
+PASS 7.4 GET detalhe do excluido -> 404
+PASS 7.5 cascade: categorias do projeto zeraram
+PASS 7.5 cascade: conteudos do projeto zeraram
+PASS 7.6 categorias do 'default' intactas (mesma contagem)
+PASS 7.6 'Geral' do 'default' preservada
+
+=== CLEANUP ===
+PASS CLEANUP total: DB+storage voltaram ao estado inicial (0 residuo do TAG e2e-1783653820-769987)
+
+=== RESUMO ===
+PASS=90  FAIL=0
+Todos os blocos PASS.

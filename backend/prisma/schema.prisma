@@ -7,22 +7,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// O novo topo da hierarquia (Projeto → Categorias → Conteúdos). Guarda só a
+/// CHAVE da imagem (`imageKey`) no storage — o binário nunca entra no
+/// Postgres (ver `src/storage/`). `id` CUID2 é o mesmo valor esperado no
+/// header `x-project-id`. `onDelete: Restrict` em `Content.project` impede
+/// apagar um projeto com conteúdos (o usuário esvazia antes).
+model Project {
+  id          String    @id @default(cuid(2))
+  title       String
+  description String?
+  imageKey    String?   @map("image_key")
+  archivedAt  DateTime? @map("archived_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  contents   Content[]
+  categories Category[]
+
+  @@index([archivedAt])
+  @@map("projects")
+}
+
+/// Categoria de conteúdo, em árvore por `parentId` (auto-relação nullable).
+/// Vive dentro de um `Project` (`onDelete: Restrict` — não se apaga um
+/// projeto com categorias). Apagar um pai zera `parentId` dos filhos
+/// (`SetNull`, a subárvore não cascateia exclusão); apagar uma categoria com
+/// conteúdos é bloqueado (`Content.category` é `Restrict`, ver abaixo).
+model Category {
+  id        String     @id @default(cuid(2))
+  projectId String     @map("project_id")
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  name      String
+  slug      String
+  parentId  String?    @map("parent_id")
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryTree")
+  contents  Content[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@unique([projectId, slug])
+  @@index([projectId, parentId])
+  @@map("categories")
+}
+
 /// Um conteúdo SDUI. O `spec` é JSONB opaco: o backend NÃO interpreta o
 /// conteúdo — o kernel de validação é Dart (`sdui_core`). Multi-tenant
-/// preparado por `projectId`; `slug` é a referência técnica única por projeto
-/// (papéis/workflow chegam no I4). Novos registros nascem com id CUID2;
-/// UUIDs legados permanecem válidos.
+/// preparado por `projectId` (FK para `Project`); `slug` é a referência
+/// técnica única por projeto (papéis/workflow chegam no I4). Novos registros
+/// nascem com id CUID2; UUIDs legados permanecem válidos. `categoryId` é
+/// obrigatório — todo conteúdo pertence a exatamente uma categoria (a "Geral"
+/// por default); `nameNormalized` (lowercase + sem acento, normalizado em
+/// Node) alimenta a busca `q` via ILIKE, sem depender de extensão Postgres.
 model Content {
-  id          String   @id @default(cuid(2))
-  projectId   String   @default("default") @map("project_id")
-  name        String
-  slug        String
-  description String?
-  spec        Json
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid(2))
+  projectId      String   @map("project_id")
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  categoryId     String   @map("category_id")
+  category       Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name           String
+  nameNormalized String   @map("name_normalized")
+  slug           String
+  description    String?
+  spec           Json
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@unique([projectId, slug])
   @@index([projectId])
+  @@index([projectId, updatedAt(sort: Desc), id])
   @@map("contents")
 }

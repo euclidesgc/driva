@@ -35,4 +35,12 @@ export class UpdateContentDto {
   @IsOptional()
   @IsObject()
   spec?: Record<string, unknown>;
+
+  // Presente -> move o conteúdo de categoria (validado: existe E é do mesmo
+  // projeto). Omitido -> preserva a categoria atual, NÃO força "Geral"
+  // (Decisão 3 do prd.md de docs/08 — só o POST tem esse fallback).
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  categoryId?: string;
 }

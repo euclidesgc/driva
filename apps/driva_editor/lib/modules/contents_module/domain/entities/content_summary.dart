@@ -7,6 +7,7 @@ class ContentSummary extends Equatable {
     required this.id,
     required this.name,
     required this.slug,
+    required this.categoryId,
     required this.updatedAt,
     this.description,
   });
@@ -18,9 +19,20 @@ class ContentSummary extends Equatable {
   /// projeto.
   final String slug;
 
+  /// Categoria à qual o conteúdo pertence — todo conteúdo tem uma (a "Geral"
+  /// é o destino default quando a escrita omite `categoryId`).
+  final String categoryId;
+
   final String? description;
   final DateTime updatedAt;
 
   @override
-  List<Object?> get props => [id, name, slug, description, updatedAt];
+  List<Object?> get props => [
+    id,
+    name,
+    slug,
+    categoryId,
+    description,
+    updatedAt,
+  ];
 }

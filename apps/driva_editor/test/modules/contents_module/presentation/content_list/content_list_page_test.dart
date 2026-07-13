@@ -25,6 +25,7 @@ void main() {
     id: 'ct_1',
     name: 'Home',
     slug: 'home',
+    categoryId: 'cat_1',
     description: 'Vitrine principal',
     updatedAt: DateTime(2026, 7, 1),
   );

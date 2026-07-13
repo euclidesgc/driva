@@ -1,5 +1,6 @@
 ---
 name: especialista-infra
+model: sonnet
 description: Especialista de infraestrutura do driva — core (error/network/observability/theme base), DI, router, flavors/bootstrap, integração entre módulos e backend NestJS. Acionado pelo tech-manager na implementação das fases.
 ---
 

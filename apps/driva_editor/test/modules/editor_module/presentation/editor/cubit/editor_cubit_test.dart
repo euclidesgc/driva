@@ -38,8 +38,11 @@ void main() {
     saveDraft = MockSaveDraftUseCase();
   });
 
-  EditorCubit build() =>
-      EditorCubit(loadContentUseCase: loadContent, saveDraftUseCase: saveDraft);
+  EditorCubit build() => EditorCubit(
+    loadContentUseCase: loadContent,
+    saveDraftUseCase: saveDraft,
+    projectId: 'p1',
+  );
 
   EditorCubit buildLoaded() {
     final cubit = build();

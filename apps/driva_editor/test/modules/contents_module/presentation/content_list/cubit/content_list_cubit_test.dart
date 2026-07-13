@@ -22,6 +22,7 @@ void main() {
     id: 'ct_1',
     name: 'Home',
     slug: 'home',
+    categoryId: 'cat_1',
     description: 'Vitrine',
     updatedAt: DateTime(2026, 7, 1),
   );
@@ -30,6 +31,7 @@ void main() {
     id: 'ct_2',
     name: 'Sobre',
     slug: 'sobre',
+    categoryId: 'cat_1',
     description: null,
     updatedAt: DateTime(2026, 7, 2),
   );
@@ -50,8 +52,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Loaded quando há conteúdos',
       build: build,
-      setUp: () =>
-          when(() => getContents()).thenAnswer((_) async => Right([content])),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [content]))),
       act: (cubit) => cubit.load(),
       expect: () => [
         const ContentListLoading(),
@@ -62,8 +65,9 @@ void main() {
     blocTest<ContentListCubit, ContentListState>(
       'emite Loading → Empty quando não há conteúdos',
       build: build,
-      setUp: () =>
-          when(() => getContents()).thenAnswer((_) async => const Right([])),
+      setUp: () => when(
+        () => getContents(),
+      ).thenAnswer((_) async => const Right(ContentsPage(items: []))),
       act: (cubit) => cubit.load(),
       expect: () => [const ContentListLoading(), const ContentListEmpty()],
     );
@@ -78,6 +82,123 @@ void main() {
       expect: () => [
         const ContentListLoading(),
         const ContentListError(failure: NetworkFailure()),
+      ],
+    );
+  });
+
+  group('changeSort', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'muda campo e direção e recarrega passando sort/order ao use case',
+      build: build,
+      setUp: () => when(
+        () => getContents(sort: ContentSort.name, order: ContentSortOrder.asc),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [content]))),
+      act: (cubit) =>
+          cubit.changeSort(sort: ContentSort.name, order: ContentSortOrder.asc),
+      expect: () => [
+        const ContentListLoading(),
+        ContentListLoaded(contents: [content]),
+      ],
+      verify: (_) {
+        verify(
+          () =>
+              getContents(sort: ContentSort.name, order: ContentSortOrder.asc),
+        ).called(1);
+      },
+    );
+
+    test('getters refletem a ordenação corrente após changeSort', () async {
+      when(
+        () => getContents(sort: ContentSort.createdAt),
+      ).thenAnswer((_) async => const Right(ContentsPage(items: [])));
+      final cubit = build();
+      expect(cubit.currentSort, ContentSort.updatedAt);
+      expect(cubit.currentOrder, ContentSortOrder.desc);
+      await cubit.changeSort(sort: ContentSort.createdAt);
+      expect(cubit.currentSort, ContentSort.createdAt);
+      expect(cubit.currentOrder, ContentSortOrder.desc);
+      await cubit.close();
+    });
+  });
+
+  group('load (paginação)', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'guarda o nextCursor da primeira página',
+      build: build,
+      setUp: () => when(() => getContents()).thenAnswer(
+        (_) async => Right(ContentsPage(items: [content], nextCursor: 'c1')),
+      ),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        const ContentListLoading(),
+        ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      ],
+    );
+  });
+
+  group('loadMore', () {
+    blocTest<ContentListCubit, ContentListState>(
+      'anexa a próxima página e atualiza o cursor',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(() => getContents(cursor: 'c1')).thenAnswer(
+        (_) async => Right(ContentsPage(items: [other], nextCursor: 'c2')),
+      ),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content, other], nextCursor: 'c2'),
+      ],
+      verify: (_) => verify(() => getContents(cursor: 'c1')).called(1),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'nextCursor nulo na resposta encerra a paginação (hasMore = false)',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(
+        () => getContents(cursor: 'c1'),
+      ).thenAnswer((_) async => Right(ContentsPage(items: [other]))),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content, other]),
+      ],
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'no-op quando não há próxima página (nextCursor == null)',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content]),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => <ContentListState>[],
+      verify: (_) =>
+          verifyNever(() => getContents(cursor: any(named: 'cursor'))),
+    );
+
+    blocTest<ContentListCubit, ContentListState>(
+      'falha mantém a lista e o cursor, só desliga o isLoadingMore',
+      build: build,
+      seed: () => ContentListLoaded(contents: [content], nextCursor: 'c1'),
+      setUp: () => when(
+        () => getContents(cursor: 'c1'),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ContentListLoaded(
+          contents: [content],
+          nextCursor: 'c1',
+          isLoadingMore: true,
+        ),
+        ContentListLoaded(contents: [content], nextCursor: 'c1'),
       ],
     );
   });
@@ -152,7 +273,7 @@ void main() {
         ).thenAnswer((_) async => const Left(NetworkFailure()));
         when(
           () => getContents(),
-        ).thenAnswer((_) async => Right([content, other]));
+        ).thenAnswer((_) async => Right(ContentsPage(items: [content, other])));
       },
       act: (cubit) async {
         final result = await cubit.delete('ct_1');

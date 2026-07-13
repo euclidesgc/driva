@@ -1,7 +1,7 @@
 name: driva_editor
 description: Editor web do driva — monta páginas Server-Driven UI como spec JSON, com preview fiel via sdui_flutter.
 publish_to: none
-version: 0.3.0
+version: 0.4.0
 resolution: workspace
 
 environment:
@@ -23,6 +23,7 @@ dependencies:
   sdui_flutter: ^0.3.0
   zard: ^1.3.0
   shared_preferences: ^2.5.5
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

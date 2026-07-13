@@ -1,0 +1,39 @@
+/* ============================================================
+   Driva — Spacing & sizing tokens
+   4px base grid. A dense builder UI leans on the small steps.
+   ============================================================ */
+
+:root {
+  --space-0:   0;
+  --space-1:   2px;
+  --space-2:   4px;
+  --space-3:   6px;
+  --space-4:   8px;
+  --space-5:   10px;
+  --space-6:   12px;
+  --space-7:   14px;
+  --space-8:   16px;
+  --space-10:  20px;
+  --space-12:  24px;
+  --space-14:  28px;
+  --space-16:  32px;
+  --space-20:  40px;
+  --space-24:  48px;
+  --space-32:  64px;
+  --space-40:  80px;
+
+  /* Editor layout rails — fixed column widths in the page builder */
+  --rail-palette:    280px;   /* left: widget palette */
+  --rail-inspector:  320px;   /* right: properties inspector */
+  --topbar-h:        52px;    /* editor topbar height */
+  --toolbar-h:       44px;    /* secondary toolbar / device bar */
+  --row-h:           36px;    /* list rows, menu items, fields */
+  --row-h-sm:        28px;    /* dense rows */
+  --hit-min:         32px;    /* minimum interactive target (chrome) */
+  --tap-min:         44px;    /* minimum touch target (preview/app) */
+
+  /* Container widths */
+  --container-sm:    560px;
+  --container-md:    760px;
+  --container-lg:    1040px;
+}

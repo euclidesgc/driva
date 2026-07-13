@@ -18,6 +18,7 @@
       "program": "lib/main_dev.dart",
       "deviceId": "chrome",
       "preLaunchTask": "backend up (bg)",
+      "postDebugTask": "backend down (bg)",
       "toolArgs": ["--dart-define-from-file=config/dev.json"]
     },
     {

@@ -1,0 +1,83 @@
+E2E API — Projetos/Categorias/Conteudos — rodada 01
+Backend: NestJS local :3000 (/v1) · Postgres :5433 (dev) · branch feature/api-conteudos
+Script: docs/09-crud-projeto/evidencias/e2e_api.sh (idempotente, auto-limpante)
+Resultado: 59 PASS / 0 FAIL · cleanup total (DB voltou ao estado inicial)
+
+DIVERGENCIA task-spec x contrato (NAO e' bug — comportamento intencional):
+  A task pedia 'DELETE de projeto vazio -> 204'. Todo projeto nasce com a
+  categoria 'Geral' na mesma transacao (ProjectsService.create) e
+  Category.project e' onDelete: Restrict (schema.prisma). Nao ha caminho de
+  API que deixe um projeto categoria-vazio no fluxo feliz; DELETE de projeto
+  so-com-Geral retorna 409 (a mensagem lista 'conteudos/categorias'). Para
+  apagar de fato: esvaziar a Geral -> DELETE categoria (204) -> DELETE projeto
+  (204). Ambos os caminhos estao cobertos (4.2 e 4.2b).
+
+------------------------------------------------------------------------
+=== PRE-FLIGHT ===
+PASS backend acessivel em :3000/health
+=== BLOCO 1 - PROJETOS ===
+PASS 1.1 criar projeto sem imagem -> 201
+PASS 1.1 contentCount == 0
+PASS 1.1 categoryCount == 1 (Geral na transacao)
+PASS 1.1 imageUrl == null (sem imagem)
+PASS 1.2 criar projeto com PNG -> 201
+PASS 1.2 imageUrl nao-nulo (/v1/projects/k4v64hmx9mated8el4sr5wat/image)
+PASS 1.3 GET imageUrl content-type de imagem (image/png)
+PASS 1.3 header X-Content-Type-Options: nosniff
+PASS 1.4 upload SVG -> 400
+PASS 1.5 upload forjado (magic bytes falsos) -> 400
+PASS 1.6 upload oversize (>8MB) -> 413
+PASS 1.7 listar projetos -> 200
+PASS 1.7 projeto A presente na listagem
+PASS 1.7 cards trazem contadores
+PASS 1.8 GET detalhe do projeto A -> 200
+PASS 1.8 detalhe.id == projeto A
+PASS 1.9 PUT titulo/descricao -> 200
+PASS 1.9 titulo atualizado
+PASS 1.10 PUT removeImage -> 200
+PASS 1.10 imageUrl == null apos remove
+=== BLOCO 2 - CATEGORIAS ===
+PASS 2.1 criar categoria raiz -> 201
+PASS 2.1 parentId == null (raiz)
+PASS 2.1 projectId == PROJ_A
+PASS 2.2 criar categoria aninhada -> 201
+PASS 2.2 parentId == raiz
+PASS 2.3 listar categorias -> 200
+PASS 2.3 flat com projectId e contentCount
+PASS 2.4 renomear categoria -> 200
+PASS 2.4 name atualizado
+PASS 2.5 mover categoria (novo parentId) -> 200
+PASS 2.5 parentId refletido
+PASS 2.6 mover criando ciclo -> 400
+PASS 2.7 DELETE categoria com subcategoria -> 409
+PASS 2.8 DELETE categoria com conteudo -> 409
+=== BLOCO 3 - CONTEUDOS ===
+PASS 3.1 criar conteudo sem categoryId -> 201
+PASS 3.1 categoryId == Geral do projeto
+PASS 3.2 criar conteudo com categoryId valido -> 201
+PASS 3.2 categoryId refletido
+PASS 3.3 categoryId de outro projeto -> 400/404 (400)
+PASS 3.4 GET /contents envelope -> 200
+PASS 3.4 envelope {data,nextCursor}
+PASS 3.4 pagina 1 tem 20 itens
+PASS 3.4 nextCursor presente
+PASS 3.4 paginas 1 e 2 sem repeticao
+PASS 3.5 busca 'sao' acha 'São Paulo'
+PASS 3.6 filtro categoryId: todos do no exato
+PASS 3.6 filtro categoryId inclui o conteudo esperado
+PASS 3.7 sort=name asc -> 200
+PASS 3.7 lista ordenada por name asc
+PASS 3.8 limit=0 -> 400
+PASS 3.8 limit=500 -> 400
+PASS 3.9 PUT categoryId (mover) -> 200
+PASS 3.9 conteudo movido aparece no filtro do destino
+=== BLOCO 4 - PROJETOS DELETE ===
+PASS 4.1 DELETE projeto com conteudo -> 409
+PASS 4.2 DELETE projeto so-com-Geral -> 409 (contrato atual; task pedia 204)
+PASS 4.2b apagar a Geral (projeto sem conteudo) -> 204
+PASS 4.2b DELETE projeto sem categorias/conteudo -> 204
+=== CLEANUP ===
+PASS CLEANUP total: DB voltou ao estado inicial (0 residuo do TAG e2e-1783651096-735664)
+=== RESUMO ===
+PASS=59  FAIL=0
+Todos os blocos PASS.

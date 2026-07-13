@@ -1,12 +1,15 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -38,6 +41,7 @@ void main() {
     cubit = EditorCubit(
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
+      projectId: 'p1',
     );
     cubit.emit(EditorReady(document: _docWithText('A')));
     themeCubit = _MockThemeCubit();
@@ -57,7 +61,11 @@ void main() {
         BlocProvider<EditorCubit>.value(value: cubit),
         BlocProvider<ThemeCubit>.value(value: themeCubit),
       ],
-      child: const EditorPage(),
+      child: EditorPage(
+        projectFuture: Future<Either<Failure, Project>>.value(
+          Left(UnexpectedFailure()),
+        ),
+      ),
     ),
   );
 
@@ -126,4 +134,43 @@ void main() {
     // O inspector passa a mostrar o nó Text selecionado (não mais 'Conteúdo').
     expect(find.text('Text'), findsWidgets);
   });
+
+  // Regressão do item 8d: uma raiz que é um widget FOLHA (sem slot de filhos,
+  // ex.: um `text` sozinho) deve RENDERIZAR, não cair no estado-vazio. A
+  // condição de empty-state considera só `root == null` — se alguém voltar a
+  // incluir `root.children.isEmpty`, este teste quebra.
+  testWidgets(
+    'raiz folha renderiza — não mostra o estado-vazio (regressão 8d)',
+    (tester) async {
+      enlarge(tester);
+      cubit.emit(
+        EditorReady(
+          document: ContentSpec(
+            specVersion: kSpecVersion,
+            id: 'ct_1',
+            name: 'Home',
+            slug: 'home',
+            root: SduiNode(
+              id: 'nd_root',
+              type: 'text',
+              properties: {'data': 'SOLO'},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(harness());
+      await tester.pump();
+
+      expect(
+        find.text('Arraste um widget da paleta até aqui para começar.'),
+        findsNothing,
+      );
+      // A folha renderiza de verdade no canvas: um `Text` (não o EditableText do
+      // inspector, que também exibe o valor do prop 'data').
+      expect(
+        find.byWidgetPredicate((w) => w is Text && w.data == 'SOLO'),
+        findsOneWidget,
+      );
+    },
+  );
 }
