@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-07-13 · Hierarquia Projeto → Categoria → Conteúdo, API de conteúdos e AppBar global
+
 ### Adicionado
 
 - **Projetos (hierarquia Projeto → Categoria → Conteúdo)**: nova entidade `Project` como topo do produto (ref. Squidex). Backend NestJS ganha CRUD `/v1/projects` (list/get/create/update/delete) com **upload de imagem** (multipart) atrás de um pipeline de segurança: detecção por magic bytes (PNG/JPEG/WebP; SVG rejeitado), reencode com sharp (strip EXIF, teto 2048px, anti decompression-bomb), chave UUID gerada no servidor, serving com `nosniff`, limite de body em duas camadas e rate-limit. Storage atrás de um port `StorageService` (adapter local default; adapter S3 pronto, ativado por env — Garage/R2 a decidir). `Content.projectId` vira FK real (`onDelete: Restrict`) com seed do projeto `default`; banco de dev recriado do zero.
