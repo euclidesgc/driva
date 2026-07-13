@@ -162,10 +162,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.bySemanticsLabel(RegExp('Categoria: Geral')),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel(RegExp('Categoria: Geral')), findsOneWidget);
 
       semantics.dispose();
     });
