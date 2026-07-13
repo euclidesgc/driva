@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -8,35 +9,43 @@ import '../../../../core/error/error.dart';
 import '../../../../core/network/project_scope.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/theme/widgets/resizable_split_view.dart';
+import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../../contents_module/contents_module.dart';
+import '../../../projects_module/projects_module.dart';
 import '../../domain/use_cases/use_cases.dart';
 import 'cubit/editor_cubit.dart';
 import 'device_preset.dart';
 import 'widgets/canvas_panel.dart';
-import 'widgets/editor_top_bar.dart';
 import 'widgets/inspector_panel.dart';
 import 'widgets/json_preview_panel.dart';
 import 'widgets/widget_palette_panel.dart';
 import 'widgets/widget_tree_panel.dart';
 
 class EditorPage extends StatelessWidget {
-  const EditorPage({super.key});
+  const EditorPage({super.key, required this.projectFuture});
+
+  /// Busca do projeto em foco (para o crumb de nível 2) disparada pelo
+  /// [pageBuilder]. Fallback para um label genérico se ainda não resolveu ou
+  /// se o [ProjectScope] estiver vazio (deep link direto ao editor).
+  final Future<Either<Failure, Project>> projectFuture;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
     // Deep link malformado não é crash, é tela tratada.
     if (id == null || id.trim().isEmpty) return const _InvalidContentScreen();
 
+    // O projeto em foco (setado pela tela do projeto ao abrir o conteúdo)
+    // é o destino do "voltar"/crumb do editor.
+    final projectId = getIt<ProjectScope>().projectId;
+
     return BlocProvider(
       create: (_) => EditorCubit(
         loadContentUseCase: getIt<LoadContentUseCase>(),
         saveDraftUseCase: getIt<SaveDraftUseCase>(),
-        // O projeto em foco (setado pela tela do projeto ao abrir o conteúdo)
-        // é o destino do "voltar" do editor.
-        projectId: getIt<ProjectScope>().projectId,
+        projectId: projectId,
       )..loadContent(id),
-      child: const EditorPage(),
+      child: EditorPage(projectFuture: getIt<GetProjectUseCase>()(projectId)),
     );
   }
 
@@ -53,7 +62,6 @@ class EditorPage extends StatelessWidget {
           body: Center(child: CircularProgressIndicator()),
         ),
         final EditorLoadFailure s => Scaffold(
-          appBar: AppBar(),
           body: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -73,7 +81,7 @@ class EditorPage extends StatelessWidget {
             ),
           ),
         ),
-        EditorReady() => const _EditorWorkspace(),
+        EditorReady() => _EditorWorkspace(projectFuture: projectFuture),
       },
     );
   }
@@ -90,14 +98,18 @@ class EditorPage extends StatelessWidget {
 /// Casca do editor pronto. Construída UMA vez (a `buildWhen` acima só troca no
 /// tipo do estado); os painéis internos assinam suas fatias via [BlocSelector].
 class _EditorWorkspace extends StatelessWidget {
-  const _EditorWorkspace();
+  const _EditorWorkspace({required this.projectFuture});
+
+  final Future<Either<Failure, Project>> projectFuture;
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
     final colors = Theme.of(context).extension<EditorColors>()!;
 
-    return Shortcuts(
+    // Corpo pesado construído UMA vez; o registrador do topo (que reconstrói ao
+    // mudar o status de salvamento) o repassa por identidade, sem rebuildá-lo.
+    final workspace = Shortcuts(
       shortcuts: {
         const SingleActivator(LogicalKeyboardKey.keyS, control: true):
             const _SaveIntent(),
@@ -115,7 +127,6 @@ class _EditorWorkspace extends StatelessWidget {
         child: Focus(
           autofocus: true,
           child: Scaffold(
-            appBar: const EditorTopBar(),
             body: ResizableSplitView(
               left: const _LeftPanel(),
               center: const _CenterArea(),
@@ -128,8 +139,96 @@ class _EditorWorkspace extends StatelessWidget {
         ),
       ),
     );
+
+    return _EditorTopRegistrar(projectFuture: projectFuture, child: workspace);
   }
 }
+
+/// Publica crumbs/ações/status do editor no [AppShell] sem reconstruir o
+/// [child] pesado: crumbs e status vêm de `FutureBuilder` (nome do projeto) e
+/// `BlocSelector` (nome do conteúdo + status de salvamento); o corpo é repassado
+/// por identidade.
+class _EditorTopRegistrar extends StatelessWidget {
+  const _EditorTopRegistrar({required this.projectFuture, required this.child});
+
+  final Future<Either<Failure, Project>> projectFuture;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<EditorCubit>();
+    return FutureBuilder<Either<Failure, Project>>(
+      future: projectFuture,
+      builder: (context, snapshot) {
+        final projectTitle = switch (snapshot.data) {
+          Right(value: final project) => project.title,
+          _ => 'Projeto',
+        };
+        return BlocSelector<EditorCubit, EditorState, (String, SaveStatus)>(
+          selector: (state) => state is EditorReady
+              ? (state.document.name, state.saveStatus)
+              : ('', SaveStatus.saved),
+          builder: (context, vm) {
+            final (contentName, status) = vm;
+            return AppShellSlot(
+              crumbs: [
+                const Crumb(
+                  label: 'Projetos',
+                  routeName: ProjectsRoutes.projectsName,
+                ),
+                Crumb(
+                  label: projectTitle,
+                  routeName: ContentsRoutes.projectDetailName,
+                  pathParameters: {'id': cubit.projectId},
+                ),
+                Crumb(label: contentName),
+              ],
+              status: _statusFor(status),
+              actions: [
+                AppBarAction.filled(
+                  label: 'Salvar',
+                  icon: Icons.save_outlined,
+                  onPressed: status == SaveStatus.saving ? null : cubit.save,
+                ),
+                const AppBarAction.outlined(
+                  label: 'Publish',
+                  onPressed: null,
+                  tooltip: 'Publicação chega no incremento I4',
+                ),
+              ],
+              child: child,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Mapeia o [SaveStatus] interno do editor para o indicador do topo global.
+/// A cor nunca é o único sinal (ícone + texto acompanham o tom).
+AppBarStatus _statusFor(SaveStatus status) => switch (status) {
+  SaveStatus.saved => const AppBarStatus(
+    icon: Icons.check_circle,
+    label: 'Salvo',
+    tone: AppBarStatusTone.success,
+  ),
+  SaveStatus.dirty => const AppBarStatus(
+    icon: Icons.edit_outlined,
+    label: 'Não salvo',
+    tone: AppBarStatusTone.neutral,
+  ),
+  SaveStatus.saving => const AppBarStatus(
+    icon: Icons.sync,
+    label: 'Salvando…',
+    tone: AppBarStatusTone.neutral,
+  ),
+  SaveStatus.saveFailed => const AppBarStatus(
+    icon: Icons.error_outline,
+    label: 'Falha ao salvar',
+    tone: AppBarStatusTone.danger,
+  ),
+};
 
 /// Painel esquerdo: paleta (sem dependência de estado → construída uma vez) e
 /// árvore (rebuilda só quando a ESTRUTURA ou a seleção mudam, não a cada tecla).
@@ -382,9 +481,6 @@ class _InvalidContentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: const Center(child: Text('Conteúdo inválido.')),
-    );
+    return const Scaffold(body: Center(child: Text('Conteúdo inválido.')));
   }
 }

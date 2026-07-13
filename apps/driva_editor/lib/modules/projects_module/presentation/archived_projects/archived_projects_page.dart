@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/error.dart';
 import '../../../../core/theme/editor_colors.dart';
-import '../../../../core/widgets/app_wordmark.dart';
+import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -29,44 +29,39 @@ class ArchivedProjectsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 4,
-        leading: Tooltip(
-          message: 'Voltar para projetos',
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
-          ),
-        ),
-        title: const AppWordmark(),
-      ),
-      body: BlocBuilder<ArchivedProjectsCubit, ArchivedProjectsState>(
-        builder: (context, state) {
-          return switch (state) {
-            ArchivedProjectsLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            ArchivedProjectsEmpty() => const _EmptyArchived(),
-            final ArchivedProjectsError s => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_messageFor(s.failure)),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () =>
-                        context.read<ArchivedProjectsCubit>().load(),
-                    child: const Text('Tentar de novo'),
-                  ),
-                ],
+    return AppShellSlot(
+      crumbs: const [
+        Crumb(label: 'Projetos', routeName: ProjectsRoutes.projectsName),
+        Crumb(label: 'Arquivados'),
+      ],
+      child: Scaffold(
+        body: BlocBuilder<ArchivedProjectsCubit, ArchivedProjectsState>(
+          builder: (context, state) {
+            return switch (state) {
+              ArchivedProjectsLoading() => const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-            final ArchivedProjectsLoaded s => _ArchivedProjectsList(
-              projects: s.projects,
-            ),
-          };
-        },
+              ArchivedProjectsEmpty() => const _EmptyArchived(),
+              final ArchivedProjectsError s => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_messageFor(s.failure)),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: () =>
+                          context.read<ArchivedProjectsCubit>().load(),
+                      child: const Text('Tentar de novo'),
+                    ),
+                  ],
+                ),
+              ),
+              final ArchivedProjectsLoaded s => _ArchivedProjectsList(
+                projects: s.projects,
+              ),
+            };
+          },
+        ),
       ),
     );
   }
