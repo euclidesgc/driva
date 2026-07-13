@@ -8,7 +8,7 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num edito
 |---|---|
 | `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parseContentSpec`), catálogo de 14 primitivos, operações puras de árvore |
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e, futuramente, nos apps dos clientes |
-| `apps/driva_editor` | O editor (Flutter Web): home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel |
+| `apps/driva_editor` | O editor (Flutter Web): AppBar global com breadcrumb (via `ShellRoute`) + home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel |
 | `backend/` | NestJS + Prisma + Postgres: hierarquia Projeto → Categoria → Conteúdo (`/v1/projects`, `/v1/categories`, `/v1/contents`), tenant por `x-project-id` |
 | `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
 | `docs/02-conteudos/` | Docs vivas da feature Conteúdos (rename página→conteúdo: slug, CUID2, migração) |
@@ -43,7 +43,7 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 flutter analyze                       # workspace inteiro
 dart test packages/sdui_core          # kernel (30 testes)
 flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (47 testes: cubits, slug, widget por estado, golden)
+flutter test apps/driva_editor        # editor (124 testes: cubits, slug, widget por estado, shell/breadcrumb, golden)
 ```
 
 ## Arquitetura (resumo)
