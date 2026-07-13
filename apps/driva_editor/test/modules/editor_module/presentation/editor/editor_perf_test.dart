@@ -1,12 +1,15 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -58,7 +61,11 @@ void main() {
         BlocProvider<EditorCubit>.value(value: cubit),
         BlocProvider<ThemeCubit>.value(value: themeCubit),
       ],
-      child: const EditorPage(),
+      child: EditorPage(
+        projectFuture: Future<Either<Failure, Project>>.value(
+          Left(UnexpectedFailure()),
+        ),
+      ),
     ),
   );
 

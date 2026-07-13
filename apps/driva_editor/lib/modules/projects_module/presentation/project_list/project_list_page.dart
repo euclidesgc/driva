@@ -4,10 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/error.dart';
 import '../../../../core/theme/editor_colors.dart';
-import '../../../../core/widgets/app_wordmark.dart';
+import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../../contents_module/contents_module.dart';
-import '../../../preferences_module/preferences_module.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/use_cases/use_cases.dart';
 import '../../projects_routes.dart';
@@ -32,60 +31,63 @@ class ProjectListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 16,
-        title: const AppWordmark(),
-        actions: [
-          BlocBuilder<ProjectListCubit, ProjectListState>(
-            builder: (context, state) {
-              final archivedCount = switch (state) {
-                ProjectListLoaded(:final archivedCount) => archivedCount,
-                ProjectListEmpty(:final archivedCount) => archivedCount,
-                _ => 0,
-              };
-              return _ArchivedLinkButton(count: archivedCount);
-            },
-          ),
-          const SizedBox(width: 4),
-          const ThemeModeButton(),
-          const SizedBox(width: 4),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FilledButton.icon(
+    return BlocSelector<ProjectListCubit, ProjectListState, int>(
+      selector: (state) => switch (state) {
+        ProjectListLoaded(:final archivedCount) => archivedCount,
+        ProjectListEmpty(:final archivedCount) => archivedCount,
+        _ => 0,
+      },
+      builder: (context, archivedCount) {
+        return AppShellSlot(
+          crumbs: const [Crumb(label: 'Projetos')],
+          actions: [
+            AppBarAction.text(
+              label: archivedCount > 0
+                  ? 'Arquivados ($archivedCount)'
+                  : 'Arquivados',
+              icon: Icons.archive_outlined,
+              tooltip: 'Ver projetos arquivados',
+              onPressed: () => context.goNamed(ProjectsRoutes.archivedName),
+            ),
+            AppBarAction.filled(
+              label: 'Novo projeto',
+              icon: Icons.add,
               onPressed: () => _openCreateForm(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Novo projeto'),
+            ),
+          ],
+          child: Scaffold(
+            body: BlocBuilder<ProjectListCubit, ProjectListState>(
+              builder: (context, state) {
+                return switch (state) {
+                  ProjectListLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  ProjectListEmpty() => _EmptyProjects(
+                    onCreate: () => _openCreateForm(context),
+                  ),
+                  final ProjectListError s => Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_messageFor(s.failure)),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: () =>
+                              context.read<ProjectListCubit>().load(),
+                          child: const Text('Tentar de novo'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  final ProjectListLoaded s => _ProjectsHome(
+                    projects: s.projects,
+                  ),
+                };
+              },
             ),
           ),
-        ],
-      ),
-      body: BlocBuilder<ProjectListCubit, ProjectListState>(
-        builder: (context, state) {
-          return switch (state) {
-            ProjectListLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            ProjectListEmpty() => _EmptyProjects(
-              onCreate: () => _openCreateForm(context),
-            ),
-            final ProjectListError s => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_messageFor(s.failure)),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () => context.read<ProjectListCubit>().load(),
-                    child: const Text('Tentar de novo'),
-                  ),
-                ],
-              ),
-            ),
-            final ProjectListLoaded s => _ProjectsHome(projects: s.projects),
-          };
-        },
-      ),
+        );
+      },
     );
   }
 
@@ -133,30 +135,6 @@ class ProjectListPage extends StatelessWidget {
           removeImage: form.removeImage,
         ),
         onArchive: () => cubit.archive(project.id),
-      ),
-    );
-  }
-}
-
-/// Link do header para a área de Arquivados; mostra a contagem quando > 0.
-class _ArchivedLinkButton extends StatelessWidget {
-  const _ArchivedLinkButton({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = count > 0 ? 'Arquivados ($count)' : 'Arquivados';
-    return Tooltip(
-      message: 'Ver projetos arquivados',
-      child: Semantics(
-        button: true,
-        label: label,
-        child: TextButton.icon(
-          onPressed: () => context.goNamed(ProjectsRoutes.archivedName),
-          icon: const Icon(Icons.archive_outlined, size: 18),
-          label: Text(label),
-        ),
       ),
     );
   }

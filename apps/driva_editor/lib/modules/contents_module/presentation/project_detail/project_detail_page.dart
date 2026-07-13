@@ -7,10 +7,9 @@ import '../../../../core/error/error.dart';
 import '../../../../core/network/project_scope.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../../../core/util/slug.dart';
-import '../../../../core/widgets/app_wordmark.dart';
+import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../../editor_module/editor_module.dart';
-import '../../../preferences_module/preferences_module.dart';
 import '../../../projects_module/projects_module.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/content_summary.dart';
@@ -79,15 +78,30 @@ class ProjectDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          _ProjectDetailHeader(
-            projectId: projectId,
-            projectFuture: projectFuture,
-          ),
-          Expanded(
-            child: Row(
+    return FutureBuilder<Either<Failure, Project>>(
+      future: projectFuture,
+      builder: (context, snapshot) {
+        final projectTitle = switch (snapshot.data) {
+          Right(value: final project) => project.title,
+          _ => projectId,
+        };
+        return AppShellSlot(
+          crumbs: [
+            const Crumb(
+              label: 'Projetos',
+              routeName: ProjectsRoutes.projectsName,
+            ),
+            Crumb(label: projectTitle),
+          ],
+          actions: [
+            AppBarAction.filled(
+              label: 'Novo conteúdo',
+              icon: Icons.add,
+              onPressed: () => _openContentForm(context),
+            ),
+          ],
+          child: Scaffold(
+            body: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
@@ -178,8 +192,8 @@ class ProjectDetailPage extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -468,103 +482,12 @@ class ProjectDetailPage extends StatelessWidget {
   }
 }
 
-class _ProjectDetailHeader extends StatelessWidget {
-  const _ProjectDetailHeader({
-    required this.projectId,
-    required this.projectFuture,
-  });
-
-  final String projectId;
-  final Future<Either<Failure, Project>> projectFuture;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: colors.panel,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          Tooltip(
-            message: 'Voltar aos projetos',
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
-            ),
-          ),
-          AppWordmark(
-            onTap: () => context.goNamed(ProjectsRoutes.projectsName),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _ProjectTitle(
-              projectId: projectId,
-              projectFuture: projectFuture,
-            ),
-          ),
-          const ThemeModeButton(),
-          const SizedBox(width: 4),
-          FilledButton.icon(
-            onPressed: () => ProjectDetailPage._openContentForm(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Novo conteúdo'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Nome do projeto no header.
-///
-/// Lê `GetProjectUseCase` (exposto pelo barrel público de `projects_module`
-/// — ver comentário em `projects_module.dart`) via o [Future] disparado no
-/// `pageBuilder` de [ProjectDetailPage]. Enquanto carrega ou se a busca
-/// falhar, cai para o `id` como referência (nunca quebra o header).
-class _ProjectTitle extends StatelessWidget {
-  const _ProjectTitle({required this.projectId, required this.projectFuture});
-
-  final String projectId;
-  final Future<Either<Failure, Project>> projectFuture;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return FutureBuilder<Either<Failure, Project>>(
-      future: projectFuture,
-      builder: (context, snapshot) {
-        final loaded = snapshot.data;
-        final title = switch (loaded) {
-          Right(value: final project) => project.title,
-          _ => projectId,
-        };
-        return Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _InvalidProjectScreen extends StatelessWidget {
   const _InvalidProjectScreen();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
