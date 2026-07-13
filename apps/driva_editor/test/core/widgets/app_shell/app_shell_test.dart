@@ -61,20 +61,17 @@ void main() {
     expect(find.text('Página Alpha'), findsOneWidget); // corpo
   });
 
-  testWidgets(
-    'a ação renderizada pelo shell dispara o closure da página '
-    '(sem ProviderNotFound)',
-    (tester) async {
-      var invoked = 0;
-      await tester.pumpWidget(_harness(_router(onAction: () => invoked++)));
-      await tester.pumpAndSettle();
+  testWidgets('a ação renderizada pelo shell dispara o closure da página '
+      '(sem ProviderNotFound)', (tester) async {
+    var invoked = 0;
+    await tester.pumpWidget(_harness(_router(onAction: () => invoked++)));
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Agir'));
-      await tester.pump();
+    await tester.tap(find.text('Agir'));
+    await tester.pump();
 
-      expect(invoked, 1);
-    },
-  );
+    expect(invoked, 1);
+  });
 
   testWidgets('crumb clicável navega para a rota alvo', (tester) async {
     final router = _router();
