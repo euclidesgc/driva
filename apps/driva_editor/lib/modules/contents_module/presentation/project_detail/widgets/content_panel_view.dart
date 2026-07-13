@@ -29,6 +29,7 @@ class ContentPanelView extends StatefulWidget {
     super.key,
     required this.categoryLabel,
     this.isAllContents = false,
+    this.categoryNameById = const {},
     required this.onOpenContent,
     required this.onNewContent,
     required this.onEditContent,
@@ -38,6 +39,11 @@ class ContentPanelView extends StatefulWidget {
 
   final String categoryLabel;
   final bool isAllContents;
+
+  /// Nome de cada categoria (a "folha") por `id`, para o rótulo de categoria
+  /// do card de grade. Vazio enquanto a árvore ainda carrega — o card omite
+  /// a linha nesse caso.
+  final Map<String, String> categoryNameById;
   final ValueChanged<ContentSummary> onOpenContent;
   final VoidCallback onNewContent;
   final ValueChanged<ContentSummary> onEditContent;
@@ -194,6 +200,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                   mode: _mode,
                   hasMore: s.hasMore,
                   isLoadingMore: s.isLoadingMore,
+                  categoryNameById: widget.categoryNameById,
                   onLoadMore: () => context.read<ContentListCubit>().loadMore(),
                   onOpen: widget.onOpenContent,
                   onEdit: widget.onEditContent,
@@ -435,6 +442,7 @@ class _ContentsCollection extends StatelessWidget {
     required this.mode,
     required this.hasMore,
     required this.isLoadingMore,
+    required this.categoryNameById,
     required this.onLoadMore,
     required this.onOpen,
     required this.onEdit,
@@ -446,6 +454,7 @@ class _ContentsCollection extends StatelessWidget {
   final ContentViewMode mode;
   final bool hasMore;
   final bool isLoadingMore;
+  final Map<String, String> categoryNameById;
   final VoidCallback onLoadMore;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
@@ -489,11 +498,12 @@ class _ContentsCollection extends StatelessWidget {
               maxCrossAxisExtent: 300,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              mainAxisExtent: 162,
+              mainAxisExtent: 182,
             ),
             itemCount: contents.length,
             itemBuilder: (context, index) => _ContentCard(
               content: contents[index],
+              categoryName: categoryNameById[contents[index].categoryId],
               onOpen: onOpen,
               onEdit: onEdit,
               onMove: onMove,
@@ -565,6 +575,7 @@ class _LoadingMoreFooter extends StatelessWidget {
 class _ContentCard extends StatelessWidget {
   const _ContentCard({
     required this.content,
+    this.categoryName,
     required this.onOpen,
     required this.onEdit,
     required this.onMove,
@@ -572,6 +583,11 @@ class _ContentCard extends StatelessWidget {
   });
 
   final ContentSummary content;
+
+  /// Nome da categoria do conteúdo, já resolvido pelo chamador. `null`
+  /// quando o mapa ainda não carregou ou não contém o `categoryId` — nesse
+  /// caso a linha é omitida (sem placeholder).
+  final String? categoryName;
   final ValueChanged<ContentSummary> onOpen;
   final ValueChanged<ContentSummary> onEdit;
   final ValueChanged<ContentSummary> onMove;
@@ -610,6 +626,7 @@ class _ContentCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                _CategoryLabel(name: categoryName),
                 const Spacer(),
                 _UpdatedAt(updatedAt: content.updatedAt),
                 const SizedBox(height: 3),
@@ -851,6 +868,55 @@ class _UpdatedAt extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Nome da categoria do conteúdo — ícone de pasta + texto, para que a
+/// informação não dependa só da cor. Omite a linha inteira quando [name]
+/// não resolveu (árvore ainda carregando ou `categoryId` fora do mapa).
+class _CategoryLabel extends StatelessWidget {
+  const _CategoryLabel({required this.name});
+
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = this.name;
+    if (name == null || name.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    return Tooltip(
+      message: 'Categoria',
+      child: Semantics(
+        label: 'Categoria: $name',
+        excludeSemantics: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 3),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.folder_outlined, size: 13, color: colors.inkMuted),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    name,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.inkMuted,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
