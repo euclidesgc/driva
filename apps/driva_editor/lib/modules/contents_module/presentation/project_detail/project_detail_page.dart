@@ -153,6 +153,12 @@ class ProjectDetailPage extends StatelessWidget {
                           isAllContents:
                               treeState is CategoryTreeLoaded &&
                               treeState.selectedCategoryId == null,
+                          categoryNameById: treeState is CategoryTreeLoaded
+                              ? {
+                                  for (final category in treeState.categories)
+                                    category.id: category.name,
+                                }
+                              : const {},
                           onOpenContent: (content) => context.goNamed(
                             EditorRoutes.editorName,
                             pathParameters: {'id': content.id},
