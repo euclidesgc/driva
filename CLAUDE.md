@@ -27,8 +27,17 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 - **Zero build_runner** (nada de freezed, json_serializable, injectable, mockito, go_router_builder).
 - Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`; a bateria automatizada é escrita **por último** (após o E2E manual — cap. 22 do livro).
 - Acessibilidade: cor nunca é o único sinal de informação; controles com `Semantics`/tooltip.
-- Arquivos `snake_case`, classes `PascalCase`, uma classe pública por arquivo; código em inglês, UI e docs em pt-BR.
+- Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora no mesmo arquivo do cubit via `part of`.
 - Cancela de máquina: **"pronto" = `flutter analyze` verde + testes existentes passando.** Nunca opinião.
+
+## Design system e organização de widgets (inegociável)
+
+Valem em **`apps/driva_editor` e `packages/sdui_flutter`** (ambos são Flutter). Gates cobrados na `revisar-fase` (QA), no `criar-modulo` e pelos especialistas de apresentação/infra.
+
+- **Zero função/método que retorna `Widget`.** Cada pedaço de UI é um `Widget` próprio (`StatelessWidget`/`StatefulWidget`) recebendo dados **pelo construtor** — nunca `Widget _buildX(...)`. Isso preserva `const`, isolamento de rebuild e reuso (a razão de o Flutter/Dart desaconselharem o padrão). **Não são o anti-padrão** (e são permitidos): o `build()` override, o `static Widget pageBuilder`, e os callbacks de builder do framework (`itemBuilder`, `builder:`) — mas quando não-triviais devem delegar a um widget dedicado, não montar árvore inline extensa.
+- **Widget mora por proximidade — menos específico = mais longe da feature.** Três tiers: **feature** (`.../presentation/<feature>/widgets/`) → **módulo** (`modules/<x>_module/presentation/widgets/`, usado por mais de uma feature do módulo) → **app-wide compartilhado** em `apps/driva_editor/lib/core/widgets/` (**o "components"**: organizado por categoria em subpastas, cada categoria com barrel; barrel raiz `core/widgets/widgets.dart`). **Padrão de destino:** widget usado por vários módulos vai para `core/widgets/`; só desce de tier quando o uso justificar. Ao promover um widget, mova-o de tier e ajuste os barrels.
+- **Uma classe/widget por arquivo** (regra geral acima; exceção só o estado do cubit). Widget novo = arquivo novo `snake_case`.
+- **Design system: tema-token, zero hardcode.** Cor, tipografia, espaçamento, raio, elevação, duração de animação etc. vivem **agrupados em `core/theme/`** (tokens tipados: `AppColors`/`AppTypography`/`AppSpacing`/`AppRadii`… + `ThemeExtension` quando não couber no `ThemeData` padrão) e são consumidos via `Theme.of(context)`/token — **nunca** `Color(0x…)`, `EdgeInsets.all(16)`, `TextStyle(fontSize: …)` cru na tela/widget. Trocar ou criar um tema novo = mexer **só** no `core/theme/`. O renderer (`sdui_flutter`) segue o mesmo princípio para o que é chrome do renderer (o styling derivado do spec SDUI continua vindo do catálogo/props).
 
 ## Regras do spec SDUI
 

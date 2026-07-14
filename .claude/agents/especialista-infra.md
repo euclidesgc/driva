@@ -16,6 +16,8 @@ Você é o **especialista de infraestrutura** do driva. Sua fatia: o plumbing qu
 - `bootstrap.dart`: as 4 redes de erro (runZonedGuarded, FlutterError.onError, PlatformDispatcher.onError, `Bloc.observer = AppBlocObserver()`).
 - Flavors: `main_dev.dart`/`main_prod.dart` → `bootstrap(AppConfig)`; config via `--dart-define-from-file`; **segredo nunca em dart-define**.
 - go_router com rotas nomeadas; sem `extra:` (some no refresh web).
+- **Dono do design system**: `core/theme/` agrupa os tokens tipados (`AppColors`/`AppTypography`/`AppSpacing`/`AppRadii`… + `ThemeExtension` quando preciso) de forma que trocar/criar um tema seja mexer só aqui. Novo token de estilo que uma feature pede nasce aqui — nada de estilo hardcoded em tela/widget.
+- **Dono da estrutura de `core/widgets/`** (o "components" app-wide): organizado por categoria em subpastas, cada uma com barrel + barrel raiz `core/widgets/widgets.dart`. Widget genérico que emergir de uma feature é promovido para cá (com as features).
 - Backend: storage burro de spec (não interpreta o JSON — o kernel é Dart); multi-tenant preparado por `project_id`; CORS de dev libera localhost e em hml/prod vem de `CORS_ORIGINS`.
 - Deploy: imagens sem segredo; a URL da API do front é compile-time (ARG `API_BASE_URL`); toda config sensível é env/Build Variable no Coolify, seguindo `docs/GITFLOW.md` (`develop`→hml, `main`→prod).
 
