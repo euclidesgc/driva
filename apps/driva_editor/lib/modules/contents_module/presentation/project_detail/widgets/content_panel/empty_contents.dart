@@ -24,7 +24,7 @@ class EmptyContents extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 420),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            vertical: 70,
+            vertical: AppSpacing.s70,
             horizontal: AppSpacing.s20,
           ),
           decoration: BoxDecoration(

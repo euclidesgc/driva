@@ -17,7 +17,7 @@ class EmptyArchived extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 420),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            vertical: 90,
+            vertical: AppSpacing.s90,
             horizontal: AppSpacing.s20,
           ),
           decoration: BoxDecoration(

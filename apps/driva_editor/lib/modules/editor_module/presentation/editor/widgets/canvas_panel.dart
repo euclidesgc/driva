@@ -50,7 +50,7 @@ class CanvasPanel extends StatelessWidget {
             },
             builder: (context, candidates, _) => InteractiveViewer(
               constrained: false,
-              boundaryMargin: const EdgeInsets.all(64),
+              boundaryMargin: const EdgeInsets.all(AppSpacing.s64),
               minScale: 1,
               maxScale: 1,
               child: Padding(
