@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/editor_colors.dart';
+import '../../theme/editor_colors.dart';
 
 class ToggleButton extends StatelessWidget {
   const ToggleButton({

@@ -3,6 +3,7 @@ import 'package:fpdart/fpdart.dart' hide State;
 
 import '../../../../../core/error/error.dart';
 import '../../../../../core/theme/editor_colors.dart';
+import '../../../../../core/widgets/feedback/feedback.dart';
 import '../../../domain/entities/entities.dart';
 import 'image_drop_zone.dart';
 import 'image_picker.dart';
@@ -198,7 +199,10 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_errorMessage != null) ...[
-                  ProjectFormErrorBanner(message: _errorMessage!),
+                  MessageBanner(
+                    message: _errorMessage!,
+                    semanticsPrefix: 'Erro',
+                  ),
                   const SizedBox(height: 12),
                 ],
                 Text(
