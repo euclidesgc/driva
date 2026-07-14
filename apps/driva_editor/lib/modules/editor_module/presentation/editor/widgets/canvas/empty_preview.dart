@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../../../core/widgets/painters/painters.dart';
 
@@ -17,11 +18,11 @@ class EmptyPreview extends StatelessWidget {
       label: 'Conteúdo vazio. Adicione o primeiro widget.',
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.s20),
           child: CustomPaint(
             foregroundPainter: DashedBorderPainter(color: colors.border),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -30,7 +31,7 @@ class EmptyPreview extends StatelessWidget {
                     size: 40,
                     color: colors.inkMuted,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.s12),
                   Text(
                     'Arraste um widget da paleta até aqui para começar.',
                     textAlign: TextAlign.center,

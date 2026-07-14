@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../device_preset.dart';
 import 'canvas/canvas.dart';
 import 'drag_payload.dart';
@@ -53,7 +54,7 @@ class CanvasPanel extends StatelessWidget {
               minScale: 1,
               maxScale: 1,
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(AppSpacing.s32),
                 child: Transform.scale(
                   scale: zoom,
                   alignment: Alignment.topCenter,

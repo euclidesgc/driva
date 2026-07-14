@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+
 /// Botão físico lateral (power/volume) desenhado meio para fora do corpo.
 class SideButton extends StatelessWidget {
   const SideButton({
@@ -30,8 +32,8 @@ class SideButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.horizontal(
-            left: left ? const Radius.circular(3) : Radius.zero,
-            right: left ? Radius.zero : const Radius.circular(3),
+            left: left ? const Radius.circular(AppRadii.r3) : Radius.zero,
+            right: left ? Radius.zero : const Radius.circular(AppRadii.r3),
           ),
         ),
       ),
