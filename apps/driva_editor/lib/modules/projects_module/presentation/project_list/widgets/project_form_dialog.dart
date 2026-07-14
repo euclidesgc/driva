@@ -6,6 +6,7 @@ import '../../../../../core/theme/editor_colors.dart';
 import '../../../domain/entities/entities.dart';
 import 'image_drop_zone.dart';
 import 'image_picker.dart';
+import 'project_form/project_form.dart';
 
 typedef ProjectFormResult = ({
   String title,
@@ -197,7 +198,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_errorMessage != null) ...[
-                  _ErrorBanner(message: _errorMessage!),
+                  ProjectFormErrorBanner(message: _errorMessage!),
                   const SizedBox(height: 12),
                 ],
                 Text(
@@ -209,7 +210,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _CoverPicker(
+                CoverPicker(
                   image: _newImage,
                   currentImageUrl: _hasCurrentImage && !_removeImage
                       ? widget.initialImageUrl
@@ -301,187 +302,6 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _CoverPicker extends StatelessWidget {
-  const _CoverPicker({
-    required this.image,
-    required this.currentImageUrl,
-    required this.hovering,
-    required this.onPick,
-    required this.onClear,
-  });
-
-  final ProjectImageInput? image;
-  final String? currentImageUrl;
-  final bool hovering;
-  final VoidCallback onPick;
-  final VoidCallback? onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.extension<EditorColors>()!;
-    final hasPreview = image != null || currentImageUrl != null;
-
-    return Semantics(
-      button: true,
-      label: hasPreview
-          ? 'Trocar imagem de capa do projeto'
-          : 'Arraste uma imagem de capa ou clique para escolher um arquivo',
-      child: Tooltip(
-        message: 'Formatos aceitos: PNG, JPG, WEBP',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onPick,
-          child: Stack(
-            children: [
-              Container(
-                height: 180,
-                width: double.infinity,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: hovering ? theme.colorScheme.primary : colors.border,
-                    width: hovering ? 2 : 1,
-                  ),
-                  color: colors.panelAlt,
-                ),
-                child: hasPreview
-                    ? _CoverPreview(
-                        image: image,
-                        currentImageUrl: currentImageUrl,
-                      )
-                    : _CoverPlaceholder(hovering: hovering),
-              ),
-              if (onClear != null)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Tooltip(
-                    message: 'Remover imagem',
-                    child: Material(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: onClear,
-                        child: const Padding(
-                          padding: EdgeInsets.all(6),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CoverPreview extends StatelessWidget {
-  const _CoverPreview({required this.image, required this.currentImageUrl});
-
-  final ProjectImageInput? image;
-  final String? currentImageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    if (image != null) {
-      return Image.memory(
-        const WebImagePicker().bytesOf(image!),
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    }
-    return Image.network(
-      currentImageUrl!,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-    );
-  }
-}
-
-class _CoverPlaceholder extends StatelessWidget {
-  const _CoverPlaceholder({required this.hovering});
-
-  final bool hovering;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.extension<EditorColors>()!;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.add_photo_alternate_outlined,
-            size: 28,
-            color: hovering ? theme.colorScheme.primary : colors.inkMuted,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Arraste uma imagem de capa\nou clique para escolher',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(color: colors.inkMuted),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Aviso de erro do formulário: ícone + texto (a cor não é o único sinal).
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      liveRegion: true,
-      label: 'Erro: $message',
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 18,
-              color: theme.colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

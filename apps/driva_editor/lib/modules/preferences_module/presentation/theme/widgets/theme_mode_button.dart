@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/app_theme_mode.dart';
 import '../cubit/theme_cubit.dart';
+import 'theme_menu_item.dart';
 
 /// Controle de tema para as top bars: abre um menu com as 3 opcoes
 /// (claro/escuro/sistema), dando acesso direto a qualquer uma.
@@ -31,7 +32,7 @@ class ThemeModeButton extends StatelessWidget {
           for (final option in AppThemeMode.values)
             PopupMenuItem<AppThemeMode>(
               value: option,
-              child: _ThemeMenuItem(
+              child: ThemeMenuItem(
                 icon: _iconFor(option),
                 label: _labelFor(option),
                 selected: option == mode,
@@ -53,39 +54,4 @@ class ThemeModeButton extends StatelessWidget {
     AppThemeMode.dark => 'Escuro',
     AppThemeMode.system => 'Sistema',
   };
-}
-
-class _ThemeMenuItem extends StatelessWidget {
-  const _ThemeMenuItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = selected ? theme.colorScheme.primary : null;
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: color,
-              fontWeight: selected ? FontWeight.w600 : null,
-            ),
-          ),
-        ),
-        if (selected)
-          Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
-      ],
-    );
-  }
 }
