@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 class SupportId extends StatelessWidget {
@@ -45,7 +47,7 @@ class SupportId extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 2),
+        const SizedBox(width: AppSpacing.s2),
         Tooltip(
           message: 'Copiar ID',
           child: Semantics(
@@ -53,9 +55,9 @@ class SupportId extends StatelessWidget {
             label: 'Copiar ID de suporte',
             child: InkWell(
               onTap: () => _copy(context),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadii.r6),
               child: const Padding(
-                padding: EdgeInsets.all(3),
+                padding: EdgeInsets.all(AppSpacing.s3),
                 child: Icon(Icons.copy_rounded, size: 13),
               ),
             ),

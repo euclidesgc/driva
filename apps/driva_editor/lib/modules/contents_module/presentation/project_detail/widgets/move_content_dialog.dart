@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../domain/entities/category.dart';
 
 /// Form modal de "mover conteúdo": só o seletor de categoria-destino, fiel
@@ -44,7 +45,7 @@ class _MoveContentDialogState extends State<MoveContentDialog> {
               'Escolha a categoria de destino.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.s12),
             DropdownButtonFormField<String>(
               initialValue: _categoryId,
               decoration: const InputDecoration(labelText: 'Categoria'),

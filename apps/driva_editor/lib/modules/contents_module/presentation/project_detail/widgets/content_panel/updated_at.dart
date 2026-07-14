@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../../../core/util/date_format.dart';
 
@@ -24,13 +26,13 @@ class UpdatedAt extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.schedule, size: 12, color: colors.inkMuted),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.s4),
             Flexible(
               child: Text(
                 formatted,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colors.inkMuted,
-                  fontSize: 11,
+                  fontSize: AppTypography.sm,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
