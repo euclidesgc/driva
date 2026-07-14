@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/content_summary.dart';
@@ -53,7 +54,12 @@ class CategoryTreeView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 10, 6),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s14,
+              AppSpacing.s14,
+              AppSpacing.s10,
+              AppSpacing.s6,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -84,7 +90,7 @@ class CategoryTreeView extends StatelessWidget {
                 return switch (state) {
                   CategoryTreeLoading() => const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
+                      padding: EdgeInsets.all(AppSpacing.s24),
                       child: CircularProgressIndicator(),
                     ),
                   ),

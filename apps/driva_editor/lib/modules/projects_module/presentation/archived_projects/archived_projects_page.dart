@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/error.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../domain/use_cases/use_cases.dart';
@@ -44,7 +45,7 @@ class ArchivedProjectsPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(messageFor(s.failure)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.s12),
                     OutlinedButton(
                       onPressed: () =>
                           context.read<ArchivedProjectsCubit>().load(),
