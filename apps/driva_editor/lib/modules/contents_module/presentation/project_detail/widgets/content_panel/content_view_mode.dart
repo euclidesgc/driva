@@ -1,0 +1,1 @@
+enum ContentViewMode { grid, list }
