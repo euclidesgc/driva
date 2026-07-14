@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../palette_icons.dart';
 
@@ -37,7 +39,10 @@ class TreeRowContent extends StatelessWidget {
       child: InkWell(
         onTap: onSelect,
         child: Container(
-          padding: EdgeInsets.only(left: 12.0 + depth * 16, right: 4),
+          padding: EdgeInsets.only(
+            left: AppSpacing.s12 + depth * AppSpacing.s16,
+            right: AppSpacing.s4,
+          ),
           height: 34,
           decoration: BoxDecoration(
             color: isSelected
@@ -59,11 +64,11 @@ class TreeRowContent extends StatelessWidget {
                 size: 16,
                 color: isSelected ? AppTheme.primary : colors.inkSecondary,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: AppTypography.base),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

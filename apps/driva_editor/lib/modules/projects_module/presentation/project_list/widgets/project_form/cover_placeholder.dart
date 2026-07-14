@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 class CoverPlaceholder extends StatelessWidget {
@@ -20,7 +21,7 @@ class CoverPlaceholder extends StatelessWidget {
             size: 28,
             color: hovering ? theme.colorScheme.primary : colors.inkMuted,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.s8),
           Text(
             'Arraste uma imagem de capa\nou clique para escolher',
             textAlign: TextAlign.center,

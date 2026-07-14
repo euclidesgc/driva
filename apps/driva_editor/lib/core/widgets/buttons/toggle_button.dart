@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_radii.dart';
 import '../../theme/editor_colors.dart';
 
 class ToggleButton extends StatelessWidget {
@@ -28,14 +29,14 @@ class ToggleButton extends StatelessWidget {
         label: tooltip,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppRadii.r6),
           child: Container(
             width: 30,
             height: 28,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected ? colors.primaryTint : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadii.r6),
               border: selected
                   ? Border.all(color: theme.colorScheme.primary, width: 1)
                   : null,

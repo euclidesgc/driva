@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../domain/entities/category.dart';
 
 typedef CategoryFormResult = ({String name, String? parentId});
@@ -79,7 +80,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                     (value ?? '').trim().isEmpty ? 'Informe o nome.' : null,
                 onFieldSubmitted: (_) => _submit(),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               DropdownButtonFormField<String?>(
                 initialValue: _parentId,
                 decoration: const InputDecoration(labelText: 'Categoria pai'),
@@ -96,7 +97,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 ],
                 onChanged: (value) => setState(() => _parentId = value),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.s4),
               Text(
                 'Deixe em "Nenhuma (raiz)" para uma categoria de topo.',
                 style: Theme.of(context).textTheme.bodySmall,

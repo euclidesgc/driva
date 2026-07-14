@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
+import '../../../../../core/theme/app_typography.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import 'inspector/inspector.dart';
 import 'prop_field_editor.dart';
@@ -49,11 +51,14 @@ class InspectorPanel extends StatelessWidget {
           Expanded(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.s24),
                 child: Text(
                   'Conteúdo vazio. Adicione um widget para começar.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: colors.inkMuted, fontSize: 13),
+                  style: TextStyle(
+                    color: colors.inkMuted,
+                    fontSize: AppTypography.base,
+                  ),
                 ),
               ),
             ),
@@ -80,11 +85,14 @@ class InspectorPanel extends StatelessWidget {
               ? Center(
                   child: Text(
                     'Sem propriedades editáveis.',
-                    style: TextStyle(color: colors.inkMuted, fontSize: 13),
+                    style: TextStyle(
+                      color: colors.inkMuted,
+                      fontSize: AppTypography.base,
+                    ),
                   ),
                 )
               : ListView(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.s16),
                   children: [
                     for (final group in _groupsInOrder(descriptor)) ...[
                       GroupHeader(label: group),

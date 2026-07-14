@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_typography.dart';
+
 class StringEditor extends StatefulWidget {
   const StringEditor({
     super.key,
@@ -41,7 +43,7 @@ class _StringEditorState extends State<StringEditor> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
-      style: const TextStyle(fontSize: 13),
+      style: const TextStyle(fontSize: AppTypography.base),
       decoration: const InputDecoration(isDense: true),
       onChanged: (text) => widget.onChanged(
         text.isEmpty && !widget.field.isRequired ? null : text,

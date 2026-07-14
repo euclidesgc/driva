@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 class GroupHeader extends StatelessWidget {
@@ -11,11 +13,16 @@ class GroupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 2),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s12,
+        AppSpacing.s14,
+        AppSpacing.s12,
+        AppSpacing.s2,
+      ),
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          fontSize: 10,
+          fontSize: AppTypography.xs,
           letterSpacing: 0.6,
           fontWeight: FontWeight.w600,
           color: colors.inkMuted,

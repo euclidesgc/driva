@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../domain/entities/entities.dart';
 import 'cover_placeholder.dart';
@@ -35,7 +37,7 @@ class CoverPicker extends StatelessWidget {
       child: Tooltip(
         message: 'Formatos aceitos: PNG, JPG, WEBP',
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.r14),
           onTap: onPick,
           child: Stack(
             children: [
@@ -44,7 +46,7 @@ class CoverPicker extends StatelessWidget {
                 width: double.infinity,
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadii.r14),
                   border: Border.all(
                     color: hovering ? theme.colorScheme.primary : colors.border,
                     width: hovering ? 2 : 1,
@@ -71,7 +73,7 @@ class CoverPicker extends StatelessWidget {
                         customBorder: const CircleBorder(),
                         onTap: onClear,
                         child: const Padding(
-                          padding: EdgeInsets.all(6),
+                          padding: EdgeInsets.all(AppSpacing.s6),
                           child: Icon(
                             Icons.close,
                             size: 16,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../contents_module/contents_module.dart';
 import '../../../../domain/entities/entities.dart';
 import '../../../widgets/project_card.dart';
@@ -15,7 +16,12 @@ class ProjectsHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 34, 28, 80),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s28,
+        34,
+        AppSpacing.s28,
+        80,
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: Column(
@@ -32,7 +38,7 @@ class ProjectsHome extends StatelessWidget {
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.s12),
                 Text(
                   '${projects.length} ${projects.length == 1 ? 'projeto' : 'projetos'}',
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -47,8 +53,8 @@ class ProjectsHome extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 340,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
+                mainAxisSpacing: AppSpacing.s20,
+                crossAxisSpacing: AppSpacing.s20,
                 mainAxisExtent: 290,
               ),
               itemCount: projects.length,

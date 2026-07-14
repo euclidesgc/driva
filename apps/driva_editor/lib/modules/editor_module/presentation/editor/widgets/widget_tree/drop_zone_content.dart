@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 /// Corpo do `builder:` do [DragTarget] da zona de soltar: a moldura com o
@@ -21,7 +24,7 @@ class DropZoneContent extends StatelessWidget {
     final colors = Theme.of(context).extension<EditorColors>()!;
     final active = isDragOver;
     return Container(
-      margin: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(AppSpacing.s12),
       height: 44,
       decoration: BoxDecoration(
         color: active ? colors.primaryTint : null,
@@ -29,13 +32,13 @@ class DropZoneContent extends StatelessWidget {
           color: active ? AppTheme.primary : colors.border,
           style: BorderStyle.solid,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.r8),
       ),
       child: Center(
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppTypography.md,
             color: active ? AppTheme.primary : colors.inkMuted,
           ),
         ),

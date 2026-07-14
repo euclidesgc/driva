@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/cover_gradients.dart';
 import '../../domain/entities/entities.dart';
 import 'gradient_texture.dart';
 
@@ -24,7 +28,7 @@ class ProjectCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradient = _gradientFor(project.id);
+    final gradient = AppCoverGradients.forSeed(project.id);
     final initial = project.title.trim().isNotEmpty
         ? project.title.trim()[0].toUpperCase()
         : '?';
@@ -50,7 +54,7 @@ class ProjectCover extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(11),
+                borderRadius: BorderRadius.circular(AppRadii.r11),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               alignment: Alignment.center,
@@ -59,7 +63,7 @@ class ProjectCover extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
-                  fontSize: 20,
+                  fontSize: AppTypography.xl,
                 ),
               ),
             ),
@@ -76,16 +80,16 @@ class ProjectCover extends StatelessWidget {
                   child: Material(
                     color: Colors.black.withValues(alpha: hovered ? 0.5 : 0.32),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(AppRadii.r9),
                       side: BorderSide(
                         color: Colors.white.withValues(alpha: 0.18),
                       ),
                     ),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(AppRadii.r9),
                       onTap: onEdit,
                       child: const Padding(
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.all(AppSpacing.s8),
                         child: Icon(
                           Icons.edit_outlined,
                           size: 16,
@@ -100,19 +104,5 @@ class ProjectCover extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  List<Color> _gradientFor(String seed) {
-    // Paleta fixa de gradientes (o protótipo alterna laranja/violeta); a
-    // escolha por hash do id mantém o card com a mesma cor entre reloads.
-    const palettes = [
-      [Color(0xFFE07B39), Color(0xFFD96E2B)],
-      [Color(0xFF7A5CF0), Color(0xFF5B3FD1)],
-      [Color(0xFF2FA88E), Color(0xFF1F8A73)],
-      [Color(0xFFD1476B), Color(0xFFB13457)],
-    ];
-    final index =
-        seed.codeUnits.fold<int>(0, (sum, c) => sum + c) % palettes.length;
-    return palettes[index];
   }
 }

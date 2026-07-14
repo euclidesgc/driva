@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 class LineGutter extends StatelessWidget {
@@ -18,7 +19,7 @@ class LineGutter extends StatelessWidget {
   Widget build(BuildContext context) {
     final numbers = [for (var i = 1; i <= count; i++) '$i'].join('\n');
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       decoration: BoxDecoration(
         border: Border(right: BorderSide(color: colors.border)),
       ),

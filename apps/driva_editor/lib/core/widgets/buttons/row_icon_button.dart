@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_radii.dart';
+import '../../theme/app_spacing.dart';
 import '../../theme/editor_colors.dart';
 
 class RowIconButton extends StatelessWidget {
@@ -21,9 +23,9 @@ class RowIconButton extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppRadii.r6),
         child: Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(AppSpacing.s4),
           child: Icon(icon, size: 14, color: colors.inkMuted),
         ),
       ),

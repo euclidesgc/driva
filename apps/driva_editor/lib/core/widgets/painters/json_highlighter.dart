@@ -1,18 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Cores do syntax highlight do JSON. Ficam junto do highlighter (e não no
-/// [AppTheme] global) porque só o painel de preview as usa.
-///
-/// Acessibilidade: a cor não é o único sinal — o texto continua legível como
-/// JSON indentado; o realce apenas reforça a estrutura já visível.
-abstract final class JsonHighlightColors {
-  static const Color key = Color(0xFF0550AE);
-  static const Color string = Color(0xFF0A7C42);
-  static const Color number = Color(0xFFB45309);
-  static const Color keyword = Color(0xFF8250DF);
-  static const Color punctuation = Color(0xFF6B7280);
-  static const Color plain = Color(0xFF3A3F47);
-}
+import '../../theme/syntax_colors.dart';
 
 /// Highlighter próprio (sem dependência) que colore um JSON já formatado
 /// (indentado) em [TextSpan]s: chaves, strings, números, literais
@@ -22,7 +10,11 @@ abstract final class JsonHighlightColors {
 /// se for `:`, a string é uma chave. Trabalha sobre a saída de
 /// `JsonEncoder.withIndent`, então não precisa ser um parser completo.
 abstract final class JsonHighlighter {
-  static List<TextSpan> highlight(String json, {required TextStyle base}) {
+  static List<TextSpan> highlight(
+    String json, {
+    required TextStyle base,
+    required SyntaxColors colors,
+  }) {
     final spans = <TextSpan>[];
     final length = json.length;
     var i = 0;
@@ -51,9 +43,7 @@ abstract final class JsonHighlighter {
         spans.add(
           TextSpan(
             text: text,
-            style: styled(
-              isKey ? JsonHighlightColors.key : JsonHighlightColors.string,
-            ),
+            style: styled(isKey ? colors.key : colors.string),
           ),
         );
         continue;
@@ -67,7 +57,7 @@ abstract final class JsonHighlighter {
         spans.add(
           TextSpan(
             text: json.substring(start, i),
-            style: styled(JsonHighlightColors.number),
+            style: styled(colors.number),
           ),
         );
         continue;
@@ -81,22 +71,18 @@ abstract final class JsonHighlighter {
             : json[i] == 't'
             ? 'true'
             : 'null';
-        spans.add(
-          TextSpan(text: keyword, style: styled(JsonHighlightColors.keyword)),
-        );
+        spans.add(TextSpan(text: keyword, style: styled(colors.keyword)));
         i += keyword.length;
         continue;
       }
 
       if (_isPunctuation(char)) {
-        spans.add(
-          TextSpan(text: char, style: styled(JsonHighlightColors.punctuation)),
-        );
+        spans.add(TextSpan(text: char, style: styled(colors.punctuation)));
         i++;
         continue;
       }
 
-      spans.add(TextSpan(text: char, style: styled(JsonHighlightColors.plain)));
+      spans.add(TextSpan(text: char, style: styled(colors.plain)));
       i++;
     }
 

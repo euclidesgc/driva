@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/error.dart';
 import '../../../../core/network/project_scope.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../injection.dart';
 import '../../../contents_module/contents_module.dart';
 import '../../../projects_module/projects_module.dart';
@@ -57,7 +58,7 @@ class EditorPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(_messageFor(s.failure)),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.s12),
                 OutlinedButton(
                   onPressed: () => context.goNamed(
                     ContentsRoutes.projectDetailName,
