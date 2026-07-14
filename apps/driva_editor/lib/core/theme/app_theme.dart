@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'app_durations.dart';
+import 'app_radii.dart';
+import 'device_mock_colors.dart';
 import 'editor_colors.dart';
+import 'syntax_colors.dart';
 
 /// Base theme of the editor.
 ///
@@ -40,8 +44,13 @@ abstract final class AppTheme {
       fontFamily: 'Public Sans',
     );
 
+    final isDark = brightness == Brightness.dark;
     return base.copyWith(
-      extensions: [colors],
+      extensions: [
+        colors,
+        isDark ? DeviceMockColors.dark : DeviceMockColors.light,
+        isDark ? SyntaxColors.dark : SyntaxColors.light,
+      ],
       scaffoldBackgroundColor: colors.canvasBackdrop,
       dividerColor: colors.border,
       appBarTheme: AppBarTheme(
@@ -56,7 +65,7 @@ abstract final class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           side: BorderSide(color: colors.border),
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderRadius: const BorderRadius.all(Radius.circular(AppRadii.r12)),
         ),
       ),
       textTheme: base.textTheme.apply(
@@ -67,14 +76,18 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.r8),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colors.inkPrimary,
           side: BorderSide(color: colors.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.r8),
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -82,21 +95,19 @@ abstract final class AppTheme {
         fillColor: colors.panelAlt,
         hintStyle: TextStyle(color: colors.inkMuted),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.r8),
           borderSide: BorderSide(color: colors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.r8),
           borderSide: BorderSide(color: colors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.r8),
           borderSide: const BorderSide(color: primary, width: 2),
         ),
       ),
-      tooltipTheme: const TooltipThemeData(
-        waitDuration: Duration(milliseconds: 400),
-      ),
+      tooltipTheme: const TooltipThemeData(waitDuration: AppDurations.slow),
     );
   }
 }
