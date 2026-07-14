@@ -8,7 +8,7 @@ import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
-import 'json_highlighter.dart';
+import '../../../../../core/widgets/painters/painters.dart';
 
 /// Painel de preview do JSON do spec em tempo real (itens 7 e 8 do roadmap).
 ///

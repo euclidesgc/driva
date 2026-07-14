@@ -1,4 +1,4 @@
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/dashed_border_painter.dart';
+import 'package:driva_editor/core/widgets/painters/painters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

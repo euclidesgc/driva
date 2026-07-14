@@ -9,7 +9,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
 import '../device_preset.dart';
-import 'dashed_border_painter.dart';
+import '../../../../../core/widgets/painters/painters.dart';
 import 'drag_payload.dart';
 
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
