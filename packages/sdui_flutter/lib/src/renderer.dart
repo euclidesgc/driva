@@ -18,14 +18,8 @@ class SduiRenderer {
   final SduiActionHandler? onAction;
   final SduiNodeWrapper? nodeWrapper;
 
-  Widget render(BuildContext context, SduiNode node) {
-    final builder = registry[node.type];
-    final built = builder == null
-        ? _UnknownTypeBox(type: node.type)
-        : builder(context, node, this);
-    final wrapper = nodeWrapper;
-    return wrapper == null ? built : wrapper(node, built);
-  }
+  Widget render(BuildContext context, SduiNode node) =>
+      _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
 
   /// Renderiza um filho opcional (`null` se ausente — para slots `child`).
   Widget? maybeRender(BuildContext context, SduiNode? node) =>
@@ -45,6 +39,30 @@ class SduiRenderer {
         handler(SduiAction.fromJson(a.cast<String, dynamic>()));
       }
     }
+  }
+}
+
+/// Cada nó do spec vira um [StatelessWidget] próprio, chaveado pelo `id`.
+///
+/// Isola o rebuild no ponto certo: uma mudança num nó reconstrói só o seu
+/// subtree — não o preview inteiro —, e a `ValueKey(id)` preserva a identidade
+/// de elemento/estado quando um nó se move na árvore. É transparente ao render
+/// tree (não introduz `RenderObject`), então o pixel e o parent-data (ex.:
+/// `Expanded` dentro de um `Row`/`Column`) continuam idênticos.
+class _SduiNodeView extends StatelessWidget {
+  const _SduiNodeView({super.key, required this.renderer, required this.node});
+
+  final SduiRenderer renderer;
+  final SduiNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final builder = renderer.registry[node.type];
+    final built = builder == null
+        ? _UnknownTypeBox(type: node.type)
+        : builder(context, node, renderer);
+    final wrapper = renderer.nodeWrapper;
+    return wrapper == null ? built : wrapper(node, built);
   }
 }
 
