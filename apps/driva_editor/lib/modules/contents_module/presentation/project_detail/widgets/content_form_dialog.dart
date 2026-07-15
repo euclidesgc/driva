@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/util/slug.dart';
+import '../../../../../core/widgets/feedback/feedback.dart';
 import '../../../domain/entities/category.dart';
-import 'conflict_banner.dart';
 
 typedef ContentFormResult = ({
   String name,
@@ -104,7 +104,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (widget.conflictMessage != null) ...[
-                ConflictBanner(message: widget.conflictMessage!),
+                MessageBanner(message: widget.conflictMessage!),
                 const SizedBox(height: 12),
               ],
               TextFormField(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/editor_colors.dart';
+import '../../../../../../core/widgets/buttons/buttons.dart';
 import 'content_view_mode.dart';
-import 'toggle_button.dart';
 
 class ViewModeToggle extends StatelessWidget {
   const ViewModeToggle({

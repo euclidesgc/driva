@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// Aviso de erro do formulário: ícone + texto (a cor não é o único sinal).
-class ProjectFormErrorBanner extends StatelessWidget {
-  const ProjectFormErrorBanner({super.key, required this.message});
+/// Banner de mensagem (aviso/erro): ícone + texto, para a cor não ser o único
+/// sinal. O [semanticsPrefix] rotula a natureza da mensagem para leitores de
+/// tela ("Aviso: ..." / "Erro: ...").
+class MessageBanner extends StatelessWidget {
+  const MessageBanner({
+    super.key,
+    required this.message,
+    this.semanticsPrefix = 'Aviso',
+  });
 
   final String message;
+  final String semanticsPrefix;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
       liveRegion: true,
-      label: 'Erro: $message',
+      label: '$semanticsPrefix: $message',
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(

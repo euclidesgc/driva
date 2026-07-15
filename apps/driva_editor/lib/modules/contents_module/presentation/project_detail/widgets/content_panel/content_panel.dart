@@ -14,6 +14,5 @@ export 'panel_error.dart';
 export 'slug_badge.dart';
 export 'sort_control.dart';
 export 'support_id.dart';
-export 'toggle_button.dart';
 export 'updated_at.dart';
 export 'view_mode_toggle.dart';

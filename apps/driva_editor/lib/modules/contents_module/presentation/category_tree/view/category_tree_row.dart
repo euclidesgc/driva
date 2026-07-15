@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/editor_colors.dart';
-import 'row_icon_button.dart';
+import '../../../../../core/widgets/buttons/buttons.dart';
 
 /// A linha visual de uma categoria (ou do pseudo-nó "Todos os conteúdos"). Puro
 /// desenho a partir dos dados/estado recebidos pelo construtor — o hover e o
