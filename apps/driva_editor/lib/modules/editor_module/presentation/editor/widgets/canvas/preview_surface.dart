@@ -10,10 +10,7 @@ import '../../cubit/editor_cubit.dart';
 import 'empty_preview.dart';
 import 'selectable_node.dart';
 
-/// Superfície do preview. Assina `document`/`selectedNodeId` direto do cubit,
-/// mas **throttla** a re-renderização do documento (o custo caro é o renderer
-/// real): a digitação rápida é coalescida numa janela curta, com render final
-/// garantido. A seleção reflete na hora (o contorno precisa ser imediato).
+/// Throttla o re-render do documento: o renderer real é caro a cada tecla.
 class PreviewSurface extends StatefulWidget {
   const PreviewSurface({super.key, required this.onSelect});
 
@@ -32,8 +29,6 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
   late ContentSpec _rendered;
   String? _selectedNodeId;
 
-  /// Nó sob o cursor. Estado **efêmero e local do canvas**: não vai ao cubit
-  /// (não rebuilda o editor inteiro nem persiste), só realça o contorno.
   String? _hoveredNodeId;
   Timer? _cooldown;
   bool _pendingRender = false;
@@ -86,7 +81,6 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
     final root = document.root;
     final isEmpty = root == null;
     return GestureDetector(
-      // Clique no vazio limpa a seleção (volta às propriedades do conteúdo).
       onTap: () => widget.onSelect(null),
       child: isEmpty
           ? const EmptyPreview()

@@ -4,9 +4,6 @@ import 'package:sdui_core/sdui_core.dart';
 import '../parsing/parsers.dart';
 import '../renderer.dart';
 
-/// Button. Props planas (`backgroundColor`, `foregroundColor`,
-/// `borderRadius`, `fontSize`) viram [ButtonStyle]; `onPressed` despacha as
-/// ações do spec via [SduiRenderer.dispatch].
 Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final enabled = p['enabled'] as bool? ?? true;

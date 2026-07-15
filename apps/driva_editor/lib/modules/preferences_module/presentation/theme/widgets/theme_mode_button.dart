@@ -5,12 +5,6 @@ import '../../../domain/entities/app_theme_mode.dart';
 import '../cubit/theme_cubit.dart';
 import 'theme_menu_item.dart';
 
-/// Controle de tema para as top bars: abre um menu com as 3 opcoes
-/// (claro/escuro/sistema), dando acesso direto a qualquer uma.
-///
-/// Cada item tem icone + rotulo pt-BR e a opcao ativa e marcada com um check —
-/// a cor nunca e o unico sinal (acessibilidade). O estado atual e anunciado via
-/// `Semantics` e pelo tooltip.
 class ThemeModeButton extends StatelessWidget {
   const ThemeModeButton({super.key});
 

@@ -6,15 +6,7 @@ import '../../../../../../core/theme/device_mock_colors.dart';
 import '../../../../../../core/widgets/painters/painters.dart';
 import 'node_tag.dart';
 
-/// Contorno + rótulo sobre o widget renderizado.
-///
-/// Seleção = contorno sólido + tag destacada. Fora de seleção, cada nó recebe
-/// uma **borda tracejada discreta + tag pequena com o nome**, para o usuário
-/// perceber que há um componente ali mesmo quando ele é pequeno ou vazio
-/// (feedback ao soltar no mock).
-///
-/// `spacer`/tipos de flex NÃO são envolvidos (precisam ser filhos diretos de
-/// Row/Column) — eles se selecionam pela árvore.
+/// `spacer` não é envolvido: precisa ser filho direto de Row/Column.
 class SelectableNode extends StatelessWidget {
   const SelectableNode({
     super.key,
@@ -35,9 +27,6 @@ class SelectableNode extends StatelessWidget {
 
   static const _unwrappable = {'spacer'};
 
-  /// Contorno de hover: laranja da marca com opacidade baixa — reforço leve,
-  /// abaixo da seleção sólida na precedência. A tag/nome continuam sendo o
-  /// sinal permanente (o hover não é o único indicador).
   static final _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
 
   @override

@@ -2,8 +2,6 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/category.dart';
 
-/// Um nó da árvore de categorias, com os filhos já resolvidos.
-///
 /// A API devolve a lista **flat**; montar a árvore por `parentId` é
 /// derivação da presentation (decisão registrada no contrato do
 /// repositório) — é isso que [CategoryNode.buildForest] faz.

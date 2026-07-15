@@ -5,8 +5,7 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockDio extends Mock implements Dio {}
 
-// `updatedAt` da fixture — a `imageUrl` resolvida ganha `?v=<epoch>` como
-// cache-buster (a URL de serving é estável, então versionamos pelo updatedAt).
+// A `imageUrl` resolvida ganha `?v=<epoch do updatedAt>` como cache-buster.
 const _updatedAt = '2026-07-11T00:00:00.000Z';
 final _version = DateTime.parse(_updatedAt).millisecondsSinceEpoch;
 

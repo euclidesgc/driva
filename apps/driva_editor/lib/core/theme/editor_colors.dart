@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Tokens de cor do editor que reagem ao tema (claro/escuro).
-///
-/// Substituem as antigas constantes `static const` de `AppTheme`, que não
-/// mudavam com o tema e deixavam painéis/labels claros no dark. Cada token
-/// resolve para o valor certo via `Theme.of(context).extension<EditorColors>()`.
-///
 /// Paleta calibrada para WCAG AA (texto >= 4.5:1; muted >= 4.0:1).
 class EditorColors extends ThemeExtension<EditorColors> {
   const EditorColors({
@@ -20,31 +14,22 @@ class EditorColors extends ThemeExtension<EditorColors> {
     required this.success,
   });
 
-  /// Fundo atrás do mock e do scaffold.
   final Color canvasBackdrop;
 
-  /// Painéis, appbar e superfície de card.
   final Color panel;
 
-  /// Inputs, dropdowns e hover.
   final Color panelAlt;
 
-  /// Texto principal.
   final Color inkPrimary;
 
-  /// Texto secundário (labels, descrições).
   final Color inkSecondary;
 
-  /// Texto apagado (hints, placeholders, desabilitado).
   final Color inkMuted;
 
-  /// Bordas e divisores.
   final Color border;
 
-  /// Fundo do item selecionado/ativo.
   final Color primaryTint;
 
-  /// Feedback de sucesso (ex.: "salvo").
   final Color success;
 
   static const EditorColors light = EditorColors(

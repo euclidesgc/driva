@@ -7,7 +7,6 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 ContentSpec _loadFixtureContent() {
-  // A fixture do sdui_core é o contrato compartilhado kernel ↔ renderer.
   final local = File('../sdui_core/test/fixtures/content_valid.json');
   final file = local.existsSync()
       ? local

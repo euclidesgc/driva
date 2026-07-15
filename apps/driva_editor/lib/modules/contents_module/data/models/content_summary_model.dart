@@ -25,8 +25,6 @@ class ContentSummaryModel extends ContentSummary {
     'updatedAt': z.date(),
   });
 
-  /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
-  /// nunca um cast cru estourando.
   static Either<Failure, ContentSummaryModel> tryParse(
     Map<String, dynamic> map,
   ) {

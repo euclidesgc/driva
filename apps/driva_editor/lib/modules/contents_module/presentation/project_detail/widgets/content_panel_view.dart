@@ -11,14 +11,6 @@ import '../../../domain/entities/content_summary.dart';
 import '../../content_list/cubit/content_list_cubit.dart';
 import 'content_panel/content_panel.dart';
 
-/// O painel de conteúdos à direita da tela do projeto: busca com debounce,
-/// alternância grade/lista e o `switch` exaustivo sobre `ContentListState`.
-///
-/// [categoryLabel]/[categoryCount] descrevem o nó selecionado na árvore (o
-/// header "Home · 2 conteúdos" do `.dc.html`); [onOpenContent] navega ao
-/// Construtor; [onNewContent]/[onEditContent]/[onDeleteContent] abrem os
-/// formulários/confirmações (donos do modal ficam em `ProjectDetailPage`).
-///
 /// [isAllContents] indica que o filtro atual é o pseudo-nó "Todos os
 /// conteúdos" (`categoryId: null`), não uma categoria real — muda a
 /// mensagem do estado vazio.

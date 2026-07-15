@@ -22,10 +22,6 @@ class _MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
 
 class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
-// Golden de caracterização do canvas do editor (F1 do refactor): congela a
-// moldura de dispositivo (device-mock) com o documento renderizado pelo
-// renderer real. Preserva o "chrome" desenhado à mão (corpo/bezel/botões/
-// recorte de câmera) pixel a pixel antes de qualquer refactor.
 void main() {
   setUpAll(() async {
     await loadAppFonts();
@@ -99,8 +95,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(harness());
-    // Evita `pumpAndSettle` (o preview pode manter timers de throttle vivos):
-    // um pump constrói o frame, o segundo resolve o `FutureBuilder` do projeto.
+    // `pumpAndSettle` trava: o preview mantém timers de throttle vivos.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
 

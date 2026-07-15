@@ -6,8 +6,6 @@ import '../../domain/entities/content_summary.dart';
 import '../../domain/entities/contents_page.dart';
 import 'content_summary_model.dart';
 
-/// Parse do envelope `{ data, nextCursor }` de `GET /v1/contents`.
-///
 /// A forma do envelope (`data` é lista, `nextCursor` é string opaca ou
 /// `null`) é validada aqui via zard. `z.map` descarta chaves sem schema
 /// próprio no resultado — por isso cada item de `data` é revalidado, com o
@@ -22,8 +20,6 @@ class ContentsPageModel {
     'nextCursor': z.string().nullable().optional(),
   });
 
-  /// Valida o envelope e cada item de `data`. Qualquer item inválido — ou o
-  /// envelope fora da forma — vira `ValidationFailure` descritiva.
   static Either<Failure, ContentsPage> tryParse(Map<String, dynamic> map) {
     final envelope = _envelopeSchema.safeParse(map);
     if (!envelope.success) {

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'resize_handle.dart';
 
-/// Layout de 3 colunas com divisores arrastáveis (padrão de editor desktop):
-/// painel esquerdo e direito com largura ajustável, centro flexível.
 class ResizableSplitView extends StatefulWidget {
   const ResizableSplitView({
     super.key,

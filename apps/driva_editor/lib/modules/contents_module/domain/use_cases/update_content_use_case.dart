@@ -5,9 +5,6 @@ import '../../../../core/util/slug.dart';
 import '../entities/content_summary.dart';
 import '../repositories/contents_repository.dart';
 
-/// Renomeia, move (`categoryId`) e/ou edita slug/descrição de um conteúdo
-/// existente. `categoryId` ausente preserva a categoria atual — é assim que
-/// o form de "editar" (sem tocar a categoria) difere do de "mover".
 class UpdateContentUseCase {
   final ContentsRepository repository;
   const UpdateContentUseCase({required this.repository});

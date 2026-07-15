@@ -39,7 +39,7 @@ class CategoryRow extends StatefulWidget {
   /// irmão de "Geral" e demais categorias.
   final bool isAllContentsShortcut;
 
-  /// Soltar um conteúdo arrastado sobre esta linha (feature 10, fase 3).
+  /// Soltar um conteúdo arrastado sobre esta linha.
   /// `null` para o pseudo-nó "Todos os conteúdos": ele não vira
   /// `DragTarget`, nunca é alvo de drop.
   final ValueChanged<ContentSummary>? onAcceptContent;

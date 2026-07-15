@@ -24,16 +24,12 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { MAX_UPLOAD_BYTES, processUploadedImage } from './image-pipeline';
 
-/** Escopo de tenant vem do header `x-project-id`, no mesmo padrão de `contents`. */
 const projectOf = (header?: string) =>
   header && header.trim().length > 0 ? header.trim() : 'default';
 
-/** `?status=active|archived` — default `active` (home só mostra os não-arquivados). */
 const statusOf = (raw?: string): ProjectStatus =>
   raw === 'archived' ? 'archived' : 'active';
 
-// Rate-limit dedicado ao upload (create/update com imagem) — mais restritivo
-// que o default global, pois reencode com sharp é a rota mais cara em CPU.
 const UPLOAD_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
 
 @Controller('projects')
@@ -110,12 +106,6 @@ export class ProjectsController {
     return this.projects.unarchive(id);
   }
 
-  /**
-   * Serving seguro da imagem: content-type fixado no valor detectado pelo
-   * pipeline no momento do upload (nunca inferido do nome do arquivo/key) +
-   * `X-Content-Type-Options: nosniff` — o browser nunca reinterpreta o
-   * binário como outro tipo (ex.: HTML/SVG disfarçado).
-   */
   @Get(':id/image')
   @Header('X-Content-Type-Options', 'nosniff')
   async getImage(@Param('id') id: string, @Res() res: Response) {

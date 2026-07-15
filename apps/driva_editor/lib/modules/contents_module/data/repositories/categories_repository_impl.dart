@@ -8,7 +8,7 @@ import '../models/models.dart';
 
 class CategoriesRepositoryImpl implements CategoriesRepository {
   final Dio dio;
-  CategoriesRepositoryImpl(this.dio); // o Dio compartilhado, injetado
+  CategoriesRepositoryImpl(this.dio);
 
   @override
   Future<Either<Failure, List<Category>>> getCategories() async {
@@ -73,10 +73,6 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
     }
   }
 
-  // O único try/catch do módulo mora nesta classe: HTTP vira Failure aqui.
-  // O 409 aqui é o `onDelete: Restrict` do backend (categoria com conteúdos
-  // ou filhos) — mensagem própria, sem `suggestedSlug` (específico de
-  // conteúdo).
   Failure _failureFor(DioException e) => switch (e.type) {
     DioExceptionType.connectionTimeout ||
     DioExceptionType.receiveTimeout ||
@@ -97,9 +93,6 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
     _ => const UnexpectedFailure(),
   };
 
-  /// Extrai uma mensagem de erro do corpo do 400, quando o backend a
-  /// oferece (Nest/class-validator costuma mandar `message`). Ausente →
-  /// mensagem default do `ValidationFailure`.
   String? _messageFrom(dynamic body) {
     if (body is Map && body['message'] is String) {
       return body['message'] as String;

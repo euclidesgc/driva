@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_typography.dart';
 
-/// Um lado do editor de `EdgeInsets` (E/T/D/B): o `TextField` numérico
-/// centralizado que compõe a linha do [EdgeInsetsEditor]. Recebe o controller
-/// do lado, o rótulo curto e o callback de texto pelo construtor.
 class EdgeInsetsSideField extends StatelessWidget {
   const EdgeInsetsSideField({
     super.key,

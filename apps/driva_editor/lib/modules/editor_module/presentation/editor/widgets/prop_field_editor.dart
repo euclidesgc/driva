@@ -7,12 +7,10 @@ import '../../../../../core/theme/app_typography.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import 'prop_field/prop_field.dart';
 
-/// Fábrica `FieldKind → editor`: o Inspector deriva cada campo daqui.
-/// Emitir `null` em [onChanged] remove a chave (volta ao default do renderer).
+/// `null` em [onChanged] remove a chave (volta ao default do renderer).
 ///
-/// Os editores de texto guardam um [TextEditingController] próprio e a
-/// identidade do campo vive na key do Inspector (`nodeId_fieldKey`), não no
-/// valor — assim o campo não é recriado a cada tecla e o foco permanece.
+/// A key do campo vem do Inspector (`nodeId_fieldKey`), nunca do valor: pelo
+/// valor, o campo é recriado a cada tecla e o foco se perde.
 class PropFieldEditor extends StatelessWidget {
   const PropFieldEditor({
     super.key,

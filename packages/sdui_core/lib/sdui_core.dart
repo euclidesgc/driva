@@ -1,5 +1,3 @@
-/// Kernel do spec SDUI do driva: modelos, schema de validação, catálogo de
-/// widgets e operações puras de árvore. Dart puro — nada de `package:flutter`.
 library;
 
 export 'src/catalog/field_kind.dart';

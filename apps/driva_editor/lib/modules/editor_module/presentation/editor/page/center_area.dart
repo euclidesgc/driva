@@ -5,10 +5,6 @@ import '../widgets/json_preview_panel.dart';
 import 'canvas_area.dart';
 import 'center_tab_label.dart';
 
-/// Área central com abas ao estilo VS Code: alterna entre o **Mock** (canvas)
-/// e o **JSON** do spec ao vivo. Só a casca (a `TabBar`) vive aqui; cada aba
-/// assina sua própria fatia do cubit, então trocar de aba não reconstrói a
-/// outra desnecessariamente.
 class CenterArea extends StatelessWidget {
   const CenterArea({super.key});
 

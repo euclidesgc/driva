@@ -5,8 +5,6 @@ import '../../../../../core/theme/app_spacing.dart';
 import 'drag_payload.dart';
 import 'widget_tree/widget_tree.dart';
 
-/// Árvore de widgets do conteúdo: seleção, remoção e drag-and-drop
-/// (reordenar/aninhar nós, soltar itens da paleta).
 class WidgetTreePanel extends StatelessWidget {
   const WidgetTreePanel({
     super.key,
@@ -18,18 +16,14 @@ class WidgetTreePanel extends StatelessWidget {
     required this.onMoveInto,
   });
 
-  /// Raiz do conteúdo. `null` no conteúdo vazio — a árvore fica vazia e o único
-  /// alvo de soltar é a zona que **define a raiz** (primeiro widget).
   final SduiNode? root;
   final String? selectedNodeId;
   final ValueChanged<String> onSelect;
   final ValueChanged<String> onRemove;
 
-  /// Cria um nó da paleta dentro de `parentId` em `index`. Com `parentId` null
-  /// (conteúdo vazio), o nó vira a raiz.
+  /// Com `parentId` null (conteúdo vazio), o nó vira a raiz.
   final void Function(String type, String? parentId, int index) onAddInto;
 
-  /// Move um nó existente para `parentId` em `index`.
   final void Function(String nodeId, String parentId, int index) onMoveInto;
 
   @override
@@ -47,8 +41,6 @@ class WidgetTreePanel extends StatelessWidget {
             children: rows,
           ),
         ),
-        // Zona de soltar: no fim do conteúdo, ou — com o conteúdo vazio —
-        // definindo o primeiro widget como raiz.
         DropZone(
           label: root == null
               ? 'Solte um widget aqui para começar'
@@ -96,8 +88,6 @@ class WidgetTreePanel extends StatelessWidget {
     }
   }
 
-  /// Soltar SOBRE um nó: quem aceita filhos recebe dentro (no fim); folha
-  /// recebe como vizinho seguinte no pai.
   void _dropOn(SduiNode root, SduiNode target, DragPayload payload) {
     final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
     final acceptsChildren =

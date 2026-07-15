@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../domain/entities/category.dart';
 
-/// Form modal de "mover conteúdo": só o seletor de categoria-destino, fiel
-/// ao `.dc.html` (ícone dedicado `onMove` no card/linha, separado de
-/// "editar"). Devolve o `categoryId` escolhido, ou `null` se cancelado.
-///
 /// Sem opção "Não categorizado": todo conteúdo sempre tem uma categoria (a
 /// "Geral" é o default do backend quando a escrita omite `categoryId`) — e
 /// o contrato de update **omite** a chave quando `categoryId` é nulo (não

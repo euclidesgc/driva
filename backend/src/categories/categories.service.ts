@@ -137,7 +137,6 @@ export class CategoriesService {
     }
   }
 
-  /** Impede que uma categoria vire pai de um dos seus próprios ancestrais/dela mesma. */
   private async assertNoCycle(
     id: string,
     newParentId: string,

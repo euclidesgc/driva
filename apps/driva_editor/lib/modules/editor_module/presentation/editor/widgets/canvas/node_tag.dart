@@ -5,8 +5,6 @@ import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/device_mock_colors.dart';
 
-/// Tag pequena com o nome do componente. Destacada quando selecionado; discreta
-/// (só um sinal a mais de "há algo aqui") caso contrário.
 class NodeTag extends StatelessWidget {
   const NodeTag({super.key, required this.label, required this.isSelected});
 

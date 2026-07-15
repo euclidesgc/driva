@@ -4,8 +4,6 @@ import '../../../../core/error/error.dart';
 import '../entities/category.dart';
 import '../repositories/categories_repository.dart';
 
-/// Renomeia e/ou move (`parentId`) uma categoria. `parentId` ausente preserva
-/// o pai atual; `parentId: () => null` move o nó para a raiz.
 class UpdateCategoryUseCase {
   final CategoriesRepository repository;
   const UpdateCategoryUseCase({required this.repository});

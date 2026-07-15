@@ -2,12 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
-/// Carrega as fontes reais do app (`Public Sans` / `Space Grotesk`) no ambiente
-/// de teste, para os goldens e widgets renderizarem com a tipografia de
-/// produção em vez do fallback "tofu"/Ahem.
-///
-/// `flutter test` roda com o diretório de trabalho na raiz do pacote
-/// (`apps/driva_editor`), então os caminhos são relativos a ela.
+/// Sem isto os goldens saem com o fallback "tofu"/Ahem. Os caminhos são
+/// relativos à raiz do pacote (`apps/driva_editor`), o cwd do `flutter test`.
 Future<void> loadAppFonts() async {
   await _loadFamily('Public Sans', const [
     'fonts/public_sans/PublicSans-Regular.ttf',

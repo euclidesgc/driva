@@ -5,7 +5,6 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _loadFixture(String name) {
-  // Funciona rodando da raiz do workspace ou de dentro do pacote.
   final local = File('test/fixtures/$name');
   final file = local.existsSync()
       ? local

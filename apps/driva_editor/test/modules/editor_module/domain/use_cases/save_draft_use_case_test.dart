@@ -39,8 +39,7 @@ void main() {
   });
 
   test('barra spec que o kernel rejeitaria, sem tocar o repositório', () async {
-    // Folha (text) com filhos viola o contrato de slot: o editor nunca produz
-    // isso; a trava garante.
+    // Inválido: `text` é folha, não aceita children.
     const invalid = ContentSpec(
       specVersion: kSpecVersion,
       id: 'ct_1',

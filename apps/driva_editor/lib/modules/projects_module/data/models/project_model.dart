@@ -17,22 +17,7 @@ class ProjectModel extends Project {
     super.archivedAt,
   });
 
-  // A forma esperada do item de `GET /v1/projects` e do detalhe
-  // (`GET/POST/PUT /v1/projects/:id`), declarada uma vez. Sem `slug`
-  // (decisão travada no PRD). Atenção: o backend serve `imageUrl` (URL
-  // servível), NUNCA `imageKey` (detalhe interno de storage) — o model só
-  // conhece `imageUrl`, nullable quando o projeto não tem imagem.
-  //
-  // `createdAt` obrigatório em ambos os payloads (lista e detalhe) por
-  // decisão VR-01 (variance_report.md): lista e detalhe têm a mesma
-  // forma, alinhado ao `required` da entidade `Project` (domain/F3).
-  //
-  // `contentCount`/`categoryCount` — adendo P3 (`_count` do Prisma),
-  // sempre presentes em ambos os payloads.
-  //
-  // `archivedAt` — feature de arquivamento: `null` quando ativo, ISO string
-  // quando arquivado. Nullable e opcional (payloads antigos/fake sem o
-  // campo continuam válidos).
+  // O backend serve `imageUrl`, nunca `imageKey` (chave interna de storage).
   static final _schema = z.map({
     'id': z.string().min(1),
     'title': z.string().min(1),
@@ -45,8 +30,6 @@ class ProjectModel extends Project {
     'archivedAt': z.date().nullable().optional(),
   });
 
-  /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
-  /// nunca um cast cru estourando.
   static Either<Failure, ProjectModel> tryParse(Map<String, dynamic> map) {
     final result = _schema.safeParse(map);
     if (!result.success) {

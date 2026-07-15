@@ -12,8 +12,7 @@ typedef ContentFormResult = ({
   String? categoryId,
 });
 
-/// Form modal de conteúdo (nome/slug/descrição + categoria), fiel ao
-/// `.dc.html` (`isContentForm`). `defaultCategoryId` é o nó selecionado na
+/// `defaultCategoryId` é o nó selecionado na
 /// árvore no momento em que o form abriu.
 class ContentFormDialog extends StatefulWidget {
   const ContentFormDialog({

@@ -7,8 +7,6 @@ import '../cubit/editor_cubit.dart';
 import '../widgets/widget_palette_panel.dart';
 import '../widgets/widget_tree_panel.dart';
 
-/// Painel esquerdo: paleta (sem dependência de estado → construída uma vez) e
-/// árvore (rebuilda só quando a ESTRUTURA ou a seleção mudam, não a cada tecla).
 class LeftPanel extends StatelessWidget {
   const LeftPanel({super.key});
 
@@ -33,8 +31,6 @@ class LeftPanel extends StatelessWidget {
                 children: [
                   const WidgetPalettePanel(),
                   BlocSelector<EditorCubit, EditorState, String>(
-                    // Assinatura de estrutura + seleção: props não a alteram,
-                    // então editar uma propriedade NÃO reconstrói a árvore.
                     selector: (state) {
                       if (state is! EditorReady) return '';
                       final root = state.document.root;
@@ -70,8 +66,6 @@ class LeftPanel extends StatelessWidget {
   }
 }
 
-/// Chave leve da estrutura da árvore (id + tipo + nº de filhos, recursivo).
-/// Muda em inserção/remoção/movimento; NÃO muda ao editar props.
 String _structureKey(SduiNode node) {
   final buffer = StringBuffer('${node.id}:${node.type}(');
   for (final child in node.children) {

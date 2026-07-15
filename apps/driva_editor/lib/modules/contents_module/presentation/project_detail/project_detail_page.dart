@@ -22,10 +22,6 @@ import 'widgets/content_form_dialog.dart';
 import 'widgets/content_panel_view.dart';
 import 'widgets/move_content_dialog.dart';
 
-/// A tela do projeto: header (voltar a Projetos + nome do projeto) + árvore
-/// de categorias à esquerda + painel de conteúdos à direita. Fiel ao
-/// `.dc.html` (`isProject`).
-///
 /// Único ponto que toca o `getIt`: monta os dois cubits (árvore e lista) E
 /// estampa o [ProjectScope] com o `:id` da rota **antes** de criá-los, para
 /// que toda chamada HTTP disparada por eles já saia com o `x-project-id`
@@ -451,10 +447,6 @@ class ProjectDetailPage extends StatelessWidget {
   /// flash e **sem trocar a categoria selecionada**: o conteúdo some da lista
   /// da categoria de origem (à direita) e os contadores da árvore ajustam
   /// (-1 origem / +1 destino). A tela continua onde o usuário estava.
-  ///
-  /// `offerUndo` já entra pronto na assinatura (o drag usa `true`, o dialog
-  /// `false`) mas não faz nada ainda nesta fase — a ação "Desfazer" do
-  /// snackbar de sucesso é a Fase 4.
   static Future<void> _moveContent(
     BuildContext context,
     ContentSummary content,

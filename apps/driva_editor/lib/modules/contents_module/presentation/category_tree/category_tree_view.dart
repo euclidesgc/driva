@@ -8,11 +8,6 @@ import '../../domain/entities/content_summary.dart';
 import 'cubit/category_tree_cubit.dart';
 import 'view/view.dart';
 
-/// Árvore de categorias do painel esquerdo da tela do projeto: "Todos os
-/// conteúdos" fixo no topo (pseudo-nó `categoryId: null` — filtro "ver
-/// tudo", não uma categoria), divisor, depois a árvore recursiva por
-/// `parentId` com indentação, contador e ações de hover (editar/excluir).
-///
 /// Todo conteúdo tem `categoryId` obrigatório (default "Geral", semeada pelo
 /// backend) — não existe conteúdo "sem categoria". O pseudo-nó do topo é
 /// puramente um atalho de navegação para o projeto inteiro, por isso ganha
@@ -40,7 +35,7 @@ class CategoryTreeView extends StatelessWidget {
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onDeleteCategory;
 
-  /// Soltar um conteúdo arrastado (feature 10, fase 3) sobre uma categoria
+  /// Soltar um conteúdo arrastado sobre uma categoria
   /// real. O pseudo-nó "Todos os conteúdos" nunca chama isto — não é alvo de
   /// drop.
   final void Function(ContentSummary content, String categoryId) onMoveContent;

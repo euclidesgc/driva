@@ -17,8 +17,6 @@ typedef ProjectFormResult = ({
   bool removeImage,
 });
 
-/// Formulário de criar/editar projeto (modal), espelhando o protótipo:
-/// capa com drag-and-drop/click, título, descrição.
 class ProjectFormDialog extends StatefulWidget {
   const ProjectFormDialog({
     super.key,
@@ -34,7 +32,6 @@ class ProjectFormDialog extends StatefulWidget {
   final String? initialTitle;
   final String? initialDescription;
 
-  /// URL da imagem atual (modo editar); `null` quando o projeto não tem uma.
   final String? initialImageUrl;
 
   final Future<Either<Failure, Project>> Function(ProjectFormResult form)

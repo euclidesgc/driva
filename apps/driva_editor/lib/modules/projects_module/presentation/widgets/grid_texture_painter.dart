@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Textura de grid sutil sobre a capa do card (linhas finas 26x26, como o
-/// protótipo).
 class GridTexturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

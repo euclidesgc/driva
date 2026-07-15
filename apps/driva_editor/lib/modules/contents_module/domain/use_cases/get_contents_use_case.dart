@@ -5,9 +5,7 @@ import '../entities/content_sort.dart';
 import '../entities/contents_page.dart';
 import '../repositories/contents_repository.dart';
 
-/// Lista conteúdos com filtro/busca/ordenação/paginação. A ordenação é
-/// **sempre do servidor** — nenhum re-sort roda aqui (achado do QA: o
-/// re-sort cliente duplicava a fonte da verdade e conflitava com o cursor).
+/// Sem re-sort no cliente: conflita com o cursor do servidor.
 class GetContentsUseCase {
   final ContentsRepository repository;
   const GetContentsUseCase({required this.repository});

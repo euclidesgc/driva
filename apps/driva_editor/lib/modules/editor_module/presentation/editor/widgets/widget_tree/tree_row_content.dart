@@ -6,9 +6,6 @@ import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../palette_icons.dart';
 
-/// Corpo do `builder:` do [DragTarget] de uma linha da árvore: a linha em si
-/// (ícone + rótulo + ação de remover), com o realce de drag-over derivado de
-/// [isDragOver] (`candidates.isNotEmpty` no callback).
 class TreeRowContent extends StatelessWidget {
   const TreeRowContent({
     super.key,

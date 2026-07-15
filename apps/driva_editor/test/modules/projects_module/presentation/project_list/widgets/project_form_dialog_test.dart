@@ -5,10 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 
-/// Regressão: o `AlertDialog` renderiza os `actions` num `OverflowBar`, que não
-/// é um Flex. Um `Spacer`/`Expanded` ali estoura com "ParentDataWidget" — em
-/// release o diálogo virava um retângulo cinza (RenderErrorBox). O dialog não
-/// pode montar com erro em nenhum dos modos.
+/// Regressão: `Spacer` nos `actions` (um `OverflowBar`, não Flex) virava
+/// RenderErrorBox — retângulo cinza em release.
 void main() {
   Future<void> pumpDialog(WidgetTester tester, {required bool editMode}) async {
     await tester.pumpWidget(

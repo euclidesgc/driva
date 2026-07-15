@@ -8,7 +8,7 @@ import '../models/models.dart';
 
 class ProjectsRepositoryImpl implements ProjectsRepository {
   final Dio dio;
-  ProjectsRepositoryImpl(this.dio); // o Dio compartilhado, injetado
+  ProjectsRepositoryImpl(this.dio);
 
   @override
   Future<Either<Failure, List<Project>>> getProjects({
@@ -136,19 +136,9 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
     }
   }
 
-  /// A API devolve `imageUrl` **relativa** (`/v1/projects/:id/image`). No
-  /// Flutter Web, uma URL relativa resolveria contra a origem do FRONT (nginx),
-  /// não da API — o `Image.network` bateria em `https://<front>/v1/...` → 404,
-  /// e o card cairia no gradiente (parecia "imagem não persistida"). Aqui, na
-  /// fronteira HTTP, resolvemos para absoluta usando a base do próprio Dio,
-  /// para a entidade carregar uma URL de fato servível. Idempotente: URL já
-  /// absoluta (ou nula/vazia) passa intacta.
-  ///
-  /// A URL de serving é **estável** (`/v1/projects/:id/image`), então trocar a
-  /// capa não muda a URL e o `Image.network` do Flutter Web serviria a versão
-  /// antiga do cache. Anexamos `v=<updatedAt>` como cache-buster: o `updatedAt`
-  /// muda a cada escrita do projeto, então a URL só muda quando o projeto muda,
-  /// forçando o refetch da nova imagem sem quebrar cache quando nada mudou.
+  /// No Flutter Web a `imageUrl` relativa resolveria contra a origem do front
+  /// (nginx), não da API → 404. `v=<updatedAt>` é cache-buster: a URL de
+  /// serving é estável, sem ele a capa trocada serviria a versão em cache.
   Project _resolveImageUrl(Project project) {
     final url = project.imageUrl;
     if (url == null || url.isEmpty || url.startsWith('http')) return project;
@@ -171,13 +161,6 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
     );
   }
 
-  // O único try/catch do módulo mora nesta classe: HTTP vira Failure aqui.
-  // Projeto não tem slug — o 409 aqui é conflito de estado do próprio
-  // arquivamento: exclusão definitiva (`DELETE`) só é permitida com o
-  // projeto já arquivado; tentar em um projeto ativo devolve 409. Reusa
-  // `ConflictFailure` com uma mensagem própria (sem `suggestedSlug`, que é
-  // específico de conteúdo) em vez de generalizar o core. Quando o backend
-  // manda uma mensagem própria no corpo, ela prevalece sobre o default.
   Failure _failureFor(DioException e) => switch (e.type) {
     DioExceptionType.connectionTimeout ||
     DioExceptionType.receiveTimeout ||
@@ -204,9 +187,6 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
     _ => const UnexpectedFailure(),
   };
 
-  /// Extrai uma mensagem de erro do corpo do 400, quando o backend a
-  /// oferece (Nest/class-validator costuma mandar `message`). Ausente →
-  /// mensagem default do `ValidationFailure`.
   String? _messageFrom(dynamic body) {
     if (body is Map && body['message'] is String) {
       return body['message'] as String;

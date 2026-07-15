@@ -9,10 +9,6 @@ import '../category_node.dart';
 
 part 'category_tree_state.dart';
 
-/// A árvore de categorias do projeto (fonte para o painel esquerdo da tela
-/// do projeto). Carrega a lista flat via [GetCategoriesUseCase] e monta a
-/// árvore por `parentId` na presentation ([CategoryNode.buildForest]).
-///
 /// Seleção de nó e nós recolhidos são estado **local** desta tela (não
 /// persistem entre sessões) — `null` selecionado é o pseudo-nó "Não
 /// categorizados" (conteúdos sem `categoryId`).
@@ -46,9 +42,6 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
     );
   }
 
-  /// Seleciona um nó (ou `null` para "Todos os conteúdos"). Puramente local —
-  /// não recarrega a árvore; quem escuta a seleção (o painel de conteúdos)
-  /// reage à mudança.
   void select(String? categoryId) {
     final current = state;
     if (current is! CategoryTreeLoaded) return;
@@ -84,10 +77,6 @@ class CategoryTreeCubit extends Cubit<CategoryTreeState> {
     return result;
   }
 
-  /// Em sucesso, some com o nó e — se ele era o selecionado — a seleção
-  /// volta para "Todos os conteúdos". Em falha (ex.: 409 por ter
-  /// conteúdos/subcategorias), a árvore não muda; a UI mostra a mensagem da
-  /// `Failure`.
   Future<Either<Failure, Unit>> delete(String id) async {
     final result = await deleteCategory(id);
     if (isClosed) return result;

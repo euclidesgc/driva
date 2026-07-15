@@ -6,19 +6,13 @@ import '../catalog/widget_descriptor.dart';
 import '../model/sdui_node.dart';
 import 'spec_validation_error.dart';
 
-// Escalares obrigatórios de todo nó. `props`/`events` são mapas arbitrários
-// (o z.map do zard só devolve chaves declaradas, então eles passam crus e a
-// estrutura recursiva é validada abaixo).
+// O z.map do zard só devolve as chaves declaradas: `props`/`events` ficam de
+// fora daqui de propósito, senão seriam descartados.
 final _nodeScalars = z.map({
   'id': z.string().min(1),
   'type': z.string().min(1),
 });
 
-/// Valida e converte um nó do spec (recursivo).
-///
-/// Além da forma, confere o **contrato do catálogo**: o `type` precisa
-/// existir e os filhos precisam respeitar o slot do primitivo (folha não tem
-/// filho, single usa `child`, multi usa `children`).
 Either<SpecValidationError, SduiNode> parseNode(
   Map<String, dynamic> json, {
   String path = 'root',
@@ -49,7 +43,6 @@ Either<SpecValidationError, SduiNode> parseNode(
   final rawChild = json['child'];
   final rawChildren = json['children'];
 
-  // Contrato de slot do primitivo.
   switch (descriptor.slot) {
     case SlotKind.none:
       if (rawChild != null || rawChildren != null) {
@@ -75,7 +68,6 @@ Either<SpecValidationError, SduiNode> parseNode(
       }
   }
 
-  // Filho único (recursivo).
   SduiNode? child;
   if (rawChild != null) {
     if (rawChild is! Map) {
@@ -89,7 +81,6 @@ Either<SpecValidationError, SduiNode> parseNode(
     child = parsed.toNullable();
   }
 
-  // Filhos (recursivo).
   final children = <SduiNode>[];
   if (rawChildren != null) {
     if (rawChildren is! List) {

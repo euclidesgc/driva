@@ -1,8 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Immutable app configuration, assembled once per flavor entrypoint and
-/// registered as a singleton in the service locator.
-///
 /// Values come from `--dart-define-from-file=config/<env>.json`
 /// (never secrets — dart-defines are embedded in the binary).
 final class AppConfig extends Equatable {
@@ -13,8 +10,6 @@ final class AppConfig extends Equatable {
     required this.useFakeData,
   });
 
-  /// Reads the dart-defines injected at build time.
-  /// The flavor entrypoint only names the environment.
   const AppConfig.fromEnvironment({required String environment})
     : this(
         environment: environment,
@@ -32,10 +27,8 @@ final class AppConfig extends Equatable {
         ),
       );
 
-  /// Flavor name: `dev` or `prod`.
   final String environment;
 
-  /// Backend base URL (e.g. `http://localhost:3000` in dev).
   final String apiBaseUrl;
 
   /// Tenant scope sent as `x-project-id` (multi-tenant real chega no I4).

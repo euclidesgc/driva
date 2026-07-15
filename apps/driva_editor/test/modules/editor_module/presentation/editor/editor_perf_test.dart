@@ -81,10 +81,10 @@ void main() {
     await tester.pumpWidget(harness());
     await tester.pump();
 
-    expect(find.text('Widgets'), findsOneWidget); // aba da paleta
+    expect(find.text('Widgets'), findsOneWidget);
     expect(find.text('Árvore'), findsOneWidget);
-    expect(find.text('Conteúdo'), findsWidgets); // header do inspector (root)
-    expect(find.text('A'), findsOneWidget); // preview renderiza o texto
+    expect(find.text('Conteúdo'), findsWidgets);
+    expect(find.text('A'), findsOneWidget);
   });
 
   testWidgets('o preview throttla edições rápidas do documento', (
@@ -95,26 +95,20 @@ void main() {
     await tester.pump();
     expect(find.text('A'), findsOneWidget);
 
-    // O listener do preview reage ao stream numa microtask; o segundo pump
-    // constrói o frame com o resultado do setState.
     Future<void> react() async {
       await tester.pump();
       await tester.pump();
     }
 
-    // 1ª mudança: sem cooldown ativo → aplica imediatamente.
     cubit.updateProps('nd_text', {'data': 'B'});
     await react();
     expect(find.text('B'), findsOneWidget);
 
-    // 2ª mudança dentro da janela do throttle: fica pendente; o preview
-    // ainda mostra 'B' (não re-renderiza a cada tecla).
     cubit.updateProps('nd_text', {'data': 'C'});
     await react();
     expect(find.text('B'), findsOneWidget);
     expect(find.text('C'), findsNothing);
 
-    // Passada a janela, o render final ('C') aparece — nada é perdido.
     await tester.pump(const Duration(milliseconds: 150));
     await tester.pump();
     expect(find.text('C'), findsOneWidget);
@@ -131,14 +125,10 @@ void main() {
     cubit.selectNode('nd_text');
     await tester.pump();
 
-    // O inspector passa a mostrar o nó Text selecionado (não mais 'Conteúdo').
     expect(find.text('Text'), findsWidgets);
   });
 
-  // Regressão do item 8d: uma raiz que é um widget FOLHA (sem slot de filhos,
-  // ex.: um `text` sozinho) deve RENDERIZAR, não cair no estado-vazio. A
-  // condição de empty-state considera só `root == null` — se alguém voltar a
-  // incluir `root.children.isEmpty`, este teste quebra.
+  // Quebra se o empty-state voltar a considerar `root.children.isEmpty`.
   testWidgets(
     'raiz folha renderiza — não mostra o estado-vazio (regressão 8d)',
     (tester) async {
@@ -165,8 +155,7 @@ void main() {
         find.text('Arraste um widget da paleta até aqui para começar.'),
         findsNothing,
       );
-      // A folha renderiza de verdade no canvas: um `Text` (não o EditableText do
-      // inspector, que também exibe o valor do prop 'data').
+      // `find.text` acharia também o EditableText do inspector.
       expect(
         find.byWidgetPredicate((w) => w is Text && w.data == 'SOLO'),
         findsOneWidget,

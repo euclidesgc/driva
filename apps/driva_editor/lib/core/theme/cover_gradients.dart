@@ -15,7 +15,6 @@ abstract final class AppCoverGradients {
     [Color(0xFFD1476B), Color(0xFFB13457)],
   ];
 
-  /// Par de gradiente estável para um [seed] (id do projeto).
   static List<Color> forSeed(String seed) {
     final index =
         seed.codeUnits.fold<int>(0, (sum, c) => sum + c) % palettes.length;

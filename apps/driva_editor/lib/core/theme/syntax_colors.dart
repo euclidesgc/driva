@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Paleta do syntax highlight do JSON (chave, string, número, literal,
-/// pontuação, texto neutro).
-///
 /// Registrada como [ThemeExtension] com slots claro/escuro: é o caso que mais
 /// se beneficia de uma variante escura real (cores calibradas para painel
 /// claro perdem contraste no escuro). Hoje os dois slots são **idênticos** aos
@@ -22,22 +19,16 @@ class SyntaxColors extends ThemeExtension<SyntaxColors> {
     required this.plain,
   });
 
-  /// Chave de objeto (string seguida de `:`).
   final Color key;
 
-  /// Valor string.
   final Color string;
 
-  /// Número.
   final Color number;
 
-  /// Literal (`true`/`false`/`null`).
   final Color keyword;
 
-  /// Pontuação estrutural (`{}`, `[]`, `:`, `,`).
   final Color punctuation;
 
-  /// Texto neutro (fallback).
   final Color plain;
 
   static const SyntaxColors light = SyntaxColors(

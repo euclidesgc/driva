@@ -2,11 +2,6 @@ import 'package:equatable/equatable.dart';
 
 import 'sdui_node.dart';
 
-/// O spec de um conteúdo SDUI (specVersion 1).
-///
-/// O [root] é **opcional**: um conteúdo recém-criado nasce vazio (`root == null`)
-/// e o primeiro widget adicionado pelo usuário vira a raiz — de qualquer tipo do
-/// catálogo, não só `column`. O [slug] identifica o conteúdo dentro do projeto.
 class ContentSpec extends Equatable {
   const ContentSpec({
     required this.specVersion,
@@ -24,8 +19,8 @@ class ContentSpec extends Equatable {
   final String? description;
   final SduiNode? root;
 
-  /// Cópia imutável. [root] usa função-getter para permitir "setar null"
-  /// (a armadilha do copyWith com campo nullable, capítulo 12 do livro).
+  /// [root] é função-getter porque `SduiNode?` não distinguiria "não passei"
+  /// de "setar null".
   ContentSpec copyWith({
     int? specVersion,
     String? id,

@@ -6,11 +6,6 @@ import '../../device_preset.dart';
 import 'camera_cutout.dart';
 import 'side_button.dart';
 
-/// Moldura realista do dispositivo: corpo metálico com bezel, cantos
-/// arredondados, botões laterais e recorte de câmera (pill/punch-hole)
-/// derivados do [DevicePreset]. Puramente visual — desenhada com
-/// decorations/`CustomPaint`, sem dependência externa. A tela (a `child`) é
-/// clipada com as dimensões e o raio de cantos do device.
 class DeviceFrame extends StatelessWidget {
   const DeviceFrame({
     super.key,

@@ -14,9 +14,6 @@ class ContentListCubit extends Cubit<ContentListState> {
   final CreateContentUseCase createContent;
   final DeleteContentUseCase deleteContent;
 
-  /// Filtro/busca correntes — usados por [load] e reaplicados por
-  /// [reloadWithFilter], que a tela do projeto chama ao trocar de categoria
-  /// selecionada ou digitar na busca.
   String? _categoryId;
   String? _query;
 
@@ -39,7 +36,6 @@ class ContentListCubit extends Cubit<ContentListState> {
        _order = order,
        super(const ContentListLoading());
 
-  /// Ordenação corrente — a UI reflete estes valores no controle de ordenação.
   ContentSort get currentSort => _sort;
   ContentSortOrder get currentOrder => _order;
 
@@ -65,9 +61,6 @@ class ContentListCubit extends Cubit<ContentListState> {
     );
   }
 
-  /// Carrega a próxima página (scroll infinito) e **anexa** ao final. No-op se
-  /// não há próxima página (`nextCursor == null`) ou já está carregando. Em
-  /// falha, mantém a lista e o cursor (o usuário pode tentar de novo rolando).
   Future<void> loadMore() async {
     final current = state;
     if (current is! ContentListLoaded ||
@@ -108,8 +101,6 @@ class ContentListCubit extends Cubit<ContentListState> {
     return load();
   }
 
-  /// Troca a ordenação (campo e/ou direção) e recarrega da primeira página.
-  /// Preserva o filtro por categoria e a busca correntes.
   Future<void> changeSort({ContentSort? sort, ContentSortOrder? order}) {
     if (sort != null) _sort = sort;
     if (order != null) _order = order;
@@ -133,8 +124,6 @@ class ContentListCubit extends Cubit<ContentListState> {
     );
   }
 
-  /// Categoria atualmente filtrada (nó selecionado na árvore) — usada pela
-  /// tela do projeto como default do formulário de "novo conteúdo".
   String? get currentCategoryId => _categoryId;
 
   /// Exclusão otimista: remove o card na hora sobre o `Loaded` atual (vira

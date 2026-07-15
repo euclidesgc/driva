@@ -10,7 +10,7 @@ import '../models/models.dart';
 
 class ContentsRepositoryImpl implements ContentsRepository {
   final Dio dio;
-  ContentsRepositoryImpl(this.dio); // o Dio compartilhado, injetado
+  ContentsRepositoryImpl(this.dio);
 
   @override
   Future<Either<Failure, ContentsPage>> getContents({
@@ -96,13 +96,9 @@ class ContentsRepositoryImpl implements ContentsRepository {
     }
   }
 
-  // O contrato aceita literalmente os nomes do enum (`updatedAt`, `createdAt`,
-  // `name` / `asc`, `desc`) — sem mapeamento extra, só o valor cru.
   String _sortParam(ContentSort sort) => sort.name;
   String _orderParam(ContentSortOrder order) => order.name;
 
-  // O único try/catch do módulo mora nesta classe: HTTP vira Failure aqui.
-  // A tradução do 409 (slug em uso) → ConflictFailure vive só aqui.
   Failure _failureFor(DioException e) => switch (e.type) {
     DioExceptionType.connectionTimeout ||
     DioExceptionType.receiveTimeout ||
@@ -121,8 +117,6 @@ class ContentsRepositoryImpl implements ContentsRepository {
     _ => const UnexpectedFailure(),
   };
 
-  /// Extrai um slug livre sugerido do corpo do 409, quando o backend o
-  /// oferece. Ausente → `null` e a presentation sugere localmente.
   String? _suggestedSlugFrom(dynamic body) {
     if (body is Map && body['suggestedSlug'] is String) {
       return body['suggestedSlug'] as String;
@@ -130,9 +124,6 @@ class ContentsRepositoryImpl implements ContentsRepository {
     return null;
   }
 
-  /// Extrai uma mensagem de erro do corpo do 400, quando o backend a
-  /// oferece (Nest/class-validator costuma mandar `message`). Ausente →
-  /// mensagem default do `ValidationFailure`.
   String? _messageFrom(dynamic body) {
     if (body is Map && body['message'] is String) {
       return body['message'] as String;

@@ -37,8 +37,7 @@ class _NumberEditorState extends State<NumberEditor> {
   @override
   void didUpdateWidget(covariant NumberEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Ressincroniza só em mudança externa e quando o número realmente difere:
-    // comparar por texto recolocaria o cursor no meio de "1." → "1.0".
+    // Ressincroniza só em mudança externa; comparar por texto moveria o cursor.
     if (widget.value != oldWidget.value &&
         widget.value != _parse(_controller.text)) {
       _controller.text = widget.value?.toString() ?? '';

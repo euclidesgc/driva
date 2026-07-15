@@ -15,7 +15,6 @@ import { CreateContentDto } from './dto/create-content.dto';
 import { ListContentsQueryDto } from './dto/list-contents.query.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 
-/** Escopo de tenant vem do header `x-project-id` (auth real chega no I4). */
 const projectOf = (header?: string) =>
   header && header.trim().length > 0 ? header.trim() : 'default';
 

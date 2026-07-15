@@ -6,15 +6,11 @@ import 'device_mock_colors.dart';
 import 'editor_colors.dart';
 import 'syntax_colors.dart';
 
-/// Base theme of the editor.
-///
 /// The design system evolves here: panels are surfaces over a soft canvas
 /// backdrop, with the Driva orange as the single accent color. Theme-aware
 /// tokens live in [EditorColors] (registered as a [ThemeExtension]); only the
 /// brand orange stays a plain constant, since it is identical in both themes.
 abstract final class AppTheme {
-  /// Driva orange — primary accent (selection, active tools, CTAs).
-  /// Same value in light and dark.
   static const Color primary = Color(0xFFE8602C);
 
   static ThemeData get light => _build(EditorColors.light, Brightness.light);

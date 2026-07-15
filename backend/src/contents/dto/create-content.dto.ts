@@ -25,9 +25,6 @@ export class CreateContentDto {
   @MaxLength(280)
   description?: string;
 
-  // Omitido -> cai na categoria "Geral" do projeto (semeada por projeto).
-  // Presente -> validado no service (existe E é do mesmo projeto); inválido
-  // ou de outro projeto -> 400 (Decisão 3 do prd.md de docs/08).
   @IsOptional()
   @IsString()
   @IsNotEmpty()

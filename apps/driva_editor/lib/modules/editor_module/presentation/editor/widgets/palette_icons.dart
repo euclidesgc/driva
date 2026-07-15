@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Ícones da paleta/árvore por primitivo (visual do editor, não do spec —
-/// os ícones do spec vivem no catálogo curado do renderer).
 const Map<String, IconData> paletteIcons = {
   'container': Icons.crop_square,
   'column': Icons.view_agenda_outlined,

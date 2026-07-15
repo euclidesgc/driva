@@ -3,14 +3,11 @@ import 'package:get_it/get_it.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/dev/fake_contents_store.dart';
-import 'data/repositories/repositories.dart'; // barrel INTERNO (impls)
+import 'data/repositories/repositories.dart';
 import 'domain/repositories/categories_repository.dart';
 import 'domain/repositories/contents_repository.dart';
 import 'domain/use_cases/use_cases.dart';
 
-/// Registra as dependências do módulo de conteúdos (inclui categorias — ver
-/// nota em `contents_module.dart`). Chamado pela raiz. Único arquivo que
-/// importa as implementações e as casa com o contrato.
 void registerContentsModule(GetIt getIt) {
   getIt.registerLazySingleton<ContentsRepository>(
     () => getIt<AppConfig>().useFakeData

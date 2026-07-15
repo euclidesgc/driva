@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Cores do chrome do mock de dispositivo no canvas (corpo, aro, botões, notch,
-/// sombras, glow de seleção). É a "cara de telefone" desenhada em volta do
-/// preview.
-///
 /// Registrada como [ThemeExtension] com slots claro/escuro para deixar o
 /// caminho aberto a um mock com aparência distinta no tema escuro. Hoje os dois
 /// slots são **idênticos** — um telefone parece um telefone em claro ou escuro
@@ -23,34 +19,25 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
     required this.dropHint,
   });
 
-  /// Corpo (carcaça) do dispositivo.
   final Color body;
 
   /// Topo do gradiente do corpo (o corpo vai de [bodyGradientTop] a [body]).
   final Color bodyGradientTop;
 
-  /// Aro/rim ao redor da tela.
   final Color rim;
 
-  /// Botões laterais (volume/power).
   final Color button;
 
-  /// Fundo da tela (onde o preview é desenhado).
   final Color screen;
 
-  /// Recorte da câmera / notch.
   final Color notch;
 
-  /// Sombra projetada sob o dispositivo.
   final Color shadow;
 
-  /// Glow (halo) laranja quando um nó está selecionado.
   final Color glow;
 
-  /// Fundo da tag com o nome do nó (não selecionado).
   final Color nodeTag;
 
-  /// Cor do hint tracejado de "solte aqui" sobre o canvas.
   final Color dropHint;
 
   static const DeviceMockColors light = DeviceMockColors(

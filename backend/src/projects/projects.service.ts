@@ -37,7 +37,6 @@ const PROJECT_SELECT = {
 
 export type ProjectStatus = 'active' | 'archived';
 
-/** Key do storage é organizada por projeto: `<projectId>/midias`. */
 const mediaPrefix = (projectId: string) => `${projectId}/midias`;
 
 @Injectable()
@@ -47,12 +46,6 @@ export class ProjectsService {
     private readonly storage: StorageService,
   ) {}
 
-  /**
-   * `status` filtra por `archivedAt` (Decisão do humano: arquivar é soft
-   * delete, "Arquivados" é uma área própria). `active` (default) some da
-   * home assim que arquivado; `archived` ordena por `archivedAt desc` (mais
-   * recém-arquivado primeiro).
-   */
   async list(_projectId: string, status: ProjectStatus = 'active') {
     const rows = await this.prisma.project.findMany({
       where: status === 'active' ? { archivedAt: null } : { archivedAt: { not: null } },
@@ -63,10 +56,7 @@ export class ProjectsService {
   }
 
   async create(dto: CreateProjectDto, image?: ProcessedImage) {
-    // `put` precisa da key final (`<projectId>/midias/...`), mas o projeto
-    // só ganha `id` dentro da transação — grava a imagem DEPOIS do create,
-    // e desfaz o objeto órfão se a transação falhar (best-effort, não há
-    // storage transacional aqui).
+    // O storage não é transacional: o objeto órfão é desfeito no catch.
     let imageKey: string | null = null;
     try {
       const row = await this.prisma.$transaction(async (tx) => {
@@ -87,13 +77,8 @@ export class ProjectsService {
             data: { imageKey },
           });
         }
-        // A categoria raiz "Geral" nasce na MESMA transação do projeto
-        // (adendo pós-feature-09 do prd.md de docs/08, item 3): como
-        // `Content.categoryId` é NOT NULL e o default de escrita é a
-        // "Geral", todo projeto precisa da sua "Geral" antes de qualquer
-        // POST de conteúdo. Alternativas descartadas: trigger de banco
-        // (lógica escondida, difícil de testar/versionar) e seed só na
-        // migração (não cobre projetos criados em runtime).
+        // `Content.categoryId` é NOT NULL e cai na "Geral" por default: sem
+        // esta categoria, todo POST de conteúdo do projeto falha.
         await tx.category.create({
           data: {
             projectId: created.id,
@@ -104,8 +89,6 @@ export class ProjectsService {
         });
         return { ...created, imageKey };
       });
-      // Projeto recém-criado nasce com a "Geral" (transação acima) e nenhum
-      // conteúdo — contadores fixos aqui evitam um round-trip extra de count().
       return this.toSummary({
         ...row,
         _count: { contents: 0, categories: 1 },
@@ -129,9 +112,6 @@ export class ProjectsService {
     const current = await this.prisma.project.findUnique({ where: { id } });
     if (!current) throw new NotFoundException();
 
-    // Enviar `image` sempre prevalece sobre `removeImage` — robustez do
-    // servidor mesmo que o cliente (que já valida exclusividade) mande os
-    // dois por engano.
     const removeImage = dto.removeImage === 'true' && !image;
     let imageKey = current.imageKey;
     if (image) {
@@ -167,7 +147,6 @@ export class ProjectsService {
     return this.toSummary(row);
   }
 
-  /** Idempotente: arquivar um projeto já arquivado é no-op (200 com o estado atual). */
   async archive(id: string) {
     const current = await this.prisma.project.findUnique({ where: { id } });
     if (!current) throw new NotFoundException();
@@ -181,7 +160,6 @@ export class ProjectsService {
     return this.toSummary(row);
   }
 
-  /** Idempotente: restaurar um projeto já ativo é no-op (200 com o estado atual). */
   async unarchive(id: string) {
     const current = await this.prisma.project.findUnique({ where: { id } });
     if (!current) throw new NotFoundException();

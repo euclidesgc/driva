@@ -9,10 +9,6 @@ class EmptyPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Este hint fica sobre a tela BRANCA do dispositivo (superfície do app
-    // previsto), não sobre os painéis do editor — usa a paleta clara fixa para
-    // manter contraste AA mesmo com o editor no tema escuro. A moldura tracejada
-    // convida a soltar/clicar o primeiro widget (que vira a raiz).
     const colors = EditorColors.light;
     return Semantics(
       label: 'Conteúdo vazio. Adicione o primeiro widget.',

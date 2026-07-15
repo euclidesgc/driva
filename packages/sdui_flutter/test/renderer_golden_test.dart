@@ -5,17 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
-// Rede de caracterização por golden do renderer (F1 do refactor): um golden por
-// tipo do catálogo, renderizando um nó mínimo daquele tipo. Congela a aparência
-// atual de cada builder antes de refatorá-los.
-//
-// O pacote `sdui_flutter` não embarca fontes, então os textos saem na fonte de
-// teste (glifos-caixa) — determinístico e estável. O comparador tolerante (5%)
-// absorve ruído subpixel sem mascarar regressão estrutural.
-
-/// Nó mínimo e representativo de cada [type] do catálogo. Tipos de slot único
-/// ou múltiplo ganham filho(s) para renderizar algo visível; `spacer` é
-/// embrulhado numa `row` (precisa de um pai Flex para não estourar).
+/// `spacer` vem embrulhado numa `row`: sem um pai Flex, estoura.
 SduiNode nodeFor(String type) => switch (type) {
   'text' => const SduiNode(
     id: 'n',
@@ -185,9 +175,7 @@ void main() {
   }
 }
 
-/// Comparador de golden que aceita uma diferença até [threshold] (0..1) — o
-/// suficiente para absorver o ruído subpixel sem mascarar regressões visuais
-/// reais.
+/// Tolera até [threshold] (0..1) de diferença: o antialiasing varia ~2-3%.
 class _TolerantComparator extends LocalFileComparator {
   _TolerantComparator(Uri baseDir, {required this.threshold})
     : super(baseDir.resolve('placeholder_test.dart'));
