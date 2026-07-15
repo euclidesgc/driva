@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 
 import '../../../../../core/error/error.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import '../../../../../core/widgets/feedback/feedback.dart';
 import '../../../domain/entities/entities.dart';
@@ -203,7 +204,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
                     message: _errorMessage!,
                     semanticsPrefix: 'Erro',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.s12),
                 ],
                 Text(
                   'CAPA',
@@ -213,7 +214,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
                     letterSpacing: 0.6,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 CoverPicker(
                   image: _newImage,
                   currentImageUrl: _hasCurrentImage && !_removeImage
@@ -226,7 +227,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
                       ? _clearImage
                       : null,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.s20),
                 TextFormField(
                   controller: _title,
                   autofocus: true,
@@ -243,7 +244,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.s16),
                 TextFormField(
                   controller: _description,
                   minLines: 2,
@@ -292,7 +293,7 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
               onPressed: _submitting ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.s8),
             FilledButton(
               onPressed: _submitting ? null : _submit,
               child: _submitting

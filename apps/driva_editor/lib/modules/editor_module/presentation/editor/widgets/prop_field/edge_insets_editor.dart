@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import 'edge_insets_side_field.dart';
 
 class EdgeInsetsEditor extends StatefulWidget {
@@ -81,19 +82,19 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
           label: 'E',
           onChanged: (text) => _update('left', _parse(text)),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.s4),
         EdgeInsetsSideField(
           controller: _controllers['top'],
           label: 'T',
           onChanged: (text) => _update('top', _parse(text)),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.s4),
         EdgeInsetsSideField(
           controller: _controllers['right'],
           label: 'D',
           onChanged: (text) => _update('right', _parse(text)),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.s4),
         EdgeInsetsSideField(
           controller: _controllers['bottom'],
           label: 'B',

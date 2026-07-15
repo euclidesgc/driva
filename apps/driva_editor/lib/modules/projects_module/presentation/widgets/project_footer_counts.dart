@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../domain/entities/entities.dart';
 
@@ -19,7 +21,7 @@ class ProjectFooterCounts extends StatelessWidget {
     final colors = theme.extension<EditorColors>()!;
     final style = theme.textTheme.bodySmall?.copyWith(
       color: colors.inkMuted,
-      fontSize: 12,
+      fontSize: AppTypography.md,
     );
     return Semantics(
       label:
@@ -30,15 +32,15 @@ class ProjectFooterCounts extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.folder_outlined, size: 14, color: colors.inkMuted),
-          const SizedBox(width: 5),
+          const SizedBox(width: AppSpacing.s5),
           Text(
             '${project.categoryCount} '
             '${project.categoryCount == 1 ? 'categoria' : 'categorias'}',
             style: style,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.s14),
           Icon(Icons.description_outlined, size: 14, color: colors.inkMuted),
-          const SizedBox(width: 5),
+          const SizedBox(width: AppSpacing.s5),
           Text(
             '${project.contentCount} '
             '${project.contentCount == 1 ? 'conteúdo' : 'conteúdos'}',

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
+
 class ThemeMenuItem extends StatelessWidget {
   const ThemeMenuItem({
     super.key,
@@ -19,7 +21,7 @@ class ThemeMenuItem extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 20, color: color),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.s12),
         Expanded(
           child: Text(
             label,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/app_radii.dart';
+import '../../theme/app_spacing.dart';
 import '../../theme/editor_colors.dart';
 import 'crumb.dart';
 
@@ -31,9 +33,12 @@ class CrumbLabel extends StatelessWidget {
     return InkWell(
       onTap: () =>
           context.goNamed(routeName, pathParameters: crumb.pathParameters),
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(AppRadii.r4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s4,
+          vertical: AppSpacing.s4,
+        ),
         child: Text(
           crumb.label,
           style: style?.copyWith(color: colors.inkSecondary),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
 import '../../theme/editor_colors.dart';
 import 'app_shell_scope.dart';
 import 'crumb_label.dart';
@@ -16,7 +17,7 @@ class AppShellBreadcrumbBar extends StatelessWidget {
       color: colors.panelAlt,
       child: Container(
         height: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: colors.border)),
         ),

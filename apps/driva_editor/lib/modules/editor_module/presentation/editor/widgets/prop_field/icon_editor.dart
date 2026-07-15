@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart' show curatedIconNames;
 
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 class IconEditor extends StatelessWidget {
@@ -24,7 +25,7 @@ class IconEditor extends StatelessWidget {
     return DropdownButtonFormField<String?>(
       initialValue: current,
       isDense: true,
-      style: TextStyle(fontSize: 13, color: colors.inkPrimary),
+      style: TextStyle(fontSize: AppTypography.base, color: colors.inkPrimary),
       decoration: const InputDecoration(isDense: true),
       items: [
         if (!field.isRequired)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/app_spacing.dart';
 import '../../theme/editor_colors.dart';
 import '../branding/branding.dart';
 import 'app_shell_action_button.dart';
@@ -25,7 +26,7 @@ class AppShellTopBar extends StatelessWidget {
       color: colors.panel,
       child: Container(
         height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: colors.border)),
         ),
@@ -35,11 +36,11 @@ class AppShellTopBar extends StatelessWidget {
             const Spacer(),
             for (final action in controller.actions) ...[
               AppShellActionButton(action: action),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.s8),
             ],
             if (controller.status case final status?) ...[
               AppShellStatusIndicator(status: status),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.s12),
             ],
             themeButton,
           ],

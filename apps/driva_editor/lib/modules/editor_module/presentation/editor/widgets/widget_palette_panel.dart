@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import 'widget_palette/widget_palette.dart';
 
@@ -34,7 +35,7 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.s12),
           child: TextField(
             decoration: const InputDecoration(
               hintText: 'Buscar widget…',
@@ -49,11 +50,16 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
           child: byCategory.isEmpty
               ? const Center(child: Text('Nenhum widget encontrado.'))
               : ListView(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.s12),
                   children: [
                     for (final entry in byCategory.entries) ...[
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.s12,
+                          AppSpacing.s8,
+                          AppSpacing.s12,
+                          AppSpacing.s4,
+                        ),
                         child: Text(
                           entry.key,
                           style: Theme.of(context).textTheme.labelSmall
@@ -65,10 +71,12 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s12,
+                        ),
                         child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                          spacing: AppSpacing.s8,
+                          runSpacing: AppSpacing.s8,
                           children: [
                             for (final descriptor in entry.value)
                               PaletteItem(descriptor: descriptor),

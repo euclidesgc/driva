@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_durations.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/editor_colors.dart';
 import '../../domain/entities/entities.dart';
 import 'project_cover.dart';
@@ -57,13 +60,13 @@ class _ProjectCardState extends State<ProjectCard> {
     }
 
     Widget card = AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
+      duration: AppDurations.fast,
       transform: _hovered
           ? (Matrix4.identity()..translateByDouble(0.0, -3.0, 0.0, 1.0))
           : Matrix4.identity(),
       decoration: BoxDecoration(
         color: colors.panel,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadii.r14),
         border: Border.all(color: colors.border),
         boxShadow: _hovered
             ? [
@@ -85,7 +88,12 @@ class _ProjectCardState extends State<ProjectCard> {
             children: [
               cover,
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 15, 16, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s15,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -98,7 +106,7 @@ class _ProjectCardState extends State<ProjectCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: AppSpacing.s5),
                     SizedBox(
                       height: 38,
                       child: Text(
@@ -115,14 +123,14 @@ class _ProjectCardState extends State<ProjectCard> {
                     ),
                     const SizedBox(height: 13),
                     Container(
-                      padding: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.only(top: AppSpacing.s12),
                       decoration: BoxDecoration(
                         border: Border(top: BorderSide(color: colors.border)),
                       ),
                       child: ProjectFooterCounts(project: project),
                     ),
                     if (widget.actions != null) ...[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: AppSpacing.s14),
                       widget.actions!,
                     ],
                   ],

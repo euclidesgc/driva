@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/app_typography.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import 'prop_field/prop_field.dart';
 
@@ -77,7 +79,10 @@ class PropFieldEditor extends StatelessWidget {
 
     final colors = Theme.of(context).extension<EditorColors>()!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s12,
+        vertical: AppSpacing.s6,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -85,13 +90,16 @@ class PropFieldEditor extends StatelessWidget {
             children: [
               Text(
                 field.label,
-                style: TextStyle(fontSize: 12, color: colors.inkSecondary),
+                style: TextStyle(
+                  fontSize: AppTypography.md,
+                  color: colors.inkSecondary,
+                ),
               ),
               if (field.isRequired)
                 const Text(' *', style: TextStyle(color: AppTheme.primary)),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.s4),
           editor,
         ],
       ),

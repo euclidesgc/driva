@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/editor_colors.dart';
 import 'app_bar_action.dart';
 
@@ -24,8 +26,11 @@ class AppShellStatusIndicator extends StatelessWidget {
       child: Row(
         children: [
           Icon(status.icon, size: 16, color: color),
-          const SizedBox(width: 4),
-          Text(status.label, style: TextStyle(color: color, fontSize: 13)),
+          const SizedBox(width: AppSpacing.s4),
+          Text(
+            status.label,
+            style: TextStyle(color: color, fontSize: AppTypography.base),
+          ),
         ],
       ),
     );

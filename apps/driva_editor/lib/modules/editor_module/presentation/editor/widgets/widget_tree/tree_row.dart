@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../drag_payload.dart';
 import 'tree_row_content.dart';
@@ -65,13 +68,19 @@ class TreeRow extends StatelessWidget {
       feedback: Material(
         color: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s12,
+            vertical: AppSpacing.s6,
+          ),
           decoration: BoxDecoration(
             color: colors.panel,
             border: Border.all(color: AppTheme.primary),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppRadii.r6),
           ),
-          child: Text(_label, style: const TextStyle(fontSize: 13)),
+          child: Text(
+            _label,
+            style: const TextStyle(fontSize: AppTypography.base),
+          ),
         ),
       ),
       child: row,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../../../core/util/upper_case_text_formatter.dart';
 
@@ -74,7 +77,7 @@ class _ColorEditorState extends State<ColorEditor> {
               decoration: BoxDecoration(
                 color: current ?? Colors.transparent,
                 border: Border.all(color: colors.border),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppRadii.r4),
               ),
               child: current == null
                   ? Icon(
@@ -84,11 +87,11 @@ class _ColorEditorState extends State<ColorEditor> {
                     )
                   : null,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.s8),
             Expanded(
               child: TextField(
                 controller: _controller,
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: AppTypography.base),
                 inputFormatters: const [UpperCaseTextFormatter()],
                 decoration: const InputDecoration(
                   isDense: true,
@@ -114,9 +117,9 @@ class _ColorEditorState extends State<ColorEditor> {
               ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.s6),
         Wrap(
-          spacing: 6,
+          spacing: AppSpacing.s6,
           children: [
             for (final hex in _swatches)
               Tooltip(
@@ -129,7 +132,7 @@ class _ColorEditorState extends State<ColorEditor> {
                     decoration: BoxDecoration(
                       color: _parse(hex),
                       border: Border.all(color: colors.border),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadii.r4),
                     ),
                   ),
                 ),

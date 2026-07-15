@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_radii.dart';
+import '../../theme/app_spacing.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/app_typography.dart';
 
 class AppWordmark extends StatelessWidget {
   const AppWordmark({super.key, this.onTap});
@@ -16,7 +19,7 @@ class AppWordmark extends StatelessWidget {
       TextSpan(
         style: const TextStyle(
           fontFamily: 'Space Grotesk',
-          fontSize: 20,
+          fontSize: AppTypography.xl,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
           height: 1,
@@ -43,9 +46,12 @@ class AppWordmark extends StatelessWidget {
         message: 'Ir para a home',
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.r8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s8,
+              vertical: AppSpacing.s6,
+            ),
             child: label,
           ),
         ),

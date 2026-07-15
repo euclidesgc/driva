@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
@@ -41,7 +43,7 @@ class AlignmentEditor extends StatelessWidget {
                     child: Container(
                       width: 26,
                       height: 26,
-                      margin: const EdgeInsets.all(1),
+                      margin: const EdgeInsets.all(AppSpacing.s1),
                       decoration: BoxDecoration(
                         color: value == alignment
                             ? colors.primaryTint
@@ -51,7 +53,7 @@ class AlignmentEditor extends StatelessWidget {
                               ? AppTheme.primary
                               : colors.border,
                         ),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppRadii.r4),
                       ),
                       child: Icon(
                         Icons.circle,

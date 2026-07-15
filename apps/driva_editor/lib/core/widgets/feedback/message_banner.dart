@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_radii.dart';
+import '../../theme/app_spacing.dart';
+
 /// Banner de mensagem (aviso/erro): ícone + texto, para a cor não ser o único
 /// sinal. O [semanticsPrefix] rotula a natureza da mensagem para leitores de
 /// tela ("Aviso: ..." / "Erro: ...").
@@ -20,10 +23,10 @@ class MessageBanner extends StatelessWidget {
       liveRegion: true,
       label: '$semanticsPrefix: $message',
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppSpacing.s10),
         decoration: BoxDecoration(
           color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.r8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +36,7 @@ class MessageBanner extends StatelessWidget {
               size: 18,
               color: theme.colorScheme.onErrorContainer,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.s8),
             Expanded(
               child: Text(
                 message,

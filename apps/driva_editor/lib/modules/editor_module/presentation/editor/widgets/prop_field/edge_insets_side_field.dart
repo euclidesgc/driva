@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_typography.dart';
+
 /// Um lado do editor de `EdgeInsets` (E/T/D/B): o `TextField` numérico
 /// centralizado que compõe a linha do [EdgeInsetsEditor]. Recebe o controller
 /// do lado, o rótulo curto e o callback de texto pelo construtor.
@@ -20,13 +22,13 @@ class EdgeInsetsSideField extends StatelessWidget {
     return Expanded(
       child: TextField(
         controller: controller,
-        style: const TextStyle(fontSize: 12),
+        style: const TextStyle(fontSize: AppTypography.md),
         textAlign: TextAlign.center,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           isDense: true,
           labelText: label,
-          labelStyle: const TextStyle(fontSize: 10),
+          labelStyle: const TextStyle(fontSize: AppTypography.xs),
         ),
         onChanged: onChanged,
       ),

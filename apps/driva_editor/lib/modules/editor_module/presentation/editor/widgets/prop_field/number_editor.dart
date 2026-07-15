@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../../core/theme/app_typography.dart';
+
 class NumberEditor extends StatefulWidget {
   const NumberEditor({
     super.key,
@@ -53,7 +55,7 @@ class _NumberEditorState extends State<NumberEditor> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
-      style: const TextStyle(fontSize: 13),
+      style: const TextStyle(fontSize: AppTypography.base),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: const InputDecoration(isDense: true, hintText: '—'),
       onChanged: (text) {

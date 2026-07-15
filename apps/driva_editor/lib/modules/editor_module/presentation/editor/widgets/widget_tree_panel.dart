@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import 'drag_payload.dart';
 import 'widget_tree/widget_tree.dart';
 
@@ -42,7 +43,7 @@ class WidgetTreePanel extends StatelessWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
             children: rows,
           ),
         ),

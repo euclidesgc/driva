@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../palette_icons.dart';
 
@@ -23,7 +25,7 @@ class InspectorHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.s12),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
@@ -34,7 +36,7 @@ class InspectorHeader extends StatelessWidget {
             size: 18,
             color: AppTheme.primary,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.s8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +44,10 @@ class InspectorHeader extends StatelessWidget {
                 Text(title, style: theme.textTheme.titleSmall),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 11, color: colors.inkMuted),
+                  style: TextStyle(
+                    fontSize: AppTypography.sm,
+                    color: colors.inkMuted,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
