@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_radii.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import '../../../../../core/widgets/buttons/buttons.dart';
 
@@ -50,18 +52,21 @@ class CategoryTreeRow extends StatelessWidget {
     // fundo.
     final highlighted = selected || isDropTarget;
     final row = Container(
-      margin: EdgeInsets.only(left: depth * 16.0, bottom: 2),
+      margin: EdgeInsets.only(
+        left: depth * AppSpacing.s16,
+        bottom: AppSpacing.s2,
+      ),
       decoration: BoxDecoration(
         color: highlighted
             ? colors.primaryTint
             : (hovered ? colors.panelAlt : Colors.transparent),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(AppRadii.r9),
         border: highlighted
             ? Border.all(color: theme.colorScheme.primary, width: 1)
             : null,
       ),
       height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
       child: Row(
         children: [
           SizedBox(
@@ -71,7 +76,7 @@ class CategoryTreeRow extends StatelessWidget {
                     message: collapsed ? 'Expandir' : 'Recolher',
                     child: InkWell(
                       onTap: onToggle,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadii.r4),
                       child: Icon(
                         collapsed ? Icons.chevron_right : Icons.expand_more,
                         size: 16,
@@ -86,7 +91,7 @@ class CategoryTreeRow extends StatelessWidget {
             size: 16,
             color: highlighted ? theme.colorScheme.primary : colors.inkMuted,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.s8),
           Expanded(
             child: Text(
               label,
@@ -117,7 +122,7 @@ class CategoryTreeRow extends StatelessWidget {
               ),
           ] else if (count != null)
             Padding(
-              padding: const EdgeInsets.only(left: 4),
+              padding: const EdgeInsets.only(left: AppSpacing.s4),
               child: Text(
                 '$count',
                 style: theme.textTheme.labelSmall?.copyWith(
@@ -143,7 +148,7 @@ class CategoryTreeRow extends StatelessWidget {
             : (count != null ? '$label, $count conteúdos' : label),
         child: InkWell(
           onTap: onSelect,
-          borderRadius: BorderRadius.circular(9),
+          borderRadius: BorderRadius.circular(AppRadii.r9),
           child: row,
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../core/theme/app_radii.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/editor_colors.dart';
 
 /// Segunda etapa da confirmação dupla: exige digitar o título do projeto
@@ -59,7 +61,7 @@ class _TypeToConfirmDialogState extends State<TypeToConfirmDialog> {
                   color: theme.colorScheme.error,
                   size: 20,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.s8),
                 const Expanded(
                   child: Text(
                     'Esta ação não tem volta. Digite o nome do projeto '
@@ -69,17 +71,22 @@ class _TypeToConfirmDialogState extends State<TypeToConfirmDialog> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.s16),
           Text(
             'Digite o nome do projeto para confirmar:',
             style: theme.textTheme.bodySmall,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.s6),
           Container(
-            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s12,
+              AppSpacing.s4,
+              AppSpacing.s4,
+              AppSpacing.s4,
+            ),
             decoration: BoxDecoration(
               color: colors.panelAlt,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadii.r8),
               border: Border.all(color: colors.border),
             ),
             child: Row(
@@ -102,7 +109,7 @@ class _TypeToConfirmDialogState extends State<TypeToConfirmDialog> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.s8),
           TextField(
             controller: _controller,
             autofocus: true,

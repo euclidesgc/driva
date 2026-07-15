@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
+
 class TreeErrorView extends StatelessWidget {
   const TreeErrorView({
     super.key,
@@ -14,12 +16,12 @@ class TreeErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.s16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Não foi possível carregar as categorias.'),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.s8),
             OutlinedButton(
               onPressed: onRetry,
               child: const Text('Tentar de novo'),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/theme/app_radii.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../domain/entities/entities.dart';
 import '../../widgets/project_card.dart';
 import '../archived_projects_page.dart';
@@ -25,10 +27,13 @@ class ArchivedProjectCard extends StatelessWidget {
         child: Semantics(
           label: 'Projeto arquivado',
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s8,
+              vertical: AppSpacing.s4,
+            ),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadii.r6),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -38,7 +43,7 @@ class ArchivedProjectCard extends StatelessWidget {
                   size: 12,
                   color: Colors.white,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.s4),
                 Text(
                   'Arquivado',
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -63,7 +68,7 @@ class ArchivedProjectCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.s8),
           Tooltip(
             message: 'Excluir definitivamente',
             child: Semantics(

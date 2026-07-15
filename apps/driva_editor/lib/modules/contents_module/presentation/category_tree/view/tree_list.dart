@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/content_summary.dart';
 import '../category_node.dart';
@@ -32,7 +33,10 @@ class TreeList extends StatelessWidget {
       collapsedIds: state.collapsedIds,
     );
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s8,
+        vertical: AppSpacing.s4,
+      ),
       children: [
         CategoryRow(
           label: 'Todos os conteúdos',
@@ -48,7 +52,10 @@ class TreeList extends StatelessWidget {
           onAcceptContent: null,
         ),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.s4,
+            vertical: AppSpacing.s8,
+          ),
           child: Divider(height: 1),
         ),
         for (final (node, depth) in flat)
