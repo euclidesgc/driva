@@ -8,7 +8,7 @@ import 'package:sdui_core/sdui_core.dart';
 import '../../../../core/error/error.dart';
 import '../../../../core/network/project_scope.dart';
 import '../../../../core/theme/editor_colors.dart';
-import '../../../../core/theme/widgets/resizable_split_view.dart';
+import '../../../../core/widgets/layout/layout.dart';
 import '../../../../core/widgets/app_shell/app_shell.dart';
 import '../../../../injection.dart';
 import '../../../contents_module/contents_module.dart';

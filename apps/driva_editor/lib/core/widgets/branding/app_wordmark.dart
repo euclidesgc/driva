@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
 class AppWordmark extends StatelessWidget {
   const AppWordmark({super.key, this.onTap});

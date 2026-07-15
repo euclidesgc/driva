@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../theme/editor_colors.dart';
-import '../app_wordmark.dart';
+import '../branding/branding.dart';
 import 'app_bar_action.dart';
 import 'app_shell_scope.dart';
 import 'crumb.dart';

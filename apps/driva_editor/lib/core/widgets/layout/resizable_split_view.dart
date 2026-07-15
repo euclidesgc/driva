@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../editor_colors.dart';
+import '../../theme/editor_colors.dart';
 
 /// Layout de 3 colunas com divisores arrastáveis (padrão de editor desktop):
 /// painel esquerdo e direito com largura ajustável, centro flexível.
