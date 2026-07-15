@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
+import '../../../../../../core/theme/app_durations.dart';
 import '../../cubit/editor_cubit.dart';
 import 'empty_preview.dart';
 import 'selectable_node.dart';
@@ -23,7 +24,7 @@ class PreviewSurface extends StatefulWidget {
 }
 
 class _PreviewSurfaceState extends State<PreviewSurface> {
-  static const _throttle = Duration(milliseconds: 120);
+  static const _throttle = AppDurations.micro;
 
   late final EditorCubit _cubit = context.read<EditorCubit>();
   late StreamSubscription<EditorState> _subscription;

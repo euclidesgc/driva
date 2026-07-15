@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/device_mock_colors.dart';
 import '../../../../../../core/widgets/painters/painters.dart';
 import 'node_tag.dart';
 
@@ -33,7 +34,6 @@ class SelectableNode extends StatelessWidget {
   final ValueChanged<bool> onHover;
 
   static const _unwrappable = {'spacer'};
-  static const _hintColor = Color(0x66A0A4AD);
 
   /// Contorno de hover: laranja da marca com opacidade baixa — reforço leve,
   /// abaixo da seleção sólida na precedência. A tag/nome continuam sendo o
@@ -44,6 +44,7 @@ class SelectableNode extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_unwrappable.contains(node.type)) return built;
 
+    final mock = Theme.of(context).extension<DeviceMockColors>()!;
     final descriptor = descriptorFor(node.type);
     final label = descriptor?.label ?? node.type;
     return MouseRegion(
@@ -76,9 +77,7 @@ class SelectableNode extends StatelessWidget {
                 )
               else
                 CustomPaint(
-                  foregroundPainter: const DashedBorderPainter(
-                    color: _hintColor,
-                  ),
+                  foregroundPainter: DashedBorderPainter(color: mock.dropHint),
                   child: built,
                 ),
               Positioned(

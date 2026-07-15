@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../device_preset.dart';
 
@@ -22,7 +24,7 @@ class CanvasToolbar extends StatelessWidget {
     final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
       height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       decoration: BoxDecoration(
         color: colors.panel,
         border: Border(bottom: BorderSide(color: colors.border)),
@@ -51,9 +53,12 @@ class CanvasToolbar extends StatelessWidget {
           const Spacer(),
           Text(
             '${device.width.toInt()} × ${device.height.toInt()}',
-            style: TextStyle(fontSize: 12, color: colors.inkMuted),
+            style: TextStyle(
+              fontSize: AppTypography.md,
+              color: colors.inkMuted,
+            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.s16),
           IconButton(
             tooltip: 'Diminuir zoom',
             iconSize: 18,
@@ -62,7 +67,7 @@ class CanvasToolbar extends StatelessWidget {
           ),
           Text(
             '${(zoom * 100).round()}%',
-            style: const TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: AppTypography.md),
           ),
           IconButton(
             tooltip: 'Aumentar zoom',

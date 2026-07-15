@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_typography.dart';
+import '../../../../../../core/theme/device_mock_colors.dart';
 
 /// Tag pequena com o nome do componente. Destacada quando selecionado; discreta
 /// (só um sinal a mais de "há algo aqui") caso contrário.
@@ -12,14 +15,18 @@ class NodeTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mock = Theme.of(context).extension<DeviceMockColors>()!;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      color: isSelected ? AppTheme.primary : const Color(0xCC3A3D44),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s6,
+        vertical: AppSpacing.s2,
+      ),
+      color: isSelected ? AppTheme.primary : mock.nodeTag,
       child: Text(
         label,
         style: TextStyle(
           color: Colors.white,
-          fontSize: 10,
+          fontSize: AppTypography.xs,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),

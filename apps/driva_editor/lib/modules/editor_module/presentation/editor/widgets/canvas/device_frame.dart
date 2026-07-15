@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/device_mock_colors.dart';
 import '../../device_preset.dart';
 import 'camera_cutout.dart';
 import 'side_button.dart';
@@ -22,12 +23,9 @@ class DeviceFrame extends StatelessWidget {
   final bool highlighted;
   final Widget child;
 
-  static const _bodyColor = Color(0xFF1B1D21);
-  static const _rimColor = Color(0xFF3A3D44);
-  static const _buttonColor = Color(0xFF2A2D33);
-
   @override
   Widget build(BuildContext context) {
+    final mock = Theme.of(context).extension<DeviceMockColors>()!;
     final bezel = device.bezel;
     final bodyRadius = device.cornerRadius + bezel;
     final buttonWidth = bezel * 0.55;
@@ -46,43 +44,43 @@ class DeviceFrame extends StatelessWidget {
             SideButton(
               alignment: Alignment.centerLeft,
               width: buttonWidth,
-              color: _buttonColor,
+              color: mock.button,
               top: device.height * 0.20,
               length: device.height * 0.10,
             ),
             SideButton(
               alignment: Alignment.centerRight,
               width: buttonWidth,
-              color: _buttonColor,
+              color: mock.button,
               top: device.height * 0.16,
               length: device.height * 0.06,
             ),
             SideButton(
               alignment: Alignment.centerRight,
               width: buttonWidth,
-              color: _buttonColor,
+              color: mock.button,
               top: device.height * 0.26,
               length: device.height * 0.12,
             ),
             Container(
               padding: EdgeInsets.all(bezel),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF25282E), _bodyColor],
+                  colors: [mock.bodyGradientTop, mock.body],
                 ),
                 borderRadius: BorderRadius.circular(bodyRadius),
-                border: Border.all(color: _rimColor, width: 1),
+                border: Border.all(color: mock.rim, width: 1),
                 boxShadow: [
-                  const BoxShadow(
-                    color: Color(0x40000000),
+                  BoxShadow(
+                    color: mock.shadow,
                     blurRadius: 32,
-                    offset: Offset(0, 16),
+                    offset: const Offset(0, 16),
                   ),
                   if (highlighted)
-                    const BoxShadow(
-                      color: Color(0x66E8602C),
+                    BoxShadow(
+                      color: mock.glow,
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
@@ -95,7 +93,7 @@ class DeviceFrame extends StatelessWidget {
                     child: SizedBox(
                       width: device.width,
                       height: device.height,
-                      child: ColoredBox(color: Colors.white, child: child),
+                      child: ColoredBox(color: mock.screen, child: child),
                     ),
                   ),
                   Positioned.fill(
