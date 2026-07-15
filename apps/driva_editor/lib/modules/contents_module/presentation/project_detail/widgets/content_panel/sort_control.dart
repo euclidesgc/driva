@@ -5,8 +5,6 @@ import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../domain/entities/content_sort.dart';
 
-/// Controle de ordenação: escolhe o campo (menu) e alterna a direção
-/// (asc/desc). Toda mudança recarrega a lista pelo servidor (via cubit).
 class SortControl extends StatelessWidget {
   const SortControl({
     super.key,

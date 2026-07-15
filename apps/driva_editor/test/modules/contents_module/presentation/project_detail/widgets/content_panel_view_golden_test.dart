@@ -13,11 +13,6 @@ import '../../../../../support/golden.dart';
 class MockContentListCubit extends MockCubit<ContentListState>
     implements ContentListCubit {}
 
-// Rede de caracterização por golden do painel de conteúdos (F1 do refactor):
-// congela a aparência atual da grade, da lista, do estado vazio e — o estado
-// crítico — do "ghost" esmaecido (opacity 0.4) enquanto um card é arrastado.
-// As fontes reais são carregadas para o baseline não sair com Ahem/tofu e o
-// comparador tolerante (5%) absorve o ruído subpixel sem esconder regressão.
 void main() {
   setUpAll(() async {
     await loadAppFonts();
@@ -119,11 +114,7 @@ void main() {
   ) async {
     await pumpPanel(tester, ContentListLoaded(contents: contents));
 
-    // Inicia um arraste real sobre o primeiro card: o `Draggable` troca o
-    // filho pelo `childWhenDragging` (o mesmo card com opacity 0.4). O chip de
-    // feedback vai para o Overlay do app (acima do painel), então o golden do
-    // painel captura só a origem esmaecida — o estado que o refactor precisa
-    // preservar pixel a pixel.
+    // O chip de feedback vai para o Overlay: o golden pega só a origem.
     final card = find.byType(Draggable<ContentSummary>).first;
     final gesture = await tester.startGesture(tester.getCenter(card));
     await gesture.moveBy(const Offset(24, 24));

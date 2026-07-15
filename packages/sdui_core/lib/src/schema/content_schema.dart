@@ -7,7 +7,6 @@ import 'node_schema.dart';
 import 'spec_validation_error.dart';
 import 'spec_version.dart';
 
-// Envelope do conteúdo. O `root` é validado à parte por `parseNode`.
 final _contentEnvelope = z.map({
   'specVersion': z.int(),
   'kind': z.$enum(['content']),
@@ -17,12 +16,6 @@ final _contentEnvelope = z.map({
   'description': z.string().optional(),
 });
 
-/// A única porta JSON → entidade do spec de conteúdo.
-///
-/// Valida o envelope (zard), a versão do formato, e a árvore de nós
-/// (recursiva, contra o catálogo). O `root` é **opcional**: ausente/null →
-/// `root == null` (conteúdo vazio, válido); presente → validado como um nó
-/// normal (qualquer tipo registrado no catálogo), recursivamente.
 Either<SpecValidationError, ContentSpec> parseContentSpec(
   Map<String, dynamic> json,
 ) {

@@ -20,8 +20,6 @@ void main() {
     });
 
     test('o hífen à direita passa no regex (não é sanitizado por isValid)', () {
-      // Comportamento real: a validação é só do padrão; a limpeza de bordas
-      // é responsabilidade do slugify, não do isValid.
       expect(SlugUtil.isValid('home-'), isTrue);
     });
   });

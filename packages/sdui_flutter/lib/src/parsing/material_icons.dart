@@ -27,5 +27,4 @@ const _icons = <String, IconData>{
 
 IconData? iconDataFrom(Object? v) => v is String ? _icons[v] : null;
 
-/// Nomes disponíveis, para o seletor do Inspector.
 List<String> get curatedIconNames => _icons.keys.toList(growable: false);

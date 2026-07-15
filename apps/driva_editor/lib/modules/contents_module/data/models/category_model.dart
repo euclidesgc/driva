@@ -17,9 +17,6 @@ class CategoryModel extends Category {
   // (`POST`/`PUT /v1/categories/:id`), declarada uma vez. O backend também
   // manda `slug`/timestamps, mas o editor não os usa hoje — z.map descarta
   // chaves sem schema próprio, então ficam de fora sem quebrar o parse.
-  //
-  // `contentCount` — adendo P3 (`_count` do Prisma, conteúdos DIRETOS da
-  // categoria, sem somar subcategorias), sempre presente.
   static final _schema = z.map({
     'id': z.string().min(1),
     'projectId': z.string().min(1),
@@ -28,8 +25,6 @@ class CategoryModel extends Category {
     'contentCount': z.int(),
   });
 
-  /// Valida e converte. Payload inválido vira `ValidationFailure` descritiva,
-  /// nunca um cast cru estourando.
   static Either<Failure, CategoryModel> tryParse(Map<String, dynamic> map) {
     final result = _schema.safeParse(map);
     if (!result.success) {

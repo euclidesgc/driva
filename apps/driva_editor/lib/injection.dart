@@ -12,15 +12,7 @@ import 'modules/projects_module/projects_module.dart';
 
 final GetIt getIt = GetIt.instance;
 
-/// Root of the service locator.
-///
-/// Order matters: shared infra first (config, the single Dio of the app),
-/// then each module's public registration function.
-///
-/// The root only knows the modules' public barrels — implementations stay
-/// locked inside each module.
 void setupInjection(AppConfig config, SharedPreferences prefs) {
-  // --- Shared infra ---
   getIt.registerSingleton<AppConfig>(config);
   getIt.registerSingleton<ProjectScope>(
     ProjectScope(initialProjectId: config.defaultProjectId),
@@ -29,11 +21,9 @@ void setupInjection(AppConfig config, SharedPreferences prefs) {
     () => createDio(getIt<AppConfig>(), getIt<ProjectScope>()),
   );
   if (config.useFakeData) {
-    // Store em memória compartilhado pelos fakes dos módulos (dev/E2E).
     getIt.registerLazySingleton<FakeContentsStore>(FakeContentsStore.new);
   }
 
-  // --- Module registrations ---
   registerPreferencesModule(getIt, prefs);
   registerProjectsModule(getIt);
   registerContentsModule(getIt);

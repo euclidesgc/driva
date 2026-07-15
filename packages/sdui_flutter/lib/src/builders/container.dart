@@ -5,9 +5,8 @@ import '../parsing/enums.dart';
 import '../parsing/parsers.dart';
 import '../renderer.dart';
 
-/// Container. Props planas (`color`, `borderRadius`, `borderColor`,
-/// `borderWidth`): quando há borda ou raio, viram uma [BoxDecoration] (regra
-/// do Flutter: `color` e `decoration` são mutuamente exclusivos).
+/// Flutter: `color` e `decoration` são mutuamente exclusivos — passar os dois
+/// no mesmo Container lança em runtime.
 Widget buildContainer(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final borderRadius = parseBorderRadius(p['borderRadius']);

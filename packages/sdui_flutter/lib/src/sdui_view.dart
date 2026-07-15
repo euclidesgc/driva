@@ -5,10 +5,6 @@ import 'builders/default_registry.dart';
 import 'registry.dart';
 import 'renderer.dart';
 
-/// Ponto de entrada público: renderiza um nó do spec como árvore de widgets.
-///
-/// No editor, o preview é `SduiView.content(spec, nodeWrapper: ...)` — a mesma
-/// árvore Dart em memória, sem iframe; cada emit do cubit re-renderiza.
 class SduiView extends StatelessWidget {
   const SduiView({
     super.key,
@@ -18,10 +14,6 @@ class SduiView extends StatelessWidget {
     this.nodeWrapper,
   });
 
-  /// Renderiza um conteúdo inteiro (a partir do `root`).
-  ///
-  /// Recebe um [ContentSpec] já resolvido — não busca por slug nem faz rede.
-  /// Conteúdo vazio (`spec.root == null`) renderiza nada ([SizedBox.shrink]).
   SduiView.content(
     ContentSpec spec, {
     Key? key,

@@ -1,11 +1,7 @@
-/// Operações puras sobre a árvore do spec. Toda função devolve uma **nova**
-/// raiz (imutabilidade) — é o que permite ao editor implementar undo/redo no
-/// futuro como uma pilha de specs.
 library;
 
 import '../model/sdui_node.dart';
 
-/// Busca um nó por [id] (a própria raiz inclusive). `null` se não existe.
 SduiNode? findNode(SduiNode root, String id) {
   if (root.id == id) return root;
   if (root.child != null) {
@@ -19,7 +15,6 @@ SduiNode? findNode(SduiNode root, String id) {
   return null;
 }
 
-/// Pai do nó [id]. `null` se [id] é a raiz ou não existe.
 SduiNode? findParent(SduiNode root, String id) {
   if (root.child?.id == id) return root;
   for (final child in root.children) {
@@ -36,8 +31,6 @@ SduiNode? findParent(SduiNode root, String id) {
   return null;
 }
 
-/// Insere [node] em `children` de [parentId], na posição [index]
-/// (clampada ao tamanho da lista). Sem efeito se [parentId] não existe.
 SduiNode insertChild(SduiNode root, String parentId, int index, SduiNode node) {
   return _rebuild(root, (current) {
     if (current.id != parentId) return current;
@@ -47,7 +40,6 @@ SduiNode insertChild(SduiNode root, String parentId, int index, SduiNode node) {
   });
 }
 
-/// Define o `child` (slot único) de [parentId], substituindo o existente.
 SduiNode setChild(SduiNode root, String parentId, SduiNode? node) {
   return _rebuild(root, (current) {
     if (current.id != parentId) return current;
@@ -55,8 +47,6 @@ SduiNode setChild(SduiNode root, String parentId, SduiNode? node) {
   });
 }
 
-/// Remove o nó [id] de onde estiver (slot único ou lista). Remover a raiz
-/// não tem efeito.
 SduiNode removeNode(SduiNode root, String id) {
   return _rebuild(root, (current) {
     var next = current;
@@ -75,10 +65,6 @@ SduiNode removeNode(SduiNode root, String id) {
   });
 }
 
-/// Move o nó [id] para `children` de [newParentId] na posição [index].
-///
-/// Sem efeito se: o nó ou o destino não existem, o destino está dentro da
-/// própria subárvore do nó (criaria ciclo), ou o nó é a raiz.
 SduiNode moveNode(SduiNode root, String id, String newParentId, int index) {
   if (id == root.id) return root;
   final node = findNode(root, id);
@@ -92,8 +78,6 @@ SduiNode moveNode(SduiNode root, String id, String newParentId, int index) {
   return insertChild(without, newParentId, index, node);
 }
 
-/// Aplica [patch] nas props do nó [id] (merge). Valor `null` no patch
-/// **remove** a chave (volta ao default do renderer).
 SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   return _rebuild(root, (current) {
     if (current.id != id) return current;
@@ -103,7 +87,6 @@ SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   });
 }
 
-/// Reconstrói a árvore de baixo para cima aplicando [transform] a cada nó.
 SduiNode _rebuild(SduiNode node, SduiNode Function(SduiNode) transform) {
   var next = node;
   if (next.child != null) {

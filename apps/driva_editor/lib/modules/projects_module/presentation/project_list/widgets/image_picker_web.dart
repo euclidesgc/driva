@@ -21,7 +21,6 @@ class ImagePickerImpl {
   /// Allowlist espelhando o pipeline do CISO no backend (png/jpg/webp).
   static const accept = '.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp';
 
-  /// Abre o seletor; `null` se o usuário cancelar.
   Future<ProjectImageInput?> pick() {
     final completer = Completer<ProjectImageInput?>();
     final input = web.HTMLInputElement()

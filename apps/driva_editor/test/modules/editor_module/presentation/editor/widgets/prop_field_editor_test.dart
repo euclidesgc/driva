@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-/// Reproduz o fluxo real do Inspector: o valor editado volta pelo `onChanged`
-/// e o pai reconstrói o `PropFieldEditor` com a MESMA key de identidade
-/// (`nodeId_fieldKey`). O bug de foco acontecia quando o campo era recriado a
-/// cada tecla; aqui garantimos que ele sobrevive ao rebuild.
+/// Regressão: o campo era recriado a cada tecla e perdia o foco.
 class _InspectorHarness extends StatefulWidget {
   const _InspectorHarness({required this.field});
 

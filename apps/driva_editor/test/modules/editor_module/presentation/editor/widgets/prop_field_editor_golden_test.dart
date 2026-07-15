@@ -6,10 +6,6 @@ import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../support/golden.dart';
 
-// Rede de caracterização por golden dos editores de propriedade do Inspector
-// (F1 do refactor): um golden por `FieldKind`, congelando a aparência de cada
-// editor com um valor representativo. Cobre em especial o `_EdgeInsetsEditor`
-// (cujo closure `sideField` será extraído depois) e o `_ColorEditor`.
 void main() {
   setUpAll(() async {
     await loadAppFonts();

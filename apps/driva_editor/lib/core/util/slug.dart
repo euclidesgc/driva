@@ -1,5 +1,3 @@
-/// Derivação e validação de slug — Dart puro, sem Flutter, testável isolado.
-///
 /// O slug é a referência técnica do conteúdo (`^[a-z][a-z0-9-]*$`), única por
 /// projeto. O editor deriva-o do nome ao vivo e sugere uma variante livre em
 /// colisão (`home` → `home-2`). A garantia dura de unicidade é do Postgres; o

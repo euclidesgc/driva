@@ -1,14 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Uma categoria: nó de uma árvore por projeto (Projeto → Categorias →
-/// Conteúdos). `parentId` nulo é raiz (ex.: a categoria seed "Geral").
-///
-/// A lista chega **flat** da API — montar a árvore a partir de `parentId` é
-/// derivação (fica para um use case/helper ou para a presentation, decisão da
-/// P2). Esta entidade só carrega o nó.
-///
-/// Sem `createdAt`/`updatedAt`: o backend não os devolve para categoria (só
-/// para conteúdo) — contrato confirmado por curl direto na API.
+/// Sem `createdAt`/`updatedAt`: o backend não os devolve para categoria.
 class Category extends Equatable {
   const Category({
     required this.id,
@@ -22,11 +14,7 @@ class Category extends Equatable {
   final String projectId;
   final String name;
 
-  /// `null` quando o nó é raiz.
   final String? parentId;
-
-  /// Nº de conteúdos **diretos** desta categoria (não soma subcategorias) —
-  /// adendo P3, `_count` do Prisma em `GET /v1/categories`. Sempre presente.
   final int contentCount;
 
   Category copyWith({

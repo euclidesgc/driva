@@ -5,9 +5,6 @@ import '../../../domain/entities/category.dart';
 
 typedef CategoryFormResult = ({String name, String? parentId});
 
-/// Form modal de categoria (nome + categoria-pai), fiel ao `.dc.html`
-/// (`isCatForm`): usado tanto para criar quanto para editar.
-///
 /// [excludeIds] impede escolher a própria categoria (ou um descendente dela)
 /// como pai — evitaria um ciclo na árvore.
 class CategoryFormDialog extends StatefulWidget {

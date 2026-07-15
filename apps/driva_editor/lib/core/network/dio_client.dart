@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 import '../config/app_config.dart';
 import 'project_scope.dart';
 
-/// Creates the single shared [Dio] instance of the app.
-///
 /// Base URL comes from [AppConfig] (per flavor). Every repository receives
 /// this same instance via injection — no module creates its own client.
 ///

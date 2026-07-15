@@ -7,12 +7,6 @@ import '../../../../../core/theme/editor_colors.dart';
 import 'inspector/inspector.dart';
 import 'prop_field_editor.dart';
 
-/// Inspector: o formulário do nó selecionado, 100% derivado do catálogo
-/// (WidgetDescriptor/PropField). Sem seleção, mostra as propriedades do
-/// conteúdo (o root column).
-///
-/// Recebe o nó já resolvido pela [_InspectorArea] (via selector), então
-/// rebuilda só quando a seleção ou as props do nó inspecionado mudam.
 class InspectorPanel extends StatelessWidget {
   const InspectorPanel({
     super.key,
@@ -24,8 +18,6 @@ class InspectorPanel extends StatelessWidget {
     required this.onRemove,
   });
 
-  /// Nó inspecionado. `null` só no conteúdo vazio (`isContent`), quando ainda
-  /// não há raiz — mostra apenas o cabeçalho do Conteúdo.
   final SduiNode? node;
   final bool isContent;
   final String contentName;
@@ -100,7 +92,7 @@ class InspectorPanel extends StatelessWidget {
                         (f) => f.group == group,
                       ))
                         PropFieldEditor(
-                          // Key por nó+campo: troca o form quando a seleção muda.
+                          // Sem key por nó, o campo mantém o texto do nó anterior.
                           key: ValueKey('${node.id}_${field.key}'),
                           field: field,
                           value: node.properties[field.key],
@@ -115,7 +107,6 @@ class InspectorPanel extends StatelessWidget {
     );
   }
 
-  /// Grupos na ordem de primeira aparição (padrão do Inspector).
   List<String> _groupsInOrder(WidgetDescriptor descriptor) {
     final groups = <String>[];
     for (final field in descriptor.fields) {

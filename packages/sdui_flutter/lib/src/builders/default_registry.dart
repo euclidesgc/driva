@@ -40,5 +40,4 @@ SduiRegistry buildDefaultRegistry() => SduiRegistry({
   'spacer': buildSpacer,
 });
 
-/// Registry padrão compartilhado (montado uma vez).
 final SduiRegistry defaultRegistry = buildDefaultRegistry();

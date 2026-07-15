@@ -1,12 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
 
-/**
- * Cursor keyset opaco: base64 de `"<valorDoCampoOrdenado>|<id>"`. O backend
- * continua a listagem estritamente APÓS esse par, na mesma ordenação
- * `(sort, id)` — o `id` desempata valores repetidos do campo de sort
- * (Decisão 5 do `prd.md` de docs/08). Trocar `sort`/`order`/`q`/`categoryId`
- * invalida o cursor por construção: o cliente recomeça sem `cursor`.
- */
 export type DecodedCursor = { value: string; id: string };
 
 export function encodeCursor(value: string, id: string): string {

@@ -9,12 +9,7 @@ import 'package:sdui_core/sdui_core.dart';
 import '../cubit/editor_cubit.dart';
 import 'json_preview/json_preview.dart';
 
-/// Painel de preview do JSON do spec em tempo real (itens 7 e 8 do roadmap).
-///
-/// Somente-leitura, com botão de copiar e syntax highlight próprio. Assina o
-/// `document` do cubit e **throttla** a re-serialização (o custo é `toJson` +
-/// encode + realce), no mesmo espírito do preview do canvas: digitação rápida
-/// é coalescida, com render final garantido.
+/// Throttla a re-serialização: `toJson` + encode + realce são caros por tecla.
 class JsonPreviewPanel extends StatefulWidget {
   const JsonPreviewPanel({super.key});
 

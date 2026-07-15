@@ -14,8 +14,6 @@ import 'editor_top_registrar.dart';
 import 'inspector_area.dart';
 import 'left_panel.dart';
 
-/// Casca do editor pronto. Construída UMA vez (a `buildWhen` acima só troca no
-/// tipo do estado); os painéis internos assinam suas fatias via [BlocSelector].
 class EditorWorkspace extends StatelessWidget {
   const EditorWorkspace({super.key, required this.projectFuture});
 
@@ -26,8 +24,6 @@ class EditorWorkspace extends StatelessWidget {
     final cubit = context.read<EditorCubit>();
     final colors = Theme.of(context).extension<EditorColors>()!;
 
-    // Corpo pesado construído UMA vez; o registrador do topo (que reconstrói ao
-    // mudar o status de salvamento) o repassa por identidade, sem rebuildá-lo.
     final workspace = Shortcuts(
       shortcuts: {
         const SingleActivator(LogicalKeyboardKey.keyS, control: true):

@@ -10,7 +10,6 @@ class GetProjectsUseCase {
 
   Future<Either<Failure, List<Project>>> call({bool archived = false}) async {
     final result = await repository.getProjects(archived: archived);
-    // Regra da listagem: mais recente primeiro. Roda só no caminho de sucesso.
     return result.map(
       (projects) =>
           projects.toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),

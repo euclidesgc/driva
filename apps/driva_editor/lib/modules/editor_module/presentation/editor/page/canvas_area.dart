@@ -5,8 +5,6 @@ import '../cubit/editor_cubit.dart';
 import '../device_preset.dart';
 import '../widgets/canvas_panel.dart';
 
-/// Canvas central: reage só a `device`/`zoom` (o preview do documento é
-/// assinado e throttled dentro do próprio [CanvasPanel]).
 class CanvasArea extends StatelessWidget {
   const CanvasArea({super.key});
 

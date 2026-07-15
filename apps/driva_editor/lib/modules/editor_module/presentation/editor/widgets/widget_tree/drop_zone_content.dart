@@ -6,9 +6,6 @@ import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
-/// Corpo do `builder:` do [DragTarget] da zona de soltar: a moldura com o
-/// rótulo, realçada quando há um item sobre ela ([isDragOver] deriva de
-/// `candidates.isNotEmpty`).
 class DropZoneContent extends StatelessWidget {
   const DropZoneContent({
     super.key,

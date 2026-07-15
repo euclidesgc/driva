@@ -1,12 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Um nó da árvore do spec SDUI.
-///
-/// Todo nó tem [id] (seleção/reordenação no editor), [type] (primitivo do
-/// catálogo) e [properties] no formato cru do JSON (chave `props` no spec) —
-/// cada builder do renderer interpreta o que usa. Slots: [child] para
-/// primitivos de 1 filho, [children] para primitivos de N filhos.
-///
 /// O campo chama-se `properties` (e não `props`) porque `props` é o getter de
 /// igualdade do Equatable.
 class SduiNode extends Equatable {
@@ -23,15 +16,13 @@ class SduiNode extends Equatable {
   final String type;
   final Map<String, dynamic> properties;
 
-  /// Eventos → lista de ações (ex.: `onPressed`). Ação é dado: o editor não
-  /// executa, só o app cliente.
   final Map<String, dynamic> events;
 
   final SduiNode? child;
   final List<SduiNode> children;
 
-  /// Cópia imutável. [child] usa função-getter para permitir "setar null"
-  /// (a armadilha do copyWith com campo nullable, capítulo 12 do livro).
+  /// [child] é função-getter porque `SduiNode?` não distinguiria "não passei"
+  /// de "setar null".
   SduiNode copyWith({
     String? id,
     String? type,

@@ -7,22 +7,12 @@ import { MAX_UPLOAD_BYTES } from './projects/image-pipeline';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Limite de body: o default ~100kb do Express estoura o upload de imagem
-  // de Project (F2). Alinhado ao teto do pipeline de upload (MAX_UPLOAD_BYTES
-  // + folga para o overhead do multipart/form-data em torno do arquivo).
-  // Multipart (`multipart/form-data`) não passa por aqui — quem limita o
-  // arquivo em si é o `FileInterceptor` (multer, limits.fileSize) no
-  // controller; isto cobre json/urlencoded para não deixar o default frouxo.
+  // O default ~100kb do Express estoura o upload de imagem. Multipart não
+  // passa por aqui — quem limita o arquivo é o `FileInterceptor` (multer).
   const bodyLimit = `${MAX_UPLOAD_BYTES + 1024 * 1024}b`;
   app.use(json({ limit: bodyLimit }));
   app.use(urlencoded({ limit: bodyLimit, extended: true }));
 
-  // Cancela de entrada: DTOs validados, campos desconhecidos rejeitados.
-  // `transform: true` + `enableImplicitConversion` fazem query params
-  // (sempre string) virarem instâncias reais do DTO com os defaults e
-  // `@Type()` aplicados (ex.: `ListContentsQueryDto.limit` vira number,
-  // `sort`/`order` recebem o default quando ausentes) — necessário para o
-  // filtro/paginação de `GET /v1/contents`.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,14 +22,8 @@ async function bootstrap() {
     }),
   );
 
-  // Health fica fora do prefixo versionado: orquestrador (Coolify) bate
-  // sempre em /health, sem acoplar o healthcheck à versão da API.
   app.setGlobalPrefix('v1', { exclude: ['health'] });
 
-  // CORS: sempre libera `localhost` (porta aleatória do flutter run — permite
-  // rodar o editor local apontando para a API de hml/prod ao testar). Em
-  // hml/prod, some-se a lista exata de CORS_ORIGINS (definida no Coolify,
-  // separada por vírgula). Segredo/origem nunca fica no repo.
   const corsOrigins =
     process.env.CORS_ORIGINS?.split(',')
       .map((o) => o.trim())

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 enum AppBarActionKind { filled, outlined, text, icon }
 
-/// Descritor de uma ação contextual da AppBar global.
-///
 /// É dado, não widget: o shell (acima dos `BlocProvider` das páginas) constrói
 /// o botão. [onPressed] é um closure que já capturou o context da página, então
 /// o clique fala com o cubit certo; `null` desabilita.

@@ -6,8 +6,6 @@ import '../../domain/entities/app_theme_mode.dart';
 import '../../domain/repositories/preferences_repository.dart';
 import '../models/theme_mode_model.dart';
 
-/// Preferências locais sobre `shared_preferences`. Único lugar do módulo com
-/// try/catch — traduz a falha do armazenamento para uma `Failure` tipada.
 class PreferencesRepositoryImpl implements PreferencesRepository {
   static const _themeModeKey = 'preferences.theme_mode';
 

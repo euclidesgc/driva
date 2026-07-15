@@ -28,7 +28,6 @@ void main() {
 
   setUp(() {
     cubit = MockContentListCubit();
-    // O `initState` do painel lê a ordenação corrente do cubit.
     when(() => cubit.currentSort).thenReturn(ContentSort.updatedAt);
     when(() => cubit.currentOrder).thenReturn(ContentSortOrder.desc);
   });
@@ -75,8 +74,7 @@ void main() {
         ),
       );
 
-      // Título do card + rótulo de categoria (ambos "Geral": um no card,
-      // outro no header do painel — por isso findsWidgets).
+      // "Geral" aparece no card e no header: findsOneWidget falharia.
       expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
       expect(find.text('Home'), findsWidgets);
       expect(find.text('Geral'), findsWidgets);
@@ -95,9 +93,7 @@ void main() {
         ),
       );
 
-      // Sem ícone de pasta: a linha inteira foi omitida...
       expect(find.byIcon(Icons.folder_outlined), findsNothing);
-      // ...mas o card segue renderizando título e slug normalmente.
       expect(find.text('Home'), findsWidgets);
       expect(find.text('home'), findsOneWidget);
     });
@@ -135,13 +131,10 @@ void main() {
         ),
       );
 
-      // Alterna grade -> lista pelo toggle de visualização.
       await tester.tap(find.byTooltip('Lista'));
       await tester.pumpAndSettle();
 
-      // A linha de categoria (ícone de pasta) só existe no card de grade.
       expect(find.byIcon(Icons.folder_outlined), findsNothing);
-      // O conteúdo continua listado (título presente).
       expect(find.text('Home'), findsWidgets);
     });
   });

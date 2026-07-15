@@ -3,7 +3,6 @@ import 'field_kind.dart';
 import 'prop_field.dart';
 import 'widget_descriptor.dart';
 
-// Campos compartilhados pelos primitivos flex (column/row).
 const List<PropField> _flexFields = [
   PropField(
     key: 'mainAxisAlignment',
@@ -45,11 +44,6 @@ const List<PropField> _flexFields = [
   ),
 ];
 
-/// Catálogo dos primitivos do I1. Adicionar um primitivo = um descriptor aqui
-/// + um builder no `sdui_flutter` + uma fixture de teste.
-///
-/// As props são **planas** de propósito (ex.: `fontSize` direto no `text`, em
-/// vez de um objeto `style` aninhado): o Inspector do I1 edita campo a campo.
 final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
   'container': const WidgetDescriptor(
     type: 'container',
@@ -643,11 +637,8 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
   ),
 });
 
-/// Descriptor de um primitivo, ou `null` se o tipo é desconhecido.
 WidgetDescriptor? descriptorFor(String type) => widgetCatalog[type];
 
-/// Cria um nó do primitivo [type] com as props pré-preenchidas pelos defaults
-/// do catálogo. O [id] vem de quem chama (o editor gera os ids).
 SduiNode defaultNode(String type, {required String id}) {
   final descriptor = widgetCatalog[type];
   if (descriptor == null) {

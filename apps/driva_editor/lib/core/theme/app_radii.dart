@@ -1,5 +1,3 @@
-/// Escala de raios de canto do editor.
-///
 /// Invariante ao tema, por isso `static const` (consumidos direto, preservando
 /// `const` nas `BorderRadius`). Calibrada pelos valores já usados no código.
 /// `pill` é o raio "estádio" (cápsula) atual (`circular(999)`).

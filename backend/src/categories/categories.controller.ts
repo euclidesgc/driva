@@ -13,7 +13,6 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-/** Escopo de tenant vem do header `x-project-id`, no mesmo padrão de `contents`/`projects`. */
 const projectOf = (header?: string) =>
   header && header.trim().length > 0 ? header.trim() : 'default';
 

@@ -8,10 +8,6 @@ import '../../../../contents_module/contents_module.dart';
 import '../../../../projects_module/projects_module.dart';
 import '../cubit/editor_cubit.dart';
 
-/// Publica crumbs/ações/status do editor no [AppShell] sem reconstruir o
-/// [child] pesado: crumbs e status vêm de `FutureBuilder` (nome do projeto) e
-/// `BlocSelector` (nome do conteúdo + status de salvamento); o corpo é repassado
-/// por identidade.
 class EditorTopRegistrar extends StatelessWidget {
   const EditorTopRegistrar({
     super.key,
@@ -73,8 +69,6 @@ class EditorTopRegistrar extends StatelessWidget {
   }
 }
 
-/// Mapeia o [SaveStatus] interno do editor para o indicador do topo global.
-/// A cor nunca é o único sinal (ícone + texto acompanham o tom).
 AppBarStatus _statusFor(SaveStatus status) => switch (status) {
   SaveStatus.saved => const AppBarStatus(
     icon: Icons.check_circle,

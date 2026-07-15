@@ -8,11 +8,6 @@ import '../../domain/entities/content_summary.dart';
 import '../../domain/entities/contents_page.dart';
 import '../../domain/repositories/contents_repository.dart';
 
-/// Mesma interface, fonte em memória (dev/E2E sem backend). Um fake honra o
-/// contrato de verdade: filtro por categoria/busca, ordenação, paginação por
-/// cursor (fake, mas real o bastante para o dev testar `useFakeData` sem
-/// backend), colisão de slug traduzida em `ConflictFailure` e erros
-/// previstos.
 class ContentsRepositoryFake implements ContentsRepository {
   final FakeContentsStore store;
   ContentsRepositoryFake(this.store);
@@ -70,10 +65,7 @@ class ContentsRepositoryFake implements ContentsRepository {
       return order == ContentSortOrder.desc ? -comparison : comparison;
     });
 
-    // Cursor fake simples: um índice opaco codificado como string. Trocar
-    // sort/order/q/categoryId invalida o cursor no contrato real; aqui o
-    // fake não valida isso (o cliente sempre reseta ao mudar filtro, como
-    // documentado no use case) — só pagina a lista já filtrada/ordenada.
+    // No contrato real, trocar sort/order/q/categoryId invalida o cursor.
     final startIndex = cursor != null ? int.tryParse(cursor) ?? 0 : 0;
     final page = summaries.skip(startIndex).take(limit).toList();
     final endIndex = startIndex + page.length;

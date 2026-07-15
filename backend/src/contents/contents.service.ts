@@ -45,10 +45,8 @@ export class ContentsService {
       where.categoryId = query.categoryId;
     }
 
-    // Busca casa nome (fuzzy, normalizado), slug (fuzzy) ou id (exato — o
-    // valor que o usuário copia do card e cola). Os três num OR; combinado ao
-    // keyset do cursor por AND, para os dois filtros coexistirem sem que um
-    // sobrescreva o `where.OR` do outro.
+    // Busca e keyset vão num AND de ORs: um `where.OR` único faria um
+    // sobrescrever o outro.
     const and: Prisma.ContentWhereInput[] = [];
 
     const q = query.q?.trim();
@@ -67,9 +65,6 @@ export class ContentsService {
     if (query.cursor) {
       const { value, id } = decodeCursor(query.cursor);
       const cursorField = this.cursorFieldFor(sort, value);
-      // Keyset: continua estritamente APÓS o par (campo_sort, id) do cursor,
-      // respeitando a direção. Empates no campo de sort são desempatados
-      // pelo id (Decisão 5 do prd.md de docs/08).
       const isAfter = order === 'asc';
       and.push({
         OR: [
@@ -118,9 +113,6 @@ export class ContentsService {
   async create(projectId: string, dto: CreateContentDto) {
     const categoryId = await this.resolveCategoryId(projectId, dto.categoryId);
     try {
-      // O id é CUID2 cunhado pelo Prisma no insert; o spec precisa referenciar
-      // esse mesmo id, então nasce após a linha existir e é preenchido em
-      // seguida (o backend não interpreta o spec — só o monta válido de saída).
       const row = await this.prisma.$transaction(async (tx) => {
         const created = await tx.content.create({
           data: {
@@ -134,9 +126,6 @@ export class ContentsService {
           },
           select: { id: true },
         });
-        // Conteúdo novo nasce VAZIO (sem `root`): o primeiro widget adicionado
-        // no editor vira a raiz, de qualquer tipo. O backend não interpreta o
-        // spec — só o monta válido de saída.
         const spec = {
           specVersion: SPEC_VERSION,
           kind: 'content',
@@ -193,17 +182,11 @@ export class ContentsService {
         `spec.specVersion precisa ser ${SPEC_VERSION}`,
       );
     }
-    // `categoryId` presente move o conteúdo (validado); omitido preserva a
-    // categoria atual (não força "Geral" — só o POST tem esse fallback).
     const categoryId =
       dto.categoryId !== undefined
         ? await this.assertCategoryInProject(projectId, dto.categoryId)
         : undefined;
     try {
-      // `updateMany` mantém o escopo por tenant (o `where` carrega o
-      // projectId) e detecta "não existe" pelo count — mas não devolve a
-      // linha. Como o PUT responde o resumo atualizado (simétrico ao POST,
-      // que o editor consome após mover/renomear), lê a linha de volta.
       const result = await this.prisma.content.updateMany({
         where: { id, projectId },
         data: {
@@ -250,7 +233,6 @@ export class ContentsService {
     if (result.count === 0) throw new NotFoundException();
   }
 
-  /** POST sem `categoryId` -> "Geral" do projeto; com `categoryId` -> valida. */
   private async resolveCategoryId(
     projectId: string,
     categoryId: string | undefined,
@@ -263,8 +245,6 @@ export class ContentsService {
       select: { id: true },
     });
     if (!geral) {
-      // Não deveria acontecer (seed garante a "Geral" por projeto), mas
-      // falha de forma tratada em vez de violar a FK NOT NULL com erro cru.
       throw new BadRequestException(
         'projeto sem categoria "Geral" — contate o suporte',
       );
@@ -272,7 +252,6 @@ export class ContentsService {
     return geral.id;
   }
 
-  /** Garante que `categoryId` existe E é do mesmo projeto (não vaza entre tenants). */
   private async assertCategoryInProject(
     projectId: string,
     categoryId: string,
@@ -317,8 +296,6 @@ export class ContentsService {
     );
   }
 
-  // O corpo do 409 carrega um slug livre já calculado (`suggestedSlug`): o
-  // editor consome esse campo direto e só deriva localmente quando ausente.
   private async throwSlugConflict(
     projectId: string,
     slug: string,

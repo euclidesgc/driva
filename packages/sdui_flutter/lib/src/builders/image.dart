@@ -12,7 +12,6 @@ Widget buildImage(BuildContext context, SduiNode node, SduiRenderer r) {
   final height = parseDouble(p['height']);
 
   if (src.isEmpty) {
-    // Placeholder amigável no editor: imagem sem URL ainda.
     return SizedBox(
       width: width ?? 80,
       height: height ?? 80,

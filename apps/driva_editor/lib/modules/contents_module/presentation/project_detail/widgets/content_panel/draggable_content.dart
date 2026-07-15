@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../domain/entities/content_summary.dart';
 import 'content_drag_chip.dart';
 
-/// Origem do drag-and-drop (feature 10, fase 2): embrulha o card/linha num
-/// `Draggable<ContentSummary>` com chip de feedback compacto, origem
-/// esmaecida enquanto arrasta e cursor "grab" + tooltip curta na origem.
-///
 /// O botão "mover" de [CardActions] permanece como caminho acessível
 /// primário — o drag é só um atalho, nunca o único sinal (D6/CA10).
 class DraggableContent extends StatelessWidget {

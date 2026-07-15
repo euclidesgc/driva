@@ -5,7 +5,6 @@ import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/device_mock_colors.dart';
 import '../../device_preset.dart';
 
-/// Recorte da câmera sobre a tela: pill central ou furo pequeno (punch-hole).
 class CameraCutout extends StatelessWidget {
   const CameraCutout({super.key, required this.notch});
 

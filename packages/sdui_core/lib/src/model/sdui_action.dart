@@ -1,9 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Uma ação disparada por um evento do spec (spec §ações): tipo + params.
-///
-/// Ação é **dado**. O kernel só a descreve; quem executa é o host (o app
-/// cliente em produção; o editor apenas loga no preview do I1).
 class SduiAction extends Equatable {
   const SduiAction({required this.type, this.params = const {}});
 

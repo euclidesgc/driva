@@ -22,9 +22,7 @@ class JsonView extends StatelessWidget {
     final colors = Theme.of(context).extension<EditorColors>()!;
     final syntax = Theme.of(context).extension<SyntaxColors>()!;
     final lineCount = '\n'.allMatches(json).length + 1;
-    // Rolagem vertical envolve gutter + texto (sobem juntos); só o texto rola
-    // na horizontal. O padding vertical fica no scroll externo para o gutter
-    // e o texto começarem na mesma linha (mesmo `height` → alinhados 1:1).
+    // Padding vertical no scroll externo: gutter e texto precisam alinhar 1:1.
     return ColoredBox(
       color: colors.panel,
       child: Scrollbar(

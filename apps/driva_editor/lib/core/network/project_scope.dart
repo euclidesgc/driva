@@ -1,5 +1,3 @@
-/// Holds the id of the project currently open in the editor.
-///
 /// Mutable on purpose: no stream, no reactive state. Screens read
 /// [projectId] fresh whenever they navigate/reload — they don't need to
 /// react live to changes made elsewhere.
@@ -13,12 +11,9 @@ class ProjectScope {
 
   static const _defaultProjectId = 'default';
 
-  /// Id of the project currently open. Defaults to `'default'`.
   String projectId;
 
-  /// Switches the scope to [id].
   void set(String id) => projectId = id;
 
-  /// Restores the default scope.
   void reset() => projectId = _defaultProjectId;
 }

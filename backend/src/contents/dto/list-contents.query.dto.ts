@@ -35,10 +35,6 @@ export class ListContentsQueryDto {
   @IsString()
   cursor?: string;
 
-  // `limit` chega como string (querystring); `Type(() => Number)` converte
-  // antes do `@IsInt`/`@Min`/`@Max` — fora da faixa 1–100 ou não-inteiro =
-  // 400 pela ValidationPipe global, sem clamp silencioso (Decisão 8 do
-  // prd.md de docs/08).
   @IsOptional()
   @Type(() => Number)
   @IsInt()

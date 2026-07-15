@@ -8,8 +8,6 @@ import { ProjectsService } from './projects.service';
 @Module({
   imports: [
     StorageModule,
-    // Default global do throttler (rotas sem `@Throttle` próprio) — o upload
-    // usa um limite mais apertado via `@Throttle` no controller.
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 60 }] }),
   ],
   controllers: [ProjectsController],

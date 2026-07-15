@@ -13,10 +13,6 @@ import '../../../../support/golden.dart';
 class MockCategoryTreeCubit extends MockCubit<CategoryTreeState>
     implements CategoryTreeCubit {}
 
-// Golden de caracterização da árvore de categorias (F1 do refactor): congela a
-// aparência da árvore carregada — pseudo-nó "Todos os conteúdos", divisor,
-// categorias raiz e uma subcategoria (para exercitar a indentação por
-// profundidade) e o realce da seleção.
 void main() {
   setUpAll(() async {
     await loadAppFonts();

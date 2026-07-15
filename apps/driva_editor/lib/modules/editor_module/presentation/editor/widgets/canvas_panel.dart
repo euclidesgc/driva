@@ -42,7 +42,6 @@ class CanvasPanel extends StatelessWidget {
         ),
         Expanded(
           child: DragTarget<DragPayload>(
-            // Soltar no canvas (fora da árvore) = adicionar ao fim do conteúdo.
             onAcceptWithDetails: (details) {
               if (details.data case PaletteDragPayload(:final type)) {
                 onAddToRoot(type);
@@ -58,7 +57,6 @@ class CanvasPanel extends StatelessWidget {
                 child: Transform.scale(
                   scale: zoom,
                   alignment: Alignment.topCenter,
-                  // Isola a pintura do preview do resto do editor.
                   child: RepaintBoundary(
                     child: DeviceFrame(
                       device: device,

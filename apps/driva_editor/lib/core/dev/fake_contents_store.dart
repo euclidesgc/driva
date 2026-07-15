@@ -1,7 +1,5 @@
 import 'package:sdui_core/sdui_core.dart';
 
-/// In-memory content store for the fake repositories (dev only).
-///
 /// Vive no core porque é compartilhado entre `contents_module` e
 /// `editor_module` — os dois fakes precisam ver os mesmos conteúdos para o
 /// fluxo "criar na lista → abrir no editor" funcionar sem backend.

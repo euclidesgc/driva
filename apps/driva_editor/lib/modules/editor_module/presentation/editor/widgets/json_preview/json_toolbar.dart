@@ -32,7 +32,6 @@ class JsonToolbar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          // Estado do copiar não fica só na cor: ícone + rótulo mudam juntos.
           TextButton.icon(
             onPressed: () => onCopy(),
             icon: Icon(

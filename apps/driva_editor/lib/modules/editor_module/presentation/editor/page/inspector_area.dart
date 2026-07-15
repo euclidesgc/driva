@@ -5,8 +5,6 @@ import '../cubit/editor_cubit.dart';
 import '../widgets/inspector_panel.dart';
 import 'inspector_vm.dart';
 
-/// Inspector: rebuilda só quando a seleção muda ou o nó inspecionado muda de
-/// props (editar OUTRO nó não o reconstrói).
 class InspectorArea extends StatelessWidget {
   const InspectorArea({super.key});
 
@@ -18,8 +16,6 @@ class InspectorArea extends StatelessWidget {
         if (state is! EditorReady) return null;
         final root = state.document.root;
         final node = state.selectedNode ?? root;
-        // Selecionar a raiz a trata como um nó normal (com label + remover);
-        // "Conteúdo" é só a visão padrão quando nada está selecionado.
         final isContent = state.selectedNode == null;
         return InspectorVm(
           node: node,
