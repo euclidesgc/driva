@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/util/slug.dart';
 import '../../../domain/entities/category.dart';
+import 'conflict_banner.dart';
 
 typedef ContentFormResult = ({
   String name,
@@ -103,7 +104,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (widget.conflictMessage != null) ...[
-                _ConflictBanner(message: widget.conflictMessage!),
+                ConflictBanner(message: widget.conflictMessage!),
                 const SizedBox(height: 12),
               ],
               TextFormField(
@@ -182,48 +183,6 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
         ),
         FilledButton(onPressed: _submit, child: Text(widget.saveLabel)),
       ],
-    );
-  }
-}
-
-/// Aviso de slug em uso: ícone + texto (a cor não é o único sinal).
-class _ConflictBanner extends StatelessWidget {
-  const _ConflictBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      liveRegion: true,
-      label: 'Aviso: $message',
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 18,
-              color: theme.colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

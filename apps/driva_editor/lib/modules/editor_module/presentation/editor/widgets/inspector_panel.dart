@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/editor_colors.dart';
-import 'palette_icons.dart';
+import 'inspector/inspector.dart';
 import 'prop_field_editor.dart';
 
 /// Inspector: o formulário do nó selecionado, 100% derivado do catálogo
@@ -41,7 +40,7 @@ class InspectorPanel extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _InspectorHeader(
+          InspectorHeader(
             title: 'Conteúdo',
             subtitle: '$contentName · slug $contentSlug',
             iconType: null,
@@ -68,7 +67,7 @@ class InspectorPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _InspectorHeader(
+        InspectorHeader(
           title: isContent ? 'Conteúdo' : (descriptor?.label ?? node.type),
           subtitle: isContent
               ? '$contentName · slug $contentSlug'
@@ -88,7 +87,7 @@ class InspectorPanel extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   children: [
                     for (final group in _groupsInOrder(descriptor)) ...[
-                      _GroupHeader(label: group),
+                      GroupHeader(label: group),
                       for (final field in descriptor.fields.where(
                         (f) => f.group == group,
                       ))
@@ -115,84 +114,5 @@ class InspectorPanel extends StatelessWidget {
       if (!groups.contains(field.group)) groups.add(field.group);
     }
     return groups;
-  }
-}
-
-class _InspectorHeader extends StatelessWidget {
-  const _InspectorHeader({
-    required this.title,
-    required this.subtitle,
-    required this.iconType,
-    required this.onRemove,
-  });
-
-  final String title;
-  final String subtitle;
-  final String? iconType;
-  final VoidCallback? onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.extension<EditorColors>()!;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            iconType == null ? Icons.web_asset : paletteIconFor(iconType!),
-            size: 18,
-            color: AppTheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 11, color: colors.inkMuted),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          if (onRemove != null)
-            IconButton(
-              tooltip: 'Remover bloco (Delete)',
-              iconSize: 18,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onRemove,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GroupHeader extends StatelessWidget {
-  const _GroupHeader({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 2),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
-          letterSpacing: 0.6,
-          fontWeight: FontWeight.w600,
-          color: colors.inkMuted,
-        ),
-      ),
-    );
   }
 }

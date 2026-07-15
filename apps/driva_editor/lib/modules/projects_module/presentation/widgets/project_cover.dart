@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/entities.dart';
+import 'gradient_texture.dart';
 
 /// Capa do card de projeto: gradiente estável por id (ou imagem, quando
 /// houver `imageUrl`) + avatar com a inicial do título. Compartilhada entre
@@ -37,10 +38,10 @@ class ProjectCover extends StatelessWidget {
             Image.network(
               project.imageUrl!,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _GradientTexture(gradient: gradient),
+              errorBuilder: (_, _, _) => GradientTexture(gradient: gradient),
             )
           else
-            _GradientTexture(gradient: gradient),
+            GradientTexture(gradient: gradient),
           Positioned(
             left: 16,
             bottom: 12,
@@ -114,48 +115,4 @@ class ProjectCover extends StatelessWidget {
         seed.codeUnits.fold<int>(0, (sum, c) => sum + c) % palettes.length;
     return palettes[index];
   }
-}
-
-class _GradientTexture extends StatelessWidget {
-  const _GradientTexture({required this.gradient});
-
-  final List<Color> gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
-        ),
-      ),
-      child: Opacity(
-        opacity: 0.16,
-        child: CustomPaint(painter: _GridTexturePainter()),
-      ),
-    );
-  }
-}
-
-/// Textura de grid sutil sobre a capa do card (linhas finas 26x26, como o
-/// protótipo).
-class _GridTexturePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 1;
-    const step = 26.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

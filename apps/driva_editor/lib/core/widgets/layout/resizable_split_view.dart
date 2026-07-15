@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/editor_colors.dart';
+import 'resize_handle.dart';
 
 /// Layout de 3 colunas com divisores arrastáveis (padrão de editor desktop):
 /// painel esquerdo e direito com largura ajustável, centro flexível.
@@ -41,40 +41,16 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _leftWidth, child: widget.left),
-        _ResizeHandle(
+        ResizeHandle(
           onDrag: (dx) => setState(() => _leftWidth = _clamp(_leftWidth + dx)),
         ),
         Expanded(child: widget.center),
-        _ResizeHandle(
+        ResizeHandle(
           onDrag: (dx) =>
               setState(() => _rightWidth = _clamp(_rightWidth - dx)),
         ),
         SizedBox(width: _rightWidth, child: widget.right),
       ],
-    );
-  }
-}
-
-class _ResizeHandle extends StatelessWidget {
-  const _ResizeHandle({required this.onDrag});
-
-  final ValueChanged<double> onDrag;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return MouseRegion(
-      cursor: SystemMouseCursors.resizeColumn,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragUpdate: (details) => onDrag(details.delta.dx),
-        child: SizedBox(
-          width: 6,
-          child: Center(
-            child: SizedBox(width: 1, child: ColoredBox(color: colors.border)),
-          ),
-        ),
-      ),
     );
   }
 }

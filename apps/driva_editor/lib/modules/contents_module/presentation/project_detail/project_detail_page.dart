@@ -16,6 +16,7 @@ import '../../domain/entities/content_summary.dart';
 import '../../domain/use_cases/use_cases.dart';
 import '../category_tree/category_tree.dart';
 import '../content_list/cubit/content_list_cubit.dart';
+import 'invalid_project_screen.dart';
 import 'widgets/category_form_dialog.dart';
 import 'widgets/content_form_dialog.dart';
 import 'widgets/content_panel_view.dart';
@@ -47,7 +48,7 @@ class ProjectDetailPage extends StatelessWidget {
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
     // Deep link malformado não é crash, é tela tratada.
-    if (id == null || id.trim().isEmpty) return const _InvalidProjectScreen();
+    if (id == null || id.trim().isEmpty) return const InvalidProjectScreen();
 
     getIt<ProjectScope>().set(id);
 
@@ -478,29 +479,6 @@ class ProjectDetailPage extends StatelessWidget {
           toCategoryId: targetCategoryId,
         );
       },
-    );
-  }
-}
-
-class _InvalidProjectScreen extends StatelessWidget {
-  const _InvalidProjectScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Link de projeto inválido.'),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: () => context.goNamed(ProjectsRoutes.projectsName),
-              child: const Text('Voltar aos projetos'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

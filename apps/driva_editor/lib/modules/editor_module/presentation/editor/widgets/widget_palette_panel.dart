@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import '../../../../../core/theme/editor_colors.dart';
-import 'drag_payload.dart';
-import 'palette_icons.dart';
+import 'widget_palette/widget_palette.dart';
 
 /// Paleta de widgets: itens **arrastáveis** para a árvore/canvas, agrupados
 /// por categoria, com busca. Adicionar é só por drag-and-drop (o clique não
@@ -72,7 +71,7 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                           runSpacing: 8,
                           children: [
                             for (final descriptor in entry.value)
-                              _PaletteItem(descriptor: descriptor),
+                              PaletteItem(descriptor: descriptor),
                           ],
                         ),
                       ),
@@ -81,65 +80,6 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                 ),
         ),
       ],
-    );
-  }
-}
-
-class _PaletteItem extends StatelessWidget {
-  const _PaletteItem({required this.descriptor});
-
-  final WidgetDescriptor descriptor;
-
-  @override
-  Widget build(BuildContext context) {
-    final tile = _PaletteTile(descriptor: descriptor);
-    return Draggable<DragPayload>(
-      data: PaletteDragPayload(descriptor.type),
-      feedback: Material(
-        color: Colors.transparent,
-        child: Opacity(opacity: 0.85, child: tile),
-      ),
-      childWhenDragging: Opacity(opacity: 0.4, child: tile),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.grab,
-        child: Tooltip(message: 'Arraste para o conteúdo', child: tile),
-      ),
-    );
-  }
-}
-
-class _PaletteTile extends StatelessWidget {
-  const _PaletteTile({required this.descriptor});
-
-  final WidgetDescriptor descriptor;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return Container(
-      width: 76,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.panel,
-        border: Border.all(color: colors.border),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            paletteIconFor(descriptor.type),
-            size: 22,
-            color: colors.inkPrimary,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            descriptor.label,
-            style: const TextStyle(fontSize: 11),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
   }
 }

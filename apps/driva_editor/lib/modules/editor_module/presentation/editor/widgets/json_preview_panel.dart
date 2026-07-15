@@ -6,9 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/editor_colors.dart';
 import '../cubit/editor_cubit.dart';
-import '../../../../../core/widgets/painters/painters.dart';
+import 'json_preview/json_preview.dart';
 
 /// Painel de preview do JSON do spec em tempo real (itens 7 e 8 do roadmap).
 ///
@@ -93,128 +92,9 @@ class _JsonPreviewPanelState extends State<JsonPreviewPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _JsonToolbar(copied: _copied, onCopy: _copy),
-        Expanded(child: _JsonView(json: _json)),
+        JsonToolbar(copied: _copied, onCopy: _copy),
+        Expanded(child: JsonView(json: _json)),
       ],
-    );
-  }
-}
-
-class _JsonToolbar extends StatelessWidget {
-  const _JsonToolbar({required this.copied, required this.onCopy});
-
-  final bool copied;
-  final Future<void> Function() onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: colors.panel,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.data_object, size: 16, color: colors.inkMuted),
-          const SizedBox(width: 8),
-          Text(
-            'JSON do spec (somente-leitura)',
-            style: TextStyle(fontSize: 12, color: colors.inkSecondary),
-          ),
-          const Spacer(),
-          // Estado do copiar não fica só na cor: ícone + rótulo mudam juntos.
-          TextButton.icon(
-            onPressed: () => onCopy(),
-            icon: Icon(
-              copied ? Icons.check : Icons.copy_all_outlined,
-              size: 16,
-              color: copied ? colors.success : colors.inkPrimary,
-            ),
-            label: Text(
-              copied ? 'Copiado' : 'Copiar',
-              style: TextStyle(
-                fontSize: 12,
-                color: copied ? colors.success : colors.inkPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _JsonView extends StatelessWidget {
-  const _JsonView({required this.json});
-
-  final String json;
-
-  @override
-  Widget build(BuildContext context) {
-    const base = TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.5);
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    final lineCount = '\n'.allMatches(json).length + 1;
-    // Rolagem vertical envolve gutter + texto (sobem juntos); só o texto rola
-    // na horizontal. O padding vertical fica no scroll externo para o gutter
-    // e o texto começarem na mesma linha (mesmo `height` → alinhados 1:1).
-    return ColoredBox(
-      color: colors.panel,
-      child: Scrollbar(
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          primary: true,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _LineGutter(count: lineCount, style: base, colors: colors),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SelectableText.rich(
-                    TextSpan(
-                      children: JsonHighlighter.highlight(json, base: base),
-                    ),
-                    style: base,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LineGutter extends StatelessWidget {
-  const _LineGutter({
-    required this.count,
-    required this.style,
-    required this.colors,
-  });
-
-  final int count;
-  final TextStyle style;
-  final EditorColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final numbers = [for (var i = 1; i <= count; i++) '$i'].join('\n');
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: colors.border)),
-      ),
-      child: Text(
-        numbers,
-        textAlign: TextAlign.right,
-        style: style.copyWith(color: colors.inkMuted),
-      ),
     );
   }
 }
