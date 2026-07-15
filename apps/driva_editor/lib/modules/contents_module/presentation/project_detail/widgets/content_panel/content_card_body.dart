@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../domain/entities/content_summary.dart';
 import 'card_actions.dart';
 import 'category_label.dart';
@@ -40,7 +41,12 @@ class ContentCardBody extends StatelessWidget {
         child: InkWell(
           onTap: () => onOpen(content),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(15, 14, 15, 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s15,
+              AppSpacing.s14,
+              AppSpacing.s15,
+              AppSpacing.s16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,7 +61,7 @@ class ContentCardBody extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.s14),
                 Text(
                   content.name,
                   style: theme.textTheme.titleSmall?.copyWith(
@@ -67,7 +73,7 @@ class ContentCardBody extends StatelessWidget {
                 CategoryLabel(name: categoryName),
                 const Spacer(),
                 UpdatedAt(updatedAt: content.updatedAt),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.s3),
                 SupportId(id: content.id),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/error/error.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 
 class PanelError extends StatelessWidget {
   const PanelError({super.key, required this.failure, required this.onRetry});
@@ -22,7 +23,7 @@ class PanelError extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(message),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.s12),
           OutlinedButton(
             onPressed: onRetry,
             child: const Text('Tentar de novo'),

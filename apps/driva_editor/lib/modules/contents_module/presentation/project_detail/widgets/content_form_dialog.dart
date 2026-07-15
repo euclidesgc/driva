@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/util/slug.dart';
 import '../../../../../core/widgets/feedback/feedback.dart';
 import '../../../domain/entities/category.dart';
@@ -105,7 +106,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
             children: [
               if (widget.conflictMessage != null) ...[
                 MessageBanner(message: widget.conflictMessage!),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.s12),
               ],
               TextFormField(
                 controller: _name,
@@ -118,7 +119,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                     (value ?? '').trim().isEmpty ? 'Informe o nome.' : null,
                 onChanged: _onNameChanged,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               TextFormField(
                 controller: _slug,
                 decoration: const InputDecoration(
@@ -140,7 +141,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               TextFormField(
                 controller: _description,
                 minLines: 1,
@@ -150,7 +151,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                   hintText: 'Para que serve este conteúdo?',
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               DropdownButtonFormField<String?>(
                 initialValue: _categoryId,
                 decoration: const InputDecoration(labelText: 'Categoria'),
@@ -167,7 +168,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                 ],
                 onChanged: (value) => setState(() => _categoryId = value),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.s4),
               Text(
                 'ID de suporte é gerado pelo servidor após criar.',
                 style: theme.textTheme.bodySmall,

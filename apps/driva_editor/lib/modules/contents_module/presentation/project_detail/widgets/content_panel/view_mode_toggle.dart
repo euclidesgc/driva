@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../../../core/widgets/buttons/buttons.dart';
 import 'content_view_mode.dart';
@@ -18,11 +20,11 @@ class ViewModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(AppSpacing.s3),
       decoration: BoxDecoration(
         color: colors.panel,
         border: Border.all(color: colors.border),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(AppRadii.r9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

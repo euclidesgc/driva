@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 /// Rodapé de "carregando mais" do scroll infinito (pílula com spinner + texto;
@@ -16,10 +18,13 @@ class LoadingMoreFooter extends StatelessWidget {
         liveRegion: true,
         label: 'Carregando mais conteúdos',
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s14,
+            vertical: AppSpacing.s8,
+          ),
           decoration: BoxDecoration(
             color: colors.panel,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadii.pill),
             border: Border.all(color: colors.border),
           ),
           child: Row(
@@ -30,7 +35,7 @@ class LoadingMoreFooter extends StatelessWidget {
                 height: 15,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.s10),
               Text(
                 'Carregando mais…',
                 style: theme.textTheme.bodySmall?.copyWith(

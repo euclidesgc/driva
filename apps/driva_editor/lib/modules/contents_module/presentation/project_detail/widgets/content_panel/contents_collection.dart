@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../domain/entities/content_summary.dart';
 import 'content_card.dart';
 import 'content_row.dart';
@@ -49,12 +50,17 @@ class ContentsCollection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Reserva espaço no rodapé para o loader não cobrir o último item.
-    final bottomPadding = isLoadingMore ? 64.0 : 24.0;
+    final bottomPadding = isLoadingMore ? 64.0 : AppSpacing.s24;
     final Widget collection = mode == ContentViewMode.list
         ? ListView.separated(
-            padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.s24,
+              AppSpacing.s16,
+              AppSpacing.s24,
+              bottomPadding,
+            ),
             itemCount: contents.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.s8),
             itemBuilder: (context, index) => ContentRow(
               content: contents[index],
               onOpen: onOpen,
@@ -64,11 +70,16 @@ class ContentsCollection extends StatelessWidget {
             ),
           )
         : GridView.builder(
-            padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.s24,
+              AppSpacing.s16,
+              AppSpacing.s24,
+              bottomPadding,
+            ),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 300,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
+              mainAxisSpacing: AppSpacing.s16,
+              crossAxisSpacing: AppSpacing.s16,
               mainAxisExtent: 182,
             ),
             itemCount: contents.length,

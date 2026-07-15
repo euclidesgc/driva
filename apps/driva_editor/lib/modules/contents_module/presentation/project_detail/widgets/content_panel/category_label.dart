@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/theme/app_typography.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 
 /// Nome da categoria do conteúdo — ícone de pasta + texto, para que a
@@ -25,18 +27,18 @@ class CategoryLabel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 3),
+            const SizedBox(height: AppSpacing.s3),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.folder_outlined, size: 13, color: colors.inkMuted),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.s4),
                 Flexible(
                   child: Text(
                     name,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colors.inkMuted,
-                      fontSize: 11,
+                      fontSize: AppTypography.sm,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/theme/app_durations.dart';
+import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/editor_colors.dart';
 import '../../../domain/entities/content_sort.dart';
 import '../../../domain/entities/content_summary.dart';
@@ -51,7 +53,7 @@ class ContentPanelView extends StatefulWidget {
 }
 
 class _ContentPanelViewState extends State<ContentPanelView> {
-  static const _debounce = Duration(milliseconds: 300);
+  static const _debounce = AppDurations.normal;
 
   final _searchController = TextEditingController();
   Timer? _debounceTimer;
@@ -109,7 +111,12 @@ class _ContentPanelViewState extends State<ContentPanelView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s24,
+            AppSpacing.s20,
+            AppSpacing.s24,
+            AppSpacing.none,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -124,7 +131,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.s2),
                     BlocBuilder<ContentListCubit, ContentListState>(
                       builder: (context, state) {
                         final count = switch (state) {
@@ -160,14 +167,14 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.s10),
               SortControl(
                 sort: _sort,
                 order: _order,
                 onSortChanged: _onSortFieldChanged,
                 onToggleOrder: _onToggleOrder,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.s10),
               ViewModeToggle(
                 mode: _mode,
                 onChanged: (mode) => setState(() => _mode = mode),

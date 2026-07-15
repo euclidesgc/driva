@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../domain/entities/content_sort.dart';
 
@@ -31,11 +33,11 @@ class SortControl extends StatelessWidget {
     final colors = theme.extension<EditorColors>()!;
     final isDesc = order == ContentSortOrder.desc;
     return Container(
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(AppSpacing.s3),
       decoration: BoxDecoration(
         color: colors.panel,
         border: Border.all(color: colors.border),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(AppRadii.r9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -56,12 +58,15 @@ class SortControl extends StatelessWidget {
                   ),
               ],
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s8,
+                  vertical: AppSpacing.s5,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.sort_rounded, size: 16, color: colors.inkMuted),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.s6),
                     Text(
                       _label(sort),
                       style: theme.textTheme.labelMedium?.copyWith(
@@ -87,7 +92,7 @@ class SortControl extends StatelessWidget {
                   '${isDesc ? 'decrescente' : 'crescente'}',
               child: InkWell(
                 onTap: onToggleOrder,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadii.r6),
                 child: Container(
                   width: 30,
                   height: 28,

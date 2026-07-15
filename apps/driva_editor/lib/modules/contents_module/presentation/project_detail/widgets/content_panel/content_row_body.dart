@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/theme/app_radii.dart';
+import '../../../../../../core/theme/app_spacing.dart';
 import '../../../../../../core/theme/editor_colors.dart';
 import '../../../../domain/entities/content_summary.dart';
 import 'card_actions.dart';
@@ -35,20 +37,23 @@ class ContentRowBody extends StatelessWidget {
       opacity: opacity,
       child: Material(
         color: colors.panel,
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(AppRadii.r11),
         child: InkWell(
           onTap: () => onOpen(content),
-          borderRadius: BorderRadius.circular(11),
+          borderRadius: BorderRadius.circular(AppRadii.r11),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s14,
+              vertical: AppSpacing.s10,
+            ),
             decoration: BoxDecoration(
               border: Border.all(color: colors.border),
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(AppRadii.r11),
             ),
             child: Row(
               children: [
                 SlugBadge(slug: content.slug),
-                const SizedBox(width: 14),
+                const SizedBox(width: AppSpacing.s14),
                 // Título com espaço generoso: na lista ele não espreme (só
                 // trunca em telas realmente estreitas), diferente do card de
                 // grade que reserva espaço fixo para as ações.
@@ -62,9 +67,9 @@ class ContentRowBody extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.s12),
                 UpdatedAt(updatedAt: content.updatedAt),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.s6),
                 CardActions(
                   content: content,
                   onEdit: onEdit,
