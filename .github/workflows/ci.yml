@@ -29,6 +29,9 @@ jobs:
       - name: Análise estática
         run: flutter analyze
 
+      - name: Gates de qualidade (guard-script)
+        run: bash scripts/gates_guard.sh
+
       - name: Testes — sdui_core (kernel)
         run: dart test packages/sdui_core
 

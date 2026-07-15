@@ -15,9 +15,9 @@ class ArchivedProjectsList extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.s28,
-        34,
+        AppSpacing.s34,
         AppSpacing.s28,
-        80,
+        AppSpacing.s80,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),

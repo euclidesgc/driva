@@ -26,4 +26,13 @@ abstract final class AppSpacing {
   static const double s24 = 24;
   static const double s28 = 28;
   static const double s32 = 32;
+
+  // Faixa "grande": paddings de seção/página e folga de scroll do canvas.
+  // Não são ritmo de UI densa — são respiro de layout (empty states, margens
+  // de página, boundary do InteractiveViewer).
+  static const double s34 = 34;
+  static const double s64 = 64;
+  static const double s70 = 70;
+  static const double s80 = 80;
+  static const double s90 = 90;
 }
