@@ -1,3 +1,4 @@
-// Categoria "painters" app-wide: CustomPainters e widgets de desenho
-// reutilizáveis (bordas tracejadas, realce de sintaxe). Populada ao promover
-// genéricos das features (ver plano dos gates).
+// Categoria "painters" app-wide: desenho e renderização de baixo nível —
+// CustomPainters e geradores de TextSpan reutilizáveis, sem estado de negócio.
+export 'dashed_border_painter.dart';
+export 'json_highlighter.dart';

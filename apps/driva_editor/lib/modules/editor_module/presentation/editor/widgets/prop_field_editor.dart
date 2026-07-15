@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart' show curatedIconNames;
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/editor_colors.dart';
+import '../../../../../core/util/upper_case_text_formatter.dart';
 
 /// Fábrica `FieldKind → editor`: o Inspector deriva cada campo daqui.
 /// Emitir `null` em [onChanged] remove a chave (volta ao default do renderer).
@@ -321,7 +321,7 @@ class _ColorEditorState extends State<_ColorEditor> {
               child: TextField(
                 controller: _controller,
                 style: const TextStyle(fontSize: 13),
-                inputFormatters: [_UpperCaseTextFormatter()],
+                inputFormatters: const [UpperCaseTextFormatter()],
                 decoration: const InputDecoration(
                   isDense: true,
                   hintText: '#RRGGBB',
@@ -603,15 +603,5 @@ class _IconEditor extends StatelessWidget {
       ],
       onChanged: onChanged,
     );
-  }
-}
-
-class _UpperCaseTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }
