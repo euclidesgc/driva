@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/theme/editor_colors.dart';
 import 'drag_payload.dart';
-import 'palette_icons.dart';
+import 'widget_tree/widget_tree.dart';
 
 /// Árvore de widgets do conteúdo: seleção, remoção e drag-and-drop
 /// (reordenar/aninhar nós, soltar itens da paleta).
@@ -50,7 +48,7 @@ class WidgetTreePanel extends StatelessWidget {
         ),
         // Zona de soltar: no fim do conteúdo, ou — com o conteúdo vazio —
         // definindo o primeiro widget como raiz.
-        _DropZone(
+        DropZone(
           label: root == null
               ? 'Solte um widget aqui para começar'
               : 'Soltar aqui adiciona ao fim do conteúdo',
@@ -79,7 +77,7 @@ class WidgetTreePanel extends StatelessWidget {
     required int depth,
   }) {
     rows.add(
-      _TreeRow(
+      TreeRow(
         node: node,
         depth: depth,
         isRoot: node.id == root.id,
@@ -123,159 +121,5 @@ class WidgetTreePanel extends StatelessWidget {
       case NodeDragPayload(:final nodeId):
         onMoveInto(nodeId, parentId, index);
     }
-  }
-}
-
-class _TreeRow extends StatelessWidget {
-  const _TreeRow({
-    required this.node,
-    required this.depth,
-    required this.isRoot,
-    required this.isSelected,
-    required this.onSelect,
-    required this.onRemove,
-    required this.onAccept,
-  });
-
-  final SduiNode node;
-  final int depth;
-  final bool isRoot;
-  final bool isSelected;
-  final VoidCallback onSelect;
-  final VoidCallback? onRemove;
-  final ValueChanged<DragPayload> onAccept;
-
-  String get _label {
-    final descriptor = descriptorFor(node.type);
-    final base = descriptor?.label ?? node.type;
-    final text = node.properties['data'];
-    if (node.type == 'text' && text is String && text.isNotEmpty) {
-      return '$base — “$text”';
-    }
-    final buttonLabel = node.properties['label'];
-    if (node.type == 'button' && buttonLabel is String) {
-      return '$base — “$buttonLabel”';
-    }
-    return isRoot ? 'Conteúdo ($base)' : base;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    final row = DragTarget<DragPayload>(
-      onWillAcceptWithDetails: (details) => switch (details.data) {
-        NodeDragPayload(:final nodeId) => nodeId != node.id,
-        PaletteDragPayload() => true,
-      },
-      onAcceptWithDetails: (details) => onAccept(details.data),
-      builder: (context, candidates, _) {
-        final highlighted = candidates.isNotEmpty;
-        return Semantics(
-          selected: isSelected,
-          label: 'Bloco $_label',
-          child: InkWell(
-            onTap: onSelect,
-            child: Container(
-              padding: EdgeInsets.only(left: 12.0 + depth * 16, right: 4),
-              height: 34,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? colors.primaryTint
-                    : highlighted
-                    ? colors.canvasBackdrop
-                    : null,
-                border: Border(
-                  left: BorderSide(
-                    width: 3,
-                    color: isSelected ? AppTheme.primary : Colors.transparent,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    paletteIconFor(node.type),
-                    size: 16,
-                    color: isSelected ? AppTheme.primary : colors.inkSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _label,
-                      style: const TextStyle(fontSize: 13),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (onRemove != null && isSelected)
-                    IconButton(
-                      tooltip: 'Remover bloco (Delete)',
-                      iconSize: 16,
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: onRemove,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-    return Draggable<DragPayload>(
-      data: NodeDragPayload(node.id),
-      feedback: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: colors.panel,
-            border: Border.all(color: AppTheme.primary),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(_label, style: const TextStyle(fontSize: 13)),
-        ),
-      ),
-      child: row,
-    );
-  }
-}
-
-class _DropZone extends StatelessWidget {
-  const _DropZone({required this.label, required this.onAccept});
-
-  final String label;
-  final ValueChanged<DragPayload> onAccept;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    return DragTarget<DragPayload>(
-      onAcceptWithDetails: (details) => onAccept(details.data),
-      builder: (context, candidates, _) {
-        final active = candidates.isNotEmpty;
-        return Container(
-          margin: const EdgeInsets.all(12),
-          height: 44,
-          decoration: BoxDecoration(
-            color: active ? colors.primaryTint : null,
-            border: Border.all(
-              color: active ? AppTheme.primary : colors.border,
-              style: BorderStyle.solid,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: active ? AppTheme.primary : colors.inkMuted,
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }
