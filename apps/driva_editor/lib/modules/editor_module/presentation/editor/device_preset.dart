@@ -24,7 +24,7 @@ enum DevicePreset {
     bezel: 22,
     cornerRadius: 30,
     notch: DeviceNotch.punchHole,
-  )
+  ),
   ;
 
   const DevicePreset(
