@@ -6,6 +6,10 @@
 
 - **Lint/análise estática**: base migrada de `flutter_lints` para `very_good_analysis` (`^10.1.0`, pin por compatibilidade com o SDK 3.10). Único override `public_member_api_docs: off` (documentar toda a API pública contradiz a regra "zero comentário" do projeto). Código adequado às novas regras **sem `// ignore`**: `discarded_futures` (via `unawaited`/factory em bloco), `avoid_catches_without_on_clauses`, `avoid_equals_and_hash_code_on_mutable_classes` (`@immutable`), `use_setters_to_change_properties`, `sort_pub_dependencies` e `lines_longer_than_80_chars`. `flutter_lints` removido dos pubspecs.
 
+### Corrigido
+
+- **backend · `tsconfig.json` sem as deprecações do TS 6.0**: o editor (com TypeScript 6.0-dev) marcava três erros que serão removidos no TS 7.0, enquanto o `tsc` 5.9.3 do projeto ainda passava — o build nunca esteve quebrado. Corrigido na fonte: `module`/`moduleResolution` migrados de `commonjs`/`node` (o legado `node10`) para `nodenext` (o par tem de mudar junto); `baseUrl` removido (era inócuo — não há `paths`); `rootDir: "./src"` declarado explicitamente (o TS 6.0 deixou de inferir o common source dir). Como o `package.json` não tem `"type": "module"`, `nodenext` continua emitindo **CommonJS** — saída idêntica à anterior; validado com `tsc --noEmit` e `nest build` verdes.
+
 ## [0.4.0] — 2026-07-13 · Hierarquia Projeto → Categoria → Conteúdo, API de conteúdos e AppBar global
 
 ### Adicionado
