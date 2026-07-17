@@ -10,6 +10,7 @@
 ### Corrigido
 
 - **backend · `pnpm lint` deixa de estar quebrado (ESLint configurado)**: o `package.json` declarava `"lint": "eslint …"`, mas o ESLint **não estava instalado** nem havia config — `pnpm lint` só falhava. Adicionado o setup moderno em flat config (`eslint.config.mjs`): `eslint` + `typescript-eslint` (`recommended`) + `@eslint/js` + `globals`, com `sourceType: commonjs` e `dist` ignorado. Roda limpo nos 28 arquivos de `src` (0 erros). O passo **Lint (ESLint)** entrou no job de backend da CI (antes só fazia build), para o script não apodrecer de novo — "CI é a cancela".
+- **backend · `tsconfig.json` sem as deprecações do TS 6.0**: o editor (com TypeScript 6.0-dev) marcava três erros que serão removidos no TS 7.0, enquanto o `tsc` 5.9.3 do projeto ainda passava — o build nunca esteve quebrado. Corrigido na fonte: `module`/`moduleResolution` migrados de `commonjs`/`node` (o legado `node10`) para `nodenext` (o par tem de mudar junto); `baseUrl` removido (era inócuo — não há `paths`); `rootDir: "./src"` declarado explicitamente (o TS 6.0 deixou de inferir o common source dir). Como o `package.json` não tem `"type": "module"`, `nodenext` continua emitindo **CommonJS** — saída idêntica à anterior; validado com `tsc --noEmit` e `nest build` verdes.
 
 ## [0.4.0] — 2026-07-13 · Hierarquia Projeto → Categoria → Conteúdo, API de conteúdos e AppBar global
 
