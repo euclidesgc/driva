@@ -5,6 +5,7 @@
 ### Alterado
 
 - **Lint/análise estática**: base migrada de `flutter_lints` para `very_good_analysis` (`^10.1.0`, pin por compatibilidade com o SDK 3.10). Único override `public_member_api_docs: off` (documentar toda a API pública contradiz a regra "zero comentário" do projeto). Código adequado às novas regras **sem `// ignore`**: `discarded_futures` (via `unawaited`/factory em bloco), `avoid_catches_without_on_clauses`, `avoid_equals_and_hash_code_on_mutable_classes` (`@immutable`), `use_setters_to_change_properties`, `sort_pub_dependencies` e `lines_longer_than_80_chars`. `flutter_lints` removido dos pubspecs.
+- **backend · pnpm pinado (`packageManager: pnpm@10.24.0`)**: fixa a versão do pnpm à mesma da CI, para o `node_modules` não voltar a ser linkado por uma major divergente (evita o `ERR_PNPM_UNEXPECTED_STORE` de store v10 vs v11). Com corepack habilitado, o diretório passa a usar essa versão automaticamente.
 
 ### Corrigido
 
