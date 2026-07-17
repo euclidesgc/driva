@@ -15,8 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Versão fixa (não `channel: stable` solto): o formatter do Dart muda de
+      # release e `channel: stable` flutuaria para o Flutter mais novo, quebrando
+      # o gate de format a cada release. Casa com o toolchain do dev (puro 3.38.6).
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.38.6
           channel: stable
           cache: true
 
