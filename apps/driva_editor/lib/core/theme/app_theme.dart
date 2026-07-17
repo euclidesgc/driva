@@ -1,10 +1,9 @@
+import 'package:driva_editor/core/theme/app_durations.dart';
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/device_mock_colors.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/theme/syntax_colors.dart';
 import 'package:flutter/material.dart';
-
-import 'app_durations.dart';
-import 'app_radii.dart';
-import 'device_mock_colors.dart';
-import 'editor_colors.dart';
-import 'syntax_colors.dart';
 
 /// The design system evolves here: panels are surfaces over a soft canvas
 /// backdrop, with the Driva orange as the single accent color. Theme-aware
@@ -44,8 +43,8 @@ abstract final class AppTheme {
     return base.copyWith(
       extensions: [
         colors,
-        isDark ? DeviceMockColors.dark : DeviceMockColors.light,
-        isDark ? SyntaxColors.dark : SyntaxColors.light,
+        if (isDark) DeviceMockColors.dark else DeviceMockColors.light,
+        if (isDark) SyntaxColors.dark else SyntaxColors.light,
       ],
       scaffoldBackgroundColor: colors.canvasBackdrop,
       dividerColor: colors.border,

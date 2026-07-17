@@ -1,20 +1,19 @@
+import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/crumb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'app_bar_action.dart';
-import 'app_shell_scope.dart';
-import 'crumb.dart';
 
 /// Envolve o corpo de uma página e publica seus crumbs/actions/status no
 /// [AppShellController] do shell. A publicação nunca acontece durante o build
 /// (sempre pós-frame), para não disparar `notifyListeners` na fase de build.
 class AppShellSlot extends StatefulWidget {
   const AppShellSlot({
+    required this.child,
     super.key,
     this.crumbs = const [],
     this.actions = const [],
     this.status,
-    required this.child,
   });
 
   final List<Crumb> crumbs;

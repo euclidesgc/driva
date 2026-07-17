@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/util/slug.dart';
+import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/util/slug.dart';
-import '../../../../../core/widgets/feedback/feedback.dart';
-import '../../../domain/entities/category.dart';
 
 typedef ContentFormResult = ({
   String name,
@@ -16,11 +15,11 @@ typedef ContentFormResult = ({
 /// árvore no momento em que o form abriu.
 class ContentFormDialog extends StatefulWidget {
   const ContentFormDialog({
-    super.key,
     required this.title,
     required this.saveLabel,
     required this.categories,
     required this.existingSlugs,
+    super.key,
     this.initialName,
     this.initialSlug,
     this.initialDescription,
@@ -156,7 +155,6 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                 decoration: const InputDecoration(labelText: 'Categoria'),
                 items: [
                   const DropdownMenuItem<String?>(
-                    value: null,
                     child: Text('Não categorizado'),
                   ),
                   for (final category in widget.categories)

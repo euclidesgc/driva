@@ -17,8 +17,8 @@ class AppBarAction {
 
   const AppBarAction.filled({
     required String this.label,
-    this.icon,
     required this.onPressed,
+    this.icon,
     this.tooltip,
   }) : kind = AppBarActionKind.filled;
 
@@ -31,8 +31,8 @@ class AppBarAction {
 
   const AppBarAction.text({
     required String this.label,
-    this.icon,
     required this.onPressed,
+    this.icon,
     this.tooltip,
   }) : kind = AppBarActionKind.text;
 

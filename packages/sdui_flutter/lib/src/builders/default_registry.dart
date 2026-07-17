@@ -1,21 +1,21 @@
-import '../registry.dart';
-import 'button.dart';
-import 'card.dart';
-import 'center.dart';
-import 'checkbox.dart';
-import 'column.dart';
-import 'container.dart';
-import 'divider.dart';
-import 'icon.dart';
-import 'image.dart';
-import 'padding.dart';
-import 'row.dart';
-import 'sized_box.dart';
-import 'spacer.dart';
-import 'stack.dart';
-import 'switch.dart';
-import 'text.dart';
-import 'text_field.dart';
+import 'package:sdui_flutter/src/builders/button.dart';
+import 'package:sdui_flutter/src/builders/card.dart';
+import 'package:sdui_flutter/src/builders/center.dart';
+import 'package:sdui_flutter/src/builders/checkbox.dart';
+import 'package:sdui_flutter/src/builders/column.dart';
+import 'package:sdui_flutter/src/builders/container.dart';
+import 'package:sdui_flutter/src/builders/divider.dart';
+import 'package:sdui_flutter/src/builders/icon.dart';
+import 'package:sdui_flutter/src/builders/image.dart';
+import 'package:sdui_flutter/src/builders/padding.dart';
+import 'package:sdui_flutter/src/builders/row.dart';
+import 'package:sdui_flutter/src/builders/sized_box.dart';
+import 'package:sdui_flutter/src/builders/spacer.dart';
+import 'package:sdui_flutter/src/builders/stack.dart';
+import 'package:sdui_flutter/src/builders/switch.dart';
+import 'package:sdui_flutter/src/builders/text.dart';
+import 'package:sdui_flutter/src/builders/text_field.dart';
+import 'package:sdui_flutter/src/registry.dart';
 
 /// Monta o registry padrão com os builders dos primitivos do catálogo.
 /// Adicionar um primitivo = um arquivo em `builders/` + uma entrada aqui

@@ -1,22 +1,21 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/category_node.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/cubit/category_tree_cubit.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/view/category_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../domain/entities/category.dart';
-import '../../../domain/entities/content_summary.dart';
-import '../category_node.dart';
-import '../cubit/category_tree_cubit.dart';
-import 'category_row.dart';
-
 class TreeList extends StatelessWidget {
   const TreeList({
-    super.key,
     required this.state,
     required this.allContentsCount,
     required this.contentCountByCategory,
     required this.onEditCategory,
     required this.onDeleteCategory,
     required this.onMoveContent,
+    super.key,
   });
 
   final CategoryTreeLoaded state;

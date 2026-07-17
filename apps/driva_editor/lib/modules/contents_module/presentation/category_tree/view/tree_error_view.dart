@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
 
 class TreeErrorView extends StatelessWidget {
   const TreeErrorView({
-    super.key,
     required this.failure,
     required this.onRetry,
+    super.key,
   });
 
   final Object failure;

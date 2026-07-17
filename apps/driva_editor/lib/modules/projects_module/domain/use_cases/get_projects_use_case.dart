@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/repositories/projects_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../entities/entities.dart';
-import '../repositories/projects_repository.dart';
-
 class GetProjectsUseCase {
-  final ProjectsRepository repository;
   const GetProjectsUseCase({required this.repository});
+  final ProjectsRepository repository;
 
   Future<Either<Failure, List<Project>>> call({bool archived = false}) async {
     final result = await repository.getProjects(archived: archived);

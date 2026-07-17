@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
 
-import '../../../../core/error/error.dart';
-import '../../domain/entities/app_theme_mode.dart';
-
 abstract final class ThemeModeModel {
-  static final _schema = z.$enum(['system', 'light', 'dark']);
+  static final ZEnum _schema = z.$enum(['system', 'light', 'dark']);
 
   static String encode(AppThemeMode mode) => mode.name;
 

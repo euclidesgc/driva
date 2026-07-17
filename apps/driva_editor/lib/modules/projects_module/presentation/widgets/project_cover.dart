@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/cover_gradients.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/widgets/gradient_texture.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/theme/app_radii.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/cover_gradients.dart';
-import '../../domain/entities/entities.dart';
-import 'gradient_texture.dart';
 
 /// Capa do card de projeto: gradiente estável por id (ou imagem, quando
 /// houver `imageUrl`) + avatar com a inicial do título. Compartilhada entre
@@ -16,8 +15,8 @@ import 'gradient_texture.dart';
 /// arquivados não oferece edição (o projeto precisa ser restaurado antes).
 class ProjectCover extends StatelessWidget {
   const ProjectCover({
-    super.key,
     required this.project,
+    super.key,
     this.hovered = false,
     this.onEdit,
   });

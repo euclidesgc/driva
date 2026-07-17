@@ -1,6 +1,6 @@
 import 'package:driva_editor/core/error/error.dart';
-import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
 import 'package:driva_editor/modules/preferences_module/data/repositories/preferences_repository_impl.dart';
+import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

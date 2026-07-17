@@ -1,18 +1,17 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
+import 'package:driva_editor/modules/contents_module/contents_module.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 
-import '../../../../../core/error/error.dart';
-import '../../../../../core/widgets/app_shell/app_shell.dart';
-import '../../../../contents_module/contents_module.dart';
-import '../../../../projects_module/projects_module.dart';
-import '../cubit/editor_cubit.dart';
-
 class EditorTopRegistrar extends StatelessWidget {
   const EditorTopRegistrar({
-    super.key,
     required this.projectFuture,
     required this.child,
+    super.key,
   });
 
   final Future<Either<Failure, Project>> projectFuture;
@@ -56,7 +55,6 @@ class EditorTopRegistrar extends StatelessWidget {
                 ),
                 const AppBarAction.outlined(
                   label: 'Publish',
-                  onPressed: null,
                   tooltip: 'Publicação chega no incremento I4',
                 ),
               ],

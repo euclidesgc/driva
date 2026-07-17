@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
-
-import '../../../../core/error/error.dart';
-import '../../domain/entities/content_summary.dart';
 
 class ContentSummaryModel extends ContentSummary {
   const ContentSummaryModel({
@@ -16,7 +15,7 @@ class ContentSummaryModel extends ContentSummary {
 
   // A forma esperada do item de `GET /v1/contents` (dentro do envelope
   // `{ data, nextCursor }`) e do detalhe (`POST`/`PUT`), declarada uma vez.
-  static final _schema = z.map({
+  static final ZMap _schema = z.map({
     'id': z.string().min(1),
     'name': z.string().min(1),
     'slug': z.string().min(1),

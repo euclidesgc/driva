@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/contents_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../repositories/contents_repository.dart';
-
 class DeleteContentUseCase {
-  final ContentsRepository repository;
   const DeleteContentUseCase({required this.repository});
+  final ContentsRepository repository;
 
   Future<Either<Failure, Unit>> call(String id) => repository.deleteContent(id);
 }

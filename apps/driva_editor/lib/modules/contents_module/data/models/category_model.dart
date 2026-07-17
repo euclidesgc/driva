@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
-
-import '../../../../core/error/error.dart';
-import '../../domain/entities/category.dart';
 
 class CategoryModel extends Category {
   const CategoryModel({
@@ -17,7 +16,7 @@ class CategoryModel extends Category {
   // (`POST`/`PUT /v1/categories/:id`), declarada uma vez. O backend também
   // manda `slug`/timestamps, mas o editor não os usa hoje — z.map descarta
   // chaves sem schema próprio, então ficam de fora sem quebrar o parse.
-  static final _schema = z.map({
+  static final ZMap _schema = z.map({
     'id': z.string().min(1),
     'projectId': z.string().min(1),
     'name': z.string().min(1),

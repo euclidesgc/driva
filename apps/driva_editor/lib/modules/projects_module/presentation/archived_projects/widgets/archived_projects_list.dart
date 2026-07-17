@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/widgets/archived_project_card.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../domain/entities/entities.dart';
-import 'archived_project_card.dart';
-
 class ArchivedProjectsList extends StatelessWidget {
-  const ArchivedProjectsList({super.key, required this.projects});
+  const ArchivedProjectsList({required this.projects, super.key});
 
   final List<Project> projects;
 

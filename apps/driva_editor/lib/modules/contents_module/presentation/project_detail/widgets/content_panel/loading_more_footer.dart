@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
 
 /// Rodapé de "carregando mais" do scroll infinito (pílula com spinner + texto;
 /// o texto garante que a informação não dependa só do movimento).

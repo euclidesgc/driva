@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:flutter/foundation.dart' show ValueChanged;
-
-import '../../../domain/entities/entities.dart';
 
 /// Fallback não-web (VM: `flutter analyze`/`flutter test` rodam aqui).
 ///

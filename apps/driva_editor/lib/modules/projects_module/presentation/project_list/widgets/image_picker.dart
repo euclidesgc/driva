@@ -1,4 +1,4 @@
-import 'image_picker_stub.dart'
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_picker_stub.dart'
     if (dart.library.js_interop) 'image_picker_web.dart';
 
 /// Fachada pública: seleciona a implementação certa via import condicional

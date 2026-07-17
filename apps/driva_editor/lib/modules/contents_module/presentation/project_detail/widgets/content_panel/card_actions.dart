@@ -1,17 +1,16 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../domain/entities/content_summary.dart';
 
 class CardActions extends StatelessWidget {
   const CardActions({
-    super.key,
     required this.content,
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    super.key,
   });
 
   final ContentSummary content;

@@ -1,25 +1,23 @@
 import 'package:bloc/bloc.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/use_cases/use_cases.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../../core/error/error.dart';
-import '../../../domain/entities/entities.dart';
-import '../../../domain/use_cases/use_cases.dart';
 
 part 'project_list_state.dart';
 
 class ProjectListCubit extends Cubit<ProjectListState> {
-  final GetProjectsUseCase getProjects;
-  final CreateProjectUseCase createProject;
-  final UpdateProjectUseCase updateProject;
-  final ArchiveProjectUseCase archiveProject;
-
   ProjectListCubit({
     required this.getProjects,
     required this.createProject,
     required this.updateProject,
     required this.archiveProject,
   }) : super(const ProjectListLoading());
+  final GetProjectsUseCase getProjects;
+  final CreateProjectUseCase createProject;
+  final UpdateProjectUseCase updateProject;
+  final ArchiveProjectUseCase archiveProject;
 
   /// Carrega a home (ativos) e a contagem de arquivados (para o link
   /// "Arquivados (N)" do header) em paralelo.

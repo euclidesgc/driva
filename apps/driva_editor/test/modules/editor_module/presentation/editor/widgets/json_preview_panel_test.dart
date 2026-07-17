@@ -35,8 +35,7 @@ void main() {
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
       projectId: 'p1',
-    );
-    cubit.emit(EditorReady(document: _docWithText('hello')));
+    )..emit(EditorReady(document: _docWithText('hello')));
   });
 
   tearDown(() => cubit.close());

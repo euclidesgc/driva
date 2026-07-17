@@ -1,26 +1,27 @@
+import 'dart:async';
+
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/network/project_scope.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/util/slug.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
+import 'package:driva_editor/injection.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/category_tree.dart';
+import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/invalid_project_screen.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/category_form_dialog.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_form_dialog.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel_view.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/move_content_dialog.dart';
+import 'package:driva_editor/modules/editor_module/editor_module.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/error/error.dart';
-import '../../../../core/network/project_scope.dart';
-import '../../../../core/theme/editor_colors.dart';
-import '../../../../core/util/slug.dart';
-import '../../../../core/widgets/app_shell/app_shell.dart';
-import '../../../../injection.dart';
-import '../../../editor_module/editor_module.dart';
-import '../../../projects_module/projects_module.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/entities/content_summary.dart';
-import '../../domain/use_cases/use_cases.dart';
-import '../category_tree/category_tree.dart';
-import '../content_list/cubit/content_list_cubit.dart';
-import 'invalid_project_screen.dart';
-import 'widgets/category_form_dialog.dart';
-import 'widgets/content_form_dialog.dart';
-import 'widgets/content_panel_view.dart';
-import 'widgets/move_content_dialog.dart';
 
 /// Único ponto que toca o `getIt`: monta os dois cubits (árvore e lista) E
 /// estampa o [ProjectScope] com o `:id` da rota **antes** de criá-los, para
@@ -28,9 +29,9 @@ import 'widgets/move_content_dialog.dart';
 /// certo.
 class ProjectDetailPage extends StatelessWidget {
   const ProjectDetailPage({
-    super.key,
     required this.projectId,
     required this.projectFuture,
+    super.key,
   });
 
   final String projectId;
@@ -46,24 +47,32 @@ class ProjectDetailPage extends StatelessWidget {
     // Deep link malformado não é crash, é tela tratada.
     if (id == null || id.trim().isEmpty) return const InvalidProjectScreen();
 
-    getIt<ProjectScope>().set(id);
+    getIt<ProjectScope>().projectId = id;
 
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => CategoryTreeCubit(
-            getCategories: getIt<GetCategoriesUseCase>(),
-            createCategory: getIt<CreateCategoryUseCase>(),
-            updateCategory: getIt<UpdateCategoryUseCase>(),
-            deleteCategory: getIt<DeleteCategoryUseCase>(),
-          )..load(),
+          create: (_) {
+            final cubit = CategoryTreeCubit(
+              getCategories: getIt<GetCategoriesUseCase>(),
+              createCategory: getIt<CreateCategoryUseCase>(),
+              updateCategory: getIt<UpdateCategoryUseCase>(),
+              deleteCategory: getIt<DeleteCategoryUseCase>(),
+            );
+            unawaited(cubit.load());
+            return cubit;
+          },
         ),
         BlocProvider(
-          create: (_) => ContentListCubit(
-            getContents: getIt<GetContentsUseCase>(),
-            createContent: getIt<CreateContentUseCase>(),
-            deleteContent: getIt<DeleteContentUseCase>(),
-          )..load(),
+          create: (_) {
+            final cubit = ContentListCubit(
+              getContents: getIt<GetContentsUseCase>(),
+              createContent: getIt<CreateContentUseCase>(),
+              deleteContent: getIt<DeleteContentUseCase>(),
+            );
+            unawaited(cubit.load());
+            return cubit;
+          },
         ),
       ],
       child: ProjectDetailPage(
@@ -105,11 +114,6 @@ class ProjectDetailPage extends StatelessWidget {
                   width: 272,
                   child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
                     builder: (context, treeState) {
-                      // "Todos os conteúdos" não é uma `Category` — é o
-                      // pseudo-nó `categoryId: null` (filtro "ver tudo").
-                      // Todo conteúdo tem categoria obrigatória (default
-                      // "Geral"), então o total do projeto é a soma dos
-                      // `contentCount` de todas as categorias reais.
                       final categories = treeState is CategoryTreeLoaded
                           ? treeState.categories
                           : const <Category>[];
@@ -153,8 +157,10 @@ class ProjectDetailPage extends StatelessWidget {
                     listener: (context, state) {
                       final selected =
                           (state as CategoryTreeLoaded).selectedCategoryId;
-                      context.read<ContentListCubit>().reloadWithFilter(
-                        categoryId: () => selected,
+                      unawaited(
+                        context.read<ContentListCubit>().reloadWithFilter(
+                          categoryId: () => selected,
+                        ),
                       );
                     },
                     child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
@@ -326,7 +332,7 @@ class ProjectDetailPage extends StatelessWidget {
     );
     if (result == null) return;
 
-    final Either<Failure, ContentSummary> saved = editing == null
+    final saved = editing == null
         ? await contentCubit.create(
             name: result.name,
             slug: result.slug,
@@ -348,15 +354,17 @@ class ProjectDetailPage extends StatelessWidget {
           final suggestion =
               failure.suggestedSlug ??
               SlugUtil.suggestFree(result.slug, existingSlugs);
-          _openContentForm(
-            context,
-            editing: editing,
-            initialName: result.name,
-            initialSlug: suggestion,
-            initialDescription: result.description,
-            initialCategoryId: result.categoryId,
-            conflictMessage:
-                'Slug já em uso neste projeto. Sugerimos "$suggestion".',
+          unawaited(
+            _openContentForm(
+              context,
+              editing: editing,
+              initialName: result.name,
+              initialSlug: suggestion,
+              initialDescription: result.description,
+              initialCategoryId: result.categoryId,
+              conflictMessage:
+                  'Slug já em uso neste projeto. Sugerimos "$suggestion".',
+            ),
           );
           return;
         }
@@ -371,7 +379,7 @@ class ProjectDetailPage extends StatelessWidget {
             pathParameters: {'id': content.id},
           );
         } else {
-          contentCubit.load();
+          unawaited(contentCubit.load());
         }
       },
     );

@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/crumb_label.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/app_spacing.dart';
-import '../../theme/editor_colors.dart';
-import 'app_shell_scope.dart';
-import 'crumb_label.dart';
 
 class AppShellBreadcrumbBar extends StatelessWidget {
   const AppShellBreadcrumbBar({super.key});

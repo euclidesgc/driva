@@ -1,16 +1,15 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/archived_projects_page.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/cubit/archived_projects_cubit.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/widgets/type_to_confirm_dialog.dart';
+import 'package:driva_editor/modules/projects_module/presentation/widgets/project_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/theme/app_radii.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../domain/entities/entities.dart';
-import '../../widgets/project_card.dart';
-import '../archived_projects_page.dart';
-import '../cubit/archived_projects_cubit.dart';
-import 'type_to_confirm_dialog.dart';
-
 class ArchivedProjectCard extends StatelessWidget {
-  const ArchivedProjectCard({super.key, required this.project});
+  const ArchivedProjectCard({required this.project, super.key});
 
   final Project project;
 

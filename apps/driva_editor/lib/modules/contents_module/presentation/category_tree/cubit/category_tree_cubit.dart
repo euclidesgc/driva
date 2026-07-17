@@ -1,11 +1,10 @@
 import 'package:bloc/bloc.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/category_node.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../../core/error/error.dart';
-import '../../../domain/entities/category.dart';
-import '../../../domain/use_cases/use_cases.dart';
-import '../category_node.dart';
 
 part 'category_tree_state.dart';
 
@@ -13,17 +12,16 @@ part 'category_tree_state.dart';
 /// persistem entre sessões) — `null` selecionado é o pseudo-nó "Não
 /// categorizados" (conteúdos sem `categoryId`).
 class CategoryTreeCubit extends Cubit<CategoryTreeState> {
-  final GetCategoriesUseCase getCategories;
-  final CreateCategoryUseCase createCategory;
-  final UpdateCategoryUseCase updateCategory;
-  final DeleteCategoryUseCase deleteCategory;
-
   CategoryTreeCubit({
     required this.getCategories,
     required this.createCategory,
     required this.updateCategory,
     required this.deleteCategory,
   }) : super(const CategoryTreeLoading());
+  final GetCategoriesUseCase getCategories;
+  final CreateCategoryUseCase createCategory;
+  final UpdateCategoryUseCase updateCategory;
+  final DeleteCategoryUseCase deleteCategory;
 
   Future<void> load() async {
     emit(const CategoryTreeLoading());

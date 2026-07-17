@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_area.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_tab_label.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/json_preview_panel.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/editor_colors.dart';
-import '../widgets/json_preview_panel.dart';
-import 'canvas_area.dart';
-import 'center_tab_label.dart';
 
 class CenterArea extends StatelessWidget {
   const CenterArea({super.key});
@@ -38,7 +37,10 @@ class CenterArea extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                ColoredBox(color: colors.canvasBackdrop, child: CanvasArea()),
+                ColoredBox(
+                  color: colors.canvasBackdrop,
+                  child: const CanvasArea(),
+                ),
                 const JsonPreviewPanel(),
               ],
             ),

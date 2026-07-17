@@ -1,17 +1,16 @@
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/device_mock_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/camera_cutout.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/side_button.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/device_mock_colors.dart';
-import '../../device_preset.dart';
-import 'camera_cutout.dart';
-import 'side_button.dart';
 
 class DeviceFrame extends StatelessWidget {
   const DeviceFrame({
-    super.key,
     required this.device,
     required this.highlighted,
     required this.child,
+    super.key,
   });
 
   final DevicePreset device;
@@ -66,7 +65,7 @@ class DeviceFrame extends StatelessWidget {
                   colors: [mock.bodyGradientTop, mock.body],
                 ),
                 borderRadius: BorderRadius.circular(bodyRadius),
-                border: Border.all(color: mock.rim, width: 1),
+                border: Border.all(color: mock.rim),
                 boxShadow: [
                   BoxShadow(
                     color: mock.shadow,

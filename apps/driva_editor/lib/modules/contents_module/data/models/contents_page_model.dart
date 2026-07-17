@@ -1,10 +1,9 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/data/models/content_summary_model.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/contents_page.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
-
-import '../../../../core/error/error.dart';
-import '../../domain/entities/content_summary.dart';
-import '../../domain/entities/contents_page.dart';
-import 'content_summary_model.dart';
 
 /// A forma do envelope (`data` é lista, `nextCursor` é string opaca ou
 /// `null`) é validada aqui via zard. `z.map` descarta chaves sem schema
@@ -15,7 +14,7 @@ import 'content_summary_model.dart';
 class ContentsPageModel {
   const ContentsPageModel._();
 
-  static final _envelopeSchema = z.map({
+  static final ZMap _envelopeSchema = z.map({
     'data': z.list(z.map({}).optional()),
     'nextCursor': z.string().nullable().optional(),
   });

@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/editor_module/presentation/presentation.dart';
 import 'package:go_router/go_router.dart';
-
-import 'presentation/presentation.dart';
 
 class EditorRoutes {
   static const String editor = '/contents/:id/edit';

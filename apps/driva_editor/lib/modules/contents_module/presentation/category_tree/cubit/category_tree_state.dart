@@ -56,8 +56,8 @@ final class CategoryTreeLoaded extends CategoryTreeState {
 }
 
 final class CategoryTreeError extends CategoryTreeState {
-  final Failure failure;
   const CategoryTreeError({required this.failure});
+  final Failure failure;
   @override
   List<Object?> get props => [failure];
 }

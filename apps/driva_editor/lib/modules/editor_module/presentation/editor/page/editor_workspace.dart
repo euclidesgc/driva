@@ -1,21 +1,20 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/layout/layout.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_intents.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_top_registrar.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 
-import '../../../../../core/error/error.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import '../../../../../core/widgets/layout/layout.dart';
-import '../../../../projects_module/projects_module.dart';
-import '../cubit/editor_cubit.dart';
-import 'center_area.dart';
-import 'editor_intents.dart';
-import 'editor_top_registrar.dart';
-import 'inspector_area.dart';
-import 'left_panel.dart';
-
 class EditorWorkspace extends StatelessWidget {
-  const EditorWorkspace({super.key, required this.projectFuture});
+  const EditorWorkspace({required this.projectFuture, super.key});
 
   final Future<Either<Failure, Project>> projectFuture;
 
@@ -25,10 +24,9 @@ class EditorWorkspace extends StatelessWidget {
     final colors = Theme.of(context).extension<EditorColors>()!;
 
     final workspace = Shortcuts(
-      shortcuts: {
-        const SingleActivator(LogicalKeyboardKey.keyS, control: true):
-            const SaveIntent(),
-        const SingleActivator(LogicalKeyboardKey.delete): const DeleteIntent(),
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.keyS, control: true): SaveIntent(),
+        SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
       },
       child: Actions(
         actions: {

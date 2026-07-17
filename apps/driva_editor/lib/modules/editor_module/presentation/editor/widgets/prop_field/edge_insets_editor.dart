@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_side_field.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import 'edge_insets_side_field.dart';
-
 class EdgeInsetsEditor extends StatefulWidget {
   const EdgeInsetsEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final PropField field;

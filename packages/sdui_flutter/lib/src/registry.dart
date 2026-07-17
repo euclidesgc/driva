@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import 'renderer.dart';
+import 'package:sdui_flutter/src/renderer.dart';
 
 typedef SduiBuilder =
     Widget Function(BuildContext context, SduiNode node, SduiRenderer renderer);

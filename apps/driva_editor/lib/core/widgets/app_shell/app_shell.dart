@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/widgets/app_shell/app_shell_breadcrumb_bar.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_top_bar.dart';
 import 'package:flutter/material.dart';
-
-import 'app_shell_breadcrumb_bar.dart';
-import 'app_shell_scope.dart';
-import 'app_shell_top_bar.dart';
 
 export 'app_bar_action.dart';
 export 'app_shell_slot.dart';
@@ -15,10 +14,10 @@ export 'crumb.dart';
 /// dados que as páginas publicam no [AppShellController] via `AppShellSlot`.
 class AppShell extends StatefulWidget {
   const AppShell({
-    super.key,
     required this.child,
     required this.homeRouteName,
     required this.themeButton,
+    super.key,
   });
 
   final Widget child;

@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-
 class JsonToolbar extends StatelessWidget {
-  const JsonToolbar({super.key, required this.copied, required this.onCopy});
+  const JsonToolbar({required this.copied, required this.onCopy, super.key});
 
   final bool copied;
   final Future<void> Function() onCopy;
@@ -33,7 +32,7 @@ class JsonToolbar extends StatelessWidget {
           ),
           const Spacer(),
           TextButton.icon(
-            onPressed: () => onCopy(),
+            onPressed: onCopy,
             icon: Icon(
               copied ? Icons.check : Icons.copy_all_outlined,
               size: 16,

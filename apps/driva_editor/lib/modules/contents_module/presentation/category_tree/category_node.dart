@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:equatable/equatable.dart';
-
-import '../../domain/entities/category.dart';
 
 /// A API devolve a lista **flat**; montar a árvore por `parentId` é
 /// derivação da presentation (decisão registrada no contrato do

@@ -1,5 +1,6 @@
 /// Invariante ao tema (um espaçamento de 16 é 16 em claro ou escuro), por isso
-/// são `static const` — consumidos direto (`AppSpacing.s16`), sem `BuildContext`.
+/// são `static const` — consumidos direto (`AppSpacing.s16`), sem
+/// `BuildContext`.
 /// Calibrada pelos valores já usados no código (não inventada): trocar o ritmo
 /// de espaçamento da app é mexer só aqui.
 ///

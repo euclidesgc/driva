@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import 'registry.dart';
+import 'package:sdui_flutter/src/registry.dart';
 
 typedef SduiNodeWrapper = Widget Function(SduiNode node, Widget built);
 
@@ -36,7 +36,7 @@ class SduiRenderer {
 }
 
 class _SduiNodeView extends StatelessWidget {
-  const _SduiNodeView({super.key, required this.renderer, required this.node});
+  const _SduiNodeView({required this.renderer, required this.node, super.key});
 
   final SduiRenderer renderer;
   final SduiNode node;

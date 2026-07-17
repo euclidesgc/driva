@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
 
 class SideButton extends StatelessWidget {
   const SideButton({
-    super.key,
     required this.alignment,
     required this.width,
     required this.color,
     required this.top,
     required this.length,
+    super.key,
   });
 
   final Alignment alignment;

@@ -1,9 +1,8 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/editor_cubit.dart';
-import '../device_preset.dart';
-import '../widgets/canvas_panel.dart';
 
 class CanvasArea extends StatelessWidget {
   const CanvasArea({super.key});

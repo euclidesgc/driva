@@ -1,17 +1,16 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../device_preset.dart';
 
 class CanvasToolbar extends StatelessWidget {
   const CanvasToolbar({
-    super.key,
     required this.device,
     required this.zoom,
     required this.onChangeDevice,
     required this.onChangeZoom,
+    super.key,
   });
 
   final DevicePreset device;
@@ -37,7 +36,8 @@ class CanvasToolbar extends StatelessWidget {
                 ButtonSegment(
                   value: preset,
                   tooltip:
-                      '${preset.label} (${preset.width.toInt()}×${preset.height.toInt()})',
+                      '${preset.label} '
+                      '(${preset.width.toInt()}×${preset.height.toInt()})',
                   icon: Icon(switch (preset) {
                     DevicePreset.smartphone => Icons.smartphone,
                     DevicePreset.android => Icons.phone_android,

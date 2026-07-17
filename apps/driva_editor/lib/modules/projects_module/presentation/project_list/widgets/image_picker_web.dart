@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:web/web.dart' as web;
-
-import '../../../domain/entities/entities.dart';
 
 /// Abre o seletor de arquivo nativo do navegador (`<input type="file">`) e
 /// devolve os bytes escolhidos como [ProjectImageInput].
@@ -32,41 +31,42 @@ class ImagePickerImpl {
 
     void cleanup() => input.remove();
 
-    input.onchange = (web.Event _) {
-      final files = input.files;
-      final file = (files != null && files.length > 0) ? files.item(0) : null;
-      if (file == null) {
-        cleanup();
-        if (!completer.isCompleted) completer.complete(null);
-        return;
-      }
-
-      final reader = web.FileReader();
-      reader.onload = (web.Event _) {
-        final result = reader.result as JSArrayBuffer;
-        final bytes = result.toDart.asUint8List();
-        cleanup();
-        if (!completer.isCompleted) {
-          completer.complete(
-            ProjectImageInput(
-              bytes: bytes,
-              filename: file.name,
-              contentType: file.type.isNotEmpty ? file.type : null,
-            ),
-          );
+    input
+      ..onchange = (web.Event _) {
+        final files = input.files;
+        final file = (files != null && files.length > 0) ? files.item(0) : null;
+        if (file == null) {
+          cleanup();
+          if (!completer.isCompleted) completer.complete(null);
+          return;
         }
-      }.toJS;
-      reader.onerror = (web.Event _) {
-        cleanup();
-        if (!completer.isCompleted) completer.complete(null);
-      }.toJS;
-      reader.readAsArrayBuffer(file);
-    }.toJS;
 
-    // Sem re-emissão de `change` em cancelar: se o usuário fechar o diálogo
-    // sem escolher nada, o completer simplesmente não resolve — aceitável
-    // aqui pois a UI não trava esperando (o botão continua clicável).
-    input.click();
+        final reader = web.FileReader();
+        reader
+          ..onload = (web.Event _) {
+            final result = reader.result! as JSArrayBuffer;
+            final bytes = result.toDart.asUint8List();
+            cleanup();
+            if (!completer.isCompleted) {
+              completer.complete(
+                ProjectImageInput(
+                  bytes: bytes,
+                  filename: file.name,
+                  contentType: file.type.isNotEmpty ? file.type : null,
+                ),
+              );
+            }
+          }.toJS
+          ..onerror = (web.Event _) {
+            cleanup();
+            if (!completer.isCompleted) completer.complete(null);
+          }.toJS
+          ..readAsArrayBuffer(file);
+      }.toJS
+      // Sem re-emissão de `change` em cancelar: se o usuário fechar o diálogo
+      // sem escolher nada, o completer simplesmente não resolve — aceitável
+      // aqui pois a UI não trava esperando (o botão continua clicável).
+      ..click();
     return completer.future;
   }
 

@@ -1,18 +1,17 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/util/upper_case_text_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../../../core/util/upper_case_text_formatter.dart';
-
 class ColorEditor extends StatefulWidget {
   const ColorEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final PropField field;

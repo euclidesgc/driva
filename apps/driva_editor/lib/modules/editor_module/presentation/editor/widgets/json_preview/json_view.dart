@@ -1,14 +1,13 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/theme/syntax_colors.dart';
+import 'package:driva_editor/core/widgets/painters/painters.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/json_preview/line_gutter.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../../../core/theme/syntax_colors.dart';
-import '../../../../../../core/widgets/painters/painters.dart';
-import 'line_gutter.dart';
-
 class JsonView extends StatelessWidget {
-  const JsonView({super.key, required this.json});
+  const JsonView({required this.json, super.key});
 
   final String json;
 

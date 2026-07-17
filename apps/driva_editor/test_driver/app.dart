@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:driva_editor/bootstrap.dart';
 import 'package:driva_editor/core/config/app_config.dart';
 import 'package:flutter_driver/driver_extension.dart';
@@ -6,5 +8,5 @@ import 'package:flutter_driver/driver_extension.dart';
 /// Só para dev e E2E — nunca é alvo de build de produção.
 void main() {
   enableFlutterDriverExtension();
-  bootstrap(const AppConfig.fromEnvironment(environment: 'dev'));
+  unawaited(bootstrap(const AppConfig.fromEnvironment(environment: 'dev')));
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../parsing/material_icons.dart';
-import '../parsing/parsers.dart';
-import '../renderer.dart';
+import 'package:sdui_flutter/src/parsing/material_icons.dart';
+import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/renderer.dart';
 
 /// TextField. Preview estático: o `value` vem das props e não muta estado
 /// real (o editor renderiza design, não formulário funcional).

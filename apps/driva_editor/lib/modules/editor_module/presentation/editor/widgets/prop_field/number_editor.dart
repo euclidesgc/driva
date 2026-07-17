@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../../core/theme/app_typography.dart';
-
 class NumberEditor extends StatefulWidget {
   const NumberEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
     required this.isInt,
+    super.key,
   });
 
   final PropField field;

@@ -1,17 +1,16 @@
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_row_body.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/draggable_content.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../domain/entities/content_summary.dart';
-import 'content_row_body.dart';
-import 'draggable_content.dart';
 
 class ContentRow extends StatelessWidget {
   const ContentRow({
-    super.key,
     required this.content,
     required this.onOpen,
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    super.key,
   });
 
   final ContentSummary content;

@@ -21,7 +21,7 @@ void main() {
     name: 'Home',
     slug: 'home',
     categoryId: 'cat_1',
-    updatedAt: DateTime(2026, 7, 1),
+    updatedAt: DateTime(2026, 7),
   );
 
   late MockContentListCubit cubit;
@@ -89,7 +89,6 @@ void main() {
       await tester.pumpWidget(
         bootstrap(
           state: ContentListLoaded(contents: [content]),
-          categoryNameById: const {},
         ),
       );
 

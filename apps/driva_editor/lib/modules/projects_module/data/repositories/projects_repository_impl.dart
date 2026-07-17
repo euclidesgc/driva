@@ -1,14 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/data/models/models.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/repositories/projects_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../../domain/entities/entities.dart';
-import '../../domain/repositories/projects_repository.dart';
-import '../models/models.dart';
-
 class ProjectsRepositoryImpl implements ProjectsRepository {
-  final Dio dio;
   ProjectsRepositoryImpl(this.dio);
+  final Dio dio;
 
   @override
   Future<Either<Failure, List<Project>>> getProjects({

@@ -1,17 +1,16 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../domain/entities/content_sort.dart';
 
 class SortControl extends StatelessWidget {
   const SortControl({
-    super.key,
     required this.sort,
     required this.order,
     required this.onSortChanged,
     required this.onToggleOrder,
+    super.key,
   });
 
   final ContentSort sort;

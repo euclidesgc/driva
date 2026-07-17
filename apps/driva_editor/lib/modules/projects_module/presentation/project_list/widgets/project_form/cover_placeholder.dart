@@ -1,10 +1,9 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-
 class CoverPlaceholder extends StatelessWidget {
-  const CoverPlaceholder({super.key, required this.hovering});
+  const CoverPlaceholder({required this.hovering, super.key});
 
   final bool hovering;
 

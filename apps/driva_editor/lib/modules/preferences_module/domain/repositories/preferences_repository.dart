@@ -1,7 +1,6 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/error.dart';
-import '../entities/app_theme_mode.dart';
 
 abstract interface class PreferencesRepository {
   Future<Either<Failure, AppThemeMode>> getThemeMode();

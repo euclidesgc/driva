@@ -1,9 +1,8 @@
 import 'dart:js_interop';
 
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:flutter/foundation.dart' show ValueChanged;
 import 'package:web/web.dart' as web;
-
-import '../../../domain/entities/entities.dart';
 
 /// Ouve `dragover`/`drop` nativos do navegador para o formulário de projeto.
 ///
@@ -28,14 +27,15 @@ class ImageDropZoneImpl {
   final ValueChanged<bool> onHover;
   final ValueChanged<ProjectImageInput> onFile;
 
-  late final _onDragOver = ((web.Event event) {
+  late final JSExportedDartFunction _onDragOver = ((web.Event event) {
     event.preventDefault();
     onHover(true);
   }).toJS;
 
-  late final _onDragLeave = ((web.Event event) => onHover(false)).toJS;
+  late final JSExportedDartFunction _onDragLeave =
+      ((web.Event event) => onHover(false)).toJS;
 
-  late final _onDrop = ((web.Event event) {
+  late final JSExportedDartFunction _onDrop = ((web.Event event) {
     event.preventDefault();
     onHover(false);
     final dragEvent = event as web.DragEvent;
@@ -47,18 +47,19 @@ class ImageDropZoneImpl {
 
   void _readFile(web.File file) {
     final reader = web.FileReader();
-    reader.onload = (web.Event _) {
-      final result = reader.result as JSArrayBuffer;
-      final bytes = result.toDart.asUint8List();
-      onFile(
-        ProjectImageInput(
-          bytes: bytes,
-          filename: file.name,
-          contentType: file.type.isNotEmpty ? file.type : null,
-        ),
-      );
-    }.toJS;
-    reader.readAsArrayBuffer(file);
+    reader
+      ..onload = (web.Event _) {
+        final result = reader.result! as JSArrayBuffer;
+        final bytes = result.toDart.asUint8List();
+        onFile(
+          ProjectImageInput(
+            bytes: bytes,
+            filename: file.name,
+            contentType: file.type.isNotEmpty ? file.type : null,
+          ),
+        );
+      }.toJS
+      ..readAsArrayBuffer(file);
   }
 
   void dispose() {

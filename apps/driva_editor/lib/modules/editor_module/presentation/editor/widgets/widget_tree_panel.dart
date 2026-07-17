@@ -1,19 +1,18 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_spacing.dart';
-import 'drag_payload.dart';
-import 'widget_tree/widget_tree.dart';
-
 class WidgetTreePanel extends StatelessWidget {
   const WidgetTreePanel({
-    super.key,
     required this.root,
     required this.selectedNodeId,
     required this.onSelect,
     required this.onRemove,
     required this.onAddInto,
     required this.onMoveInto,
+    super.key,
   });
 
   final SduiNode? root;

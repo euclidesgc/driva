@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../device_preset.dart';
-import 'canvas/canvas.dart';
-import 'drag_payload.dart';
 
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
 /// renderizando o documento com o renderer REAL (`SduiView`) — preview fiel
@@ -14,13 +13,13 @@ import 'drag_payload.dart';
 /// renderer a cada tecla.
 class CanvasPanel extends StatelessWidget {
   const CanvasPanel({
-    super.key,
     required this.device,
     required this.zoom,
     required this.onSelect,
     required this.onChangeDevice,
     required this.onChangeZoom,
     required this.onAddToRoot,
+    super.key,
   });
 
   final DevicePreset device;

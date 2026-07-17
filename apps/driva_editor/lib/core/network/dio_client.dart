@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:driva_editor/core/config/app_config.dart';
+import 'package:driva_editor/core/network/project_scope.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
-
-import '../config/app_config.dart';
-import 'project_scope.dart';
 
 /// Base URL comes from [AppConfig] (per flavor). Every repository receives
 /// this same instance via injection — no module creates its own client.
@@ -27,7 +26,7 @@ Dio createDio(AppConfig config, ProjectScope scope) {
     ),
   );
   if (!kReleaseMode) {
-    dio.interceptors.add(LogInterceptor(responseBody: false));
+    dio.interceptors.add(LogInterceptor());
   }
   return dio;
 }

@@ -7,7 +7,7 @@ class _MockDio extends Mock implements Dio {}
 
 // A `imageUrl` resolvida ganha `?v=<epoch do updatedAt>` como cache-buster.
 const _updatedAt = '2026-07-11T00:00:00.000Z';
-final _version = DateTime.parse(_updatedAt).millisecondsSinceEpoch;
+final int _version = DateTime.parse(_updatedAt).millisecondsSinceEpoch;
 
 void main() {
   late _MockDio dio;
@@ -79,7 +79,7 @@ void main() {
 
     test('imageUrl nula permanece nula (projeto sem imagem)', () async {
       when(() => dio.get<Map<String, dynamic>>('/v1/projects/p1')).thenAnswer(
-        (_) async => ok<Map<String, dynamic>>(projectJson(imageUrl: null)),
+        (_) async => ok<Map<String, dynamic>>(projectJson()),
       );
 
       final result = await repository.getProject('p1');

@@ -1,25 +1,24 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/card_actions.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/category_label.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/slug_badge.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/support_id.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/updated_at.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../domain/entities/content_summary.dart';
-import 'card_actions.dart';
-import 'category_label.dart';
-import 'slug_badge.dart';
-import 'support_id.dart';
-import 'updated_at.dart';
 
 /// Corpo visual do card de grade — o mesmo widget serve ao estado normal e ao
 /// "ghost" esmaecido do arraste, variando só por [opacity] (recebida pelo
 /// construtor). Extraído de `ContentCard` para não montar árvore por método.
 class ContentCardBody extends StatelessWidget {
   const ContentCardBody({
-    super.key,
     required this.content,
-    this.categoryName,
     required this.onOpen,
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    super.key,
+    this.categoryName,
     this.opacity = 1,
   });
 

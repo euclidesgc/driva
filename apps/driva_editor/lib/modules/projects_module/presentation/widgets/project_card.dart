@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_durations.dart';
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/widgets/project_cover.dart';
+import 'package:driva_editor/modules/projects_module/presentation/widgets/project_footer_counts.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/theme/app_durations.dart';
-import '../../../../core/theme/app_radii.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/editor_colors.dart';
-import '../../domain/entities/entities.dart';
-import 'project_cover.dart';
-import 'project_footer_counts.dart';
 
 /// Card de projeto compartilhado entre a lista ativa e os arquivados — mesma
 /// casca (capa, título, descrição, contadores) para garantir paridade visual.
@@ -20,8 +19,8 @@ import 'project_footer_counts.dart';
 /// - [actions]: entra abaixo dos contadores (ex.: Restaurar/excluir).
 class ProjectCard extends StatefulWidget {
   const ProjectCard({
-    super.key,
     required this.project,
+    super.key,
     this.onTap,
     this.onEdit,
     this.attenuated = false,
@@ -62,7 +61,7 @@ class _ProjectCardState extends State<ProjectCard> {
     Widget card = AnimatedContainer(
       duration: AppDurations.fast,
       transform: _hovered
-          ? (Matrix4.identity()..translateByDouble(0.0, -3.0, 0.0, 1.0))
+          ? (Matrix4.identity()..translateByDouble(0, -3, 0, 1))
           : Matrix4.identity(),
       decoration: BoxDecoration(
         color: colors.panel,
@@ -110,7 +109,7 @@ class _ProjectCardState extends State<ProjectCard> {
                     SizedBox(
                       height: 38,
                       child: Text(
-                        project.description?.isNotEmpty == true
+                        project.description?.isNotEmpty ?? false
                             ? project.description!
                             : 'Sem descrição.',
                         style: theme.textTheme.bodySmall?.copyWith(

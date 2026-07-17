@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 class DrivaContent extends StatelessWidget {
-  const DrivaContent({super.key, required this.slug});
+  const DrivaContent({required this.slug, super.key});
 
   final String slug;
 

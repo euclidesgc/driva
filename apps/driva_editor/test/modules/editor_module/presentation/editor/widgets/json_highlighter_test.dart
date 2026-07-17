@@ -44,9 +44,9 @@ void main() {
   });
 
   test('string com aspas escapadas não quebra o span', () {
-    const json = '{"q": "a \\"b\\" c"}';
+    const json = r'{"q": "a \"b\" c"}';
     final spans = JsonHighlighter.highlight(json, base: base, colors: colors);
-    expect(colorOf(spans, '"a \\"b\\" c"'), SyntaxColors.light.string);
+    expect(colorOf(spans, r'"a \"b\" c"'), SyntaxColors.light.string);
   });
 
   test('pontuação recebe a cor de punctuation', () {

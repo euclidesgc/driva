@@ -1,7 +1,6 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/error.dart';
-import '../entities/category.dart';
 
 abstract interface class CategoriesRepository {
   Future<Either<Failure, List<Category>>> getCategories();

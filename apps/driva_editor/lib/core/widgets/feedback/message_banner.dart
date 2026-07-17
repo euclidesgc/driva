@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/app_radii.dart';
-import '../../theme/app_spacing.dart';
 
 /// Banner de mensagem (aviso/erro): ícone + texto, para a cor não ser o único
 /// sinal. O [semanticsPrefix] rotula a natureza da mensagem para leitores de
 /// tela ("Aviso: ..." / "Erro: ...").
 class MessageBanner extends StatelessWidget {
   const MessageBanner({
-    super.key,
     required this.message,
+    super.key,
     this.semanticsPrefix = 'Aviso',
   });
 

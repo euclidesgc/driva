@@ -1,16 +1,15 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/buttons/buttons.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_view_mode.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../../../core/widgets/buttons/buttons.dart';
-import 'content_view_mode.dart';
 
 class ViewModeToggle extends StatelessWidget {
   const ViewModeToggle({
-    super.key,
     required this.mode,
     required this.onChanged,
+    super.key,
   });
 
   final ContentViewMode mode;

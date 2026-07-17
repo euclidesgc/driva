@@ -1,13 +1,12 @@
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_picker.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../domain/entities/entities.dart';
-import '../image_picker.dart';
 
 class CoverPreview extends StatelessWidget {
   const CoverPreview({
-    super.key,
     required this.image,
     required this.currentImageUrl,
+    super.key,
   });
 
   final ProjectImageInput? image;

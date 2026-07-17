@@ -1,9 +1,8 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_vm.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/editor_cubit.dart';
-import '../widgets/inspector_panel.dart';
-import 'inspector_vm.dart';
 
 class InspectorArea extends StatelessWidget {
   const InspectorArea({super.key});

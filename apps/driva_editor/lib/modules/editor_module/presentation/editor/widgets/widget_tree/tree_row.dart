@@ -1,17 +1,15 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_content.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../drag_payload.dart';
-import 'tree_row_content.dart';
-
 class TreeRow extends StatelessWidget {
   const TreeRow({
-    super.key,
     required this.node,
     required this.depth,
     required this.isRoot,
@@ -19,6 +17,7 @@ class TreeRow extends StatelessWidget {
     required this.onSelect,
     required this.onRemove,
     required this.onAccept,
+    super.key,
   });
 
   final SduiNode node;

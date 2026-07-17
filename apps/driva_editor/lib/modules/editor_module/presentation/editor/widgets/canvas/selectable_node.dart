@@ -1,21 +1,20 @@
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/device_mock_colors.dart';
+import 'package:driva_editor/core/widgets/painters/painters.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/node_tag.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/device_mock_colors.dart';
-import '../../../../../../core/widgets/painters/painters.dart';
-import 'node_tag.dart';
 
 /// `spacer` não é envolvido: precisa ser filho direto de Row/Column.
 class SelectableNode extends StatelessWidget {
   const SelectableNode({
-    super.key,
     required this.node,
     required this.built,
     required this.isSelected,
     required this.isHovered,
     required this.onSelect,
     required this.onHover,
+    super.key,
   });
 
   final SduiNode node;
@@ -27,7 +26,7 @@ class SelectableNode extends StatelessWidget {
 
   static const _unwrappable = {'spacer'};
 
-  static final _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
+  static final Color _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
 
   @override
   Widget build(BuildContext context) {

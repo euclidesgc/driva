@@ -1,11 +1,9 @@
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/view/category_tree_row.dart';
 import 'package:flutter/material.dart';
-
-import '../../../domain/entities/content_summary.dart';
-import 'category_tree_row.dart';
 
 class CategoryRow extends StatefulWidget {
   const CategoryRow({
-    super.key,
     required this.label,
     required this.icon,
     required this.depth,
@@ -15,10 +13,11 @@ class CategoryRow extends StatefulWidget {
     required this.selected,
     required this.onSelect,
     required this.onToggle,
+    required this.onAcceptContent,
+    super.key,
     this.onEdit,
     this.onDelete,
     this.isAllContentsShortcut = false,
-    required this.onAcceptContent,
   });
 
   final String label;

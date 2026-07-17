@@ -1,7 +1,6 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../domain/entities/category.dart';
 
 typedef CategoryFormResult = ({String name, String? parentId});
 
@@ -9,9 +8,9 @@ typedef CategoryFormResult = ({String name, String? parentId});
 /// como pai — evitaria um ciclo na árvore.
 class CategoryFormDialog extends StatefulWidget {
   const CategoryFormDialog({
-    super.key,
     required this.title,
     required this.availableParents,
+    super.key,
     this.initialName,
     this.initialParentId,
     this.excludeIds = const {},
@@ -83,7 +82,6 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 decoration: const InputDecoration(labelText: 'Categoria pai'),
                 items: [
                   const DropdownMenuItem<String?>(
-                    value: null,
                     child: Text('Nenhuma (raiz)'),
                   ),
                   for (final category in options)

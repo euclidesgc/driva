@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/app_radii.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/app_theme.dart';
-import '../../theme/app_typography.dart';
 
 class AppWordmark extends StatelessWidget {
   const AppWordmark({super.key, this.onTap});

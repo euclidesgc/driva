@@ -1,13 +1,12 @@
+import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
 import 'package:flutter/material.dart';
-
-import 'resize_handle.dart';
 
 class ResizableSplitView extends StatefulWidget {
   const ResizableSplitView({
-    super.key,
     required this.left,
     required this.center,
     required this.right,
+    super.key,
     this.initialLeftWidth = 280,
     this.initialRightWidth = 320,
     this.minPanelWidth = 200,

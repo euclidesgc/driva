@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/app_radii.dart';
-import '../../theme/editor_colors.dart';
 
 class ToggleButton extends StatelessWidget {
   const ToggleButton({
-    super.key,
     required this.tooltip,
     required this.icon,
     required this.selected,
     required this.onPressed,
+    super.key,
   });
 
   final String tooltip;
@@ -38,7 +37,7 @@ class ToggleButton extends StatelessWidget {
               color: selected ? colors.primaryTint : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadii.r6),
               border: selected
-                  ? Border.all(color: theme.colorScheme.primary, width: 1)
+                  ? Border.all(color: theme.colorScheme.primary)
                   : null,
             ),
             child: Icon(

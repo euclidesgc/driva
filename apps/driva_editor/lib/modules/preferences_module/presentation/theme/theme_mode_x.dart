@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
 import 'package:flutter/material.dart';
-
-import '../../domain/entities/app_theme_mode.dart';
 
 extension AppThemeModeX on AppThemeMode {
   ThemeMode get materialThemeMode => switch (this) {

@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
 import 'package:flutter/material.dart';
 
-import 'app_bar_action.dart';
-
 class AppShellActionButton extends StatelessWidget {
-  const AppShellActionButton({super.key, required this.action});
+  const AppShellActionButton({required this.action, super.key});
 
   final AppBarAction action;
 
@@ -11,7 +10,7 @@ class AppShellActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = action.icon;
     final label = action.label ?? '';
-    final Widget button = switch (action.kind) {
+    final button = switch (action.kind) {
       AppBarActionKind.filled =>
         icon != null
             ? FilledButton.icon(

@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+@immutable
 class InspectorVm {
   const InspectorVm({
     required this.node,

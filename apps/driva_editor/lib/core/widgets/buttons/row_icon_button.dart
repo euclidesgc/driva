@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/app_radii.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/editor_colors.dart';
 
 class RowIconButton extends StatelessWidget {
   const RowIconButton({
-    super.key,
     required this.tooltip,
     required this.icon,
     required this.onPressed,
+    super.key,
   });
 
   final String tooltip;

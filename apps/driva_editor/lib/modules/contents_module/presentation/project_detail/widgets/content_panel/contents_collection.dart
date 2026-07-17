@@ -1,15 +1,13 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_card.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_row.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_view_mode.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/loading_more_footer.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../domain/entities/content_summary.dart';
-import 'content_card.dart';
-import 'content_row.dart';
-import 'content_view_mode.dart';
-import 'loading_more_footer.dart';
 
 class ContentsCollection extends StatelessWidget {
   const ContentsCollection({
-    super.key,
     required this.contents,
     required this.mode,
     required this.hasMore,
@@ -20,6 +18,7 @@ class ContentsCollection extends StatelessWidget {
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    super.key,
   });
 
   final List<ContentSummary> contents;
@@ -33,7 +32,8 @@ class ContentsCollection extends StatelessWidget {
   final ValueChanged<ContentSummary> onMove;
   final ValueChanged<ContentSummary> onDelete;
 
-  /// Antecipa a próxima página ~1,5 tela antes do fim (rolagem sem "solavanco").
+  /// Antecipa a próxima página ~1,5 tela antes do fim (rolagem sem
+  /// "solavanco").
   static const _prefetchExtent = 400.0;
 
   bool _onScroll(ScrollNotification notification) {

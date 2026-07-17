@@ -1,10 +1,9 @@
 import 'dart:convert' show base64Encode;
 
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/repositories/projects_repository.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/error.dart';
-import '../../domain/entities/entities.dart';
-import '../../domain/repositories/projects_repository.dart';
 
 /// Mesma interface, fonte em memória (dev/E2E sem backend). Mantém um
 /// projeto de exemplo (id `default`, para casar com o `x-project-id` default
@@ -107,7 +106,7 @@ class ProjectsRepositoryFake implements ProjectsRepository {
     await Future<void>.delayed(_latency);
     final current = _projects[id];
     if (current == null) return const Left(NotFoundFailure());
-    final updated = current.copyWith(archivedAt: () => DateTime.now());
+    final updated = current.copyWith(archivedAt: DateTime.now);
     _projects[id] = updated;
     return Right(updated);
   }

@@ -103,7 +103,7 @@ void main() {
     });
 
     test('toJson sem root omite a chave', () {
-      final content = ContentSpec(
+      const content = ContentSpec(
         specVersion: kSpecVersion,
         id: 'ct_vazio',
         name: 'Vazio',

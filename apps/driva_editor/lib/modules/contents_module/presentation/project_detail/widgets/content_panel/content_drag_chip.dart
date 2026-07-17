@@ -1,13 +1,12 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../domain/entities/content_summary.dart';
 
 /// Chip compacto que segue o cursor durante o arraste (D2): só o título,
 /// embrulhado em `Material` para não perder o tema no overlay do drag.
 class ContentDragChip extends StatelessWidget {
-  const ContentDragChip({super.key, required this.content});
+  const ContentDragChip({required this.content, super.key});
 
   final ContentSummary content;
 
