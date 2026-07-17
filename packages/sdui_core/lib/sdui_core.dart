@@ -1,4 +1,3 @@
-
 export 'src/catalog/field_kind.dart';
 export 'src/catalog/prop_field.dart';
 export 'src/catalog/widget_catalog.dart';
