@@ -1,9 +1,8 @@
+import 'package:driva_editor/modules/preferences_module/domain/entities/app_theme_mode.dart';
+import 'package:driva_editor/modules/preferences_module/presentation/theme/cubit/theme_cubit.dart';
+import 'package:driva_editor/modules/preferences_module/presentation/theme/widgets/theme_menu_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domain/entities/app_theme_mode.dart';
-import '../cubit/theme_cubit.dart';
-import 'theme_menu_item.dart';
 
 class ThemeModeButton extends StatelessWidget {
   const ThemeModeButton({super.key});

@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/theme/app_spacing.dart';
-import '../../../projects_module/projects_module.dart';
 
 class InvalidProjectScreen extends StatelessWidget {
   const InvalidProjectScreen({super.key});

@@ -1,8 +1,7 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/project.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zard/zard.dart';
-
-import '../../../../core/error/error.dart';
-import '../../domain/entities/project.dart';
 
 class ProjectModel extends Project {
   const ProjectModel({
@@ -18,7 +17,7 @@ class ProjectModel extends Project {
   });
 
   // O backend serve `imageUrl`, nunca `imageKey` (chave interna de storage).
-  static final _schema = z.map({
+  static final ZMap _schema = z.map({
     'id': z.string().min(1),
     'title': z.string().min(1),
     'description': z.string().optional(),

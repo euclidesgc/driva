@@ -1,13 +1,12 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/app_shell/crumb.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../theme/app_radii.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/editor_colors.dart';
-import 'crumb.dart';
-
 class CrumbLabel extends StatelessWidget {
-  const CrumbLabel({super.key, required this.crumb, required this.isLast});
+  const CrumbLabel({required this.crumb, required this.isLast, super.key});
 
   final Crumb crumb;
   final bool isLast;

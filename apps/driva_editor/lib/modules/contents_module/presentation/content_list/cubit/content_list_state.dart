@@ -16,6 +16,11 @@ final class ContentListEmpty extends ContentListState {
 }
 
 final class ContentListLoaded extends ContentListState {
+  const ContentListLoaded({
+    required this.contents,
+    this.nextCursor,
+    this.isLoadingMore = false,
+  });
   final List<ContentSummary> contents;
 
   /// Cursor da próxima página (`nextCursor` do envelope); `null` = última
@@ -25,12 +30,6 @@ final class ContentListLoaded extends ContentListState {
   /// Carregando a próxima página (scroll infinito) — a UI mostra um rodapé de
   /// loading sem trocar o corpo da lista.
   final bool isLoadingMore;
-
-  const ContentListLoaded({
-    required this.contents,
-    this.nextCursor,
-    this.isLoadingMore = false,
-  });
 
   bool get hasMore => nextCursor != null;
 
@@ -49,8 +48,8 @@ final class ContentListLoaded extends ContentListState {
 }
 
 final class ContentListError extends ContentListState {
-  final Failure failure;
   const ContentListError({required this.failure});
+  final Failure failure;
   @override
   List<Object?> get props => [failure];
 }

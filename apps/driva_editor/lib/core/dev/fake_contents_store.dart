@@ -5,17 +5,17 @@ import 'package:sdui_core/sdui_core.dart';
 /// fluxo "criar na lista → abrir no editor" funcionar sem backend.
 /// Registrado no locator apenas quando `AppConfig.useFakeData` é true.
 class FakeContentsStore {
-  /// Id da categoria "Geral" — espelha a seed do backend e a raiz de
-  /// `CategoriesRepositoryFake`. Destino default quando a escrita omite
-  /// `categoryId`, como no contrato real.
-  static const defaultCategoryId = 'cat_geral';
-
   FakeContentsStore() {
     final sample = _sampleContent();
     _contents[sample.id] = sample;
     _updatedAt[sample.id] = DateTime.now();
     _categoryOf[sample.id] = defaultCategoryId;
   }
+
+  /// Id da categoria "Geral" — espelha a seed do backend e a raiz de
+  /// `CategoriesRepositoryFake`. Destino default quando a escrita omite
+  /// `categoryId`, como no contrato real.
+  static const defaultCategoryId = 'cat_geral';
 
   final Map<String, ContentSpec> _contents = {};
   final Map<String, DateTime> _updatedAt = {};
@@ -82,13 +82,13 @@ class FakeContentsStore {
 
   /// Um conteúdo de exemplo para o editor nunca abrir vazio em dev.
   ContentSpec _sampleContent() {
-    return ContentSpec(
+    return const ContentSpec(
       specVersion: kSpecVersion,
       id: 'ct_exemplo',
       name: 'Home — vitrine',
       slug: 'home',
       description: 'Banner de destaque da home com chamada para ofertas.',
-      root: const SduiNode(
+      root: SduiNode(
         id: 'nd_root',
         type: 'column',
         properties: {'crossAxisAlignment': 'stretch', 'spacing': 8.0},

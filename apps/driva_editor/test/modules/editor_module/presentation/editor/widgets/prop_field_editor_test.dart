@@ -67,7 +67,7 @@ void main() {
         label: 'Elevação',
         group: FieldGroups.style,
       );
-      final harness = _InspectorHarness(field: field);
+      const harness = _InspectorHarness(field: field);
       await tester.pumpWidget(harness);
 
       await tester.enterText(find.byType(TextField), '10');

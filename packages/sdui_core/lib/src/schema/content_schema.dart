@@ -1,13 +1,12 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:sdui_core/src/model/content_spec.dart';
+import 'package:sdui_core/src/model/sdui_node.dart';
+import 'package:sdui_core/src/schema/node_schema.dart';
+import 'package:sdui_core/src/schema/spec_validation_error.dart';
+import 'package:sdui_core/src/schema/spec_version.dart';
 import 'package:zard/zard.dart';
 
-import '../model/content_spec.dart';
-import '../model/sdui_node.dart';
-import 'node_schema.dart';
-import 'spec_validation_error.dart';
-import 'spec_version.dart';
-
-final _contentEnvelope = z.map({
+final ZMap _contentEnvelope = z.map({
   'specVersion': z.int(),
   'kind': z.$enum(['content']),
   'id': z.string().min(1),

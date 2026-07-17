@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
 
 /// Slug em destaque: ícone + rótulo textual "slug" (a cor não é o único
 /// sinal).
 class SlugBadge extends StatelessWidget {
-  const SlugBadge({super.key, required this.slug});
+  const SlugBadge({required this.slug, super.key});
 
   final String slug;
 

@@ -1,6 +1,5 @@
+import 'package:driva_editor/core/theme/syntax_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../theme/syntax_colors.dart';
 
 /// Highlighter próprio (sem dependência) que colore um JSON já formatado
 /// (indentado) em [TextSpan]s: chaves, strings, números, literais

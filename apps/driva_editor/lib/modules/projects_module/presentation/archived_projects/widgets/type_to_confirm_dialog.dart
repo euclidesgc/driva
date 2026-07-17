@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../../../../../core/theme/app_radii.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/editor_colors.dart';
 
 /// Segunda etapa da confirmação dupla: exige digitar o título do projeto
 /// para habilitar o botão de excluir — a barreira extra contra exclusão
 /// definitiva por engano (ação irreversível, cascade total).
 class TypeToConfirmDialog extends StatefulWidget {
-  const TypeToConfirmDialog({super.key, required this.projectTitle});
+  const TypeToConfirmDialog({required this.projectTitle, super.key});
 
   final String projectTitle;
 

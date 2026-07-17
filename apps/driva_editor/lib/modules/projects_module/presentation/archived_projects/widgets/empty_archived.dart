@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_radii.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/theme/editor_colors.dart';
 
 class EmptyArchived extends StatelessWidget {
   const EmptyArchived({super.key});

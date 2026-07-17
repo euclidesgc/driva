@@ -31,7 +31,7 @@ void main() {
   late EditorCubit cubit;
   late _MockThemeCubit themeCubit;
 
-  final document = ContentSpec(
+  const document = ContentSpec(
     specVersion: kSpecVersion,
     id: 'ct_1',
     name: 'Home',
@@ -39,7 +39,7 @@ void main() {
     root: SduiNode(
       id: 'nd_root',
       type: 'column',
-      children: const [
+      children: [
         SduiNode(
           id: 'nd_title',
           type: 'text',
@@ -59,8 +59,7 @@ void main() {
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
       projectId: 'p1',
-    );
-    cubit.emit(EditorReady(document: document));
+    )..emit(const EditorReady(document: document));
     themeCubit = _MockThemeCubit();
     whenListen(
       themeCubit,
@@ -81,7 +80,7 @@ void main() {
       ],
       child: EditorPage(
         projectFuture: Future<Either<Failure, Project>>.value(
-          Left(UnexpectedFailure()),
+          const Left(UnexpectedFailure()),
         ),
       ),
     ),

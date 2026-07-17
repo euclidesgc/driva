@@ -3,10 +3,10 @@ import 'package:sdui_core/sdui_core.dart';
 
 class BoolEditor extends StatelessWidget {
   const BoolEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final PropField field;

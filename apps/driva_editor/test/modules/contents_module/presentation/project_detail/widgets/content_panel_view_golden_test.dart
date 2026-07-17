@@ -40,7 +40,7 @@ void main() {
       name: 'Carrinho',
       slug: 'cart',
       categoryId: 'cat_1',
-      updatedAt: DateTime(2026, 6, 20, 8, 0),
+      updatedAt: DateTime(2026, 6, 20, 8),
     ),
   ];
 

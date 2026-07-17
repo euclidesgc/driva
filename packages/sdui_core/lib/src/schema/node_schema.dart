@@ -1,14 +1,13 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:sdui_core/src/catalog/widget_catalog.dart';
+import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/sdui_node.dart';
+import 'package:sdui_core/src/schema/spec_validation_error.dart';
 import 'package:zard/zard.dart';
-
-import '../catalog/widget_catalog.dart';
-import '../catalog/widget_descriptor.dart';
-import '../model/sdui_node.dart';
-import 'spec_validation_error.dart';
 
 // O z.map do zard só devolve as chaves declaradas: `props`/`events` ficam de
 // fora daqui de propósito, senão seriam descartados.
-final _nodeScalars = z.map({
+final ZMap _nodeScalars = z.map({
   'id': z.string().min(1),
   'type': z.string().min(1),
 });

@@ -1,38 +1,31 @@
 import 'dart:async';
 
+import 'package:driva_editor/core/theme/app_durations.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/theme/app_durations.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import '../../../domain/entities/content_sort.dart';
-import '../../../domain/entities/content_summary.dart';
-import '../../content_list/cubit/content_list_cubit.dart';
-import 'content_panel/content_panel.dart';
-
-/// [isAllContents] indica que o filtro atual é o pseudo-nó "Todos os
-/// conteúdos" (`categoryId: null`), não uma categoria real — muda a
-/// mensagem do estado vazio.
 class ContentPanelView extends StatefulWidget {
   const ContentPanelView({
-    super.key,
     required this.categoryLabel,
-    this.isAllContents = false,
-    this.categoryNameById = const {},
     required this.onOpenContent,
     required this.onNewContent,
     required this.onEditContent,
     required this.onMoveContent,
     required this.onDeleteContent,
+    super.key,
+    this.isAllContents = false,
+    this.categoryNameById = const {},
   });
 
   final String categoryLabel;
   final bool isAllContents;
 
-  /// Nome de cada categoria (a "folha") por `id`, para o rótulo de categoria
-  /// do card de grade. Vazio enquanto a árvore ainda carrega — o card omite
-  /// a linha nesse caso.
   final Map<String, String> categoryNameById;
   final ValueChanged<ContentSummary> onOpenContent;
   final VoidCallback onNewContent;
@@ -45,14 +38,12 @@ class ContentPanelView extends StatefulWidget {
 }
 
 class _ContentPanelViewState extends State<ContentPanelView> {
-  static const _debounce = AppDurations.normal;
+  static const Duration _debounce = AppDurations.normal;
 
   final _searchController = TextEditingController();
   Timer? _debounceTimer;
   ContentViewMode _mode = ContentViewMode.grid;
 
-  /// Espelho local da ordenação (para exibir o controle); a fonte da verdade
-  /// da query é o cubit, para onde empurramos toda mudança.
   late ContentSort _sort;
   late ContentSortOrder _order;
 
@@ -75,8 +66,10 @@ class _ContentPanelViewState extends State<ContentPanelView> {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(_debounce, () {
       if (!mounted) return;
-      context.read<ContentListCubit>().reloadWithFilter(
-        query: value.trim().isEmpty ? null : value.trim(),
+      unawaited(
+        context.read<ContentListCubit>().reloadWithFilter(
+          query: value.trim().isEmpty ? null : value.trim(),
+        ),
       );
     });
   }
@@ -84,7 +77,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
   void _onSortFieldChanged(ContentSort sort) {
     if (sort == _sort) return;
     setState(() => _sort = sort);
-    context.read<ContentListCubit>().changeSort(sort: sort);
+    unawaited(context.read<ContentListCubit>().changeSort(sort: sort));
   }
 
   void _onToggleOrder() {
@@ -92,7 +85,7 @@ class _ContentPanelViewState extends State<ContentPanelView> {
         ? ContentSortOrder.asc
         : ContentSortOrder.desc;
     setState(() => _order = next);
-    context.read<ContentListCubit>().changeSort(order: next);
+    unawaited(context.read<ContentListCubit>().changeSort(order: next));
   }
 
   @override
@@ -133,7 +126,8 @@ class _ContentPanelViewState extends State<ContentPanelView> {
                         return Text(
                           count == null
                               ? ' '
-                              : '$count ${count == 1 ? 'conteúdo' : 'conteúdos'}',
+                              : '$count '
+                                    '${count == 1 ? 'conteúdo' : 'conteúdos'}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.inkMuted,
                           ),

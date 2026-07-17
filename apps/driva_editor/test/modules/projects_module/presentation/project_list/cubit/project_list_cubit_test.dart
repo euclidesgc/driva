@@ -62,9 +62,6 @@ void main() {
         () => updateProject(
           '1',
           title: 'Novo',
-          description: null,
-          image: null,
-          removeImage: false,
         ),
       ).thenAnswer((_) async => Right(updated)),
       act: (cubit) => cubit.update('1', title: 'Novo'),
@@ -77,14 +74,11 @@ void main() {
     blocTest<ProjectListCubit, ProjectListState>(
       'no erro não toca o estado (UI trata pelo Left)',
       build: build,
-      seed: () => ProjectListLoaded(projects: [proj('1')], archivedCount: 0),
+      seed: () => ProjectListLoaded(projects: [proj('1')]),
       setUp: () => when(
         () => updateProject(
           '1',
           title: 'Novo',
-          description: null,
-          image: null,
-          removeImage: false,
         ),
       ).thenAnswer((_) async => const Left(NetworkFailure())),
       act: (cubit) => cubit.update('1', title: 'Novo'),

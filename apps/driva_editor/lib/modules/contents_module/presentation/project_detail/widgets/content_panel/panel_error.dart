@@ -1,10 +1,9 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/error/error.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-
 class PanelError extends StatelessWidget {
-  const PanelError({super.key, required this.failure, required this.onRetry});
+  const PanelError({required this.failure, required this.onRetry, super.key});
 
   final Failure failure;
   final VoidCallback onRetry;

@@ -1,18 +1,17 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../palette_icons.dart';
 
 class InspectorHeader extends StatelessWidget {
   const InspectorHeader({
-    super.key,
     required this.title,
     required this.subtitle,
     required this.iconType,
     required this.onRemove,
+    super.key,
   });
 
   final String title;

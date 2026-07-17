@@ -1,23 +1,21 @@
 import 'package:bloc/bloc.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/use_cases/use_cases.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../../core/error/error.dart';
-import '../../../domain/entities/entities.dart';
-import '../../../domain/use_cases/use_cases.dart';
 
 part 'archived_projects_state.dart';
 
 class ArchivedProjectsCubit extends Cubit<ArchivedProjectsState> {
-  final GetProjectsUseCase getProjects;
-  final UnarchiveProjectUseCase unarchiveProject;
-  final DeleteProjectUseCase deleteProject;
-
   ArchivedProjectsCubit({
     required this.getProjects,
     required this.unarchiveProject,
     required this.deleteProject,
   }) : super(const ArchivedProjectsLoading());
+  final GetProjectsUseCase getProjects;
+  final UnarchiveProjectUseCase unarchiveProject;
+  final DeleteProjectUseCase deleteProject;
 
   Future<void> load() async {
     emit(const ArchivedProjectsLoading());

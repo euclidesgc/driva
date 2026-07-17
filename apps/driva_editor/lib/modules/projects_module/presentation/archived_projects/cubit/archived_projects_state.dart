@@ -16,15 +16,15 @@ final class ArchivedProjectsEmpty extends ArchivedProjectsState {
 }
 
 final class ArchivedProjectsLoaded extends ArchivedProjectsState {
-  final List<Project> projects;
   const ArchivedProjectsLoaded({required this.projects});
+  final List<Project> projects;
   @override
   List<Object?> get props => [projects];
 }
 
 final class ArchivedProjectsError extends ArchivedProjectsState {
-  final Failure failure;
   const ArchivedProjectsError({required this.failure});
+  final Failure failure;
   @override
   List<Object?> get props => [failure];
 }

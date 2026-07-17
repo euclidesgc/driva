@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/editor_colors.dart';
-import '../../domain/entities/entities.dart';
 
 /// Contadores de "N categorias" / "N conteúdos" do rodapé do card — fiel ao
 /// `.dc.html` (`p.catCount`/`p.contentCount`, ícone de pasta e de documento
@@ -11,7 +10,7 @@ import '../../domain/entities/entities.dart';
 /// `docs/09-crud-projeto/variance_report.md`): os dois inteiros vêm sempre
 /// presentes de `Project`. Compartilhado entre o card ativo e o arquivado.
 class ProjectFooterCounts extends StatelessWidget {
-  const ProjectFooterCounts({super.key, required this.project});
+  const ProjectFooterCounts({required this.project, super.key});
 
   final Project project;
 

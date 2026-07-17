@@ -1,14 +1,13 @@
+import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../../core/theme/app_typography.dart';
-
 class StringEditor extends StatefulWidget {
   const StringEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final PropField field;

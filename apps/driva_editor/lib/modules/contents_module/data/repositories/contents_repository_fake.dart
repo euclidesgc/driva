@@ -1,16 +1,15 @@
+import 'package:driva_editor/core/dev/fake_contents_store.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/util/slug.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/contents_page.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/contents_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/dev/fake_contents_store.dart';
-import '../../../../core/error/error.dart';
-import '../../../../core/util/slug.dart';
-import '../../domain/entities/content_sort.dart';
-import '../../domain/entities/content_summary.dart';
-import '../../domain/entities/contents_page.dart';
-import '../../domain/repositories/contents_repository.dart';
-
 class ContentsRepositoryFake implements ContentsRepository {
-  final FakeContentsStore store;
   ContentsRepositoryFake(this.store);
+  final FakeContentsStore store;
 
   static const _latency = Duration(milliseconds: 300);
 

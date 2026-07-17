@@ -1,16 +1,18 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/buttons/buttons.dart';
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/view/category_row.dart'
+    show CategoryRow;
+import 'package:driva_editor/modules/contents_module/presentation/category_tree/view/view.dart'
+    show CategoryRow;
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_radii.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import '../../../../../core/widgets/buttons/buttons.dart';
 
 /// A linha visual de uma categoria (ou do pseudo-nó "Todos os conteúdos"). Puro
 /// desenho a partir dos dados/estado recebidos pelo construtor — o hover e o
 /// alvo de drop são calculados pelo [CategoryRow] (stateful) e passados aqui.
 class CategoryTreeRow extends StatelessWidget {
   const CategoryTreeRow({
-    super.key,
     required this.label,
     required this.icon,
     required this.depth,
@@ -25,6 +27,7 @@ class CategoryTreeRow extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onHoverChanged,
+    super.key,
   });
 
   final String label;
@@ -62,7 +65,7 @@ class CategoryTreeRow extends StatelessWidget {
             : (hovered ? colors.panelAlt : Colors.transparent),
         borderRadius: BorderRadius.circular(AppRadii.r9),
         border: highlighted
-            ? Border.all(color: theme.colorScheme.primary, width: 1)
+            ? Border.all(color: theme.colorScheme.primary)
             : null,
       ),
       height: 38,

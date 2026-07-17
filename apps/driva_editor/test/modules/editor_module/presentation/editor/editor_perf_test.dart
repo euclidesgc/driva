@@ -42,8 +42,7 @@ void main() {
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
       projectId: 'p1',
-    );
-    cubit.emit(EditorReady(document: _docWithText('A')));
+    )..emit(EditorReady(document: _docWithText('A')));
     themeCubit = _MockThemeCubit();
     whenListen(
       themeCubit,
@@ -63,7 +62,7 @@ void main() {
       ],
       child: EditorPage(
         projectFuture: Future<Either<Failure, Project>>.value(
-          Left(UnexpectedFailure()),
+          const Left(UnexpectedFailure()),
         ),
       ),
     ),
@@ -134,7 +133,7 @@ void main() {
     (tester) async {
       enlarge(tester);
       cubit.emit(
-        EditorReady(
+        const EditorReady(
           document: ContentSpec(
             specVersion: kSpecVersion,
             id: 'ct_1',

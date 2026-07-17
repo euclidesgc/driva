@@ -114,7 +114,7 @@ void main() {
 
     blocTest<ContentListCubit, ContentListState>(
       'na vista "Todos os conteúdos" (filtro null) não muda nada',
-      build: () => build(categoryId: null),
+      build: build,
       seed: () => ContentListLoaded(contents: [content('1', 'geral')]),
       act: (cubit) => cubit.reflectMovedOut('1'),
       expect: () => const <ContentListState>[],

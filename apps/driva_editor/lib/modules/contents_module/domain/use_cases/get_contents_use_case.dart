@@ -1,14 +1,13 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/contents_page.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/contents_repository.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/error.dart';
-import '../entities/content_sort.dart';
-import '../entities/contents_page.dart';
-import '../repositories/contents_repository.dart';
 
 /// Sem re-sort no cliente: conflita com o cursor do servidor.
 class GetContentsUseCase {
-  final ContentsRepository repository;
   const GetContentsUseCase({required this.repository});
+  final ContentsRepository repository;
 
   Future<Either<Failure, ContentsPage>> call({
     String? categoryId,

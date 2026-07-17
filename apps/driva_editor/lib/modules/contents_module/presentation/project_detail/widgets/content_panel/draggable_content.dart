@@ -1,16 +1,19 @@
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/card_actions.dart'
+    show CardActions;
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_drag_chip.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_panel.dart'
+    show CardActions;
 import 'package:flutter/material.dart';
-
-import '../../../../domain/entities/content_summary.dart';
-import 'content_drag_chip.dart';
 
 /// O botão "mover" de [CardActions] permanece como caminho acessível
 /// primário — o drag é só um atalho, nunca o único sinal (D6/CA10).
 class DraggableContent extends StatelessWidget {
   const DraggableContent({
-    super.key,
     required this.content,
     required this.child,
     required this.childWhenDragging,
+    super.key,
   });
 
   final ContentSummary content;

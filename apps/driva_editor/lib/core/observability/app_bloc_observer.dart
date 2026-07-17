@@ -2,11 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Sees the lifecycle of EVERY Cubit/Bloc in the app, without any of them
-/// knowing. Installed once, in [bootstrap] (`Bloc.observer`).
-///
-/// This is the fourth safety net: `onChange` gives the audit trail of every
-/// state transition; `onError` catches what escaped the `Either` boundary.
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
 

@@ -1,13 +1,12 @@
+import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_typography.dart';
 
 class EdgeInsetsSideField extends StatelessWidget {
   const EdgeInsetsSideField({
-    super.key,
     required this.controller,
     required this.label,
     required this.onChanged,
+    super.key,
   });
 
   final TextEditingController? controller;

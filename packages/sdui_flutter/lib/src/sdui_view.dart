@@ -1,14 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import 'builders/default_registry.dart';
-import 'registry.dart';
-import 'renderer.dart';
+import 'package:sdui_flutter/src/builders/default_registry.dart';
+import 'package:sdui_flutter/src/registry.dart';
+import 'package:sdui_flutter/src/renderer.dart';
 
 class SduiView extends StatelessWidget {
   const SduiView({
-    super.key,
     required this.node,
+    super.key,
     this.registry,
     this.onAction,
     this.nodeWrapper,

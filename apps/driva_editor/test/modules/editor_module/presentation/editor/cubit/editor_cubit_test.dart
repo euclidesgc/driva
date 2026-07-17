@@ -45,8 +45,7 @@ void main() {
   );
 
   EditorCubit buildLoaded() {
-    final cubit = build();
-    cubit.emit(const EditorReady(document: content));
+    final cubit = build()..emit(const EditorReady(document: content));
     return cubit;
   }
 
@@ -98,8 +97,9 @@ void main() {
       'addNode com container selecionado entra como child (slot único)',
       build: buildLoaded,
       act: (cubit) {
-        cubit.selectNode('nd_banner');
-        cubit.addNode('text');
+        cubit
+          ..selectNode('nd_banner')
+          ..addNode('text');
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
@@ -112,8 +112,9 @@ void main() {
       'addNode com folha selecionada entra como vizinho na raiz',
       build: buildLoaded,
       act: (cubit) {
-        cubit.selectNode('nd_text');
-        cubit.addNode('divider');
+        cubit
+          ..selectNode('nd_text')
+          ..addNode('divider');
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
@@ -149,8 +150,9 @@ void main() {
       'removeNode limpa a seleção do nó removido',
       build: buildLoaded,
       act: (cubit) {
-        cubit.selectNode('nd_text');
-        cubit.removeNode('nd_text');
+        cubit
+          ..selectNode('nd_text')
+          ..removeNode('nd_text');
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
@@ -163,8 +165,9 @@ void main() {
       'removeNode na raiz esvazia o conteúdo e limpa a seleção',
       build: buildLoaded,
       act: (cubit) {
-        cubit.selectNode('nd_root');
-        cubit.removeNode('nd_root');
+        cubit
+          ..selectNode('nd_root')
+          ..removeNode('nd_root');
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
@@ -178,8 +181,9 @@ void main() {
       'updateProps faz merge e null remove a chave',
       build: buildLoaded,
       act: (cubit) {
-        cubit.updateProps('nd_text', {'fontSize': 20.0});
-        cubit.updateProps('nd_text', {'data': null});
+        cubit
+          ..updateProps('nd_text', {'fontSize': 20.0})
+          ..updateProps('nd_text', {'data': null});
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;
@@ -199,8 +203,7 @@ void main() {
     );
 
     EditorCubit buildEmpty() {
-      final cubit = build();
-      cubit.emit(const EditorReady(document: emptyContent));
+      final cubit = build()..emit(const EditorReady(document: emptyContent));
       return cubit;
     }
 
@@ -232,9 +235,10 @@ void main() {
       'mutações sem raiz (move/remove/updateProps) não fazem nada',
       build: buildEmpty,
       act: (cubit) {
-        cubit.moveNode('x', 'y', 0);
-        cubit.removeNode('x');
-        cubit.updateProps('x', {'a': 1});
+        cubit
+          ..moveNode('x', 'y', 0)
+          ..removeNode('x')
+          ..updateProps('x', {'a': 1});
       },
       expect: () => <EditorState>[],
     );
@@ -262,8 +266,7 @@ void main() {
     );
 
     EditorCubit buildWith(ContentSpec document) {
-      final cubit = build();
-      cubit.emit(EditorReady(document: document));
+      final cubit = build()..emit(EditorReady(document: document));
       return cubit;
     }
 
@@ -292,7 +295,7 @@ void main() {
       act: (cubit) => cubit.save(),
       expect: () => [
         const EditorReady(document: content, saveStatus: SaveStatus.saving),
-        const EditorReady(document: content, saveStatus: SaveStatus.saved),
+        const EditorReady(document: content),
       ],
     );
 
@@ -315,8 +318,9 @@ void main() {
       'changeDevice e changeZoom (com clamp)',
       build: buildLoaded,
       act: (cubit) {
-        cubit.changeDevice(DevicePreset.tablet);
-        cubit.changeZoom(9);
+        cubit
+          ..changeDevice(DevicePreset.tablet)
+          ..changeZoom(9);
       },
       verify: (cubit) {
         final state = cubit.state as EditorReady;

@@ -1,9 +1,8 @@
+import 'package:driva_editor/modules/projects_module/presentation/widgets/grid_texture_painter.dart';
 import 'package:flutter/material.dart';
 
-import 'grid_texture_painter.dart';
-
 class GradientTexture extends StatelessWidget {
-  const GradientTexture({super.key, required this.gradient});
+  const GradientTexture({required this.gradient, super.key});
 
   final List<Color> gradient;
 

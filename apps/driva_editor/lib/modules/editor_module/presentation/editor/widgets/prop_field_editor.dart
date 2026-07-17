@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/theme/app_typography.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import 'prop_field/prop_field.dart';
 
 /// `null` em [onChanged] remove a chave (volta ao default do renderer).
 ///
@@ -13,10 +12,10 @@ import 'prop_field/prop_field.dart';
 /// valor, o campo é recriado a cada tecla e o foco se perde.
 class PropFieldEditor extends StatelessWidget {
   const PropFieldEditor({
-    super.key,
     required this.field,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final PropField field;

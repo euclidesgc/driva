@@ -15,21 +15,13 @@ final class EditorLoading extends EditorState {
 }
 
 final class EditorLoadFailure extends EditorState {
-  final Failure failure;
   const EditorLoadFailure({required this.failure});
+  final Failure failure;
   @override
   List<Object?> get props => [failure];
 }
 
 final class EditorReady extends EditorState {
-  /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
-  final ContentSpec document;
-
-  final String? selectedNodeId;
-  final DevicePreset device;
-  final double zoom;
-  final SaveStatus saveStatus;
-
   const EditorReady({
     required this.document,
     this.selectedNodeId,
@@ -37,6 +29,14 @@ final class EditorReady extends EditorState {
     this.zoom = 0.9,
     this.saveStatus = SaveStatus.saved,
   });
+
+  /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
+  final ContentSpec document;
+
+  final String? selectedNodeId;
+  final DevicePreset device;
+  final double zoom;
+  final SaveStatus saveStatus;
 
   /// Nó selecionado (ou `null`). Derivado — nunca guardado à parte, para não
   /// dessincronizar com o documento.

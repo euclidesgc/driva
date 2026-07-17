@@ -1,18 +1,17 @@
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_card_body.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/draggable_content.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../domain/entities/content_summary.dart';
-import 'content_card_body.dart';
-import 'draggable_content.dart';
 
 class ContentCard extends StatelessWidget {
   const ContentCard({
-    super.key,
     required this.content,
-    this.categoryName,
     required this.onOpen,
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    super.key,
+    this.categoryName,
   });
 
   final ContentSummary content;

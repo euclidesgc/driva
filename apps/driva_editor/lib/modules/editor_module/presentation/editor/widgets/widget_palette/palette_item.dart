@@ -1,11 +1,10 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette/palette_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../drag_payload.dart';
-import 'palette_tile.dart';
-
 class PaletteItem extends StatelessWidget {
-  const PaletteItem({super.key, required this.descriptor});
+  const PaletteItem({required this.descriptor, super.key});
 
   final WidgetDescriptor descriptor;
 

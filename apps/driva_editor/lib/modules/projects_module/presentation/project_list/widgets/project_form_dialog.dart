@@ -1,14 +1,13 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_drop_zone.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_picker.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/project_form/project_form.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart' hide State;
-
-import '../../../../../core/error/error.dart';
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import '../../../../../core/widgets/feedback/feedback.dart';
-import '../../../domain/entities/entities.dart';
-import 'image_drop_zone.dart';
-import 'image_picker.dart';
-import 'project_form/project_form.dart';
 
 typedef ProjectFormResult = ({
   String title,
@@ -19,9 +18,9 @@ typedef ProjectFormResult = ({
 
 class ProjectFormDialog extends StatefulWidget {
   const ProjectFormDialog({
-    super.key,
     required this.title,
     required this.onSubmit,
+    super.key,
     this.initialTitle,
     this.initialDescription,
     this.initialImageUrl,

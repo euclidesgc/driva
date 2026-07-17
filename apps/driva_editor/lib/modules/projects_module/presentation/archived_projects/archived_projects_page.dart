@@ -1,26 +1,31 @@
+import 'dart:async';
+
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
+import 'package:driva_editor/injection.dart';
+import 'package:driva_editor/modules/projects_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/cubit/archived_projects_cubit.dart';
+import 'package:driva_editor/modules/projects_module/presentation/archived_projects/widgets/widgets.dart';
+import 'package:driva_editor/modules/projects_module/projects_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/error/error.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_shell/app_shell.dart';
-import '../../../../injection.dart';
-import '../../domain/use_cases/use_cases.dart';
-import '../../projects_routes.dart';
-import 'cubit/archived_projects_cubit.dart';
-import 'widgets/widgets.dart';
 
 class ArchivedProjectsPage extends StatelessWidget {
   const ArchivedProjectsPage({super.key});
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     return BlocProvider(
-      create: (_) => ArchivedProjectsCubit(
-        getProjects: getIt<GetProjectsUseCase>(),
-        unarchiveProject: getIt<UnarchiveProjectUseCase>(),
-        deleteProject: getIt<DeleteProjectUseCase>(),
-      )..load(),
+      create: (_) {
+        final cubit = ArchivedProjectsCubit(
+          getProjects: getIt<GetProjectsUseCase>(),
+          unarchiveProject: getIt<UnarchiveProjectUseCase>(),
+          deleteProject: getIt<DeleteProjectUseCase>(),
+        );
+        unawaited(cubit.load());
+        return cubit;
+      },
       child: const ArchivedProjectsPage(),
     );
   }

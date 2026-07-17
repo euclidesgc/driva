@@ -12,23 +12,23 @@ final class ProjectListLoading extends ProjectListState {
 
 /// Nenhum projeto ainda: tem UX própria ("crie seu primeiro projeto").
 final class ProjectListEmpty extends ProjectListState {
-  final int archivedCount;
   const ProjectListEmpty({this.archivedCount = 0});
+  final int archivedCount;
   @override
   List<Object?> get props => [archivedCount];
 }
 
 final class ProjectListLoaded extends ProjectListState {
+  const ProjectListLoaded({required this.projects, this.archivedCount = 0});
   final List<Project> projects;
   final int archivedCount;
-  const ProjectListLoaded({required this.projects, this.archivedCount = 0});
   @override
   List<Object?> get props => [projects, archivedCount];
 }
 
 final class ProjectListError extends ProjectListState {
-  final Failure failure;
   const ProjectListError({required this.failure});
+  final Failure failure;
   @override
   List<Object?> get props => [failure];
 }

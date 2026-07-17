@@ -1,16 +1,20 @@
 import 'package:bloc/bloc.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:equatable/equatable.dart';
-import 'package:sdui_core/sdui_core.dart' as sdui;
 import 'package:sdui_core/sdui_core.dart'
     show ContentSpec, SduiNode, SlotKind, defaultNode, descriptorFor;
-
-import '../../../../../core/error/error.dart';
-import '../../../domain/use_cases/use_cases.dart';
-import '../device_preset.dart';
+import 'package:sdui_core/sdui_core.dart' as sdui;
 
 part 'editor_state.dart';
 
 class EditorCubit extends Cubit<EditorState> {
+  EditorCubit({
+    required this.loadContentUseCase,
+    required this.saveDraftUseCase,
+    required this.projectId,
+  }) : super(const EditorLoading());
   final LoadContentUseCase loadContentUseCase;
   final SaveDraftUseCase saveDraftUseCase;
 
@@ -18,12 +22,6 @@ class EditorCubit extends Cubit<EditorState> {
   /// no `pageBuilder`). É o destino do "voltar" do editor — Builder → tela do
   /// projeto (categorias), não a home de projetos.
   final String projectId;
-
-  EditorCubit({
-    required this.loadContentUseCase,
-    required this.saveDraftUseCase,
-    required this.projectId,
-  }) : super(const EditorLoading());
 
   int _idSequence = 0;
 

@@ -1,20 +1,19 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/project_form/cover_placeholder.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/project_form/cover_preview.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../domain/entities/entities.dart';
-import 'cover_placeholder.dart';
-import 'cover_preview.dart';
 
 class CoverPicker extends StatelessWidget {
   const CoverPicker({
-    super.key,
     required this.image,
     required this.currentImageUrl,
     required this.hovering,
     required this.onPick,
     required this.onClear,
+    super.key,
   });
 
   final ProjectImageInput? image;

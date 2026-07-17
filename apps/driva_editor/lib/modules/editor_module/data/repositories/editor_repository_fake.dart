@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/dev/fake_contents_store.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/repositories/editor_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../../../../core/dev/fake_contents_store.dart';
-import '../../../../core/error/error.dart';
-import '../../domain/repositories/editor_repository.dart';
 
 /// Mesma interface, fonte em memória (dev/E2E sem backend). Compartilha o
 /// [FakeContentsStore] com o contents_module: criar na lista → abrir no editor.
 class EditorRepositoryFake implements EditorRepository {
-  final FakeContentsStore store;
   EditorRepositoryFake(this.store);
+  final FakeContentsStore store;
 
   static const _latency = Duration(milliseconds: 300);
 

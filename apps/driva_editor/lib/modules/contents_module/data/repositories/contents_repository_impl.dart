@@ -1,16 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/data/models/models.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/contents_page.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/contents_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../../domain/entities/content_sort.dart';
-import '../../domain/entities/content_summary.dart';
-import '../../domain/entities/contents_page.dart';
-import '../../domain/repositories/contents_repository.dart';
-import '../models/models.dart';
-
 class ContentsRepositoryImpl implements ContentsRepository {
-  final Dio dio;
   ContentsRepositoryImpl(this.dio);
+  final Dio dio;
 
   @override
   Future<Either<Failure, ContentsPage>> getContents({

@@ -1,18 +1,17 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_action_button.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_status_indicator.dart';
+import 'package:driva_editor/core/widgets/branding/branding.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../theme/app_spacing.dart';
-import '../../theme/editor_colors.dart';
-import '../branding/branding.dart';
-import 'app_shell_action_button.dart';
-import 'app_shell_scope.dart';
-import 'app_shell_status_indicator.dart';
-
 class AppShellTopBar extends StatelessWidget {
   const AppShellTopBar({
-    super.key,
     required this.homeRouteName,
     required this.themeButton,
+    super.key,
   });
 
   final String homeRouteName;

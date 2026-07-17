@@ -1,14 +1,13 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/contents_module.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/project_list_page.dart';
+import 'package:driva_editor/modules/projects_module/presentation/widgets/project_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../contents_module/contents_module.dart';
-import '../../../../domain/entities/entities.dart';
-import '../../../widgets/project_card.dart';
-import '../../project_list_page.dart';
-
 class ProjectsHome extends StatelessWidget {
-  const ProjectsHome({super.key, required this.projects});
+  const ProjectsHome({required this.projects, super.key});
 
   final List<Project> projects;
 
@@ -40,7 +39,8 @@ class ProjectsHome extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.s12),
                 Text(
-                  '${projects.length} ${projects.length == 1 ? 'projeto' : 'projetos'}',
+                  '${projects.length} '
+                  '${projects.length == 1 ? 'projeto' : 'projetos'}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.textTheme.bodySmall?.color,
                   ),

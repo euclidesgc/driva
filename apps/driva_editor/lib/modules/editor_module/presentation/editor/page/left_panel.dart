@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../../../../../core/theme/editor_colors.dart';
-import '../cubit/editor_cubit.dart';
-import '../widgets/widget_palette_panel.dart';
-import '../widgets/widget_tree_panel.dart';
 
 class LeftPanel extends StatelessWidget {
   const LeftPanel({super.key});
@@ -69,8 +68,9 @@ class LeftPanel extends StatelessWidget {
 String _structureKey(SduiNode node) {
   final buffer = StringBuffer('${node.id}:${node.type}(');
   for (final child in node.children) {
-    buffer.write(_structureKey(child));
-    buffer.write(',');
+    buffer
+      ..write(_structureKey(child))
+      ..write(',');
   }
   buffer.write(')');
   return buffer.toString();

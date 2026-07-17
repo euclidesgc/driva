@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
 
 class EmptyContents extends StatelessWidget {
   const EmptyContents({
-    super.key,
     required this.categoryLabel,
-    this.isAllContents = false,
     required this.onCreate,
+    super.key,
+    this.isAllContents = false,
   });
 
   final String categoryLabel;

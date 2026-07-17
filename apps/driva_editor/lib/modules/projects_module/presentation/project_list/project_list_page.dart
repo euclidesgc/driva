@@ -1,29 +1,34 @@
+import 'dart:async';
+
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
+import 'package:driva_editor/injection.dart';
+import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/projects_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/cubit/project_list_cubit.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/home/home.dart';
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/project_form_dialog.dart';
+import 'package:driva_editor/modules/projects_module/projects_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/error/error.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_shell/app_shell.dart';
-import '../../../../injection.dart';
-import '../../domain/entities/entities.dart';
-import '../../domain/use_cases/use_cases.dart';
-import '../../projects_routes.dart';
-import 'cubit/project_list_cubit.dart';
-import 'widgets/home/home.dart';
-import 'widgets/project_form_dialog.dart';
 
 class ProjectListPage extends StatelessWidget {
   const ProjectListPage({super.key});
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     return BlocProvider(
-      create: (_) => ProjectListCubit(
-        getProjects: getIt<GetProjectsUseCase>(),
-        createProject: getIt<CreateProjectUseCase>(),
-        updateProject: getIt<UpdateProjectUseCase>(),
-        archiveProject: getIt<ArchiveProjectUseCase>(),
-      )..load(),
+      create: (_) {
+        final cubit = ProjectListCubit(
+          getProjects: getIt<GetProjectsUseCase>(),
+          createProject: getIt<CreateProjectUseCase>(),
+          updateProject: getIt<UpdateProjectUseCase>(),
+          archiveProject: getIt<ArchiveProjectUseCase>(),
+        );
+        unawaited(cubit.load());
+        return cubit;
+      },
       child: const ProjectListPage(),
     );
   }

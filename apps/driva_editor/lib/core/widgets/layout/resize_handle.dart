@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../theme/editor_colors.dart';
-
 class ResizeHandle extends StatelessWidget {
-  const ResizeHandle({super.key, required this.onDrag});
+  const ResizeHandle({required this.onDrag, super.key});
 
   final ValueChanged<double> onDrag;
 

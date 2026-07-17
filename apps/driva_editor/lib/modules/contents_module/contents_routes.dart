@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/contents_module/presentation/presentation.dart';
 import 'package:go_router/go_router.dart';
-
-import 'presentation/presentation.dart';
 
 class ContentsRoutes {
   static const String projectDetail = '/projects/:id';

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'field_kind.dart';
+import 'package:sdui_core/src/catalog/field_kind.dart';
 
 class PropField extends Equatable {
   const PropField({

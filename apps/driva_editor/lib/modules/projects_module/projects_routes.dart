@@ -1,6 +1,5 @@
+import 'package:driva_editor/modules/projects_module/presentation/presentation.dart';
 import 'package:go_router/go_router.dart';
-
-import 'presentation/presentation.dart';
 
 class ProjectsRoutes {
   static const String projects = '/';

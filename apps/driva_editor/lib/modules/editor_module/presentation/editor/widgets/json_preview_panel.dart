@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/json_preview/json_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../cubit/editor_cubit.dart';
-import 'json_preview/json_preview.dart';
 
 /// Throttla a re-serialização: `toJson` + encode + realce são caros por tecla.
 class JsonPreviewPanel extends StatefulWidget {
@@ -76,7 +75,7 @@ class _JsonPreviewPanelState extends State<JsonPreviewPanel> {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    unawaited(_subscription.cancel());
     _cooldown?.cancel();
     _copiedReset?.cancel();
     super.dispose();

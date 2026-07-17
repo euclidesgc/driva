@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/contents_page.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/error/error.dart';
-import '../entities/content_sort.dart';
-import '../entities/content_summary.dart';
-import '../entities/contents_page.dart';
 
 abstract interface class ContentsRepository {
   Future<Either<Failure, ContentsPage>> getContents({

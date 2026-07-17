@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'sdui_node.dart';
+import 'package:sdui_core/src/model/sdui_node.dart';
 
 class ContentSpec extends Equatable {
   const ContentSpec({

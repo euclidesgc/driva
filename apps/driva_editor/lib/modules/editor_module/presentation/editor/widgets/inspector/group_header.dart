@@ -1,11 +1,10 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-
 class GroupHeader extends StatelessWidget {
-  const GroupHeader({super.key, required this.label});
+  const GroupHeader({required this.label, super.key});
 
   final String label;
 

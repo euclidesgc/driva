@@ -1,21 +1,20 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/app_typography.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import 'inspector/inspector.dart';
-import 'prop_field_editor.dart';
-
 class InspectorPanel extends StatelessWidget {
   const InspectorPanel({
-    super.key,
     required this.node,
     required this.isContent,
     required this.contentName,
     required this.contentSlug,
     required this.onUpdateProps,
     required this.onRemove,
+    super.key,
   });
 
   final SduiNode? node;
@@ -92,7 +91,8 @@ class InspectorPanel extends StatelessWidget {
                         (f) => f.group == group,
                       ))
                         PropFieldEditor(
-                          // Sem key por nó, o campo mantém o texto do nó anterior.
+                          // Sem key por nó, o campo mantém o texto do nó
+                          // anterior.
                           key: ValueKey('${node.id}_${field.key}'),
                           field: field,
                           value: node.properties[field.key],

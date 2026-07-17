@@ -1,7 +1,6 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../domain/entities/category.dart';
 
 /// Sem opção "Não categorizado": todo conteúdo sempre tem uma categoria (a
 /// "Geral" é o default do backend quando a escrita omite `categoryId`) — e
@@ -10,10 +9,10 @@ import '../../../domain/entities/category.dart';
 /// parece mover mas não move nada.
 class MoveContentDialog extends StatefulWidget {
   const MoveContentDialog({
-    super.key,
     required this.contentName,
     required this.categories,
     required this.currentCategoryId,
+    super.key,
   });
 
   final String contentName;

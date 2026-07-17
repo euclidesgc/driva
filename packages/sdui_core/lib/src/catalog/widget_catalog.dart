@@ -1,7 +1,7 @@
-import '../model/sdui_node.dart';
-import 'field_kind.dart';
-import 'prop_field.dart';
-import 'widget_descriptor.dart';
+import 'package:sdui_core/src/catalog/field_kind.dart';
+import 'package:sdui_core/src/catalog/prop_field.dart';
+import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/sdui_node.dart';
 
 const List<PropField> _flexFields = [
   PropField(

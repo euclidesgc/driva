@@ -1,13 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/repositories/editor_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../core/error/error.dart';
-import '../../domain/repositories/editor_repository.dart';
-
 class EditorRepositoryImpl implements EditorRepository {
-  final Dio dio;
   EditorRepositoryImpl(this.dio);
+  final Dio dio;
 
   @override
   Future<Either<Failure, ContentSpec>> loadContent(String id) async {

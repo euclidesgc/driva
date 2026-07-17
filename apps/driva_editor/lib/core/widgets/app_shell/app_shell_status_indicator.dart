@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
 import 'package:flutter/material.dart';
 
-import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
-import '../../theme/editor_colors.dart';
-import 'app_bar_action.dart';
-
 class AppShellStatusIndicator extends StatelessWidget {
-  const AppShellStatusIndicator({super.key, required this.status});
+  const AppShellStatusIndicator({required this.status, super.key});
 
   final AppBarStatus status;
 

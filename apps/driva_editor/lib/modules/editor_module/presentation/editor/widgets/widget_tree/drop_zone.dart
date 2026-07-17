@@ -1,10 +1,9 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/drop_zone_content.dart';
 import 'package:flutter/material.dart';
 
-import '../drag_payload.dart';
-import 'drop_zone_content.dart';
-
 class DropZone extends StatelessWidget {
-  const DropZone({super.key, required this.label, required this.onAccept});
+  const DropZone({required this.label, required this.onAccept, super.key});
 
   final String label;
   final ValueChanged<DragPayload> onAccept;

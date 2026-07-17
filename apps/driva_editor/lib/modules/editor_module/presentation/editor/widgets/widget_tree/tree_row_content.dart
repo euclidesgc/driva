@@ -1,14 +1,12 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../palette_icons.dart';
 
 class TreeRowContent extends StatelessWidget {
   const TreeRowContent({
-    super.key,
     required this.isDragOver,
     required this.isSelected,
     required this.label,
@@ -16,6 +14,7 @@ class TreeRowContent extends StatelessWidget {
     required this.depth,
     required this.onSelect,
     required this.onRemove,
+    super.key,
   });
 
   final bool isDragOver;

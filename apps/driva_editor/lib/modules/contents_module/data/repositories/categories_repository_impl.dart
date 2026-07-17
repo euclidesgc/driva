@@ -1,14 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/data/models/models.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/categories_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/repositories/categories_repository.dart';
-import '../models/models.dart';
-
 class CategoriesRepositoryImpl implements CategoriesRepository {
-  final Dio dio;
   CategoriesRepositoryImpl(this.dio);
+  final Dio dio;
 
   @override
   Future<Either<Failure, List<Category>>> getCategories() async {

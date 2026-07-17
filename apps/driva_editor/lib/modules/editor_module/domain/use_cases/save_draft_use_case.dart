@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/repositories/editor_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import '../../../../core/error/error.dart';
-import '../repositories/editor_repository.dart';
-
 class SaveDraftUseCase {
-  final EditorRepository repository;
   const SaveDraftUseCase({required this.repository});
+  final EditorRepository repository;
 
   Future<Either<Failure, Unit>> call(ContentSpec content) {
     // Trava: nunca persistir spec que o próprio kernel rejeitaria.

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'prop_field.dart';
+import 'package:sdui_core/src/catalog/prop_field.dart';
 
 enum SlotKind { none, single, multi }
 

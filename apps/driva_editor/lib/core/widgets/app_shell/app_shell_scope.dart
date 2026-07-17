@@ -1,7 +1,9 @@
+import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell.dart'
+    show AppShell;
+import 'package:driva_editor/core/widgets/app_shell/crumb.dart';
+import 'package:driva_editor/core/widgets/widgets.dart' show AppShell;
 import 'package:flutter/material.dart';
-
-import 'app_bar_action.dart';
-import 'crumb.dart';
 
 /// Barramento entre as páginas (que publicam crumbs/actions/status) e as faixas
 /// do [AppShell] (que os renderizam). Vive enquanto o shell vive, ou seja
@@ -54,9 +56,9 @@ class AppShellController extends ChangeNotifier {
 
 class AppShellScope extends InheritedNotifier<AppShellController> {
   const AppShellScope({
-    super.key,
     required AppShellController controller,
     required super.child,
+    super.key,
   }) : super(notifier: controller);
 
   /// Acesso sem assinar — para o slot escrever sem se inscrever em rebuilds.

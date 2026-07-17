@@ -1,13 +1,12 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/core/util/slug.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/contents_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../../../../core/util/slug.dart';
-import '../entities/content_summary.dart';
-import '../repositories/contents_repository.dart';
-
 class CreateContentUseCase {
-  final ContentsRepository repository;
   const CreateContentUseCase({required this.repository});
+  final ContentsRepository repository;
 
   Future<Either<Failure, ContentSummary>> call({
     required String name,

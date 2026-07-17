@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SlugUtil.isValid', () {
-    test('aceita o formato canônico ^[a-z][a-z0-9-]*\$', () {
+    test(r'aceita o formato canônico ^[a-z][a-z0-9-]*$', () {
       expect(SlugUtil.isValid('home'), isTrue);
       expect(SlugUtil.isValid('home-2'), isTrue);
       expect(SlugUtil.isValid('a'), isTrue);
@@ -44,7 +44,7 @@ void main() {
 
     test('remove caracteres inválidos (pontuação/símbolos)', () {
       expect(SlugUtil.slugify('Olá, Mundo!'), 'ola-mundo');
-      expect(SlugUtil.slugify('preço: R\$ 9,90'), 'preco-r-9-90');
+      expect(SlugUtil.slugify(r'preço: R$ 9,90'), 'preco-r-9-90');
     });
 
     test('colapsa hífens repetidos e apara as pontas', () {

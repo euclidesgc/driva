@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/device_mock_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/device_mock_colors.dart';
-import '../../device_preset.dart';
-
 class CameraCutout extends StatelessWidget {
-  const CameraCutout({super.key, required this.notch});
+  const CameraCutout({required this.notch, super.key});
 
   final DeviceNotch notch;
 

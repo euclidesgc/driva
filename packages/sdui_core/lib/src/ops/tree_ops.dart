@@ -1,6 +1,4 @@
-library;
-
-import '../model/sdui_node.dart';
+import 'package:sdui_core/src/model/sdui_node.dart';
 
 SduiNode? findNode(SduiNode root, String id) {
   if (root.id == id) return root;

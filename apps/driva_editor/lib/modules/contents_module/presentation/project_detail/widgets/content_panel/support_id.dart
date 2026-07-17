@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-
 class SupportId extends StatelessWidget {
-  const SupportId({super.key, required this.id});
+  const SupportId({required this.id, super.key});
 
   final String id;
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CenterTabLabel extends StatelessWidget {
-  const CenterTabLabel({super.key, required this.icon, required this.label});
+  const CenterTabLabel({required this.icon, required this.label, super.key});
 
   final IconData icon;
   final String label;

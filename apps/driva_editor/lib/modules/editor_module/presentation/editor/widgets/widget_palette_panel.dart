@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette/widget_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
-
-import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../core/theme/editor_colors.dart';
-import 'widget_palette/widget_palette.dart';
 
 /// Paleta de widgets: itens **arrastáveis** para a árvore/canvas, agrupados
 /// por categoria, com busca. Adicionar é só por drag-and-drop (o clique não

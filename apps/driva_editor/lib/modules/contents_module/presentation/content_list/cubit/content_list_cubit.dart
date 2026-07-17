@@ -1,27 +1,14 @@
 import 'package:bloc/bloc.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
+import 'package:driva_editor/modules/contents_module/domain/use_cases/use_cases.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../../core/error/error.dart';
-import '../../../domain/entities/content_sort.dart';
-import '../../../domain/entities/content_summary.dart';
-import '../../../domain/use_cases/use_cases.dart';
 
 part 'content_list_state.dart';
 
 class ContentListCubit extends Cubit<ContentListState> {
-  final GetContentsUseCase getContents;
-  final CreateContentUseCase createContent;
-  final DeleteContentUseCase deleteContent;
-
-  String? _categoryId;
-  String? _query;
-
-  /// Ordenação corrente — sempre do servidor (`GET /v1/contents` `sort`/`order`).
-  /// Default: mais recentes primeiro (`updatedAt` desc), como a home.
-  ContentSort _sort;
-  ContentSortOrder _order;
-
   ContentListCubit({
     required this.getContents,
     required this.createContent,
@@ -35,6 +22,17 @@ class ContentListCubit extends Cubit<ContentListState> {
        _sort = sort,
        _order = order,
        super(const ContentListLoading());
+  final GetContentsUseCase getContents;
+  final CreateContentUseCase createContent;
+  final DeleteContentUseCase deleteContent;
+
+  String? _categoryId;
+  String? _query;
+
+  /// Ordenação corrente — sempre do servidor (`GET /v1/contents` `sort`/`order`).
+  /// Default: mais recentes primeiro (`updatedAt` desc), como a home.
+  ContentSort _sort;
+  ContentSortOrder _order;
 
   ContentSort get currentSort => _sort;
   ContentSortOrder get currentOrder => _order;

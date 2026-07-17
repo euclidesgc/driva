@@ -1,9 +1,8 @@
+import 'package:driva_editor/core/dev/fake_contents_store.dart';
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/categories_repository.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/dev/fake_contents_store.dart';
-import '../../../../core/error/error.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/repositories/categories_repository.dart';
 
 /// Mesma interface, fonte em memória (dev/E2E sem backend). Um fake honra o
 /// contrato de verdade: latência simulada, 409 de `Restrict` (categoria com

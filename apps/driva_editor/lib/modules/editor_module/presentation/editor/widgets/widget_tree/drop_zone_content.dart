@@ -1,16 +1,15 @@
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_radii.dart';
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
 
 class DropZoneContent extends StatelessWidget {
   const DropZoneContent({
-    super.key,
     required this.isDragOver,
     required this.label,
+    super.key,
   });
 
   final bool isDragOver;
@@ -27,7 +26,6 @@ class DropZoneContent extends StatelessWidget {
         color: active ? colors.primaryTint : null,
         border: Border.all(
           color: active ? AppTheme.primary : colors.border,
-          style: BorderStyle.solid,
         ),
         borderRadius: BorderRadius.circular(AppRadii.r8),
       ),

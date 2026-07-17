@@ -1,12 +1,11 @@
+import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
+import 'package:driva_editor/modules/contents_module/domain/repositories/categories_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-import '../../../../core/error/error.dart';
-import '../entities/category.dart';
-import '../repositories/categories_repository.dart';
-
 class CreateCategoryUseCase {
-  final CategoriesRepository repository;
   const CreateCategoryUseCase({required this.repository});
+  final CategoriesRepository repository;
 
   Future<Either<Failure, Category>> call({
     required String name,

@@ -24,7 +24,7 @@ void main() {
     slug: 'home',
     categoryId: 'cat_1',
     description: 'Vitrine',
-    updatedAt: DateTime(2026, 7, 1),
+    updatedAt: DateTime(2026, 7),
   );
 
   final other = ContentSummary(
@@ -32,7 +32,6 @@ void main() {
     name: 'Sobre',
     slug: 'sobre',
     categoryId: 'cat_1',
-    description: null,
     updatedAt: DateTime(2026, 7, 2),
   );
 
@@ -208,7 +207,7 @@ void main() {
       'sucesso: não emite estado nem recarrega — devolve o conteúdo criado',
       build: build,
       setUp: () => when(
-        () => createContent(name: 'Home', slug: 'home', description: null),
+        () => createContent(name: 'Home', slug: 'home'),
       ).thenAnswer((_) async => Right(content)),
       act: (cubit) async {
         final result = await cubit.create(name: 'Home', slug: 'home');
@@ -223,7 +222,7 @@ void main() {
       build: build,
       setUp: () =>
           when(
-            () => createContent(name: 'Home', slug: 'home', description: null),
+            () => createContent(name: 'Home', slug: 'home'),
           ).thenAnswer(
             (_) async => const Left(ConflictFailure(suggestedSlug: 'home-2')),
           ),

@@ -1,4 +1,4 @@
-import 'image_drop_zone_stub.dart'
+import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_drop_zone_stub.dart'
     if (dart.library.js_interop) 'image_drop_zone_web.dart';
 
 /// Fachada pública: seleciona a implementação certa via import condicional

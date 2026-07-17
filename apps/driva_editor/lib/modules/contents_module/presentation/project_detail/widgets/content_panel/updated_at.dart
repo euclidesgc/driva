@@ -1,15 +1,14 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/util/date_format.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../../core/theme/app_spacing.dart';
-import '../../../../../../core/theme/app_typography.dart';
-import '../../../../../../core/theme/editor_colors.dart';
-import '../../../../../../core/util/date_format.dart';
 
 /// Data da última modificação (`updatedAt`) — ícone de relógio + texto, para
 /// que a informação não dependa só da cor. Fonte pequena e discreta; o valor
 /// exato (fuso local) aparece formatado e como rótulo de acessibilidade.
 class UpdatedAt extends StatelessWidget {
-  const UpdatedAt({super.key, required this.updatedAt});
+  const UpdatedAt({required this.updatedAt, super.key});
 
   final DateTime updatedAt;
 

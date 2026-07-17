@@ -1,18 +1,17 @@
 import 'dart:async';
 
+import 'package:driva_editor/core/theme/app_durations.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/empty_preview.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
-import '../../../../../../core/theme/app_durations.dart';
-import '../../cubit/editor_cubit.dart';
-import 'empty_preview.dart';
-import 'selectable_node.dart';
-
 /// Throttla o re-render do documento: o renderer real é caro a cada tecla.
 class PreviewSurface extends StatefulWidget {
-  const PreviewSurface({super.key, required this.onSelect});
+  const PreviewSurface({required this.onSelect, super.key});
 
   final ValueChanged<String?> onSelect;
 
@@ -21,7 +20,7 @@ class PreviewSurface extends StatefulWidget {
 }
 
 class _PreviewSurfaceState extends State<PreviewSurface> {
-  static const _throttle = AppDurations.micro;
+  static const Duration _throttle = AppDurations.micro;
 
   late final EditorCubit _cubit = context.read<EditorCubit>();
   late StreamSubscription<EditorState> _subscription;
@@ -70,7 +69,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    unawaited(_subscription.cancel());
     _cooldown?.cancel();
     super.dispose();
   }
@@ -87,13 +86,15 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
           : SingleChildScrollView(
               child: SduiView.content(
                 document,
-                onAction: (action) => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Ação "${action.type}" é executada só no app cliente.',
+                onAction: (action) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Ação "${action.type}" é executada só no app cliente.',
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
                 nodeWrapper: (node, built) => SelectableNode(
                   node: node,
                   built: built,
