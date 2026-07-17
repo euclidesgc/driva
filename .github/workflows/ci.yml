@@ -70,5 +70,8 @@ jobs:
       - name: Prisma Client
         run: pnpm prisma:generate
 
+      - name: Lint (ESLint)
+        run: pnpm lint
+
       - name: Build (tsc via nest)
         run: pnpm build

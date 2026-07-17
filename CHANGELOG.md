@@ -6,6 +6,10 @@
 
 - **Lint/análise estática**: base migrada de `flutter_lints` para `very_good_analysis` (`^10.1.0`, pin por compatibilidade com o SDK 3.10). Único override `public_member_api_docs: off` (documentar toda a API pública contradiz a regra "zero comentário" do projeto). Código adequado às novas regras **sem `// ignore`**: `discarded_futures` (via `unawaited`/factory em bloco), `avoid_catches_without_on_clauses`, `avoid_equals_and_hash_code_on_mutable_classes` (`@immutable`), `use_setters_to_change_properties`, `sort_pub_dependencies` e `lines_longer_than_80_chars`. `flutter_lints` removido dos pubspecs.
 
+### Corrigido
+
+- **backend · `pnpm lint` deixa de estar quebrado (ESLint configurado)**: o `package.json` declarava `"lint": "eslint …"`, mas o ESLint **não estava instalado** nem havia config — `pnpm lint` só falhava. Adicionado o setup moderno em flat config (`eslint.config.mjs`): `eslint` + `typescript-eslint` (`recommended`) + `@eslint/js` + `globals`, com `sourceType: commonjs` e `dist` ignorado. Roda limpo nos 28 arquivos de `src` (0 erros). O passo **Lint (ESLint)** entrou no job de backend da CI (antes só fazia build), para o script não apodrecer de novo — "CI é a cancela".
+
 ## [0.4.0] — 2026-07-13 · Hierarquia Projeto → Categoria → Conteúdo, API de conteúdos e AppBar global
 
 ### Adicionado
