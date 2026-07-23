@@ -215,10 +215,10 @@ inconsistente do PRD concentra-se aqui).
 
 ## Progresso
 
-- [ ] Fase 1 — Contadores no dialog + recarregar árvore
-- [ ] Fase 2 — Origem arrastável (Draggable)
-- [ ] Fase 3 — Alvo do drop + coordenação do move (sem undo)
-- [ ] Fase 4 — Undo (snackbar "Desfazer", só drag)
+- [x] Fase 1 — Contadores no dialog + recarregar árvore
+- [x] Fase 2 — Origem arrastável (Draggable)
+- [x] Fase 3 — Alvo do drop + coordenação do move (sem undo)
+- [x] Fase 4 — Undo (snackbar "Desfazer", só drag)
 - [ ] Fase 5 — Gate CISO + E2E por rodadas
 - [ ] Fase 6 — Testes automatizados
 - [ ] Fase 7 — Docs vivas + DoD

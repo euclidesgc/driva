@@ -204,10 +204,15 @@ class ProjectDetailPage extends StatelessWidget {
     if (state is! CategoryTreeLoaded) return ' ';
     final selectedId = state.selectedCategoryId;
     if (selectedId == null) return 'Todos os conteúdos';
+    return _categoryLabel(state, selectedId);
+  }
+
+  static String _categoryLabel(CategoryTreeState state, String categoryId) {
+    if (state is! CategoryTreeLoaded) return categoryId;
     for (final category in state.categories) {
-      if (category.id == selectedId) return category.name;
+      if (category.id == categoryId) return category.name;
     }
-    return ' ';
+    return categoryId;
   }
 
   static String _messageFor(Failure failure) => switch (failure) {
@@ -463,6 +468,8 @@ class ProjectDetailPage extends StatelessWidget {
   }) async {
     if (targetCategoryId == content.categoryId) return;
 
+    final originCategoryId = content.categoryId;
+
     final saved = await getIt<UpdateContentUseCase>()(
       content.id,
       categoryId: targetCategoryId,
@@ -475,9 +482,57 @@ class ProjectDetailPage extends StatelessWidget {
       (_) {
         context.read<ContentListCubit>().reflectMovedOut(content.id);
         context.read<CategoryTreeCubit>().applyContentMove(
-          fromCategoryId: content.categoryId,
+          fromCategoryId: originCategoryId,
           toCategoryId: targetCategoryId,
         );
+
+        if (!offerUndo) return;
+
+        final targetLabel = _categoryLabel(
+          context.read<CategoryTreeCubit>().state,
+          targetCategoryId,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Movido para «$targetLabel»'),
+            action: SnackBarAction(
+              label: 'Desfazer',
+              onPressed: () => unawaited(
+                _undoContentMove(
+                  context,
+                  contentId: content.id,
+                  fromCategoryId: targetCategoryId,
+                  toCategoryId: originCategoryId,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Future<void> _undoContentMove(
+    BuildContext context, {
+    required String contentId,
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) async {
+    final result = await getIt<UpdateContentUseCase>()(
+      contentId,
+      categoryId: toCategoryId,
+    );
+    if (!context.mounted) return;
+    result.fold(
+      (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_messageFor(failure)))),
+      (_) {
+        context.read<CategoryTreeCubit>().applyContentMove(
+          fromCategoryId: fromCategoryId,
+          toCategoryId: toCategoryId,
+        );
+        unawaited(context.read<ContentListCubit>().load());
       },
     );
   }
