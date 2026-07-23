@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pid_file="${1:?usage: backend-down.sh <pid-file>}"
+pid_file="${1:?usage: backend-down.sh pid-file}"
 
 if [[ -f "$pid_file" ]]; then
   backend_pid="$(tr -cd '0-9' < "$pid_file")"
