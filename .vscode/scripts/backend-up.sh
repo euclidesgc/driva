@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pid_file="${1:?usage: backend-up.sh <pid-file>}"
+pid_file="${1:?usage: backend-up.sh pid-file}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+backend_dir="$(cd "$script_dir/../../backend" && pwd)"
 
 rm -f "$pid_file"
+
+# shellcheck source=/dev/null
+source "$script_dir/ensure-backend-node.sh"
+
+cd "$backend_dir"
 
 docker compose up -d
 until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do
@@ -12,6 +19,8 @@ done
 
 pnpm prisma:generate
 pnpm prisma db push --skip-generate
+
+rm -f tsconfig.tsbuildinfo
 
 stop_backend() {
   if [[ -n "${backend_pid:-}" ]] && kill -0 "$backend_pid" 2>/dev/null; then
@@ -24,6 +33,7 @@ stop_backend() {
 stop_backend_and_exit() {
   trap - EXIT INT TERM
   stop_backend
+
   exit 0
 }
 

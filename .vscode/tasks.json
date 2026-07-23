@@ -5,25 +5,33 @@
       "label": "db up (postgres local)",
       "type": "shell",
       "command": "docker compose up -d",
-      "options": { "cwd": "${workspaceFolder}/backend" },
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "problemMatcher": []
     },
     {
       "label": "db down (postgres local)",
       "type": "shell",
       "command": "docker compose down",
-      "options": { "cwd": "${workspaceFolder}/backend" },
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "problemMatcher": []
     },
     {
-      "// backend up (bg)": "Sobe Postgres + schema + Nest em watch, numa task de shell (PATH completo, acha o pnpm do nvm). É o preLaunchTask do 'editor ▶ local (dev)': roda em background e o editor só lança quando o Nest sobe (endsPattern). Um F5 levanta tudo.",
+      "// backend up (bg)": "Sobe Postgres + schema + Nest em watch, numa task de shell (PATH completo, acha o pnpm do nvm). \u00c9 o preLaunchTask do 'editor \u25b6 local (dev)': roda em background e o editor s\u00f3 lan\u00e7a quando o Nest sobe (endsPattern). Um F5 levanta tudo.",
       "label": "backend up (bg)",
       "type": "shell",
       "isBackground": true,
       "command": "bash \"${workspaceFolder}/.vscode/scripts/backend-up.sh\" \"${workspaceFolder}/.vscode/backend.pid\"",
-      "options": { "cwd": "${workspaceFolder}/backend" },
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "problemMatcher": {
-        "pattern": { "regexp": "^$" },
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".*",
@@ -35,21 +43,27 @@
       "label": "backend down (bg)",
       "type": "shell",
       "command": "bash \"${workspaceFolder}/.vscode/scripts/backend-down.sh\" \"${workspaceFolder}/.vscode/backend.pid\"",
-      "options": { "cwd": "${workspaceFolder}/backend" },
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "problemMatcher": []
     },
     {
       "label": "prepara backend (db + schema)",
       "type": "shell",
-      "command": "docker compose up -d && until docker exec driva-postgres pg_isready -U driva >/dev/null 2>&1; do sleep 1; done && pnpm prisma:generate && pnpm prisma db push --skip-generate",
-      "options": { "cwd": "${workspaceFolder}/backend" },
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/prepara-backend.sh\"",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "problemMatcher": []
     },
     {
-      "label": "e2e (conteúdos)",
+      "label": "e2e (conte\u00fados)",
       "type": "shell",
       "command": "./docs/02-conteudos/e2e.sh",
-      "options": { "cwd": "${workspaceFolder}" },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     }
   ]
