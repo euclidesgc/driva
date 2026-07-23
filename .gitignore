@@ -13,7 +13,7 @@ build/
 # Backend (Node)
 node_modules/
 backend/dist/
-backend/tsconfig.tsbuildinfo
+backend/*.tsbuildinfo
 backend/.env
 # Adapter local do StorageService (dev) — binários de objetos armazenados,
 # nunca versionados; fora de qualquer webroot servido estaticamente.
