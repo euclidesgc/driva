@@ -10,7 +10,7 @@ const _descriptor = WidgetDescriptor(
   type: 'text',
   label: 'Text',
   iconName: 'text',
-  category: WidgetCategories.content,
+  category: WidgetCategories.basics,
   slot: SlotKind.none,
   fields: [
     PropField(
