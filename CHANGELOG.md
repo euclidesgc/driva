@@ -4,6 +4,10 @@
 
 ### Alterado
 
+- **`.zcode/` removido**: agentes, skills e comandos do time de IA já viviam em `.claude/` — a pasta antiga era cópia morta, carregada por ninguém. Deletados os 8 agentes, as 10 skills, o comando `tech-manager` e um plano de sessão antigo.
+- **`CLAUDE.md` enxugado (15.365 → 13.720 chars)**: saíram os comandos padrão do Flutter (deriváveis do workspace) e a descrição do que o `ci.yml` faz. Três seções passaram a apontar para onde o conteúdo já mora — fluxo do time → skill `tech-manager`, GitFlow → `docs/GITFLOW.md`, deploy → `docs/deploy/coolify.md` —, deixando no arquivo sempre-carregado só o que não é derivável: proibições ("ninguém comita direto em `main`/`develop`", "segredo nunca no repo", "verde é pré-requisito de merge"), etiqueta de nome de branch, regra de ouro do SemVer e o "Roadmap vivo".
+- **Skill `tech-manager`**: absorveu a mecânica das rodadas de E2E (`e2e.sh`, `e2e_shots.sh`, `e2e_drive.mjs` via CDP, `evidencias/rodada_MM/`), que só existia no `CLAUDE.md`.
+
 - **Lint/análise estática**: base migrada de `flutter_lints` para `very_good_analysis` (`^10.1.0`, pin por compatibilidade com o SDK 3.10). Único override `public_member_api_docs: off` (documentar toda a API pública contradiz a regra "zero comentário" do projeto). Código adequado às novas regras **sem `// ignore`**: `discarded_futures` (via `unawaited`/factory em bloco), `avoid_catches_without_on_clauses`, `avoid_equals_and_hash_code_on_mutable_classes` (`@immutable`), `use_setters_to_change_properties`, `sort_pub_dependencies` e `lines_longer_than_80_chars`. `flutter_lints` removido dos pubspecs.
 - **backend · pnpm pinado (`packageManager: pnpm@10.24.0`)**: fixa a versão do pnpm à mesma da CI, para o `node_modules` não voltar a ser linkado por uma major divergente (evita o `ERR_PNPM_UNEXPECTED_STORE` de store v10 vs v11). Com corepack habilitado, o diretório passa a usar essa versão automaticamente.
 
