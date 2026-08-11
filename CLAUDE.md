@@ -50,11 +50,11 @@ Valem em **`apps/driva_editor` e `packages/sdui_flutter`** (ambos são Flutter).
 
 ## Método de trabalho (time de IA — cap. 22–23 do livro)
 
-O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-manager/`, que roda na própria conversa e orquestra os agentes de `.claude/agents/`; não é sub-agente). Fluxo: PM faz discovery e mata ambiguidades → `specs.md` → `prd.md` (humano aprova) → tech-lead escreve `plan.md` vivo (1 fase = 1 PR) → especialistas implementam fase a fase (QA valida + CISO revisa + humano revisa o PR) → gate CISO → E2E **por script, em rodadas** (QA prepara `e2e.sh` — contrato por API — e `e2e_shots.sh` — **prints headless** de todo o visual: estados por URL (`--screenshot`) e de interação no canvas (drag/digitação/salvar) dirigidos por **CDP** (`e2e_drive.mjs`, sem deps); o humano só **confere** os prints; evidências por rodada em `evidencias/rodada_MM/`; problema → time corrige/ajusta o script → próxima rodada) → wrap + `final_report.md` → gate CISO → **só então** testes automatizados → DoD (testes verdes + docs vivas em dia). Desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
+O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-manager/`, que roda na própria conversa e orquestra os agentes de `.claude/agents/`; não é sub-agente) — o fluxo completo mora lá. Regras que valem sempre: 1 fase = 1 PR; **só então** testes automatizados, depois do E2E atestado; desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
 
 **Roadmap vivo (`docs/roadmap.md`).** Fonte única de rastreabilidade do produto — o que foi feito, o que está em andamento, o que falta. Lista **ordenada por dependência** (o que destrava o quê), com status `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída. **É mantido atualizado pela IA** como parte do fechamento de cada trabalho (mesmo checkpoint da faxina de branches): marca o item entregue `[x]`, o item da vez `[-]`. Ao surgir feature nova, a IA tem permissão de **reescrever o texto** do item para dar clareza e **reordená-lo** para o ponto de precedência correto (analisando o código para inferir dependências). Rever/ajustar o roadmap é atividade recorrente, não pontual.
 
-Comandos úteis: `dart pub get` (raiz), `flutter analyze`, `dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`, `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
+Comando não-óbvio: `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
 
 ## Economia de tokens (obrigatório)
 
@@ -70,15 +70,14 @@ Custo de token é regra, não preferência. rtk (reescreve `git`/`grep`/`ls`/…
 
 Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacional:
 
-- **`main`** = produção (cada commit é uma versão com tag `vX.Y.Z`; **protegida**, só recebe `release/*` e `hotfix/*`). **`develop`** = integração (o próximo release; base de todo trabalho). **Ninguém comita direto em `main`/`develop`** — todo trabalho nasce num branch de suporte e volta por PR.
-- Branches de suporte: **`feature/<issue>-<slug>`** (de `develop` → PR para `develop`; **default**), **`bugfix/<issue>-<slug>`** (bug ainda em dev; de `develop` → `develop`), **`hotfix/<issue>-<slug>`** (bug em produção; de **`main`** → PR para `main` **e** merge de volta em `develop`; sobe PATCH), **`release/<vX.Y.Z>`** (estabiliza; de `develop` → `main` **e** `develop`; sobe MINOR, **sem feature nova**).
+- **Ninguém comita direto em `main`/`develop`** — todo trabalho nasce num branch de suporte e volta por PR. `main` = produção (protegida, só recebe `release/*` e `hotfix/*`); `develop` = integração e base de todo trabalho.
+- Nome de branch: **`feature/<issue>-<slug>`** (default), **`bugfix/<issue>-<slug>`**, **`hotfix/<issue>-<slug>`**, **`release/<vX.Y.Z>`**.
 - **Regra de ouro:** `release/*` e `hotfix/*` voltam para **duas** branches (`main` **e** `develop`), com **tag SemVer** no merge em `main`. Merges de volta usam `--no-ff`.
 - **CHANGELOG** (Keep a Changelog): a seção `Unreleased` é atualizada **no mesmo PR** da mudança; o `release/*` a promove para a versão.
 - Por situação, use a skill: `iniciar-feature`, `iniciar-bugfix`, `iniciar-hotfix`, `publicar-release`.
 
 ## CI/CD e deploy (Coolify)
 
-- **CI é a cancela** (`.github/workflows/ci.yml`): em PR/push para `develop`/`main` roda `dart format` + `flutter analyze` + os testes (e `build` do backend). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
-- **Deploy = auto-deploy por branch** no **Coolify** (GitHub App): merge em **`develop` → homologação**, merge em **`main` → produção**. Detalhes e checklist do painel em **`docs/deploy/coolify.md`**.
-- Dois deployáveis por ambiente (frontend Flutter Web servido por nginx + backend Nest) + Postgres gerenciado. Domínios sob `driva.duckdns.org` (DNS próprio do projeto; wildcard): prod = `driva.duckdns.org` (front) / `api.driva.duckdns.org` (API); hml = `hml.driva.duckdns.org` (front) / `api-hml.driva.duckdns.org` (API). O `bmjtech.duckdns.org` é só o host principal/infra compartilhada.
+- **CI é a cancela** (`.github/workflows/ci.yml`). **O PR da IA passa pela mesma régua que o do humano** — verde é pré-requisito de merge (cap. 35 do livro).
+- **Deploy = auto-deploy por branch** no **Coolify** (GitHub App): merge em **`develop` → homologação**, merge em **`main` → produção**. Deployáveis, domínios, checklist do painel e variáveis: **`docs/deploy/coolify.md`**.
 - **Segredo/URL/origem nunca no repo** — só como env/Build Variable no Coolify. A URL da API do front é **compile-time** (ARG `API_BASE_URL` no Dockerfile); o CORS do backend vem de `CORS_ORIGINS`.

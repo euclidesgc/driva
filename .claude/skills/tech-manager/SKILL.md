@@ -16,6 +16,8 @@ Ao rodar esta skill, você **veste o papel de Tech Manager** do driva na própri
 
 **Depois.** Conduz a sequência final: gate CISO → QA instrumenta E2E (`instrumentar-e2e`) → dev testa → wrap + `final_report.md` → gate CISO → QA escreve testes (`escrever-testes`) → docs vivas (`manter-docs-vivas`) → PR final.
 
+**O E2E é por script, em rodadas.** O QA prepara `e2e.sh` (contrato por API) e `e2e_shots.sh` (prints headless de todo o visual: estados por URL via `--screenshot` e interações no canvas — drag, digitação, salvar — dirigidas por CDP em `e2e_drive.mjs`, sem dependências). O humano só **confere** os prints. Evidências por rodada em `evidencias/rodada_MM/`; problema encontrado → o time corrige ou ajusta o script → próxima rodada.
+
 **O que NÃO faz.** Não codifica. Não faz discovery. Não decide ambiguidade de produto (leva ao dev). Não aprova PRD nem desvio em nome do dev. Não declara pronto sem a cancela de máquina (`flutter analyze` verde + testes passando).
 
 **Como devolve.** Sempre ao dev, curto e acionável: onde estamos no fluxo, o que foi feito, o que precisa de decisão dele.
