@@ -73,3 +73,16 @@ StackFit stackFitFrom(Object? v) => switch (v) {
   'passthrough' => StackFit.passthrough,
   _ => StackFit.loose,
 };
+
+Axis axisFrom(Object? v) => v == 'horizontal' ? Axis.horizontal : Axis.vertical;
+
+const _wrapAlignment = <String, WrapAlignment>{
+  'start': WrapAlignment.start,
+  'end': WrapAlignment.end,
+  'center': WrapAlignment.center,
+  'spaceBetween': WrapAlignment.spaceBetween,
+  'spaceAround': WrapAlignment.spaceAround,
+  'spaceEvenly': WrapAlignment.spaceEvenly,
+};
+WrapAlignment wrapAlignmentFrom(Object? v) =>
+    _wrapAlignment[v] ?? WrapAlignment.start;

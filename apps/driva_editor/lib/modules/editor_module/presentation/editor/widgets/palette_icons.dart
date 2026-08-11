@@ -18,6 +18,13 @@ const Map<String, IconData> paletteIcons = {
   'padding': Icons.padding_outlined,
   'center': Icons.filter_center_focus,
   'spacer': Icons.expand,
+  'wrap': Icons.wrap_text,
+  'expanded': Icons.open_in_full,
+  'listView': Icons.list_alt_outlined,
+  'gridView': Icons.grid_view_outlined,
+  'radio': Icons.radio_button_checked,
+  'dropdown': Icons.arrow_drop_down_circle_outlined,
+  'slider': Icons.tune,
 };
 
 IconData paletteIconFor(String type) =>

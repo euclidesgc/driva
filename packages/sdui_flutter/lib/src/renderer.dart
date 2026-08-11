@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+import 'package:sdui_flutter/src/flex_scope.dart';
 import 'package:sdui_flutter/src/registry.dart';
 
 typedef SduiNodeWrapper = Widget Function(SduiNode node, Widget built);
@@ -17,11 +18,22 @@ class SduiRenderer {
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
 
-  Widget? maybeRender(BuildContext context, SduiNode? node) =>
-      node == null ? null : render(context, node);
+  Widget? maybeRender(BuildContext context, SduiNode? node) => node == null
+      ? null
+      : SduiFlexScope(isFlexParent: false, child: render(context, node));
 
   List<Widget> renderAll(BuildContext context, List<SduiNode> nodes) => [
-    for (final n in nodes) render(context, n),
+    for (final n in nodes)
+      SduiFlexScope(isFlexParent: false, child: render(context, n)),
+  ];
+
+  /// Filhos de `Row`/`Column`: só aqui `Expanded` é legal.
+  List<Widget> renderFlexChildren(
+    BuildContext context,
+    List<SduiNode> nodes,
+  ) => [
+    for (final n in nodes)
+      SduiFlexScope(isFlexParent: true, child: render(context, n)),
   ];
 
   void dispatch(Object? actions) {
