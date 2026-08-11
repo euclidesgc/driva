@@ -1,5 +1,6 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/widgets/input/search_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette/widget_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -35,12 +36,8 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
       children: [
         Padding(
           padding: const EdgeInsets.all(AppSpacing.s12),
-          child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Buscar widget…',
-              prefixIcon: Icon(Icons.search, size: 18),
-              isDense: true,
-            ),
+          child: SearchField(
+            hintText: 'Buscar widget…',
             onChanged: (value) =>
                 setState(() => _query = value.trim().toLowerCase()),
           ),
