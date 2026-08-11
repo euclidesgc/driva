@@ -117,6 +117,16 @@ void main() {
       value: const {'all': 12.0},
     ),
     (
+      name: 'binding',
+      field: const PropField(
+        key: 'data',
+        kind: FieldKind.string,
+        label: 'Texto',
+        group: FieldGroups.content,
+      ),
+      value: '{{usuario.primeiroNome}}',
+    ),
+    (
       name: 'alignment',
       field: const PropField(
         key: 'alignment',

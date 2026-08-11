@@ -5,6 +5,7 @@ export 'src/catalog/widget_catalog.dart';
 export 'src/catalog/widget_descriptor.dart';
 export 'src/model/content_spec.dart';
 export 'src/model/sdui_action.dart';
+export 'src/model/sdui_binding.dart';
 export 'src/model/sdui_node.dart';
 export 'src/ops/tree_ops.dart';
 export 'src/schema/content_schema.dart';
