@@ -8,4 +8,5 @@ export 'app_typography.dart';
 export 'cover_gradients.dart';
 export 'device_mock_colors.dart';
 export 'editor_colors.dart';
+export 'prop_icons.dart';
 export 'syntax_colors.dart';

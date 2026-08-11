@@ -1,4 +1,5 @@
-import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/number_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -21,6 +22,8 @@ class NumberEditor extends StatefulWidget {
 }
 
 class _NumberEditorState extends State<NumberEditor> {
+  static const _sliderWidth = 72.0;
+
   late final TextEditingController _controller = TextEditingController(
     text: widget.value?.toString() ?? '',
   );
@@ -49,21 +52,56 @@ class _NumberEditorState extends State<NumberEditor> {
     super.dispose();
   }
 
+  void _onTextChanged(String text) {
+    if (text.trim().isEmpty) {
+      widget.onChanged(null);
+      return;
+    }
+    final parsed = _parse(text);
+    if (parsed != null) widget.onChanged(parsed);
+  }
+
+  void _onSliderChanged(double raw) {
+    final value = widget.isInt ? raw.round() : raw;
+    _controller.text = value.toString();
+    widget.onChanged(value);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    final field = widget.field;
+    final numberField = NumberTextField(
       controller: _controller,
-      style: const TextStyle(fontSize: AppTypography.base),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: const InputDecoration(isDense: true, hintText: '—'),
-      onChanged: (text) {
-        if (text.trim().isEmpty) {
-          widget.onChanged(null);
-          return;
-        }
-        final parsed = _parse(text);
-        if (parsed != null) widget.onChanged(parsed);
-      },
+      onChanged: _onTextChanged,
+    );
+
+    if (!field.hasRange) return numberField;
+
+    final min = field.min!.toDouble();
+    final max = field.max!.toDouble();
+    final current =
+        (_parse(_controller.text) ?? field.defaultValue as num? ?? min)
+            .toDouble()
+            .clamp(min, max);
+    final step = field.step?.toDouble() ?? (widget.isInt ? 1.0 : null);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Slider(
+            value: current,
+            min: min,
+            max: max,
+            divisions: step == null ? null : ((max - min) / step).round(),
+            label: widget.isInt
+                ? current.round().toString()
+                : current.toStringAsFixed(1),
+            onChanged: _onSliderChanged,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.s6),
+        SizedBox(width: _sliderWidth, child: numberField),
+      ],
     );
   }
 }

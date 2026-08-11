@@ -6,6 +6,10 @@
 
 - **`PropOption` no catálogo (`sdui_core`)**: cada valor de enum passa a carregar `label` legível em pt-BR e `iconName` opcional, para o Inspector editar o enum como grupo de ícones (padrão do FlutterFlow) em vez de dropdown cru. `PropField.enumValues` vira getter derivado de `options`, sem quebrar quem só lê.
 - **`PropField` com metadados de edição**: `min`/`max`/`step` (faixa conhecida habilita slider), `helpText`, `isAdvanced` (fica atrás do disclosure "Avançado" da seção) e `isBindable` (aceita `{{binding}}` no lugar de valor fixo). Faixas preenchidas nos campos numéricos do catálogo (`fontSize` 8–96, `borderRadius` 0–64, `elevation` 0–24, `flex` 1–12 etc.).
+- **Inspector · enum como grupo de ícones**: quando todas as `options` do enum resolvem ícone (`PropIcons`), o editor troca o dropdown por um grupo de `ToggleButton` — o jeito do FlutterFlow de editar alinhamento. Tooltip carrega o label pt-BR, para o ícone não ser o único sinal de informação. Enum com options sem ícone continua no dropdown, agora exibindo o label legível em vez do valor cru.
+- **Inspector · slider nos numéricos com faixa**: `PropField.hasRange` habilita `Slider` + campo lado a lado, com `divisions` derivadas de `step` (inteiros passam a 1).
+- **Inspector · padding/margin em dois modos**: barra "Todos os lados" ↔ "Lado a lado" (grava `{all: X}` ou os quatro lados), preservando o valor ao alternar.
+- **Inspector · voltar ao padrão**: cada propriedade opcional com valor ganha um botão que remove a chave do spec, devolvendo o default do catálogo ao renderer.
 
 ### Alterado
 
