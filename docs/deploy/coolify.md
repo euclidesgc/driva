@@ -46,6 +46,7 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - `DATABASE_URL` = a connection string interna do passo 1.
    - `PORT` = `3000`
    - `CORS_ORIGINS` = `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod) — a origem do frontend do mesmo ambiente.
+   - `STORAGE_DRIVER` = `s3` + as envs do bucket do ambiente — veja [Storage S3](#storage-s3--garage-por-ambiente). Sem isso o driver cai em `local`, que grava dentro do container (sem volume) e **perde os arquivos a cada deploy**.
 7. Deploy. O container **registra a baseline e roda `prisma migrate deploy`** automaticamente no start (`resolve --applied 0_baseline` idempotente + `migrate deploy`), então sobe o Nest.
    > O banco de hml/prod foi criado por `db push` (sem histórico de migrations); `migrate deploy` sozinho abortaria com `P3005` ("schema não vazio"). O `CMD` do `backend/Dockerfile` resolve a baseline sozinho antes de migrar — **nenhum passo manual** (ver `variance_report.md` 002). Banco 100% novo/vazio não usa esse caminho.
 8. Teste: `curl https://api-hml.driva.duckdns.org/v1/contents -H 'x-project-id: default'` deve responder `200` com uma lista JSON.
@@ -94,6 +95,44 @@ Notas:
 - Mudança só em `docs/`, `.github/`, `README.md` etc. **não** casa nenhum dos dois → nenhum deploy (correto: não afeta o que roda).
 - Isto é **só o deploy (Coolify)**. O CI (`.github/workflows/ci.yml`) continua rodando os dois jobs em todo PR de propósito — é a cancela de merge, e afiná-lo com `paths:` arriscaria travar o branch protection por *required checks* pendentes.
 
+## Storage S3 — Garage por ambiente
+
+Os uploads vão para o **Garage** (S3-compatível) que roda no próprio servidor, em `https://s3.bmjtech.duckdns.org`. **Cada ambiente tem bucket e credencial próprios** — a chave de hml recebe `403` ao tentar ler ou escrever no bucket de prod, então um vazamento em homologação não alcança produção.
+
+| Ambiente | Bucket | Key do Garage | Quota |
+|---|---|---|---|
+| Homologação | `driva-hml` | `driva-hml` | 2 GiB |
+| Produção | `driva-prod` | `driva-prod` | 5 GiB |
+
+Envs do backend (runtime, todas no Coolify — **nunca no repo**): `STORAGE_DRIVER=s3`, `S3_ENDPOINT=https://s3.bmjtech.duckdns.org`, `S3_BUCKET=<bucket do ambiente>`, `S3_REGION=garage`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`. `S3_KEY_PREFIX` fica vazio — o bucket já é dedicado.
+
+Para criar um par novo (outro ambiente/projeto):
+
+```bash
+docker exec <container-garage> /garage bucket create <nome>
+docker exec <container-garage> /garage key create <nome>
+docker exec <container-garage> /garage bucket allow --read --write <nome> --key <nome>
+docker exec <container-garage> /garage bucket set-quotas <nome> --max-size 5G
+```
+
+## Backups do banco
+
+Os quatro Postgres do servidor têm backup agendado no Coolify: **diário às 04:00 UTC**, retenção de **7 cópias locais** (`/data/coolify/backups`) e **14 no S3**, com upload para o bucket `coolify-backups` do Garage (S3 Storage `garage-backups` no painel).
+
+Limite conhecido: o Garage roda **no mesmo servidor**, então isso protege contra erro de aplicação e drop acidental, **não** contra perda do host. Para valer como backup de verdade quando o ambiente sair do laboratório, aponte o S3 Storage para um bucket externo (R2, Backblaze) — é só trocar endpoint/credencial no mesmo recurso.
+
+## Limites de recurso
+
+O host é um Oracle free tier: **2 vCPU ARM (Neoverse-N1), 11,6 GiB de RAM, 4 GiB de swap**. Todo container de aplicação tem teto, para que um vazamento de memória não derrube os outros:
+
+| Tipo | Memória | CPU |
+|---|---|---|
+| Backend (Nest) | 512M | 1 |
+| Frontend (nginx) | 192M | 0.5 |
+| Postgres | 768M | 1 |
+
+Os containers do próprio Coolify (`coolify`, `coolify-db`, `coolify-proxy`, `coolify-redis`, `coolify-realtime`, `coolify-sentinel`) e o Garage ficam **sem limite** de propósito — limitar o orquestrador é como serrar o galho.
+
 ## Como o fluxo fica no dia a dia
 
 - Merge de um PR em **`develop`** → Coolify rebuilda e publica **hml** automaticamente — **só o(s) recurso(s) cujos Watch Paths casaram** com o diff. Teste em `driva-hml…`.
@@ -105,10 +144,13 @@ Notas:
 - **`lstat .../backend/backend: no such file or directory`** (ou caminho duplicado no build): o **Dockerfile Location** é relativo ao **Base Directory** e os dois foram repetidos. Com Base Directory `/backend`, o Dockerfile Location tem de ser só `/Dockerfile`. (No frontend não ocorre: o Base Directory é `/`.)
 - **Erro de CORS no console do front**: confira `CORS_ORIGINS` no backend do **mesmo ambiente** — deve conter exatamente a origem do frontend (com `https://`, sem barra no fim).
 - **Front carrega mas não fala com a API**: a URL da API é **build-time**; se trocou o domínio da API, rebuilde o frontend (a Build Variable `API_BASE_URL` só entra num novo build).
+- **`s3.bmjtech.duckdns.org` (ou outro *service*) para de responder após mexer no proxy**: o `coolify-proxy` precisa estar conectado à rede Docker de **cada service** — aplicações usam a rede `coolify`, mas cada service tem rede própria. Recriar o proxy na mão (`docker compose up -d --force-recreate` em `/data/coolify/proxy`) o traz de volta só na rede `coolify` e o roteamento do service morre em silêncio (as labels do Traefik continuam certas, o proxy é que não enxerga o container). Suba o proxy pela ação do Coolify, que reconecta as redes: `docker exec coolify php artisan tinker --execute="\App\Actions\Proxy\StartProxy::run(\App\Models\Server::find(0), false);"`.
+- **Editar o compose de um service pela API zera o FQDN**: um `PATCH /api/v1/services/{uuid}` com `docker_compose_raw` responde `domains: []`. Confira o domínio do service no painel depois de qualquer edição do compose.
 
 ## Notas e limites (I1)
 
 - **Migrations versionadas** (a partir da feature Conteúdos): o backend roda `prisma migrate deploy` no start. A baseline (`0_baseline`) precisa ser resolvida uma vez por ambiente (passo 6). Config de hml e prod **conferida via API do Coolify em 2026-07-03** — env/build vars e domínios corretos.
+- **Manutenção de 2026-08-11**: backups agendados criados, storage S3 isolado por ambiente, limites de recurso aplicados, swap de 4 GiB, host atualizado (Docker 29.7.2 / containerd 2.3.3 / Compose v5.4.0), Garage v2.1.0 → v2.3.0, Traefik 3.7.10, Redis 7.4.10. Coolify segue em 4.1.2 (última estável) com auto-update diário ligado.
 - **Branch protection**: `main` tem o ruleset `protect-main` (PR obrigatório, sem force-push). Mantenha ligado.
 - **CORS**: se um ambiente tiver mais de uma origem de frontend, liste-as em `CORS_ORIGINS` separadas por vírgula.
 - **Ordem de subida** importa: Postgres → Backend → Frontend.
