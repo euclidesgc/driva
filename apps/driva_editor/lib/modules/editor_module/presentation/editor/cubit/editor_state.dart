@@ -29,6 +29,8 @@ final class EditorReady extends EditorState {
     this.zoom = 0.9,
     this.saveStatus = SaveStatus.saved,
     this.notice,
+    this.canUndo = false,
+    this.canRedo = false,
   });
 
   /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
@@ -42,6 +44,12 @@ final class EditorReady extends EditorState {
   /// Recado do último arraste que não terminou onde o usuário apontou. Vive
   /// até a próxima mudança no documento.
   final EditorNotice? notice;
+
+  /// Capacidade, não conteúdo: as pilhas do histórico moram no cubit. Guardar
+  /// as listas aqui faria o `props` do Equatable comparar até 50 documentos a
+  /// cada emit.
+  final bool canUndo;
+  final bool canRedo;
 
   /// Nó selecionado (ou `null`). Derivado — nunca guardado à parte, para não
   /// dessincronizar com o documento.
@@ -64,6 +72,8 @@ final class EditorReady extends EditorState {
     double? zoom,
     SaveStatus? saveStatus,
     EditorNotice? Function()? notice,
+    bool? canUndo,
+    bool? canRedo,
   }) {
     return EditorReady(
       document: document ?? this.document,
@@ -74,6 +84,8 @@ final class EditorReady extends EditorState {
       zoom: zoom ?? this.zoom,
       saveStatus: saveStatus ?? this.saveStatus,
       notice: notice != null ? notice() : this.notice,
+      canUndo: canUndo ?? this.canUndo,
+      canRedo: canRedo ?? this.canRedo,
     );
   }
 
@@ -85,5 +97,7 @@ final class EditorReady extends EditorState {
     zoom,
     saveStatus,
     notice,
+    canUndo,
+    canRedo,
   ];
 }
