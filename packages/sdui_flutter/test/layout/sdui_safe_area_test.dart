@@ -29,8 +29,7 @@ Future<void> _pump(WidgetTester tester, ContentSpec spec) async {
   );
 }
 
-Rect _textRect(WidgetTester tester) =>
-    tester.getRect(find.text('Conteúdo'));
+Rect _textRect(WidgetTester tester) => tester.getRect(find.text('Conteúdo'));
 
 void main() {
   testWidgets('sem props, respeita o recuo do dispositivo nos quatro lados', (

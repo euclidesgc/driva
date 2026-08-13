@@ -91,8 +91,7 @@ DropResolution resolveDrop(
 bool _accepts(SduiNode node, String? movingNodeId) {
   return switch (descriptorFor(node.type)?.slot ?? SlotKind.none) {
     SlotKind.multi => true,
-    SlotKind.single =>
-      node.child == null || node.child!.id == movingNodeId,
+    SlotKind.single => node.child == null || node.child!.id == movingNodeId,
     SlotKind.none => false,
   };
 }
