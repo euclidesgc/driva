@@ -10,7 +10,7 @@ Um plano por item **aberto** do [`docs/roadmap.md`](../roadmap.md). Cada pasta g
 
 | Item | Assunto | Plano | Depende de |
 | --- | --- | --- | --- |
-| 23 | Histórico do editor (undo/redo, atalhos, duplicar/colar) | [`23-historico-editor`](23-historico-editor/plan.md) | — |
+| ~~23~~ | ~~Histórico do editor (undo/redo, atalhos, duplicar/colar)~~ — **entregue** em `develop` (#111, #112, #116, #114, #115) | [`23-historico-editor`](23-historico-editor/plan.md) | — |
 | 24 | Publicação e versionamento do conteúdo | [`24-publicacao-versionamento`](24-publicacao-versionamento/plan.md) | — |
 | 25 | Entrega ao app cliente (API pública + runtime + exemplo) | [`25-entrega-app-cliente`](25-entrega-app-cliente/plan.md) | 24 |
 | 26 | Autenticação e multi-tenant real | [`26-auth-multi-tenant`](26-auth-multi-tenant/plan.md) | 25 (convive) |
