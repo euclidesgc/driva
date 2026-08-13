@@ -88,7 +88,7 @@ _Sem dependências entre si; vieram primeiro porque tornam todo o resto viável 
 
 _0-dep. Barato perto do ganho: é o que separa "dá para brincar" de "dá para trabalhar o dia inteiro"._
 
-- `[ ]` **23. Histórico do editor — desfazer/refazer, atalhos e duplicar/copiar/colar.** _(surgiu do uso; 0-dep)_ Hoje o editor não tem `Ctrl+Z`: um arraste errado ou um `Delete` sem querer é irreversível (só existe o undo do "mover conteúdo" na tela do projeto, via snackbar). Entra uma pilha de histórico no `EditorCubit` (snapshots imutáveis do `ContentSpec`, que já é `Equatable`), os `Intent`s correspondentes no `Shortcuts`/`Actions` que **já existem** no `EditorWorkspace`, e as operações de teclado que faltam (duplicar, copiar, colar, mover seleção). → **[plano](plans/23-historico-editor/plan.md)**
+- `[-]` **23. Histórico do editor — desfazer/refazer, atalhos e duplicar/copiar/colar.** _(surgiu do uso; 0-dep)_ **Em revisão:** as quatro fases do plano estão implementadas e empilhadas em PR — #111 (F3a, `cloneWithNewIds`), #112 (F1, kernel do histórico), #113 (F2, atalhos e botões), #114 (F3, duplicar/copiar/colar) e #115 (F4, bateria). Falta o E2E manual e o merge em `develop`. Hoje o editor não tem `Ctrl+Z`: um arraste errado ou um `Delete` sem querer é irreversível (só existe o undo do "mover conteúdo" na tela do projeto, via snackbar). Entra uma pilha de histórico no `EditorCubit` (snapshots imutáveis do `ContentSpec`, que já é `Equatable`), os `Intent`s correspondentes no `Shortcuts`/`Actions` que **já existem** no `EditorWorkspace`, e as operações de teclado que faltam (duplicar, copiar, colar, mover seleção). → **[plano](plans/23-historico-editor/plan.md)**
 
 ## Marco 5 — Ciclo de vida do conteúdo (o gargalo do produto)
 
