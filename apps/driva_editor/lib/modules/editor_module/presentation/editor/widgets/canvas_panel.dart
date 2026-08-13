@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
 /// renderizando o documento com o renderer REAL (`SduiView`) — preview fiel
-/// por construção. O `nodeWrapper` injeta seleção por clique e contorno.
+/// por construção. O `nodeWrapper` injeta seleção por clique, contorno e o
+/// arraste que reorganiza a árvore direto no mock.
 ///
 /// Recebe só `device`/`zoom`; o preview do documento é assinado e **throttled**
 /// dentro de [PreviewSurface], para digitação rápida não re-executar o
@@ -18,7 +19,8 @@ class CanvasPanel extends StatelessWidget {
     required this.onSelect,
     required this.onChangeDevice,
     required this.onChangeZoom,
-    required this.onAddToRoot,
+    required this.onDropOnDevice,
+    required this.onDropOnNode,
     super.key,
   });
 
@@ -27,7 +29,11 @@ class CanvasPanel extends StatelessWidget {
   final ValueChanged<String?> onSelect;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
-  final ValueChanged<String> onAddToRoot;
+
+  /// Soltar fora de qualquer nó mira o conteúdo inteiro (raiz).
+  final ValueChanged<DragPayload> onDropOnDevice;
+
+  final void Function(DragPayload payload, String targetId) onDropOnNode;
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +47,7 @@ class CanvasPanel extends StatelessWidget {
         ),
         Expanded(
           child: DragTarget<DragPayload>(
-            onAcceptWithDetails: (details) {
-              if (details.data case PaletteDragPayload(:final type)) {
-                onAddToRoot(type);
-              }
-            },
+            onAcceptWithDetails: (details) => onDropOnDevice(details.data),
             builder: (context, candidates, _) => InteractiveViewer(
               constrained: false,
               boundaryMargin: const EdgeInsets.all(AppSpacing.s64),
@@ -60,7 +62,10 @@ class CanvasPanel extends StatelessWidget {
                     child: DeviceFrame(
                       device: device,
                       highlighted: candidates.isNotEmpty,
-                      child: PreviewSurface(onSelect: onSelect),
+                      child: PreviewSurface(
+                        onSelect: onSelect,
+                        onDropOn: onDropOnNode,
+                      ),
                     ),
                   ),
                 ),

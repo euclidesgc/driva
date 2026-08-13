@@ -18,6 +18,9 @@ backend/.env
 # Adapter local do StorageService (dev) — binários de objetos armazenados,
 # nunca versionados; fora de qualquer webroot servido estaticamente.
 backend/.storage/
+# Cache do pnpm que sobra do build em container (nasce root:root e trava
+# `git stash -u` se o git tentar enxergá-lo).
+backend/.pnpm-store/
 
 # Artefatos transitórios do E2E (o e2e.sh cria; `down` remove). São sobrescritos a
 # cada run — não são evidência (as evidências são os PNGs + o snapshot do e2e.sh).

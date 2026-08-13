@@ -25,17 +25,14 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: InspectorPropList(
-            node: const SduiNode(
-              id: 'n1',
-              type: 'column',
-              properties: {
-                'mainAxisAlignment': 'spaceBetween',
-                'crossAxisAlignment': 'stretch',
-                'spacing': 12.0,
-              },
-            ),
+            ownerKey: 'n1',
+            properties: const {
+              'mainAxisAlignment': 'spaceBetween',
+              'crossAxisAlignment': 'stretch',
+              'spacing': 12.0,
+            },
             descriptor: descriptorFor('column')!,
-            onUpdateProps: (_, _) {},
+            onUpdateProps: (_) {},
           ),
         ),
       ),
@@ -61,17 +58,14 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: InspectorPropList(
-            node: const SduiNode(
-              id: 'n1',
-              type: 'text',
-              properties: {
-                'data': 'Semana do cliente',
-                'fontSize': 18.0,
-                'fontWeight': 'w700',
-              },
-            ),
+            ownerKey: 'n1',
+            properties: const {
+              'data': 'Semana do cliente',
+              'fontSize': 18.0,
+              'fontWeight': 'w700',
+            },
             descriptor: descriptorFor('text')!,
-            onUpdateProps: (_, _) {},
+            onUpdateProps: (_) {},
           ),
         ),
       ),

@@ -116,6 +116,54 @@ void main() {
       expect(parseContentSpec(json).getRight().toNullable(), equals(content));
     });
 
+    test('safeArea ausente vira mapa vazio (tudo no padrão)', () {
+      final content = parseContentSpec({
+        'specVersion': kSpecVersion,
+        'kind': 'content',
+        'id': 'ct',
+        'name': 'N',
+        'slug': 'n',
+      }).getRight().toNullable();
+
+      expect(content!.safeArea, isEmpty);
+      expect(content.toJson().containsKey('safeArea'), isFalse);
+    });
+
+    test('safeArea é preservada no parse e no roundtrip', () {
+      const json = {
+        'specVersion': kSpecVersion,
+        'kind': 'content',
+        'id': 'ct',
+        'name': 'N',
+        'slug': 'n',
+        'safeArea': {
+          'enabled': true,
+          'bottom': false,
+          'minimum': {'all': 8},
+        },
+      };
+      final content = parseContentSpec(json).getRight().toNullable();
+
+      expect(content!.safeArea['bottom'], isFalse);
+      expect(content.toJson()['safeArea'], json['safeArea']);
+      expect(
+        parseContentSpec(content.toJson()).getRight().toNullable(),
+        content,
+      );
+    });
+
+    test('safeArea que não é objeto é recusada', () {
+      final result = parseContentSpec({
+        'specVersion': kSpecVersion,
+        'kind': 'content',
+        'id': 'ct',
+        'name': 'N',
+        'slug': 'n',
+        'safeArea': 'sim',
+      });
+      expect(result.isLeft(), isTrue);
+    });
+
     test('rejeita nó com tipo fora do catálogo', () {
       final json = _loadFixture('content_valid.json');
       json['root'] = {

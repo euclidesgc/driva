@@ -33,6 +33,11 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
     );
   }
 
+  final rawSafeArea = json['safeArea'];
+  if (rawSafeArea != null && rawSafeArea is! Map) {
+    return const Left(SpecValidationError('safeArea: esperado um objeto'));
+  }
+
   ContentSpec build(SduiNode? root) => ContentSpec(
     specVersion: specVersion,
     id: data['id'] as String,
@@ -40,6 +45,7 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
     slug: data['slug'] as String,
     description: data['description'] as String?,
     root: root,
+    safeArea: (rawSafeArea as Map?)?.cast<String, dynamic>() ?? const {},
   );
 
   final rawRoot = json['root'];

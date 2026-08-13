@@ -12,6 +12,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     required this.border,
     required this.primaryTint,
     required this.success,
+    required this.warning,
+    required this.danger,
   });
 
   final Color canvasBackdrop;
@@ -32,6 +34,10 @@ class EditorColors extends ThemeExtension<EditorColors> {
 
   final Color success;
 
+  final Color warning;
+
+  final Color danger;
+
   static const EditorColors light = EditorColors(
     canvasBackdrop: Color(0xFFEEF0F2),
     panel: Color(0xFFFFFFFF),
@@ -42,6 +48,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     border: Color(0xFFE4E7EC),
     primaryTint: Color(0xFFFFF0EB),
     success: Color(0xFF16A34A),
+    warning: Color(0xFFB45309),
+    danger: Color(0xFFDC2626),
   );
 
   static const EditorColors dark = EditorColors(
@@ -54,6 +62,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     border: Color(0xFF2C333D),
     primaryTint: Color(0xFF33231B),
     success: Color(0xFF3FBE6B),
+    warning: Color(0xFFF0A93B),
+    danger: Color(0xFFF2726B),
   );
 
   @override
@@ -67,6 +77,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     Color? border,
     Color? primaryTint,
     Color? success,
+    Color? warning,
+    Color? danger,
   }) {
     return EditorColors(
       canvasBackdrop: canvasBackdrop ?? this.canvasBackdrop,
@@ -78,6 +90,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
       border: border ?? this.border,
       primaryTint: primaryTint ?? this.primaryTint,
       success: success ?? this.success,
+      warning: warning ?? this.warning,
+      danger: danger ?? this.danger,
     );
   }
 
@@ -94,6 +108,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
       border: Color.lerp(border, other.border, t)!,
       primaryTint: Color.lerp(primaryTint, other.primaryTint, t)!,
       success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      danger: Color.lerp(danger, other.danger, t)!,
     );
   }
 }

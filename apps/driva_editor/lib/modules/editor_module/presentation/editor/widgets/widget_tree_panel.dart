@@ -10,20 +10,29 @@ class WidgetTreePanel extends StatelessWidget {
     required this.selectedNodeId,
     required this.onSelect,
     required this.onRemove,
-    required this.onAddInto,
-    required this.onMoveInto,
+    required this.onDropNew,
+    required this.onDropMove,
+    required this.onDropNewAt,
+    required this.onDropMoveAt,
     super.key,
   });
 
   final SduiNode? root;
+
+  /// `null` = a página (área segura) está no Inspector.
   final String? selectedNodeId;
-  final ValueChanged<String> onSelect;
+  final ValueChanged<String?> onSelect;
   final ValueChanged<String> onRemove;
 
-  /// Com `parentId` null (conteúdo vazio), o nó vira a raiz.
-  final void Function(String type, String? parentId, int index) onAddInto;
+  /// Com `targetId` null (conteúdo vazio), o nó vira a raiz.
+  final void Function(String type, String? targetId) onDropNew;
 
-  final void Function(String nodeId, String parentId, int index) onMoveInto;
+  final void Function(String nodeId, String targetId) onDropMove;
+
+  /// Frestas entre linhas: posição exata dentro da lista de filhos do pai.
+  final void Function(String type, String parentId, int index) onDropNewAt;
+
+  final void Function(String nodeId, String parentId, int index) onDropMoveAt;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +43,10 @@ class WidgetTreePanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        PageTreeRow(
+          isSelected: selectedNodeId == null,
+          onSelect: () => onSelect(null),
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
@@ -45,15 +58,10 @@ class WidgetTreePanel extends StatelessWidget {
               ? 'Solte um widget aqui para começar'
               : 'Soltar aqui adiciona ao fim do conteúdo',
           onAccept: (payload) => switch (payload) {
-            PaletteDragPayload(:final type) => onAddInto(
-              type,
-              root?.id,
-              root?.children.length ?? 0,
-            ),
-            NodeDragPayload(:final nodeId) when root != null => onMoveInto(
+            PaletteDragPayload(:final type) => onDropNew(type, root?.id),
+            NodeDragPayload(:final nodeId) when root != null => onDropMove(
               nodeId,
               root.id,
-              root.children.length,
             ),
             NodeDragPayload() => null,
           },
@@ -76,40 +84,34 @@ class WidgetTreePanel extends StatelessWidget {
         isSelected: node.id == selectedNodeId,
         onSelect: () => onSelect(node.id),
         onRemove: () => onRemove(node.id),
-        onAccept: (payload) => _dropOn(root, node, payload),
+        onAccept: (payload) => switch (payload) {
+          PaletteDragPayload(:final type) => onDropNew(type, node.id),
+          NodeDragPayload(:final nodeId) => onDropMove(nodeId, node.id),
+        },
       ),
     );
     if (node.child != null) {
       _buildRows(rows, root, node.child!, depth: depth + 1);
     }
-    for (final child in node.children) {
-      _buildRows(rows, root, child, depth: depth + 1);
-    }
-  }
 
-  void _dropOn(SduiNode root, SduiNode target, DragPayload payload) {
-    final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
-    final acceptsChildren =
-        slot == SlotKind.multi ||
-        (slot == SlotKind.single && target.child == null);
-
-    final String parentId;
-    final int index;
-    if (acceptsChildren) {
-      parentId = target.id;
-      index = target.children.length;
-    } else {
-      final parent = findParent(root, target.id) ?? root;
-      final position = parent.children.indexWhere((c) => c.id == target.id);
-      parentId = parent.id;
-      index = position >= 0 ? position + 1 : parent.children.length;
-    }
-
-    switch (payload) {
-      case PaletteDragPayload(:final type):
-        onAddInto(type, parentId, index);
-      case NodeDragPayload(:final nodeId):
-        onMoveInto(nodeId, parentId, index);
+    final acceptsList =
+        (descriptorFor(node.type)?.slot ?? SlotKind.none) == SlotKind.multi;
+    for (var index = 0; index <= node.children.length; index++) {
+      if (acceptsList) {
+        rows.add(
+          TreeGapDropZone(
+            key: ValueKey('gap_${node.id}_$index'),
+            depth: depth + 1,
+            parentId: node.id,
+            index: index,
+            onDropNew: onDropNewAt,
+            onDropMove: onDropMoveAt,
+          ),
+        );
+      }
+      if (index < node.children.length) {
+        _buildRows(rows, root, node.children[index], depth: depth + 1);
+      }
     }
   }
 }

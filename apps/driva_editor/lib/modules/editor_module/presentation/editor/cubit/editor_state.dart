@@ -28,6 +28,7 @@ final class EditorReady extends EditorState {
     this.device = DevicePreset.smartphone,
     this.zoom = 0.9,
     this.saveStatus = SaveStatus.saved,
+    this.notice,
   });
 
   /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
@@ -38,6 +39,10 @@ final class EditorReady extends EditorState {
   final double zoom;
   final SaveStatus saveStatus;
 
+  /// Recado do último arraste que não terminou onde o usuário apontou. Vive
+  /// até a próxima mudança no documento.
+  final EditorNotice? notice;
+
   /// Nó selecionado (ou `null`). Derivado — nunca guardado à parte, para não
   /// dessincronizar com o documento.
   SduiNode? get selectedNode {
@@ -46,7 +51,11 @@ final class EditorReady extends EditorState {
     return sdui.findNode(root, selectedNodeId!);
   }
 
-  /// [selectedNodeId] usa função-getter para permitir "setar null"
+  /// Problemas estruturais do documento, recalculados a partir dele — mover um
+  /// widget para um lugar que o renderer ignora é permitido, e aparece aqui.
+  List<SpecDiagnostic> get diagnostics => sdui.diagnoseTree(document.root);
+
+  /// [selectedNodeId] e [notice] usam função-getter para permitir "setar null"
   /// (armadilha do copyWith com campo nullable, cap. 12 do livro).
   EditorReady copyWith({
     ContentSpec? document,
@@ -54,6 +63,7 @@ final class EditorReady extends EditorState {
     DevicePreset? device,
     double? zoom,
     SaveStatus? saveStatus,
+    EditorNotice? Function()? notice,
   }) {
     return EditorReady(
       document: document ?? this.document,
@@ -63,6 +73,7 @@ final class EditorReady extends EditorState {
       device: device ?? this.device,
       zoom: zoom ?? this.zoom,
       saveStatus: saveStatus ?? this.saveStatus,
+      notice: notice != null ? notice() : this.notice,
     );
   }
 
@@ -73,5 +84,6 @@ final class EditorReady extends EditorState {
     device,
     zoom,
     saveStatus,
+    notice,
   ];
 }

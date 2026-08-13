@@ -12,15 +12,20 @@ import 'package:sdui_core/sdui_core.dart';
 /// Inspector nem o canvas.
 class InspectorPropList extends StatefulWidget {
   const InspectorPropList({
-    required this.node,
+    required this.ownerKey,
+    required this.properties,
     required this.descriptor,
     required this.onUpdateProps,
     super.key,
   });
 
-  final SduiNode node;
+  /// Identidade de quem é dono das props (id do nó, ou `page`): entra nas
+  /// `ValueKey` dos editores para trocar de dono não reaproveitar o campo.
+  final String ownerKey;
+
+  final Map<String, dynamic> properties;
   final WidgetDescriptor descriptor;
-  final void Function(String nodeId, Map<String, dynamic> patch) onUpdateProps;
+  final ValueChanged<Map<String, dynamic>> onUpdateProps;
 
   @override
   State<InspectorPropList> createState() => _InspectorPropListState();
@@ -93,20 +98,18 @@ class _InspectorPropListState extends State<InspectorPropList> {
                         label: group,
                         summary: PropGroupSummary.of(
                           _fieldsOf(group),
-                          widget.node.properties,
+                          widget.properties,
                         ),
                         children: [
                           for (final field in _fieldsOf(group))
                             PropFieldEditor(
                               key: ValueKey(
-                                '${widget.node.id}_${field.key}',
+                                '${widget.ownerKey}_${field.key}',
                               ),
                               field: field,
-                              value: widget.node.properties[field.key],
-                              onChanged: (value) => widget.onUpdateProps(
-                                widget.node.id,
-                                {field.key: value},
-                              ),
+                              value: widget.properties[field.key],
+                              onChanged: (value) =>
+                                  widget.onUpdateProps({field.key: value}),
                             ),
                         ],
                       ),

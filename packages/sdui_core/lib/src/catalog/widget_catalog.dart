@@ -1097,14 +1097,19 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
 
 WidgetDescriptor? descriptorFor(String type) => widgetCatalog[type];
 
+Map<String, dynamic> defaultProperties(WidgetDescriptor descriptor) => {
+  for (final field in descriptor.fields)
+    if (field.defaultValue != null) field.key: field.defaultValue,
+};
+
 SduiNode defaultNode(String type, {required String id}) {
   final descriptor = widgetCatalog[type];
   if (descriptor == null) {
     throw ArgumentError.value(type, 'type', 'tipo fora do catálogo');
   }
-  final defaults = <String, dynamic>{
-    for (final field in descriptor.fields)
-      if (field.defaultValue != null) field.key: field.defaultValue,
-  };
-  return SduiNode(id: id, type: type, properties: defaults);
+  return SduiNode(
+    id: id,
+    type: type,
+    properties: defaultProperties(descriptor),
+  );
 }

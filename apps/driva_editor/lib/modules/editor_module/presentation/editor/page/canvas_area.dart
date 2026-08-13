@@ -1,6 +1,7 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,14 +25,26 @@ class CanvasArea extends StatelessWidget {
         onSelect: cubit.selectNode,
         onChangeDevice: cubit.changeDevice,
         onChangeZoom: cubit.changeZoom,
-        onAddToRoot: (type) {
+        onDropOnDevice: (payload) {
           final state = cubit.state;
           if (state is! EditorReady) return;
-          final root = state.document.root;
-          // Conteúdo vazio: o nó vira a raiz (parentId null resolve isso).
-          cubit.addNode(type, parentId: root?.id);
+          // Conteúdo vazio: o nó vira a raiz (alvo null resolve isso).
+          _dispatch(cubit, payload, state.document.root?.id);
         },
+        onDropOnNode: (payload, targetId) =>
+            _dispatch(cubit, payload, targetId),
       ),
     );
+  }
+
+  void _dispatch(EditorCubit cubit, DragPayload payload, String? targetId) {
+    switch (payload) {
+      case PaletteDragPayload(:final type):
+        cubit.addNode(type, targetId: targetId);
+      case NodeDragPayload(:final nodeId) when targetId != null:
+        cubit.moveNode(nodeId, targetId);
+      case NodeDragPayload():
+        break;
+    }
   }
 }

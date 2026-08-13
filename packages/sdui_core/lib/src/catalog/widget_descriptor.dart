@@ -26,6 +26,15 @@ class WidgetDescriptor extends Equatable {
 
   final List<PropField> fields;
 
+  PropField? fieldOf(String key) {
+    for (final field in fields) {
+      if (field.key == key) return field;
+    }
+    return null;
+  }
+
+  Object? defaultValueOf(String key) => fieldOf(key)?.defaultValue;
+
   @override
   List<Object?> get props => [type, label, iconName, category, slot, fields];
 }

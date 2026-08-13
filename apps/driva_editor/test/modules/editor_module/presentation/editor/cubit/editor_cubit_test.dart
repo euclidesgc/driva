@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice_kind.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -127,9 +128,9 @@ void main() {
     );
 
     blocTest<EditorCubit, EditorState>(
-      'moveNode reordena dentro da raiz',
+      'moveNodeAt reordena dentro da raiz (fresta da árvore)',
       build: buildLoaded,
-      act: (cubit) => cubit.moveNode('nd_text', 'nd_root', 0),
+      act: (cubit) => cubit.moveNodeAt('nd_text', 'nd_root', 0),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
         expect(state.document.root!.children.map((n) => n.id), [
@@ -140,10 +141,30 @@ void main() {
     );
 
     blocTest<EditorCubit, EditorState>(
-      'moveNode inválido (para a própria subárvore) não muda nada',
+      'moveNode da raiz para dentro dela mesma só avisa, não muda o documento',
       build: buildLoaded,
-      act: (cubit) => cubit.moveNode('nd_root', 'nd_banner', 0),
-      expect: () => <EditorState>[],
+      act: (cubit) => cubit.moveNode('nd_root', 'nd_banner'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.rootNotMovable);
+        expect(state.saveStatus, SaveStatus.saved);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNode em alvo folha sobe para o ancestral e avisa o desvio',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNode('nd_banner', 'nd_text'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children.map((n) => n.id), [
+          'nd_text',
+          'nd_banner',
+        ]);
+        expect(state.notice?.kind, EditorNoticeKind.dropRedirected);
+        expect(state.notice?.subjectType, 'text');
+      },
     );
 
     blocTest<EditorCubit, EditorState>(
@@ -194,6 +215,122 @@ void main() {
     );
   });
 
+  group('encaixe por índice (frestas da árvore)', () {
+    blocTest<EditorCubit, EditorState>(
+      'addNodeAt insere na posição pedida e seleciona o novo nó',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNodeAt('divider', 'nd_root', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children.map((n) => n.type), [
+          'divider',
+          'container',
+          'text',
+        ]);
+        expect(state.selectedNodeId, state.document.root!.children.first.id);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNodeAt em pai que não aceita lista só avisa',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNodeAt('divider', 'nd_text', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNodeAt leva o nó para o começo da lista',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNodeAt('nd_text', 'nd_root', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children.map((n) => n.id), [
+          'nd_text',
+          'nd_banner',
+        ]);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNodeAt para dentro da própria subárvore só avisa',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNodeAt('nd_banner', 'nd_banner', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.dropCycle);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'moveNodeAt da raiz só avisa',
+      build: buildLoaded,
+      act: (cubit) => cubit.moveNodeAt('nd_root', 'nd_root', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.rootNotMovable);
+      },
+    );
+  });
+
+  group('área segura da página', () {
+    blocTest<EditorCubit, EditorState>(
+      'updateSafeAreaProps faz merge e marca não salvo',
+      build: buildLoaded,
+      act: (cubit) => cubit.updateSafeAreaProps({'enabled': false}),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.safeArea, {'enabled': false});
+        expect(state.saveStatus, SaveStatus.dirty);
+        expect(state.document.root, content.root);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'valor null volta a prop ao padrão (remove a chave)',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..updateSafeAreaProps({'top': false})
+          ..updateSafeAreaProps({'top': null});
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.safeArea, isEmpty);
+      },
+    );
+  });
+
+  group('diagnósticos derivados do documento', () {
+    blocTest<EditorCubit, EditorState>(
+      'spacer solto fora de um flex aparece como erro',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNode('spacer', targetId: 'nd_banner'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.diagnostics, hasLength(1));
+        expect(
+          state.diagnostics.single.code,
+          DiagnosticCode.flexOnlyOutsideFlex,
+        );
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'documento saudável não tem diagnóstico',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNode('text'),
+      verify: (cubit) {
+        expect((cubit.state as EditorReady).diagnostics, isEmpty);
+      },
+    );
+  });
+
   group('conteúdo vazio (root null)', () {
     const emptyContent = ContentSpec(
       specVersion: kSpecVersion,
@@ -236,7 +373,7 @@ void main() {
       build: buildEmpty,
       act: (cubit) {
         cubit
-          ..moveNode('x', 'y', 0)
+          ..moveNode('x', 'y')
           ..removeNode('x')
           ..updateProps('x', {'a': 1});
       },
@@ -271,17 +408,25 @@ void main() {
     }
 
     blocTest<EditorCubit, EditorState>(
-      'addNode em raiz folha não cria children inválido',
+      'addNode em raiz folha não cria children inválido, só avisa',
       build: () => buildWith(leafRootContent),
-      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_text'),
-      expect: () => <EditorState>[],
+      act: (cubit) => cubit.addNode('button', targetId: 'nd_root_text'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, leafRootContent);
+        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+      },
     );
 
     blocTest<EditorCubit, EditorState>(
-      'addNode em raiz single já ocupada não cria sibling inválido',
+      'addNode em raiz single já ocupada não cria sibling inválido, só avisa',
       build: () => buildWith(occupiedSingleRootContent),
-      act: (cubit) => cubit.addNode('button', parentId: 'nd_root_container'),
-      expect: () => <EditorState>[],
+      act: (cubit) => cubit.addNode('button', targetId: 'nd_root_container'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, occupiedSingleRootContent);
+        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+      },
     );
   });
 
