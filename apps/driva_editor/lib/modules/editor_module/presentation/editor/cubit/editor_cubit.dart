@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_history_entry.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice_kind.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
@@ -35,16 +36,27 @@ class EditorCubit extends Cubit<EditorState> {
   int _idSequence = 0;
   int _noticeSequence = 0;
 
+  final List<EditorHistoryEntry> _past = [];
+  final List<EditorHistoryEntry> _future = [];
+
+  /// Referência ao documento que o servidor tem, para desfazer até ele devolver
+  /// o status "salvo" em vez de deixar a top bar mentindo.
+  ContentSpec? _lastSavedDocument;
+
+  static const int _maxHistory = 50;
+
   Future<void> loadContent(String id) async {
     emit(const EditorLoading());
     final result = await loadContentUseCase(id);
     if (isClosed) return;
-    emit(
-      result.fold(
-        (failure) => EditorLoadFailure(failure: failure),
-        (content) => EditorReady(document: content),
-      ),
+    _past.clear();
+    _future.clear();
+    final next = result.fold<EditorState>(
+      (failure) => EditorLoadFailure(failure: failure),
+      (content) => EditorReady(document: content),
     );
+    if (next is EditorReady) _lastSavedDocument = next.document;
+    emit(next);
   }
 
   /// Gera um id único dentro do documento atual. Com [root] null (conteúdo
@@ -72,7 +84,7 @@ class EditorCubit extends Cubit<EditorState> {
 
     if (root == null) {
       final rootNode = defaultNode(type, id: _nextNodeId(null));
-      _emitDocument(current, rootNode, selectedNodeId: rootNode.id);
+      _emitRoot(current, rootNode, selectedNodeId: rootNode.id);
       return;
     }
 
@@ -86,7 +98,7 @@ class EditorCubit extends Cubit<EditorState> {
         final node = defaultNode(type, id: _nextNodeId(root));
         final newRoot = sdui.attachNode(root, parentId, index, node);
         if (newRoot == null) return;
-        _emitDocument(
+        _emitRoot(
           current,
           newRoot,
           selectedNodeId: node.id,
@@ -120,7 +132,7 @@ class EditorCubit extends Cubit<EditorState> {
       case DropAccepted(:final parentId, :final index, :final redirected):
         final newRoot = sdui.moveNode(root, nodeId, parentId, index);
         if (newRoot == root) return;
-        _emitDocument(
+        _emitRoot(
           current,
           newRoot,
           notice: redirected
@@ -144,7 +156,7 @@ class EditorCubit extends Cubit<EditorState> {
       _emitNotice(current, EditorNoticeKind.dropNoSlot);
       return;
     }
-    _emitDocument(current, newRoot, selectedNodeId: node.id);
+    _emitRoot(current, newRoot, selectedNodeId: node.id);
   }
 
   void moveNodeAt(String nodeId, String parentId, int index) {
@@ -168,7 +180,7 @@ class EditorCubit extends Cubit<EditorState> {
 
     final newRoot = sdui.moveNode(root, nodeId, parentId, index);
     if (newRoot == root) return;
-    _emitDocument(current, newRoot);
+    _emitRoot(current, newRoot);
   }
 
   void removeNode(String id) {
@@ -178,14 +190,14 @@ class EditorCubit extends Cubit<EditorState> {
     if (root == null) return;
     // Excluir a raiz esvazia o conteúdo (volta ao estado-vazio): não é fixa.
     if (id == root.id) {
-      _emitDocument(current, null, selectedNodeId: null);
+      _emitRoot(current, null, selectedNodeId: null);
       return;
     }
     final newRoot = sdui.removeNode(root, id);
     final selection = current.selectedNodeId == id
         ? null
         : current.selectedNodeId;
-    _emitDocument(current, newRoot, selectedNodeId: selection);
+    _emitRoot(current, newRoot, selectedNodeId: selection);
   }
 
   void removeSelected() {
@@ -201,7 +213,11 @@ class EditorCubit extends Cubit<EditorState> {
     if (current is! EditorReady) return;
     final root = current.document.root;
     if (root == null) return;
-    _emitDocument(current, sdui.updateNodeProps(root, id, patch));
+    _emitRoot(
+      current,
+      sdui.updateNodeProps(root, id, patch),
+      coalesceKey: 'props:$id:${patch.keys.join(",")}',
+    );
   }
 
   /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
@@ -210,11 +226,10 @@ class EditorCubit extends Cubit<EditorState> {
     if (current is! EditorReady) return;
     final merged = {...current.document.safeArea, ...patch}
       ..removeWhere((_, value) => value == null);
-    emit(
-      current.copyWith(
-        document: current.document.copyWith(safeArea: merged),
-        saveStatus: SaveStatus.dirty,
-      ),
+    _emitDocument(
+      current,
+      current.document.copyWith(safeArea: merged),
+      coalesceKey: 'safeArea:${patch.keys.join(",")}',
     );
   }
 
@@ -246,11 +261,12 @@ class EditorCubit extends Cubit<EditorState> {
     if (isClosed) return;
     final latest = state;
     if (latest is! EditorReady) return;
-    emit(
-      latest.copyWith(
-        saveStatus: result.isRight() ? SaveStatus.saved : SaveStatus.saveFailed,
-      ),
-    );
+    if (result.isLeft()) {
+      emit(latest.copyWith(saveStatus: SaveStatus.saveFailed));
+      return;
+    }
+    _lastSavedDocument = current.document;
+    emit(latest.copyWith(saveStatus: _statusFor(latest.document)));
   }
 
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
@@ -274,23 +290,100 @@ class EditorCubit extends Cubit<EditorState> {
     emit(current.copyWith(notice: () => _nextNotice(kind, subjectType)));
   }
 
-  void _emitDocument(
+  void _emitRoot(
     EditorReady current,
     SduiNode? newRoot, {
     Object? selectedNodeId = _keepSelection,
     EditorNotice? notice,
+    String? coalesceKey,
   }) {
+    _emitDocument(
+      current,
+      current.document.copyWith(root: () => newRoot),
+      selectedNodeId: selectedNodeId,
+      notice: notice,
+      coalesceKey: coalesceKey,
+    );
+  }
+
+  /// Funil único de toda mutação do documento — é aqui que o passo entra no
+  /// histórico. Um `emit` que troque `document` por fora abre buraco silencioso
+  /// no desfazer.
+  void _emitDocument(
+    EditorReady current,
+    ContentSpec document, {
+    Object? selectedNodeId = _keepSelection,
+    EditorNotice? notice,
+    String? coalesceKey,
+  }) {
+    _pushHistory(current, coalesceKey: coalesceKey);
     emit(
       current.copyWith(
-        document: current.document.copyWith(root: () => newRoot),
+        document: document,
         saveStatus: SaveStatus.dirty,
         selectedNodeId: identical(selectedNodeId, _keepSelection)
             ? null
             : () => selectedNodeId as String?,
         notice: () => notice,
+        canUndo: _past.isNotEmpty,
+        canRedo: _future.isNotEmpty,
       ),
     );
   }
+
+  void _pushHistory(EditorReady current, {String? coalesceKey}) {
+    _future.clear();
+    final continuesTopEntry =
+        coalesceKey != null &&
+        _past.isNotEmpty &&
+        _past.last.coalesceKey == coalesceKey;
+    if (continuesTopEntry) return;
+
+    _past.add(
+      EditorHistoryEntry(
+        document: current.document,
+        selectedNodeId: current.selectedNodeId,
+        coalesceKey: coalesceKey,
+      ),
+    );
+    if (_past.length > _maxHistory) _past.removeAt(0);
+  }
+
+  void undo() {
+    final current = state;
+    if (current is! EditorReady || _past.isEmpty) return;
+    final entry = _past.removeLast();
+    _future.add(_entryFrom(current, entry.coalesceKey));
+    emit(_restored(current, entry));
+  }
+
+  void redo() {
+    final current = state;
+    if (current is! EditorReady || _future.isEmpty) return;
+    final entry = _future.removeLast();
+    _past.add(_entryFrom(current, entry.coalesceKey));
+    emit(_restored(current, entry));
+  }
+
+  EditorHistoryEntry _entryFrom(EditorReady current, String? coalesceKey) =>
+      EditorHistoryEntry(
+        document: current.document,
+        selectedNodeId: current.selectedNodeId,
+        coalesceKey: coalesceKey,
+      );
+
+  EditorReady _restored(EditorReady current, EditorHistoryEntry entry) =>
+      current.copyWith(
+        document: entry.document,
+        selectedNodeId: () => entry.selectedNodeId,
+        saveStatus: _statusFor(entry.document),
+        notice: () => null,
+        canUndo: _past.isNotEmpty,
+        canRedo: _future.isNotEmpty,
+      );
+
+  SaveStatus _statusFor(ContentSpec document) =>
+      document == _lastSavedDocument ? SaveStatus.saved : SaveStatus.dirty;
 
   static const Object _keepSelection = Object();
 }
