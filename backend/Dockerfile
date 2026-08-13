@@ -3,7 +3,7 @@
 # Contexto de build = ./backend  (Base Directory /backend no Coolify).
 
 # ---- build ----
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 # CI=true: garante instalação não-interativa (evita prompt de TTY do pnpm).
 ENV CI=true
@@ -12,13 +12,14 @@ RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
 # Dependências primeiro (cache): manifests antes do código.
 #
 # `sharp` (upload de imagem de Project — F2) tem binário nativo via
-# optionalDependency `@img/sharp-linuxmusl-x64`: como este estágio JÁ roda em
-# node:20-alpine (musl), `pnpm install` aqui resolve e baixa o pacote musl
-# certo sozinho — sem apk extra (libvips vem estático dentro do pacote) e sem
-# build script (sharp não usa postinstall compilado, só o optional pré-built).
-# Testado manualmente: instalar este lockfile dentro de node:20-alpine puro
-# carrega `sharp` sem erro. Se um dia sharp mudar de estratégia de distribuição
-# e passar a exigir build script, rodar `pnpm approve-builds` e listar aqui.
+# optionalDependency `@img/sharp-linuxmusl-<arch>`: como este estágio JÁ roda em
+# node:22-alpine (musl), `pnpm install` aqui resolve e baixa o pacote musl da
+# arquitetura do build sozinho — sem apk extra (libvips vem estático dentro do
+# pacote) e sem build script (sharp não usa postinstall compilado, só o optional
+# pré-built). Testado manualmente em node:22-alpine/arm64 (a arquitetura do
+# servidor de deploy): instalar este lockfile carrega `sharp` sem erro. Se um dia
+# sharp mudar de estratégia de distribuição e passar a exigir build script, rodar
+# `pnpm approve-builds` e listar aqui.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
@@ -27,7 +28,7 @@ COPY . .
 RUN pnpm prisma:generate && pnpm build
 
 # ---- runtime ----
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
