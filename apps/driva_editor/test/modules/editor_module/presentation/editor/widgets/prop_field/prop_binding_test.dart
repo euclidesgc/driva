@@ -14,8 +14,8 @@ const _texto = PropField(
 
 Future<List<Object?>> _pumpEditor(
   WidgetTester tester, {
-  PropField field = _texto,
   required Object? value,
+  PropField field = _texto,
 }) async {
   final changes = <Object?>[];
   await tester.pumpWidget(
