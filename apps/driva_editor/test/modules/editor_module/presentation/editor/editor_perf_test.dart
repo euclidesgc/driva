@@ -82,7 +82,7 @@ void main() {
 
     expect(find.text('Widgets'), findsOneWidget);
     expect(find.text('Árvore'), findsOneWidget);
-    expect(find.text('Conteúdo'), findsWidgets);
+    expect(find.text('Página'), findsWidgets);
     expect(find.text('A'), findsOneWidget);
   });
 

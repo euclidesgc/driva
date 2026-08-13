@@ -87,7 +87,18 @@ class DeviceFrame extends StatelessWidget {
                     child: SizedBox(
                       width: device.width,
                       height: device.height,
-                      child: ColoredBox(color: mock.screen, child: child),
+                      child: ColoredBox(
+                        color: mock.screen,
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            size: Size(device.width, device.height),
+                            padding: device.safeAreaPadding,
+                            viewPadding: device.safeAreaPadding,
+                            viewInsets: EdgeInsets.zero,
+                          ),
+                          child: child,
+                        ),
+                      ),
                     ),
                   ),
                   Positioned.fill(

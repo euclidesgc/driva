@@ -4,6 +4,7 @@ import 'package:driva_editor/core/theme/app_durations.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/empty_preview.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -11,9 +12,17 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// Throttla o re-render do documento: o renderer real é caro a cada tecla.
 class PreviewSurface extends StatefulWidget {
-  const PreviewSurface({required this.onSelect, super.key});
+  const PreviewSurface({
+    required this.onSelect,
+    required this.onDropOn,
+    super.key,
+  });
 
   final ValueChanged<String?> onSelect;
+
+  /// Payload solto sobre o nó de id `targetId`; quem decide onde ele encaixa
+  /// de fato é o kernel, pelo cubit.
+  final void Function(DragPayload payload, String targetId) onDropOn;
 
   @override
   State<PreviewSurface> createState() => _PreviewSurfaceState();
@@ -101,6 +110,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                   isSelected: node.id == _selectedNodeId,
                   isHovered: node.id == _hoveredNodeId,
                   onSelect: () => widget.onSelect(node.id),
+                  onAccept: (payload) => widget.onDropOn(payload, node.id),
                   onHover: (hovering) {
                     if (!mounted) return;
                     final id = hovering ? node.id : null;

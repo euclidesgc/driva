@@ -40,11 +40,17 @@ class PropFieldShell extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: AppTypography.md,
-                  color: colors.inkSecondary,
+              Flexible(
+                child: Tooltip(
+                  message: label,
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: AppTypography.md,
+                      color: colors.inkSecondary,
+                    ),
+                  ),
                 ),
               ),
               if (isRequired)

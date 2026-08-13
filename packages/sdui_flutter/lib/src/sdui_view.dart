@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/builders/default_registry.dart';
+import 'package:sdui_flutter/src/layout/sdui_safe_area.dart';
 import 'package:sdui_flutter/src/registry.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
@@ -12,6 +13,7 @@ class SduiView extends StatelessWidget {
     this.registry,
     this.onAction,
     this.nodeWrapper,
+    this.safeArea,
   });
 
   SduiView.content(
@@ -26,12 +28,17 @@ class SduiView extends StatelessWidget {
          registry: registry,
          onAction: onAction,
          nodeWrapper: nodeWrapper,
+         safeArea: spec.safeArea,
        );
 
   final SduiNode? node;
   final SduiRegistry? registry;
   final SduiActionHandler? onAction;
   final SduiNodeWrapper? nodeWrapper;
+
+  /// Props da área segura da página. `null` = renderizar um nó solto, sem o
+  /// chrome de página (o construtor `SduiView` cru).
+  final Map<String, dynamic>? safeArea;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +49,9 @@ class SduiView extends StatelessWidget {
       onAction: onAction,
       nodeWrapper: nodeWrapper,
     );
-    return renderer.render(context, root);
+    final rendered = renderer.render(context, root);
+    final pageChrome = safeArea;
+    if (pageChrome == null) return rendered;
+    return SduiSafeArea(properties: pageChrome, child: rendered);
   }
 }

@@ -31,7 +31,9 @@ class InspectorHeader extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            iconType == null ? Icons.web_asset : paletteIconFor(iconType!),
+            iconType == null
+                ? Icons.phone_iphone_outlined
+                : paletteIconFor(iconType!),
             size: 18,
             color: AppTheme.primary,
           ),

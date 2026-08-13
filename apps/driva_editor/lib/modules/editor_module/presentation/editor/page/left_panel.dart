@@ -46,12 +46,11 @@ class LeftPanel extends StatelessWidget {
                         selectedNodeId: state.selectedNodeId,
                         onSelect: cubit.selectNode,
                         onRemove: cubit.removeNode,
-                        onAddInto: (type, parentId, index) => cubit.addNode(
-                          type,
-                          parentId: parentId,
-                          index: index,
-                        ),
-                        onMoveInto: cubit.moveNode,
+                        onDropNew: (type, targetId) =>
+                            cubit.addNode(type, targetId: targetId),
+                        onDropMove: cubit.moveNode,
+                        onDropNewAt: cubit.addNodeAt,
+                        onDropMoveAt: cubit.moveNodeAt,
                       );
                     },
                   ),

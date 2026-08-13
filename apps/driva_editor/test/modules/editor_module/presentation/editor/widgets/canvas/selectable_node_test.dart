@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/node_tag.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -11,6 +12,7 @@ Future<void> _pumpCanvas(
   SduiNode node, {
   String? selectedNodeId,
   String? hoveredNodeId,
+  void Function(String targetId, DragPayload payload)? onAccept,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -25,6 +27,7 @@ Future<void> _pumpCanvas(
             isHovered: each.id == hoveredNodeId,
             onSelect: () {},
             onHover: (_) {},
+            onAccept: (payload) => onAccept?.call(each.id, payload),
           ),
         ),
       ),
@@ -198,6 +201,75 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Oi'), findsOneWidget);
+    });
+  });
+
+  group('arrastar no mock reorganiza a árvore', () {
+    const arvore = SduiNode(
+      id: 'col',
+      type: 'column',
+      children: [
+        SduiNode(
+          id: 'ct',
+          type: 'container',
+          properties: {'height': 60.0, 'color': '#FF0000'},
+        ),
+        SduiNode(id: 'txt', type: 'text', properties: {'data': 'Alvo'}),
+      ],
+    );
+
+    testWidgets('todo nó desenhado é origem de arraste', (tester) async {
+      await _pumpCanvas(tester, arvore);
+
+      // column + container + text (spacer/expanded ficam de fora, ver doc).
+      expect(find.byType(Draggable<DragPayload>), findsNWidgets(3));
+    });
+
+    testWidgets('soltar um nó sobre outro entrega o alvo e o payload', (
+      tester,
+    ) async {
+      String? alvo;
+      DragPayload? recebido;
+      await _pumpCanvas(
+        tester,
+        arvore,
+        onAccept: (targetId, payload) {
+          alvo = targetId;
+          recebido = payload;
+        },
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(Container).first),
+      );
+      await tester.pump();
+      await gesture.moveTo(tester.getCenter(find.text('Alvo')));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(alvo, 'txt');
+      expect(recebido, isA<NodeDragPayload>());
+      expect((recebido! as NodeDragPayload).nodeId, 'ct');
+    });
+
+    testWidgets('um nó não aceita a si mesmo como destino', (tester) async {
+      var chamou = false;
+      await _pumpCanvas(
+        tester,
+        arvore,
+        onAccept: (_, _) => chamou = true,
+      );
+
+      final centro = tester.getCenter(find.text('Alvo'));
+      final gesture = await tester.startGesture(centro);
+      await tester.pump();
+      await gesture.moveTo(centro + const Offset(0, 4));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(chamou, isFalse);
     });
   });
 }

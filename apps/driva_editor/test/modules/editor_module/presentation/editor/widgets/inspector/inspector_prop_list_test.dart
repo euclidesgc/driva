@@ -46,9 +46,10 @@ Future<void> _pumpList(
           width: 320,
           height: 700,
           child: InspectorPropList(
-            node: SduiNode(id: 'n1', type: 'text', properties: properties),
+            ownerKey: 'n1',
+            properties: properties,
             descriptor: _descriptor,
-            onUpdateProps: (_, _) {},
+            onUpdateProps: (_) {},
           ),
         ),
       ),

@@ -1,10 +1,19 @@
 import 'package:bloc/bloc.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice_kind.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sdui_core/sdui_core.dart'
-    show ContentSpec, SduiNode, SlotKind, defaultNode, descriptorFor;
+    show
+        ContentSpec,
+        DropAccepted,
+        DropRefusal,
+        DropRefused,
+        SduiNode,
+        SpecDiagnostic,
+        defaultNode;
 import 'package:sdui_core/sdui_core.dart' as sdui;
 
 part 'editor_state.dart';
@@ -24,6 +33,7 @@ class EditorCubit extends Cubit<EditorState> {
   final String projectId;
 
   int _idSequence = 0;
+  int _noticeSequence = 0;
 
   Future<void> loadContent(String id) async {
     emit(const EditorLoading());
@@ -49,11 +59,13 @@ class EditorCubit extends Cubit<EditorState> {
     return candidate;
   }
 
-  /// Adiciona um primitivo do catálogo. Sem [parentId], resolve o destino:
-  /// nó selecionado que aceita filhos, ou a raiz. Com o conteúdo vazio
-  /// (`root == null`), o primeiro nó adicionado **vira a raiz** e fica
-  /// selecionado — de qualquer tipo, não só `column`.
-  void addNode(String type, {String? parentId, int? index}) {
+  /// Adiciona um primitivo do catálogo sobre [targetId] (sem alvo: o nó
+  /// selecionado, ou a raiz). Com o conteúdo vazio (`root == null`), o primeiro
+  /// nó adicionado **vira a raiz** e fica selecionado — de qualquer tipo.
+  ///
+  /// Alvo que não recebe filhos não cancela o gesto: o kernel encaixa no
+  /// primeiro ancestral que recebe e a barra de status conta o desvio.
+  void addNode(String type, {String? targetId}) {
     final current = state;
     if (current is! EditorReady) return;
     final root = current.document.root;
@@ -64,53 +76,98 @@ class EditorCubit extends Cubit<EditorState> {
       return;
     }
 
-    final node = defaultNode(type, id: _nextNodeId(root));
-    final targetId = parentId ?? current.selectedNodeId ?? root.id;
-    final target = sdui.findNode(root, targetId) ?? root;
-    final slot = descriptorFor(target.type)?.slot ?? SlotKind.none;
+    final wanted = targetId ?? current.selectedNodeId ?? root.id;
+    final target = sdui.findNode(root, wanted) ?? root;
 
-    final SduiNode newRoot;
-    switch (slot) {
-      case SlotKind.multi:
-        newRoot = sdui.insertChild(
-          root,
-          target.id,
-          index ?? target.children.length,
-          node,
-        );
-      case SlotKind.single when target.child == null:
-        newRoot = sdui.setChild(root, target.id, node);
-      // Alvo é folha (ou single ocupado): entra na raiz, depois do alvo se
-      // ele for bloco de topo. Se a raiz não tem slot multi, não há lista onde
-      // criar um "irmão" sem trocar a própria raiz; nesse caso não muta.
-      case SlotKind.single || SlotKind.none:
-        final rootSlot = descriptorFor(root.type)?.slot ?? SlotKind.none;
-        if (rootSlot != SlotKind.multi) return;
-        final topIndex = root.children.indexWhere(
-          (child) => child.id == target.id,
-        );
-        newRoot = sdui.insertChild(
-          root,
-          root.id,
-          index ?? (topIndex >= 0 ? topIndex + 1 : root.children.length),
-          node,
+    switch (sdui.resolveDrop(root, target.id)) {
+      case DropRefused(:final refusal):
+        _emitNotice(current, _kindOf(refusal), subjectType: target.type);
+      case DropAccepted(:final parentId, :final index, :final redirected):
+        final node = defaultNode(type, id: _nextNodeId(root));
+        final newRoot = sdui.attachNode(root, parentId, index, node);
+        if (newRoot == null) return;
+        _emitDocument(
+          current,
+          newRoot,
+          selectedNodeId: node.id,
+          notice: redirected
+              ? _nextNotice(EditorNoticeKind.dropRedirected, target.type)
+              : null,
         );
     }
-
-    _emitDocument(current, newRoot, selectedNodeId: node.id);
   }
 
-  /// Move um nó existente para dentro de [newParentId]; o slot do destino
-  /// decide entre `child` e `children` em [index]. Movimentos inválidos
-  /// (ciclo, destino inexistente, slot único já ocupado) são ignorados pelo
-  /// kernel — o documento simplesmente não muda.
-  void moveNode(String id, String newParentId, int index) {
+  /// Move um nó existente para cima de [targetId] — a mesma resolução do
+  /// [addNode], para árvore e canvas se comportarem igual.
+  void moveNode(String nodeId, String targetId) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final root = current.document.root;
+    if (root == null || nodeId == targetId) return;
+    if (nodeId == root.id) {
+      _emitNotice(current, EditorNoticeKind.rootNotMovable);
+      return;
+    }
+    final target = sdui.findNode(root, targetId);
+    if (target == null) {
+      _emitNotice(current, EditorNoticeKind.dropUnknownTarget);
+      return;
+    }
+
+    switch (sdui.resolveDrop(root, targetId, movingNodeId: nodeId)) {
+      case DropRefused(:final refusal):
+        _emitNotice(current, _kindOf(refusal), subjectType: target.type);
+      case DropAccepted(:final parentId, :final index, :final redirected):
+        final newRoot = sdui.moveNode(root, nodeId, parentId, index);
+        if (newRoot == root) return;
+        _emitDocument(
+          current,
+          newRoot,
+          notice: redirected
+              ? _nextNotice(EditorNoticeKind.dropRedirected, target.type)
+              : null,
+        );
+    }
+  }
+
+  /// Encaixe numa posição exata da lista de filhos de [parentId] — as frestas
+  /// entre as linhas da árvore, únicas capazes de reordenar para o começo.
+  void addNodeAt(String type, String parentId, int index) {
     final current = state;
     if (current is! EditorReady) return;
     final root = current.document.root;
     if (root == null) return;
-    final newRoot = sdui.moveNode(root, id, newParentId, index);
-    if (identical(newRoot, root)) return;
+
+    final node = defaultNode(type, id: _nextNodeId(root));
+    final newRoot = sdui.attachNode(root, parentId, index, node);
+    if (newRoot == null) {
+      _emitNotice(current, EditorNoticeKind.dropNoSlot);
+      return;
+    }
+    _emitDocument(current, newRoot, selectedNodeId: node.id);
+  }
+
+  void moveNodeAt(String nodeId, String parentId, int index) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final root = current.document.root;
+    if (root == null) return;
+    if (nodeId == root.id) {
+      _emitNotice(current, EditorNoticeKind.rootNotMovable);
+      return;
+    }
+    final moving = sdui.findNode(root, nodeId);
+    if (moving == null) {
+      _emitNotice(current, EditorNoticeKind.dropUnknownTarget);
+      return;
+    }
+    if (sdui.findNode(moving, parentId) != null) {
+      _emitNotice(current, EditorNoticeKind.dropCycle);
+      return;
+    }
+
+    final newRoot = sdui.moveNode(root, nodeId, parentId, index);
+    if (newRoot == root) return;
     _emitDocument(current, newRoot);
   }
 
@@ -145,6 +202,20 @@ class EditorCubit extends Cubit<EditorState> {
     final root = current.document.root;
     if (root == null) return;
     _emitDocument(current, sdui.updateNodeProps(root, id, patch));
+  }
+
+  /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
+  void updateSafeAreaProps(Map<String, dynamic> patch) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final merged = {...current.document.safeArea, ...patch}
+      ..removeWhere((_, value) => value == null);
+    emit(
+      current.copyWith(
+        document: current.document.copyWith(safeArea: merged),
+        saveStatus: SaveStatus.dirty,
+      ),
+    );
   }
 
   void selectNode(String? id) {
@@ -182,10 +253,32 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
+    DropRefusal.cycle => EditorNoticeKind.dropCycle,
+    DropRefusal.noSlotAvailable => EditorNoticeKind.dropNoSlot,
+    DropRefusal.unknownTarget => EditorNoticeKind.dropUnknownTarget,
+  };
+
+  EditorNotice _nextNotice(EditorNoticeKind kind, String? subjectType) =>
+      EditorNotice(
+        kind: kind,
+        sequence: ++_noticeSequence,
+        subjectType: subjectType,
+      );
+
+  void _emitNotice(
+    EditorReady current,
+    EditorNoticeKind kind, {
+    String? subjectType,
+  }) {
+    emit(current.copyWith(notice: () => _nextNotice(kind, subjectType)));
+  }
+
   void _emitDocument(
     EditorReady current,
     SduiNode? newRoot, {
     Object? selectedNodeId = _keepSelection,
+    EditorNotice? notice,
   }) {
     emit(
       current.copyWith(
@@ -194,6 +287,7 @@ class EditorCubit extends Cubit<EditorState> {
         selectedNodeId: identical(selectedNodeId, _keepSelection)
             ? null
             : () => selectedNodeId as String?,
+        notice: () => notice,
       ),
     );
   }

@@ -13,12 +13,9 @@ class InspectorArea extends StatelessWidget {
     return BlocSelector<EditorCubit, EditorState, InspectorVm?>(
       selector: (state) {
         if (state is! EditorReady) return null;
-        final root = state.document.root;
-        final node = state.selectedNode ?? root;
-        final isContent = state.selectedNode == null;
         return InspectorVm(
-          node: node,
-          isContent: isContent,
+          node: state.selectedNode,
+          safeArea: state.document.safeArea,
           contentName: state.document.name,
           contentSlug: state.document.slug,
         );
@@ -27,10 +24,11 @@ class InspectorArea extends StatelessWidget {
           ? const SizedBox.shrink()
           : InspectorPanel(
               node: vm.node,
-              isContent: vm.isContent,
+              safeArea: vm.safeArea,
               contentName: vm.contentName,
               contentSlug: vm.contentSlug,
               onUpdateProps: cubit.updateProps,
+              onUpdateSafeAreaProps: cubit.updateSafeAreaProps,
               onRemove: cubit.removeNode,
             ),
     );
