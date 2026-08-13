@@ -25,9 +25,29 @@ abstract final class PropGroupSummary {
       FieldKind.edgeInsets => _edgeInsets(value),
       FieldKind.boolean => (value == true) ? 'Sim' : 'Não',
       FieldKind.doubleNum || FieldKind.intNum => _number(value),
+      FieldKind.dimension => _dimension(value),
+      FieldKind.alignment => _alignment(field, value),
       _ => value.toString(),
     };
   }
+
+  static String _alignment(PropField field, Object? value) {
+    final preset = AlignmentValue.presetNameOf(value);
+    if (preset != null) return _optionLabel(field, preset);
+    final pair = AlignmentValue.parse(value);
+    return pair == null
+        ? value.toString()
+        : '${_number(pair.x)} · ${_number(pair.y)}';
+  }
+
+  static String _dimension(Object? value) => switch (DimensionValue.parse(
+    value,
+  )) {
+    PixelDimension(:final pixels) => _number(pixels),
+    PercentDimension() && final percent => percent.toJson().toString(),
+    InfiniteDimension() => '∞',
+    null => value.toString(),
+  };
 
   static String _optionLabel(PropField field, Object? value) {
     for (final option in field.options) {

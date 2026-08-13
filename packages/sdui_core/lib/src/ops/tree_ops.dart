@@ -1,3 +1,5 @@
+import 'package:sdui_core/src/catalog/widget_catalog.dart';
+import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
 
 SduiNode? findNode(SduiNode root, String id) {
@@ -73,7 +75,21 @@ SduiNode moveNode(SduiNode root, String id, String newParentId, int index) {
   // Mover para o mesmo pai: o índice se refere à lista SEM o nó, então
   // remover primeiro e inserir depois já produz a posição certa.
   final without = removeNode(root, id);
-  return insertChild(without, newParentId, index, node);
+  return _attach(without, newParentId, index, node) ?? root;
+}
+
+/// O slot do destino decide o campo: `children` (multi) ou `child` (single).
+/// Escrever na lista de um slot único produz um documento que o renderer não
+/// desenha e que `parseContentSpec` recusa no reload — por isso a guarda mora
+/// aqui, e não no chamador. `null` = destino não aceita o nó; o move é no-op.
+SduiNode? _attach(SduiNode root, String parentId, int index, SduiNode node) {
+  final parent = findNode(root, parentId);
+  if (parent == null) return null;
+  return switch (descriptorFor(parent.type)?.slot ?? SlotKind.none) {
+    SlotKind.multi => insertChild(root, parentId, index, node),
+    SlotKind.single when parent.child == null => setChild(root, parentId, node),
+    _ => null,
+  };
 }
 
 SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {

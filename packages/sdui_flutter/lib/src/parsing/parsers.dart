@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 /// Conversores de props cruas do spec em tipos do Flutter. O renderer recebe
 /// o JSON cru (os defaults do catálogo já vêm preenchidos pelo editor, mas a
@@ -39,9 +40,26 @@ EdgeInsets? parseEdgeInsets(Object? value) {
   );
 }
 
-double? parseDouble(Object? v) => (v as num?)?.toDouble();
+/// O cast direto lançaria em `build` para qualquer prop que não seja número —
+/// e um `{{binding}}` é sempre String, em prop de qualquer tipo.
+double? parseDouble(Object? v) => v is num ? v.toDouble() : null;
 
-int? parseInt(Object? v) => (v as num?)?.toInt();
+/// Resolve `100`, `"70%"` ou `"inf"` para pixels, dado o espaço disponível no
+/// eixo. `null` = sem tamanho definido, e o widget encolhe para o filho.
+///
+/// Eixo não-limitado devolve `null` de propósito: filho não-flexível de
+/// Row/Column recebe o eixo principal ilimitado, e ali percentual não tem
+/// referência. Resolver para infinito estouraria o `RenderFlex`.
+double? resolveDimension(Object? raw, double available) =>
+    switch (DimensionValue.parse(raw)) {
+      PixelDimension(:final pixels) => pixels,
+      PercentDimension(:final fraction) when available.isFinite =>
+        available * fraction,
+      InfiniteDimension() when available.isFinite => available,
+      _ => null,
+    };
+
+int? parseInt(Object? v) => v is num ? v.toInt() : null;
 
 const _fontWeights = <String, FontWeight>{
   'w100': FontWeight.w100,

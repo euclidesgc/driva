@@ -108,6 +108,53 @@ void main() {
       expect(moveNode(root, 'root', 'c', 0), equals(root));
       expect(moveNode(root, 'a', 'nao-existe', 0), equals(root));
     });
+
+    test('destino de slot único recebe o nó em child, não em children', () {
+      final semFilho = setChild(root, 'b', null);
+
+      final result = moveNode(semFilho, 'a', 'b', 0);
+
+      final destino = findNode(result, 'b')!;
+      expect(destino.child?.id, 'a');
+      expect(destino.children, isEmpty);
+    });
+
+    test('não move para slot único já ocupado', () {
+      expect(moveNode(root, 'a', 'b', 0), equals(root));
+    });
+
+    test('não move para folha', () {
+      expect(moveNode(root, 'b', 'a', 0), equals(root));
+    });
+
+    test('não move para tipo fora do catálogo', () {
+      const desconhecido = SduiNode(id: 'z', type: 'inexistente');
+      final comDesconhecido = insertChild(root, 'root', 3, desconhecido);
+
+      expect(moveNode(comDesconhecido, 'a', 'z', 0), equals(comDesconhecido));
+    });
+
+    test('nunca produz documento que o schema recusa', () {
+      const alvos = ['root', 'a', 'b', 'b1', 'c', 'c1'];
+      final origem = setChild(root, 'b', null);
+
+      for (final destino in alvos) {
+        final movido = moveNode(origem, 'a', destino, 0);
+        final documento = ContentSpec(
+          specVersion: kSpecVersion,
+          id: 'ct',
+          name: 'Conteúdo',
+          slug: 'conteudo',
+          root: movido,
+        );
+
+        expect(
+          parseContentSpec(documento.toJson()).isRight(),
+          isTrue,
+          reason: 'mover "a" para "$destino" gerou documento inválido',
+        );
+      }
+    });
   });
 
   group('updateNodeProps', () {
