@@ -69,6 +69,34 @@ void main() {
       value: 'w600',
     ),
     (
+      name: 'enum_icon_group',
+      field: const PropField(
+        key: 'crossAxisAlignment',
+        kind: FieldKind.enumeration,
+        label: 'Alinhamento cruzado',
+        group: FieldGroups.layout,
+        options: [
+          PropOption('start', label: 'Início', iconName: 'crossStart'),
+          PropOption('center', label: 'Centro', iconName: 'crossCenter'),
+          PropOption('end', label: 'Fim', iconName: 'crossEnd'),
+          PropOption('stretch', label: 'Esticar', iconName: 'crossStretch'),
+        ],
+      ),
+      value: 'center',
+    ),
+    (
+      name: 'number_slider',
+      field: const PropField(
+        key: 'fontSize',
+        kind: FieldKind.doubleNum,
+        label: 'Tamanho da fonte',
+        group: FieldGroups.style,
+        min: 8,
+        max: 96,
+      ),
+      value: 24.0,
+    ),
+    (
       name: 'edge_insets',
       field: const PropField(
         key: 'padding',
@@ -77,6 +105,16 @@ void main() {
         group: FieldGroups.spacing,
       ),
       value: const {'left': 8.0, 'top': 12.0, 'right': 8.0, 'bottom': 16.0},
+    ),
+    (
+      name: 'edge_insets_uniform',
+      field: const PropField(
+        key: 'padding',
+        kind: FieldKind.edgeInsets,
+        label: 'Padding',
+        group: FieldGroups.spacing,
+      ),
+      value: const {'all': 12.0},
     ),
     (
       name: 'alignment',

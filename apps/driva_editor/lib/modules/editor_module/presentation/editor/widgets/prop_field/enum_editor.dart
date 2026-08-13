@@ -28,8 +28,11 @@ class EnumEditor extends StatelessWidget {
           DropdownMenuItem<String?>(
             child: Text('—', style: TextStyle(color: colors.inkMuted)),
           ),
-        for (final option in field.enumValues)
-          DropdownMenuItem(value: option, child: Text(option)),
+        for (final option in field.options)
+          DropdownMenuItem(
+            value: option.value,
+            child: Text(option.displayLabel),
+          ),
       ],
       onChanged: onChanged,
     );

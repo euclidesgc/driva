@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('widgetCatalog', () {
-    test('tem os primitivos do catálogo (14 do I1 + form inputs)', () {
+    test('tem os primitivos do catálogo', () {
       expect(
         widgetCatalog.keys,
         containsAll(<String>[
@@ -24,16 +24,50 @@ void main() {
           'padding',
           'center',
           'spacer',
+          'wrap',
+          'expanded',
+          'listView',
+          'gridView',
+          'radio',
+          'dropdown',
+          'slider',
         ]),
       );
-      expect(widgetCatalog, hasLength(17));
+      expect(widgetCatalog, hasLength(24));
     });
 
-    test('controles de formulário são folhas na categoria Interação', () {
-      for (final type in <String>['textField', 'switch', 'checkbox']) {
+    test('controles de formulário são folhas na categoria Formulário', () {
+      for (final type in <String>[
+        'textField',
+        'switch',
+        'checkbox',
+        'radio',
+        'dropdown',
+        'slider',
+      ]) {
         final descriptor = descriptorFor(type)!;
         expect(descriptor.slot, SlotKind.none, reason: type);
-        expect(descriptor.category, WidgetCategories.interaction, reason: type);
+        expect(descriptor.category, WidgetCategories.form, reason: type);
+      }
+    });
+
+    test('toda categoria usada está declarada na ordem da paleta', () {
+      for (final descriptor in widgetCatalog.values) {
+        expect(
+          WidgetCategories.inPaletteOrder,
+          contains(descriptor.category),
+          reason: descriptor.type,
+        );
+      }
+    });
+
+    test('nenhuma categoria da paleta fica vazia', () {
+      for (final category in WidgetCategories.inPaletteOrder) {
+        expect(
+          widgetCatalog.values.where((d) => d.category == category),
+          isNotEmpty,
+          reason: category,
+        );
       }
     });
 
