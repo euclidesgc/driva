@@ -20,6 +20,12 @@ abstract final class EditorNoticeMessage {
         'O destino do arraste não existe mais.',
       EditorNoticeKind.rootNotMovable =>
         'A raiz do conteúdo não pode ser movida para dentro dela mesma.',
+      EditorNoticeKind.rootNotDuplicable =>
+        'A raiz do conteúdo não tem irmãos: duplique um widget de dentro dela.',
+      EditorNoticeKind.nodeCopied =>
+        '${label ?? 'Widget'} copiado — cole com Ctrl+V.',
+      EditorNoticeKind.clipboardEmpty =>
+        'Nada para colar: copie um widget antes, com Ctrl+C.',
     };
   }
 }

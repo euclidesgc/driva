@@ -39,6 +39,8 @@ class EditorCubit extends Cubit<EditorState> {
   final List<EditorHistoryEntry> _past = [];
   final List<EditorHistoryEntry> _future = [];
 
+  SduiNode? _clipboard;
+
   /// Referência ao documento que o servidor tem, para desfazer até ele devolver
   /// o status "salvo" em vez de deixar a top bar mentindo.
   ContentSpec? _lastSavedDocument;
@@ -198,6 +200,117 @@ class EditorCubit extends Cubit<EditorState> {
         ? null
         : current.selectedNodeId;
     _emitRoot(current, newRoot, selectedNodeId: selection);
+  }
+
+  /// Área de transferência **interna** do editor: um nó vivo, não texto do SO.
+  /// Colar entre abas exigiria serializar, revalidar pelo kernel e tratar spec
+  /// de outra versão — outra fatia. Não é limpa por [loadContent] de propósito:
+  /// copiar num conteúdo e colar em outro, na mesma sessão, é desejável.
+  void copySelected() {
+    final current = state;
+    if (current is! EditorReady) return;
+    final node = current.selectedNode;
+    if (node == null) return;
+    _clipboard = node;
+    _emitNotice(
+      current,
+      EditorNoticeKind.nodeCopied,
+      subjectType: node.type,
+    );
+  }
+
+  void duplicateSelected() {
+    final current = state;
+    if (current is! EditorReady) return;
+    final root = current.document.root;
+    final node = current.selectedNode;
+    if (root == null || node == null) return;
+    if (node.id == root.id) {
+      _emitNotice(current, EditorNoticeKind.rootNotDuplicable);
+      return;
+    }
+    final parent = sdui.findParent(root, node.id);
+    if (parent == null) return;
+
+    final position = parent.children.indexWhere((c) => c.id == node.id);
+    if (position >= 0) {
+      _emitClone(current, root, node, parent.id, position + 1);
+      return;
+    }
+
+    // O original ocupa um slot único: não há lugar ao lado dele. Sobe para o
+    // primeiro ancestral que recebe, exatamente como faz o arraste.
+    switch (sdui.resolveDrop(root, parent.id)) {
+      case DropRefused(:final refusal):
+        _emitNotice(current, _kindOf(refusal), subjectType: parent.type);
+      case DropAccepted(:final parentId, :final index, :final redirected):
+        _emitClone(
+          current,
+          root,
+          node,
+          parentId,
+          index,
+          redirectedFrom: redirected ? parent.type : null,
+        );
+    }
+  }
+
+  /// Colar é um drop no nó selecionado — mesma regra de encaixe do arraste,
+  /// inclusive o desvio para o ancestral quando o alvo não recebe filhos.
+  void paste() {
+    final current = state;
+    if (current is! EditorReady) return;
+    final source = _clipboard;
+    if (source == null) {
+      _emitNotice(current, EditorNoticeKind.clipboardEmpty);
+      return;
+    }
+    final root = current.document.root;
+    if (root == null) {
+      final clone = sdui.cloneWithNewIds(source, () => _nextNodeId(null));
+      _emitRoot(current, clone, selectedNodeId: clone.id);
+      return;
+    }
+
+    final wanted = current.selectedNodeId ?? root.id;
+    final target = sdui.findNode(root, wanted) ?? root;
+    switch (sdui.resolveDrop(root, target.id)) {
+      case DropRefused(:final refusal):
+        _emitNotice(current, _kindOf(refusal), subjectType: target.type);
+      case DropAccepted(:final parentId, :final index, :final redirected):
+        _emitClone(
+          current,
+          root,
+          source,
+          parentId,
+          index,
+          redirectedFrom: redirected ? target.type : null,
+        );
+    }
+  }
+
+  void _emitClone(
+    EditorReady current,
+    SduiNode root,
+    SduiNode source,
+    String parentId,
+    int index, {
+    String? redirectedFrom,
+  }) {
+    final clone = sdui.cloneWithNewIds(source, () => _nextNodeId(root));
+    final newRoot = sdui.attachNode(root, parentId, index, clone);
+    if (newRoot == null) {
+      _emitNotice(current, EditorNoticeKind.dropNoSlot);
+      return;
+    }
+    _emitRoot(
+      current,
+      newRoot,
+      selectedNodeId: clone.id,
+      notice: redirectedFrom == null
+          ? null
+          : _nextNotice(EditorNoticeKind.dropRedirected, redirectedFrom),
+    );
   }
 
   void removeSelected() {

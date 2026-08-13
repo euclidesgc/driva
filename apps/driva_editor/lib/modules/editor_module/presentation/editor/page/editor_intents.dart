@@ -19,3 +19,15 @@ class RedoIntent extends Intent {
 class ClearSelectionIntent extends Intent {
   const ClearSelectionIntent();
 }
+
+class DuplicateIntent extends Intent {
+  const DuplicateIntent();
+}
+
+class CopyNodeIntent extends Intent {
+  const CopyNodeIntent();
+}
+
+class PasteNodeIntent extends Intent {
+  const PasteNodeIntent();
+}

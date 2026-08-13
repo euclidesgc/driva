@@ -28,6 +28,12 @@ class EditorShortcuts extends StatelessWidget {
         SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true):
             RedoIntent(),
         SingleActivator(LogicalKeyboardKey.keyY, control: true): RedoIntent(),
+        SingleActivator(LogicalKeyboardKey.keyD, control: true):
+            DuplicateIntent(),
+        SingleActivator(LogicalKeyboardKey.keyC, control: true):
+            CopyNodeIntent(),
+        SingleActivator(LogicalKeyboardKey.keyV, control: true):
+            PasteNodeIntent(),
         SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
         SingleActivator(LogicalKeyboardKey.escape): ClearSelectionIntent(),
       },
@@ -38,6 +44,15 @@ class EditorShortcuts extends StatelessWidget {
           RedoIntent: CallbackAction<RedoIntent>(onInvoke: (_) => cubit.redo()),
           DeleteIntent: CallbackAction<DeleteIntent>(
             onInvoke: (_) => _isEditingText ? null : cubit.removeSelected(),
+          ),
+          DuplicateIntent: CallbackAction<DuplicateIntent>(
+            onInvoke: (_) => _isEditingText ? null : cubit.duplicateSelected(),
+          ),
+          CopyNodeIntent: CallbackAction<CopyNodeIntent>(
+            onInvoke: (_) => _isEditingText ? null : cubit.copySelected(),
+          ),
+          PasteNodeIntent: CallbackAction<PasteNodeIntent>(
+            onInvoke: (_) => _isEditingText ? null : cubit.paste(),
           ),
           ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
             onInvoke: (_) => _isEditingText ? null : cubit.selectNode(null),
