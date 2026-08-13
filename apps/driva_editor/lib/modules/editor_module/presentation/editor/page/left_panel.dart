@@ -67,9 +67,15 @@ class LeftPanel extends StatelessWidget {
 
 String _structureKey(SduiNode node) {
   final buffer = StringBuffer('${node.id}:${node.type}(');
-  for (final child in node.children) {
+  final child = node.child;
+  if (child != null) {
     buffer
       ..write(_structureKey(child))
+      ..write(',');
+  }
+  for (final each in node.children) {
+    buffer
+      ..write(_structureKey(each))
       ..write(',');
   }
   buffer.write(')');

@@ -82,12 +82,15 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
         group: FieldGroups.size,
         min: 0,
       ),
+      // Sem altura, um container vazio dentro de Column vira LimitedBox de
+      // altura 0 e nasce invisível no canvas.
       PropField(
         key: 'height',
         kind: FieldKind.doubleNum,
         label: 'Altura',
         group: FieldGroups.size,
         min: 0,
+        defaultValue: 100.0,
       ),
       PropField(
         key: 'padding',

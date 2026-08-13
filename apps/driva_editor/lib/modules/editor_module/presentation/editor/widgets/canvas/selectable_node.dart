@@ -5,7 +5,9 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/c
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-/// `spacer` não é envolvido: precisa ser filho direto de Row/Column.
+/// `spacer` e `expanded` não são envolvidos: os dois devolvem widgets que
+/// precisam ser filhos diretos de Row/Column, e o `Stack` do overlay entre
+/// eles e o `Flex` derruba o canvas com erro de `ParentDataWidget`.
 class SelectableNode extends StatelessWidget {
   const SelectableNode({
     required this.node,
@@ -24,7 +26,7 @@ class SelectableNode extends StatelessWidget {
   final VoidCallback onSelect;
   final ValueChanged<bool> onHover;
 
-  static const _unwrappable = {'spacer'};
+  static const _unwrappable = {'spacer', 'expanded'};
 
   static final Color _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
 
@@ -46,6 +48,10 @@ class SelectableNode extends StatelessWidget {
           selected: isSelected,
           child: Stack(
             clipBehavior: Clip.none,
+            // `loose` afrouxaria as constraints antes de chegarem no widget do
+            // spec: `crossAxisAlignment: stretch` não esticaria no preview mas
+            // esticaria no app do cliente.
+            fit: StackFit.passthrough,
             children: [
               if (isSelected)
                 DecoratedBox(
@@ -68,11 +74,12 @@ class SelectableNode extends StatelessWidget {
                   foregroundPainter: DashedBorderPainter(color: mock.dropHint),
                   child: built,
                 ),
-              Positioned(
-                top: -18,
-                left: 0,
-                child: NodeTag(label: label, isSelected: isSelected),
-              ),
+              if (isSelected || isHovered)
+                Positioned(
+                  top: -18,
+                  left: 0,
+                  child: NodeTag(label: label, isSelected: isSelected),
+                ),
             ],
           ),
         ),

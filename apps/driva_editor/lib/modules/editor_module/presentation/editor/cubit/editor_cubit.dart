@@ -100,8 +100,9 @@ class EditorCubit extends Cubit<EditorState> {
     _emitDocument(current, newRoot, selectedNodeId: node.id);
   }
 
-  /// Move um nó existente para `children` de [newParentId] em [index].
-  /// Movimentos inválidos (ciclo, destino inexistente) são ignorados pelo
+  /// Move um nó existente para dentro de [newParentId]; o slot do destino
+  /// decide entre `child` e `children` em [index]. Movimentos inválidos
+  /// (ciclo, destino inexistente, slot único já ocupado) são ignorados pelo
   /// kernel — o documento simplesmente não muda.
   void moveNode(String id, String newParentId, int index) {
     final current = state;

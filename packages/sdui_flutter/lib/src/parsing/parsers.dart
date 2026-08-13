@@ -39,9 +39,11 @@ EdgeInsets? parseEdgeInsets(Object? value) {
   );
 }
 
-double? parseDouble(Object? v) => (v as num?)?.toDouble();
+/// O cast direto lançaria em `build` para qualquer prop que não seja número —
+/// e um `{{binding}}` é sempre String, em prop de qualquer tipo.
+double? parseDouble(Object? v) => v is num ? v.toDouble() : null;
 
-int? parseInt(Object? v) => (v as num?)?.toInt();
+int? parseInt(Object? v) => v is num ? v.toInt() : null;
 
 const _fontWeights = <String, FontWeight>{
   'w100': FontWeight.w100,
