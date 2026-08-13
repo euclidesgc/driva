@@ -26,8 +26,18 @@ abstract final class PropGroupSummary {
       FieldKind.boolean => (value == true) ? 'Sim' : 'Não',
       FieldKind.doubleNum || FieldKind.intNum => _number(value),
       FieldKind.dimension => _dimension(value),
+      FieldKind.alignment => _alignment(field, value),
       _ => value.toString(),
     };
+  }
+
+  static String _alignment(PropField field, Object? value) {
+    final preset = AlignmentValue.presetNameOf(value);
+    if (preset != null) return _optionLabel(field, preset);
+    final pair = AlignmentValue.parse(value);
+    return pair == null
+        ? value.toString()
+        : '${_number(pair.x)} · ${_number(pair.y)}';
   }
 
   static String _dimension(Object? value) => switch (DimensionValue.parse(

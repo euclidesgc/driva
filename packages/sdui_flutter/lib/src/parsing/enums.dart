@@ -55,7 +55,17 @@ const _alignment = <String, Alignment>{
   'bottomCenter': Alignment.bottomCenter,
   'bottomRight': Alignment.bottomRight,
 };
-Alignment? alignmentFrom(Object? v) => v is String ? _alignment[v] : null;
+
+/// Aceita o nome do preset (`'topLeft'`) ou o par livre (`{x, y}`), porque o
+/// editor grava o nome sempre que o par cai numa das nove posições canônicas —
+/// mantém o JSON legível sem perder o alinhamento arbitrário.
+Alignment? alignmentFrom(Object? v) {
+  if (v is String) return _alignment[v];
+  if (v is! Map) return null;
+  final x = (v['x'] as num?)?.toDouble();
+  final y = (v['y'] as num?)?.toDouble();
+  return x == null && y == null ? null : Alignment(x ?? 0, y ?? 0);
+}
 
 const _boxFit = <String, BoxFit>{
   'fill': BoxFit.fill,

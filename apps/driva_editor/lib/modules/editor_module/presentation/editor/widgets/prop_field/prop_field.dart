@@ -1,4 +1,6 @@
+export 'alignment_axis_field.dart';
 export 'alignment_editor.dart';
+export 'alignment_grid.dart';
 export 'bool_editor.dart';
 export 'color_editor.dart';
 export 'dimension_editor.dart';
