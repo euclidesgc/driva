@@ -92,6 +92,20 @@ SduiNode? attachNode(SduiNode root, String parentId, int index, SduiNode node) {
   };
 }
 
+/// Copia a subárvore trocando **todo** id por um novo, vindo de [nextId].
+/// Duplicar ou colar reaproveitando os ids originais faria [findNode] achar o
+/// nó errado e o renderer reusar o `ValueKey` de outro widget — por isso a
+/// troca é do nó inteiro, recursiva, e não só da raiz da cópia.
+/// `properties` e `events` seguem por referência: são imutáveis por contrato.
+SduiNode cloneWithNewIds(SduiNode node, String Function() nextId) {
+  return node.copyWith(
+    id: nextId(),
+    child: () =>
+        node.child == null ? null : cloneWithNewIds(node.child!, nextId),
+    children: [for (final c in node.children) cloneWithNewIds(c, nextId)],
+  );
+}
+
 SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   return _rebuild(root, (current) {
     if (current.id != id) return current;
