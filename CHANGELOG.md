@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- **`PropOption` no catálogo (`sdui_core`)**: cada valor de enum passa a carregar `label` legível em pt-BR e `iconName` opcional, para o Inspector editar o enum como grupo de ícones (padrão do FlutterFlow) em vez de dropdown cru. `PropField.enumValues` vira getter derivado de `options`, sem quebrar quem só lê.
+- **`PropField` com metadados de edição**: `min`/`max`/`step` (faixa conhecida habilita slider), `helpText`, `isAdvanced` (fica atrás do disclosure "Avançado" da seção) e `isBindable` (aceita `{{binding}}` no lugar de valor fixo). Faixas preenchidas nos campos numéricos do catálogo (`fontSize` 8–96, `borderRadius` 0–64, `elevation` 0–24, `flex` 1–12 etc.).
+
 ### Alterado
 
 - **`.zcode/` removido**: agentes, skills e comandos do time de IA já viviam em `.claude/` — a pasta antiga era cópia morta, carregada por ninguém. Deletados os 8 agentes, as 10 skills, o comando `tech-manager` e um plano de sessão antigo.

@@ -1,5 +1,6 @@
 export 'src/catalog/field_kind.dart';
 export 'src/catalog/prop_field.dart';
+export 'src/catalog/prop_option.dart';
 export 'src/catalog/widget_catalog.dart';
 export 'src/catalog/widget_descriptor.dart';
 export 'src/model/content_spec.dart';
