@@ -10,6 +10,8 @@
 - **Inspector · slider nos numéricos com faixa**: `PropField.hasRange` habilita `Slider` + campo lado a lado, com `divisions` derivadas de `step` (inteiros passam a 1).
 - **Inspector · padding/margin em dois modos**: barra "Todos os lados" ↔ "Lado a lado" (grava `{all: X}` ou os quatro lados), preservando o valor ao alternar.
 - **Inspector · voltar ao padrão**: cada propriedade opcional com valor ganha um botão que remove a chave do spec, devolvendo o default do catálogo ao renderer.
+- **Inspector · seções colapsáveis com resumo**: cada grupo de propriedades vira uma seção que abre e fecha; fechada, mostra no cabeçalho o resumo do que já foi mexido (o valor quando é uma só, "N definidas" quando são várias, "—" quando nenhuma) — o padrão do FlutterFlow, que evita abrir seção por seção para achar o que foi alterado. Enum resume pelo label, número redondo perde o `.0` e padding resume como `12` (uniforme) ou `8 · 12 · 8 · 16` (por lado).
+- **Inspector · busca de propriedade**: filtra por rótulo ou pela chave da prop, escondendo as seções que esvaziam. `SearchField` foi promovido da paleta de widgets para `core/widgets/input/` e agora serve aos dois painéis.
 
 ### Alterado
 
