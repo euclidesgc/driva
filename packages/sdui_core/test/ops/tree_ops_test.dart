@@ -176,4 +176,58 @@ void main() {
       expect(findNode(result, 'a')!.properties.containsKey('data'), isFalse);
     });
   });
+
+  group('cloneWithNewIds', () {
+    Set<String> idsOf(SduiNode node) => {
+      node.id,
+      if (node.child != null) ...idsOf(node.child!),
+      for (final child in node.children) ...idsOf(child),
+    };
+
+    String Function() sequentialIds() {
+      var next = 0;
+      return () => 'clone_${next++}';
+    }
+
+    test('preserva a forma da subárvore', () {
+      final clone = cloneWithNewIds(root, sequentialIds());
+
+      expect(clone.type, 'column');
+      expect(clone.children.map((n) => n.type), ['text', 'container', 'row']);
+      expect(clone.children[1].child?.type, 'text');
+      expect(clone.children[2].children.single.type, 'icon');
+    });
+
+    test('nenhum id do clone existe no original', () {
+      final clone = cloneWithNewIds(root, sequentialIds());
+
+      expect(idsOf(clone), hasLength(idsOf(root).length));
+      expect(idsOf(clone).intersection(idsOf(root)), isEmpty);
+    });
+
+    test('properties e events seguem intactos', () {
+      const original = SduiNode(
+        id: 'orig',
+        type: 'button',
+        properties: {'label': 'Enviar'},
+        events: {
+          'onTap': {'action': 'navigate'},
+        },
+      );
+
+      final clone = cloneWithNewIds(original, sequentialIds());
+
+      expect(clone.properties, original.properties);
+      expect(clone.events, original.events);
+      expect(clone.id, isNot('orig'));
+    });
+
+    test('o original não é alterado', () {
+      final before = root.toJson();
+
+      cloneWithNewIds(root, sequentialIds());
+
+      expect(root.toJson(), before);
+    });
+  });
 }

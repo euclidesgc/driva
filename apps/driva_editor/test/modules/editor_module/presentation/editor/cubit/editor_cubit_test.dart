@@ -458,6 +458,374 @@ void main() {
     );
   });
 
+  group('histórico — desfazer e refazer', () {
+    blocTest<EditorCubit, EditorState>(
+      'undo devolve o documento e a seleção de antes da mutação',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..addNode('divider')
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.selectedNodeId, 'nd_text');
+        expect(state.canUndo, isFalse);
+        expect(state.canRedo, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'redo refaz o que o undo desfez',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..addNode('divider')
+          ..undo()
+          ..redo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children, hasLength(3));
+        expect(state.canUndo, isTrue);
+        expect(state.canRedo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'undo com pilha vazia não emite nada',
+      build: buildLoaded,
+      act: (cubit) => cubit.undo(),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'digitar na mesma prop colapsa numa entrada só',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..updateProps('nd_text', {'data': 'O'})
+          ..updateProps('nd_text', {'data': 'Ol'})
+          ..updateProps('nd_text', {'data': 'Olá'})
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.canUndo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'trocar de prop quebra a sequência do coalescing',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..updateProps('nd_text', {'data': 'Olá'})
+          ..updateProps('nd_text', {'fontSize': 20.0})
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final text = findNode(state.document.root!, 'nd_text')!;
+        expect(text.properties['data'], 'Olá');
+        expect(text.properties.containsKey('fontSize'), isFalse);
+        expect(state.canUndo, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'mutação nova mata o refazer',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..addNode('divider')
+          ..undo()
+          ..addNode('button');
+      },
+      verify: (cubit) {
+        expect((cubit.state as EditorReady).canRedo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'o teto de 50 passos descarta os mais antigos',
+      build: buildLoaded,
+      act: (cubit) {
+        for (var i = 0; i < 55; i++) {
+          cubit.addNode('divider');
+        }
+        while ((cubit.state as EditorReady).canUndo) {
+          cubit.undo();
+        }
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children, hasLength(7));
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'a área segura da página também entra no histórico',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..updateSafeAreaProps({'enabled': false})
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.safeArea, isEmpty);
+        expect(state.canUndo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'desfazer até o documento do servidor devolve o status salvo',
+      build: build,
+      setUp: () => when(
+        () => loadContent('ct_1'),
+      ).thenAnswer((_) async => const Right(content)),
+      act: (cubit) async {
+        await cubit.loadContent('ct_1');
+        cubit
+          ..addNode('divider')
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.saveStatus, SaveStatus.saved);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'abrir outro conteúdo zera as pilhas',
+      build: build,
+      setUp: () => when(
+        () => loadContent('ct_1'),
+      ).thenAnswer((_) async => const Right(content)),
+      act: (cubit) async {
+        await cubit.loadContent('ct_1');
+        cubit.addNode('divider');
+        await cubit.loadContent('ct_1');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.canUndo, isFalse);
+        expect(state.canRedo, isFalse);
+      },
+    );
+  });
+
+  group('duplicar, copiar e colar', () {
+    const nestedContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_nested',
+      name: 'Nested',
+      slug: 'nested',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(
+            id: 'nd_card',
+            type: 'column',
+            children: [
+              SduiNode(id: 'nd_a', type: 'text'),
+              SduiNode(id: 'nd_b', type: 'text'),
+              SduiNode(id: 'nd_c', type: 'text'),
+            ],
+          ),
+          SduiNode(id: 'nd_tail', type: 'divider'),
+        ],
+      ),
+    );
+
+    const singleSlotContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_single_slot',
+      name: 'Single',
+      slug: 'single',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(
+            id: 'nd_box',
+            type: 'container',
+            child: SduiNode(id: 'nd_inner', type: 'text'),
+          ),
+        ],
+      ),
+    );
+
+    EditorCubit buildWith(ContentSpec document) =>
+        build()..emit(EditorReady(document: document));
+
+    blocTest<EditorCubit, EditorState>(
+      'duplicar gera irmão logo abaixo, com ids novos, e seleciona o clone',
+      build: () => buildWith(nestedContent),
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_card')
+          ..duplicateSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final children = state.document.root!.children;
+        expect(children.map((n) => n.type), ['column', 'column', 'divider']);
+
+        final clone = children[1];
+        expect(clone.children.map((n) => n.type), ['text', 'text', 'text']);
+        expect(
+          {clone.id, ...clone.children.map((n) => n.id)},
+          isNot(contains(anyOf('nd_card', 'nd_a', 'nd_b', 'nd_c'))),
+        );
+        expect(state.selectedNodeId, clone.id);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'duplicar a raiz só avisa, não muda o documento',
+      build: () => buildWith(nestedContent),
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_root')
+          ..duplicateSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, nestedContent);
+        expect(state.notice?.kind, EditorNoticeKind.rootNotDuplicable);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'duplicar em slot único sobe para o ancestral e avisa o desvio',
+      build: () => buildWith(singleSlotContent),
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_inner')
+          ..duplicateSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final children = state.document.root!.children;
+        expect(children.map((n) => n.type), ['container', 'text']);
+        expect(state.notice?.kind, EditorNoticeKind.dropRedirected);
+        expect(state.notice?.subjectType, 'container');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'copiar avisa e não mexe no documento',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..copySelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.saveStatus, SaveStatus.saved);
+        expect(state.notice?.kind, EditorNoticeKind.nodeCopied);
+        expect(state.notice?.subjectType, 'text');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar insere o clone no nó selecionado',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..copySelected()
+          ..selectNode('nd_root')
+          ..paste();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final children = state.document.root!.children;
+        expect(children.map((n) => n.type), ['container', 'text', 'text']);
+        expect(children.last.id, isNot('nd_text'));
+        expect(state.selectedNodeId, children.last.id);
+        expect(state.notice, isNull);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar sobre folha sobe para o ancestral e avisa o desvio',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_banner')
+          ..copySelected()
+          ..selectNode('nd_text')
+          ..paste();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document.root!.children.map((n) => n.type), [
+          'container',
+          'text',
+          'container',
+        ]);
+        expect(state.notice?.kind, EditorNoticeKind.dropRedirected);
+        expect(state.notice?.subjectType, 'text');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar sem nada copiado só avisa',
+      build: buildLoaded,
+      act: (cubit) => cubit.paste(),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.clipboardEmpty);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar em conteúdo vazio faz do clone a raiz',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..copySelected()
+          ..removeNode('nd_root')
+          ..paste();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final root = state.document.root;
+        expect(root?.type, 'text');
+        expect(root?.id, isNot('nd_text'));
+        expect(state.selectedNodeId, root!.id);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'duplicar é uma entrada de histórico, desfeita de uma vez',
+      build: () => buildWith(nestedContent),
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_card')
+          ..duplicateSelected()
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, nestedContent);
+        expect(state.selectedNodeId, 'nd_card');
+      },
+    );
+  });
+
   group('preview', () {
     blocTest<EditorCubit, EditorState>(
       'changeDevice e changeZoom (com clamp)',
