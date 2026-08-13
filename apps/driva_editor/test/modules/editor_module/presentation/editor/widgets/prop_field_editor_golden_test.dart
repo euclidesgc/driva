@@ -60,7 +60,11 @@ void main() {
         kind: FieldKind.enumeration,
         label: 'Peso da fonte',
         group: FieldGroups.style,
-        enumValues: ['w400', 'w600', 'w700'],
+        options: [
+          PropOption('w400', label: 'Regular 400'),
+          PropOption('w600', label: 'SemiBold 600'),
+          PropOption('w700', label: 'Bold 700'),
+        ],
       ),
       value: 'w600',
     ),

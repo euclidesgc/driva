@@ -40,10 +40,14 @@ jobs:
         run: dart test packages/sdui_core
 
       - name: Testes — sdui_flutter (renderer)
-        run: flutter test packages/sdui_flutter
+        run: flutter test
+        working-directory: packages/sdui_flutter
 
+      # Da raiz o bundle de assets não é montado e os goldens rodariam sem
+      # fontes nem ícones (`loadAppFonts` falha alto nesse caso).
       - name: Testes — driva_editor (editor)
-        run: flutter test apps/driva_editor
+        run: flutter test
+        working-directory: apps/driva_editor
 
   backend:
     name: Backend — build
