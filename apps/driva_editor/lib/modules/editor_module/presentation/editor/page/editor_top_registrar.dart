@@ -27,12 +27,21 @@ class EditorTopRegistrar extends StatelessWidget {
           Right(value: final project) => project.title,
           _ => 'Projeto',
         };
-        return BlocSelector<EditorCubit, EditorState, (String, SaveStatus)>(
+        return BlocSelector<
+          EditorCubit,
+          EditorState,
+          (String, SaveStatus, bool, bool)
+        >(
           selector: (state) => state is EditorReady
-              ? (state.document.name, state.saveStatus)
-              : ('', SaveStatus.saved),
+              ? (
+                  state.document.name,
+                  state.saveStatus,
+                  state.canUndo,
+                  state.canRedo,
+                )
+              : ('', SaveStatus.saved, false, false),
           builder: (context, vm) {
-            final (contentName, status) = vm;
+            final (contentName, status, canUndo, canRedo) = vm;
             return AppShellSlot(
               crumbs: [
                 const Crumb(
@@ -48,6 +57,16 @@ class EditorTopRegistrar extends StatelessWidget {
               ],
               status: _statusFor(status),
               actions: [
+                AppBarAction.icon(
+                  icon: Icons.undo,
+                  tooltip: 'Desfazer (Ctrl+Z)',
+                  onPressed: canUndo ? cubit.undo : null,
+                ),
+                AppBarAction.icon(
+                  icon: Icons.redo,
+                  tooltip: 'Refazer (Ctrl+Shift+Z)',
+                  onPressed: canRedo ? cubit.redo : null,
+                ),
                 AppBarAction.filled(
                   label: 'Salvar',
                   icon: Icons.save_outlined,
