@@ -2,6 +2,7 @@ import 'package:driva_editor/core/theme/prop_icons.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/alignment_editor.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/bool_editor.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/color_editor.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/dimension_editor.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_editor.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/enum_editor.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/enum_icon_group_editor.dart';
@@ -50,6 +51,14 @@ class TypedPropEditor extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       isInt: true,
+    ),
+    // Monta a própria moldura (o toggle de unidade vive na linha do rótulo) e
+    // por isso é despachado pelo `SelfChromedPropEditor`, não aqui. Só chega
+    // neste ponto se o kind for usado fora do Inspector.
+    FieldKind.dimension => DimensionEditor(
+      field: field,
+      value: value,
+      onChanged: onChanged,
     ),
     FieldKind.boolean => BoolEditor(
       field: field,

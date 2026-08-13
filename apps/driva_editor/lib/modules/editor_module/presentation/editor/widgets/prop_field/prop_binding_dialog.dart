@@ -94,6 +94,7 @@ class _PropBindingDialogState extends State<PropBindingDialog> {
     FieldKind.string => 'texto',
     FieldKind.doubleNum => 'número',
     FieldKind.intNum => 'número inteiro',
+    FieldKind.dimension => 'tamanho em pixels',
     FieldKind.boolean => 'booleano',
     FieldKind.color => 'cor',
     FieldKind.enumeration => 'opção',

@@ -1,7 +1,3 @@
-import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/app_theme.dart';
-import 'package:driva_editor/core/theme/app_typography.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -22,6 +18,11 @@ class PropFieldEditor extends StatelessWidget {
   final Object? value;
   final ValueChanged<Object?> onChanged;
 
+  /// Kinds cujo editor monta a própria moldura: precisam de um controle na
+  /// linha do rótulo que compartilha estado com o corpo (a unidade do campo de
+  /// dimensão, por exemplo), e o wrapper não tem como entregar isso de fora.
+  static const Set<FieldKind> _selfChromed = {FieldKind.dimension};
+
   bool get _isBound => SduiBinding.isBinding(value);
 
   Future<void> _editBinding(BuildContext context) async {
@@ -39,52 +40,41 @@ class PropFieldEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
     final expression = SduiBinding.expressionOf(value);
+    final bindingButton = field.isBindable
+        ? PropBindingButton(
+            isActive: _isBound,
+            onPressed: () => _editBinding(context),
+          )
+        : null;
+    final resetButton = value != null && !field.isRequired && !_isBound
+        ? PropResetButton(onPressed: () => onChanged(null))
+        : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s12,
-        vertical: AppSpacing.s6,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                field.label,
-                style: TextStyle(
-                  fontSize: AppTypography.md,
-                  color: colors.inkSecondary,
-                ),
-              ),
-              if (field.isRequired)
-                const Text(' *', style: TextStyle(color: AppTheme.primary)),
-              const Spacer(),
-              if (field.isBindable)
-                PropBindingButton(
-                  isActive: _isBound,
-                  onPressed: () => _editBinding(context),
-                ),
-              if (value != null && !field.isRequired && !_isBound)
-                PropResetButton(onPressed: () => onChanged(null)),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          if (expression != null)
-            PropBindingEditor(
+    if (expression == null && _selfChromed.contains(field.kind)) {
+      return SelfChromedPropEditor(
+        field: field,
+        value: value,
+        onChanged: onChanged,
+        bindingButton: bindingButton,
+        resetButton: resetButton,
+      );
+    }
+
+    return PropFieldShell(
+      label: field.label,
+      isRequired: field.isRequired,
+      actions: [?bindingButton, ?resetButton],
+      body: expression != null
+          ? PropBindingEditor(
               expression: expression,
               onClear: () => onChanged(null),
             )
-          else
-            TypedPropEditor(
+          : TypedPropEditor(
               field: field,
               value: value,
               onChanged: onChanged,
             ),
-        ],
-      ),
     );
   }
 }

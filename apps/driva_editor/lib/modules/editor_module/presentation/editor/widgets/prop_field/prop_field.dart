@@ -1,6 +1,8 @@
 export 'alignment_editor.dart';
 export 'bool_editor.dart';
 export 'color_editor.dart';
+export 'dimension_editor.dart';
+export 'dimension_unit_toggle.dart';
 export 'edge_insets_editor.dart';
 export 'edge_insets_mode_bar.dart';
 export 'edge_insets_side_field.dart';
@@ -12,6 +14,8 @@ export 'number_text_field.dart';
 export 'prop_binding_button.dart';
 export 'prop_binding_dialog.dart';
 export 'prop_binding_editor.dart';
+export 'prop_field_shell.dart';
 export 'prop_reset_button.dart';
+export 'self_chromed_prop_editor.dart';
 export 'string_editor.dart';
 export 'typed_prop_editor.dart';

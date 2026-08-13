@@ -4,6 +4,7 @@ export 'src/catalog/prop_option.dart';
 export 'src/catalog/widget_catalog.dart';
 export 'src/catalog/widget_descriptor.dart';
 export 'src/model/content_spec.dart';
+export 'src/model/dimension_value.dart';
 export 'src/model/sdui_action.dart';
 export 'src/model/sdui_binding.dart';
 export 'src/model/sdui_node.dart';

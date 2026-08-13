@@ -2,6 +2,7 @@ import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_field.dart';
 import 'package:sdui_core/src/catalog/prop_option.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/dimension_value.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
 
 const List<PropField> _flexFields = [
@@ -75,22 +76,55 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     category: WidgetCategories.layout,
     slot: SlotKind.single,
     fields: [
+      // Sem tamanho, um container vazio dentro de Column vira LimitedBox de
+      // altura 0 e nasce invisível no canvas.
       PropField(
         key: 'width',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Largura',
         group: FieldGroups.size,
         min: 0,
+        defaultValue: DimensionValue.infiniteToken,
       ),
-      // Sem altura, um container vazio dentro de Column vira LimitedBox de
-      // altura 0 e nasce invisível no canvas.
       PropField(
         key: 'height',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Altura',
         group: FieldGroups.size,
         min: 0,
         defaultValue: 100.0,
+      ),
+      PropField(
+        key: 'minWidth',
+        kind: FieldKind.dimension,
+        label: 'Largura mínima',
+        group: FieldGroups.size,
+        min: 0,
+        isAdvanced: true,
+      ),
+      PropField(
+        key: 'maxWidth',
+        kind: FieldKind.dimension,
+        label: 'Largura máxima',
+        group: FieldGroups.size,
+        min: 0,
+        isAdvanced: true,
+      ),
+      PropField(
+        key: 'minHeight',
+        kind: FieldKind.dimension,
+        label: 'Altura mínima',
+        group: FieldGroups.size,
+        min: 0,
+        isAdvanced: true,
+      ),
+      PropField(
+        key: 'maxHeight',
+        kind: FieldKind.dimension,
+        label: 'Altura máxima',
+        group: FieldGroups.size,
+        min: 0,
+        isAdvanced: true,
       ),
       PropField(
         key: 'padding',
@@ -664,14 +698,14 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     fields: [
       PropField(
         key: 'width',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Largura',
         group: FieldGroups.size,
         min: 0,
       ),
       PropField(
         key: 'height',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Altura',
         group: FieldGroups.size,
         min: 0,

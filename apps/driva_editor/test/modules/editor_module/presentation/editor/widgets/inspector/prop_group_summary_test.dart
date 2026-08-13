@@ -133,5 +133,18 @@ void main() {
         PropGroupSummary.empty,
       );
     });
+
+    test('dimensão resume por unidade, sem despejar o valor cru', () {
+      const largura = PropField(
+        key: 'width',
+        kind: FieldKind.dimension,
+        label: 'Largura',
+        group: FieldGroups.size,
+      );
+
+      expect(PropGroupSummary.describe(largura, 120.0), '120');
+      expect(PropGroupSummary.describe(largura, '70%'), '70%');
+      expect(PropGroupSummary.describe(largura, 'inf'), '∞');
+    });
   });
 }
