@@ -5,16 +5,23 @@ import 'package:sdui_flutter/src/builders/checkbox.dart';
 import 'package:sdui_flutter/src/builders/column.dart';
 import 'package:sdui_flutter/src/builders/container.dart';
 import 'package:sdui_flutter/src/builders/divider.dart';
+import 'package:sdui_flutter/src/builders/dropdown.dart';
+import 'package:sdui_flutter/src/builders/expanded.dart';
+import 'package:sdui_flutter/src/builders/grid_view.dart';
 import 'package:sdui_flutter/src/builders/icon.dart';
 import 'package:sdui_flutter/src/builders/image.dart';
+import 'package:sdui_flutter/src/builders/list_view.dart';
 import 'package:sdui_flutter/src/builders/padding.dart';
+import 'package:sdui_flutter/src/builders/radio.dart';
 import 'package:sdui_flutter/src/builders/row.dart';
 import 'package:sdui_flutter/src/builders/sized_box.dart';
+import 'package:sdui_flutter/src/builders/slider.dart';
 import 'package:sdui_flutter/src/builders/spacer.dart';
 import 'package:sdui_flutter/src/builders/stack.dart';
 import 'package:sdui_flutter/src/builders/switch.dart';
 import 'package:sdui_flutter/src/builders/text.dart';
 import 'package:sdui_flutter/src/builders/text_field.dart';
+import 'package:sdui_flutter/src/builders/wrap.dart';
 import 'package:sdui_flutter/src/registry.dart';
 
 /// Monta o registry padrão com os builders dos primitivos do catálogo.
@@ -38,6 +45,13 @@ SduiRegistry buildDefaultRegistry() => SduiRegistry({
   'padding': buildPadding,
   'center': buildCenter,
   'spacer': buildSpacer,
+  'wrap': buildWrap,
+  'expanded': buildExpanded,
+  'listView': buildListView,
+  'gridView': buildGridView,
+  'radio': buildRadio,
+  'dropdown': buildDropdown,
+  'slider': buildSlider,
 });
 
 final SduiRegistry defaultRegistry = buildDefaultRegistry();

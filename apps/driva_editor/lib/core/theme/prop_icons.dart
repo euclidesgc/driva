@@ -28,6 +28,8 @@ abstract final class PropIcons {
     'borderOutline': Icons.check_box_outline_blank,
     'borderUnderline': Icons.format_underlined,
     'borderFilled': Icons.format_color_fill,
+    'axisHorizontal': Icons.swap_horiz,
+    'axisVertical': Icons.swap_vert,
     'edgeUniform': Icons.crop_square,
     'edgeIndividual': Icons.border_outer,
     'resetToDefault': Icons.settings_backup_restore,

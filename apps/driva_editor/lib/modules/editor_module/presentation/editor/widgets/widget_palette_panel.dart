@@ -18,17 +18,23 @@ class WidgetPalettePanel extends StatefulWidget {
 class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
   String _query = '';
 
+  bool _matches(WidgetDescriptor descriptor) =>
+      _query.isEmpty ||
+      descriptor.label.toLowerCase().contains(_query) ||
+      descriptor.type.toLowerCase().contains(_query);
+
   @override
   Widget build(BuildContext context) {
+    // A ordem das categorias é do kernel, não da ordem de inserção do mapa:
+    // é ela que faz a paleta abrir sempre igual, com ou sem filtro.
     final byCategory = <String, List<WidgetDescriptor>>{};
-    for (final descriptor in widgetCatalog.values) {
-      final matches =
-          _query.isEmpty ||
-          descriptor.label.toLowerCase().contains(_query) ||
-          descriptor.type.toLowerCase().contains(_query);
-      if (matches) {
-        byCategory.putIfAbsent(descriptor.category, () => []).add(descriptor);
-      }
+    for (final category in WidgetCategories.inPaletteOrder) {
+      final matching = [
+        for (final descriptor in widgetCatalog.values)
+          if (descriptor.category == category && _matches(descriptor))
+            descriptor,
+      ];
+      if (matching.isNotEmpty) byCategory[category] = matching;
     }
 
     return Column(

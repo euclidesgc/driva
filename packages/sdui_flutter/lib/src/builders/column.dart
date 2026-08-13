@@ -12,6 +12,6 @@ Widget buildColumn(BuildContext context, SduiNode node, SduiRenderer r) {
     crossAxisAlignment: crossAxisAlignmentFrom(p['crossAxisAlignment']),
     mainAxisSize: mainAxisSizeFrom(p['mainAxisSize']),
     spacing: parseDouble(p['spacing']) ?? 0,
-    children: r.renderAll(context, node.children),
+    children: r.renderFlexChildren(context, node.children),
   );
 }

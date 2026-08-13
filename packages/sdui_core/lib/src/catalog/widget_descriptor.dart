@@ -30,8 +30,14 @@ class WidgetDescriptor extends Equatable {
   List<Object?> get props => [type, label, iconName, category, slot, fields];
 }
 
+/// Espelha a divisão da paleta do FlutterFlow (Base / Layout / Form), com as
+/// listas separadas por serem os únicos primitivos que repetem um filho.
 abstract final class WidgetCategories {
+  static const basics = 'Básicos';
   static const layout = 'Layout';
-  static const content = 'Conteúdo';
-  static const interaction = 'Interação';
+  static const form = 'Formulário';
+  static const lists = 'Listas';
+
+  /// Ordem em que a paleta agrupa as categorias.
+  static const List<String> inPaletteOrder = [basics, layout, form, lists];
 }
