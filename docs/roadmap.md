@@ -6,73 +6,134 @@ Rastreamento vivo do que está **feito**, **em andamento** e **por fazer**. A li
 
 > **Documento vivo.** Mantido atualizado pela IA a cada fechamento de trabalho (junto da faxina de branches): marca o item entregue como `[x]`, o item da vez como `[-]`, e — quando surgem features novas — reescreve o texto para dar clareza e **reordena** para o ponto de precedência correto. Ver `CLAUDE.md` › _Método de trabalho_.
 
+> **Todo item aberto tem um plano.** Cada item por fazer aponta para uma pasta em **`docs/plans/<NN>-<slug>/plan.md`** com o planejamento detalhado (fases, arquivos, classes, métodos, precedências e o que dá para paralelizar) — escrito **antes** de codar, para que a entrega possa ser validada no papel. Índice: [`docs/plans/README.md`](plans/README.md). Quando a feature entra em execução, a doc viva do trabalho (`docs/NN-<nome>/`) nasce a partir do plano.
+
+---
+
+## Ordem de execução recomendada
+
+O que destrava o quê, em uma linha. Os números são identidade do item (histórica), **não** posição na fila.
+
+```
+23 (histórico/undo) ─┐
+                     ├─► 24 (publicação) ─► 25 (entrega ao app) ─► 26 (auth) ─► 27 (storage)
+ 9 (catálogo, contínuo) ┘                          │
+                                                   ├─► 28 (eventos/ações) ─► 29 (dados/binding)
+                                                   │
+                                                   └─► 19 ─► 20 ─► 21 ─► 22 (componentes)
+
+17 ─► 18 (offline-first)     8b (JSON)     30 (breakpoints)      ← independentes, encaixáveis quando fizer sentido
+```
+
+**O gargalo do produto hoje é o item 24 + 25**: o driva ainda não entrega conteúdo para app cliente nenhum. Tudo entregue até aqui é o lado do editor.
+
+---
+
 ## Base já entregue
 
-- `[x]` **Fundação I1 — Conteúdos (rename página→conteúdo + identidade slug/CUID2).** No ar em homologação; renderer SDUI, editor de 3 painéis, catálogo com 14 widgets, backend `/v1/contents`. É o alicerce sobre o qual todo o resto abaixo é construído.
+- `[x]` **Fundação I1 — Conteúdos (rename página→conteúdo + identidade slug/CUID2).** No ar em homologação; renderer SDUI, editor de 3 painéis, catálogo com 24 widgets, backend `/v1/contents`. É o alicerce sobre o qual todo o resto abaixo é construído.
 
 ---
 
 ## Marco 0 — Fundação e correções que destravam tudo
 
-_Sem dependências entre si; vêm primeiro porque tornam todo o resto viável ou agradável de construir._
+_Sem dependências entre si; vieram primeiro porque tornam todo o resto viável ou agradável de construir._
 
-- `[x]` **1. Corrigir o bug de foco no Inspector (0-dep).** _(item 16)_ Ao digitar em qualquer campo de propriedade (ex.: elevação do card), o editor perde o foco após cada tecla e exige reclicar. Causa: a `ValueKey` do `TextFormField` inclui o valor, então cada `onChanged` recria o campo. **Precede o item 9 (catálogo)** — sem isso, editar propriedades é inviável.
-- `[x]` **2. Enxugar loadings e rebuilds da navegação.** _(item 10)_ Remover o loading desnecessário ao criar conteúdo (ele pisca antes de ir ao construtor) e cortar rebuilds à toa nas telas de carregamento. A transição em si já está boa — o alvo é o flash de load. **Entregue:** create navega direto ao editor (sem `await load()`/spinner) e exclusão otimista (card some na hora, reconcilia em falha). Docs em `docs/05-loadings-navegacao/`.
-- `[x]` **3. Tema light + dark com persistência.** _(item 0)_ Hoje só existe `AppTheme.light`. Adicionar o dark e persistir a opção ao sair (introduz a camada de preferências local que o **item 15 (offline-first)** reaproveita).
-- `[x]` **3b. Aliviar o peso do editor ao digitar/arrastar (escopo de rebuilds).** _(perf; surgiu do uso)_ Um único `BlocBuilder` no topo reconstrói o editor inteiro (paleta + árvore + canvas + inspector) a cada tecla/tick de drag, e o canvas re-executa o renderer real do Flutter toda vez. Escopar rebuilds por painel (`BlocSelector`/`buildWhen`), isolar o canvas (`RepaintBoundary`) e **throttlar só o preview caro** (mantendo campo e estado instantâneos). Sem dependências; destrava a sensação de leveza de tudo depois (inclusive o item 9).
+- `[x]` **1. Corrigir o bug de foco no Inspector (0-dep).** _(item 16)_ Ao digitar em qualquer campo de propriedade (ex.: elevação do card), o editor perdia o foco após cada tecla e exigia reclicar. Causa: a `ValueKey` do `TextFormField` incluía o valor, então cada `onChanged` recriava o campo. **Precede o item 9 (catálogo)** — sem isso, editar propriedades era inviável.
+- `[x]` **2. Enxugar loadings e rebuilds da navegação.** _(item 10)_ Create navega direto ao editor (sem `await load()`/spinner) e exclusão otimista (card some na hora, reconcilia em falha). Docs em `docs/05-loadings-navegacao/`.
+- `[x]` **3. Tema light + dark com persistência.** _(item 0)_ Introduziu a camada de preferências local (`preferences_module`, `shared_preferences`) que o **item 17 (offline-first)** reaproveita.
+- `[x]` **3b. Aliviar o peso do editor ao digitar/arrastar (escopo de rebuilds).** _(perf; surgiu do uso)_ Rebuilds escopados por painel (`BlocSelector`/`buildWhen`), canvas isolado (`RepaintBoundary`) e preview caro throttlado, mantendo campo e estado instantâneos.
 
 ## Marco 1 — Polimento do construtor (canvas)
 
-_Depende só do editor atual; independente de backend e de categorias._
-
-- `[x]` **4. Altura máxima do mock do dispositivo.** _(item 12)_ ~~Limitar a altura do mock para não rolar a tela em monitores grandes.~~ **Revertido:** o teto encolhia o dispositivo em janelas baixas (indesejado); o **zoom** (80%) já resolve o encaixe. O `_DeviceFrame` volta a usar `device.height` natural; o usuário controla o encaixe por zoom + rolagem do canvas.
-- `[x]` **5. Feedback visual ao soltar um componente no mock + realce no hover.** _(item 11)_ Componente solto no dispositivo mostra borda tracejada + uma tag pequena com o nome, para o usuário perceber que há algo ali. Passar o mouse por cima realça o nó com um contorno leve (estilo FlutterFlow), estado efêmero e local do canvas.
-- `[x]` **6. Molduras de dispositivo realistas.** _(item 13)_ Trocar as 3 caixas de tamanho por molduras críveis de Android, iPhone e Tablet (aproximar do device real, como no app de exemplo).
-- `[x]` **7. Painel de preview do JSON em tempo real.** _(item 14)_ Exibir o JSON do spec sendo gerado, numa aba/janela destacável — lado a lado com o mock ou alternando entre eles (estilo painéis do VS Code). **Precede o item 8.**
-- `[x]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_ Depende do painel do item 7.
-- `[ ]` **8b. Legibilidade avançada do JSON.** _(polimento; surgiu do review)_ Números de linha já entregues; falta destacar a **chave-pai** e casar `{`/`}` (abre/fecha) quando o cursor está próximo, e permitir **dobrar seções**. Baixa prioridade.
-- `[x]` **8c. Raiz livre (página nasce vazia; 1º widget vira a raiz).** _(surgiu do produto; estilo FlutterFlow)_ O kernel deixa de impor uma `column` fixa: `ContentSpec.root` vira opcional (`SduiNode? root`), `parseContentSpec` aceita `root` ausente/null e valida qualquer tipo do catálogo como raiz. Conteúdo novo (backend + fake store) nasce **sem `root`**; o editor mostra um estado-vazio (drop tracejado) e o primeiro widget adicionado — de qualquer tipo — vira a raiz selecionada. Renderer desenha vazio com `root == null`.
-- `[x]` **8d. Raiz folha mostra o estado-vazio em vez de renderizar.** _(bug menor; corrigido no `09f3bf7`, teste de regressão em 2026-07-11)_ Quando a raiz era um widget **folha** (ex.: um `text`/`textField` sozinho, sem slot de filhos), o canvas exibia o placeholder de estado-vazio em vez de renderizar. **Corrigido:** a condição virou só `root == null` (antes `root == null || root.children.isEmpty`) em `canvas_panel.dart`. Coberto por teste de regressão (`editor_perf_test.dart`: raiz `text` folha renderiza o `Text` e não mostra o placeholder). _Drop-hint por slot de container vazio (o "(e slots…)" do texto original) segue como polimento futuro, separado deste bug._
+- `[x]` **4. Altura máxima do mock do dispositivo.** _(item 12)_ ~~Limitar a altura do mock.~~ **Revertido:** o teto encolhia o dispositivo em janelas baixas; o **zoom** (80%) já resolve o encaixe.
+- `[x]` **5. Feedback visual ao soltar um componente no mock + realce no hover.** _(item 11)_
+- `[x]` **6. Molduras de dispositivo realistas.** _(item 13)_
+- `[x]` **7. Painel de preview do JSON em tempo real.** _(item 14)_
+- `[x]` **8. JSON somente-leitura, copiável e com syntax highlight.** _(item 15)_
+- `[ ]` **8b. Legibilidade avançada do JSON.** _(polimento; surgiu do review)_ Números de linha já entregues; falta destacar a **chave-pai** e casar `{`/`}` (abre/fecha) quando o cursor está próximo, e permitir **dobrar seções**. Baixa prioridade, 0-dep. → **[plano](plans/08b-legibilidade-json/plan.md)**
+- `[x]` **8c. Raiz livre (página nasce vazia; 1º widget vira a raiz).** _(estilo FlutterFlow)_ `ContentSpec.root` opcional; o primeiro widget adicionado — de qualquer tipo — vira a raiz.
+- `[x]` **8d. Raiz folha mostra o estado-vazio em vez de renderizar.** _(bug; `09f3bf7`)_ Condição virou só `root == null`. Coberto por teste de regressão em `editor_perf_test.dart`.
 
 ## Marco 1b — Manipulação direta no construtor
 
-- `[x]` **8e. Mover widgets no mock + barra de status de problemas.** _(surgiu do uso; docs/12)_ Todo nó do canvas virou origem e destino de arraste, e a árvore ganhou **frestas de inserção** entre as linhas (posição exata na lista de filhos, inclusive a primeira) — reorganizar deixa de exigir excluir e remontar. `resolveDrop` (kernel) é a regra única dos dois painéis: alvo que não recebe filhos não cancela o gesto, o encaixe **sobe** para o primeiro ancestral que recebe. O rodapé do editor lista os problemas do documento (`diagnoseTree`: `expanded`/`spacer` fora de flex = erro; embrulho de slot único vazio = aviso), com atalho para selecionar o nó culpado, e mostra o recado do último arraste desviado. De carona: `spacer` fora de flex parou de derrubar o canvas (era `ParentDataWidget` solto).
-- `[x]` **8f. Área segura obrigatória em toda página.** _(surgiu do uso; docs/12)_ `SafeArea` vira **chrome da página** (`ContentSpec.safeArea`), fora do catálogo — não é nó, não entra na paleta nem na árvore. Editada no Inspector quando nenhum widget está selecionado (ou pela linha "Página · área segura" no topo da árvore), com `enabled`, os quatro lados, `minimum` e `maintainBottomViewPadding`. O mock passou a injetar o recuo real do dispositivo no `MediaQuery`, então o preview mostra onde o conteúdo de fato começa. Mapa vazio = tudo no padrão; nenhum spec salvo precisou migrar.
+- `[x]` **8e. Mover widgets no mock + barra de status de problemas.** _(docs/12)_ Todo nó virou origem e destino de arraste; frestas de inserção na árvore; `resolveDrop` (kernel) como regra única dos dois painéis; rodapé com os problemas do documento (`diagnoseTree`).
+- `[x]` **8f. Área segura obrigatória em toda página.** _(docs/12)_ `SafeArea` como **chrome da página** (`ContentSpec.safeArea`), fora do catálogo; o mock injeta o recuo real do dispositivo no `MediaQuery`.
 
 ## Marco 2 — Catálogo de widgets (track contínuo)
 
-- `[-]` **9. Ampliar o catálogo usando o FlutterFlow como referência.** _(item -1)_ Guiar-se pelo FlutterFlow para decidir quais widgets teremos e como suas propriedades são modeladas/editadas. Track contínuo que alimenta paleta e Inspector. **Depende do item 1** (edição de propriedade precisa funcionar).
-  - **Incremento 1 (controles de formulário):** `textField`, `switch`, `checkbox` — três novos descriptors + builders + fixture, preview estático. Paleta/Inspector derivam do catálogo, sem código por tipo no editor.
-  - **Incremento 2 (`textField` abrangente):** props do `textField` ampliadas à la FlutterFlow — `filled` (bool) vira `borderStyle` (enum `outline`/`underline`/`filled`); adiciona `keyboardType` (enum), `maxLength` (int) e `prefixIcon` (iconName). Só descriptor + builder + fixture; o Inspector já deriva os editores do `FieldKind`.
-- `[x]` **9b. Editores de propriedade avançados no Inspector (estados + binding).** As duas camadas que faltavam foram entregues: (a) **estados múltiplos** por propriedade — `padding`/`margin` alternam "Todos os lados" ↔ "Lado a lado" preservando o valor, `width`/`height` aceitam px/%/preencher (`DimensionValue`) e o alinhamento tem grade 3×3 ↔ eixos X/Y livres (`AlignmentValue`); (b) **binding por propriedade** — toda prop `isBindable` alterna entre valor fixo e expressão `{{...}}`, com o tipo esperado no diálogo e `SduiBinding` (kernel) concentrando reconhecer/extrair/embrulhar. Junto vieram enum como grupo de ícones, slider nos numéricos com faixa, "voltar ao padrão", seções colapsáveis com resumo e busca de propriedade. O track de novos `FieldKind` segue vivo no item 9.
+- `[-]` **9. Ampliar o catálogo usando o FlutterFlow como referência.** _(item -1)_ Track contínuo que alimenta paleta e Inspector; hoje **24 primitivos**. Novo primitivo = descriptor + builder + fixture, nada hardcoded no editor. → **[plano](plans/09-catalogo-widgets/plan.md)** (inclui o processo repetível "como adicionar um widget" + a fila priorizada de primitivos)
+  - **Incremento 1 (entregue):** `textField`, `switch`, `checkbox`.
+  - **Incremento 2 (entregue):** `textField` abrangente — `borderStyle`, `keyboardType`, `maxLength`, `prefixIcon`.
+  - **Incremento 3 (entregue):** `radio`, `dropdown`, `slider`.
+  - **Próximos incrementos:** ver a fila no plano.
+- `[x]` **9b. Editores de propriedade avançados no Inspector (estados + binding).** Estados múltiplos por propriedade (`padding`/`margin`, `DimensionValue`, `AlignmentValue`) e **binding por propriedade** (`isBindable` + `SduiBinding` no kernel), enum como grupo de ícones, slider com faixa, "voltar ao padrão", seções colapsáveis e busca de propriedade.
 
 ## Marco 3 — Hierarquia Projeto → Categoria → Conteúdo (o fluxo do protótipo)
 
-_Track interdependente que exige mudança de backend antes do frontend. **Projeto** e **Categoria** são conceitos **novos** que passam a ancorar os conteúdos. O **fluxo inteiro do protótipo** (Projetos → tela do projeto com árvore de categorias + painel de conteúdos → Construtor) é entregue neste marco: item 9d (Projeto), item 10 (API), itens 11–14 (a tela do projeto), itens 15–16 (busca/ordenação/paginação da lista)._
+- `[x]` **9d. CRUD de Projeto — novo topo da hierarquia.** _(docs/09)_ Home de cards, upload de imagem (pipeline CISO aprovado), `Content.projectId` FK NOT NULL. **Débitos abertos, agora itens próprios do roadmap: auth (item 26) e storage Garage (item 27).**
+- `[x]` **9e. Arquivar projeto (soft delete) + área de Arquivados.** Exclusão em duas camadas, cascata explícita em `$transaction`, confirmação dupla.
+- `[x]` **9f. Projetos quebrado em homologação — corrigido e validado no hml.** Três quebras independentes do #43 (diálogo, Dockerfile, `express` não declarado); PRs #46/#47.
+- `[x]` **9g. E2E reutilizável da hierarquia de Projetos.** `e2e_hml.sh` (18/18) + `e2e_shots.sh`/`e2e_drive.mjs` dirigindo a **homologação real**, não localhost.
+- `[x]` **10. API de conteúdos com filtro, busca, ordenação e paginação + fundação de Categoria.** _(item 7; docs/08)_ Envelope `{data,nextCursor}` com cursor keyset, tabela `Category` em árvore, "Geral" por projeto.
+- `[x]` **11–14. Tela do projeto:** árvore de categorias, "Todos os conteúdos" como entrada de topo, filtro por categoria e mover conteúdo entre categorias. _(itens 1, 6, 3, 2)_
+- `[x]` **15. Busca e ordenação de conteúdos no painel.** _(item 4)_
+- `[x]` **16. Listagem infinita (paginação por cursor).** _(item 5)_
+- `[x]` **16b. Nome da categoria no card de conteúdo.** _(docs/11)_
+- `[x]` **16c. AppBar global de duas faixas + breadcrumb (via `ShellRoute`).** _(PR #71)_ Chassi único no topo de todas as telas; mecanismo de **slot** em `core/widgets/app_shell/` — a página publica crumbs/ações como dados, o shell nunca lê cubit.
 
-- `[x]` **9d. CRUD de Projeto — novo topo da hierarquia (Projeto → Categoria → Conteúdo).** _(feature nova; docs/09)_ Home de **cards** de projeto (imagem/título/descrição + contadores), **upload seguro de imagem** (pipeline CISO **aprovado**) e `Content.projectId` vira **FK NOT NULL → Project** (`onDelete: Restrict`, seed do projeto `default`). Backend `/v1/projects` + `projects_module` completo (domain/data/**presentation**) **entregues**. Docs vivas + `final_report` em `docs/09-crud-projeto/`. **Pendências abertas** (ver `variance_report`): auth real (débito **adiado por decisão do humano** — entra antes de produção real), storage a ligar (**Garage**, pastas `<idProjeto>/midias/<uuid>`).
-- `[x]` **9e. Arquivar projeto (soft delete) + área de Arquivados.** _(decisão do humano 2026-07-10; resolve o impasse `Restrict`+"Geral")_ Exclusão em duas camadas: na home o projeto é **arquivado** (`Project.archivedAt`, some da lista, nada é apagado); a tela **`/projects/archived`** lista os arquivados com **Restaurar** e **Excluir definitivamente** — cascata total (conteúdos→categorias→projeto em `$transaction`, `DELETE` só em projeto arquivado; ativo → 409) com **confirmação dupla** (digitar o título). Backend `?status=active|archived` + `POST /:id/archive|unarchive`; storage passa a organizar mídias por pasta de projeto. Entregue nesta rodada.
-- `[x]` **9f. Projetos quebrado em homologação — corrigido e validado no hml (2026-07-10).** _(descoberto porque o E2E do 9d foi só de API em localhost, nunca abriu a UI nem bateu no hml — ver memória `e2e-precisa-exercitar-de-verdade`)_ **Três** quebras independentes, todas do #43: **(a) diálogo "Novo projeto" crashava** (`Spacer` dentro do `OverflowBar` do `AlertDialog` → `RenderErrorBox` cinza em release) — PR #46, com teste de regressão; **(b) build do backend quebrado** — o `Dockerfile` perdeu o `COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./` antes do `pnpm install` (`ERR_PNPM_NO_PKG_MANIFEST`); **(c) runtime do backend quebrado** — `main.ts` importa `express` (body-limit do upload) sem declará-lo em `dependencies` (`Cannot find module 'express'` no pnpm estrito). (b) e (c) explicam o `GET/POST /v1/projects` → 404 no hml (backend do #43 nunca subiu; Coolify manteve a imagem anterior). Corrigidos no PR #47 (linha do `COPY` restaurada + `express` declarado + start blindado com log de `migrate status`). **Validado no hml pós-deploy:** `/v1/projects` 200 e o fluxo de criar projeto exercitado na tela via Playwright (diálogo abre sem cinza → salvar → card aparece → persiste na API; arquivar+excluir também), 0 erros no console. Bônus da rodada: ícone de tema resolvido de vez (#44/#45).
-- `[x]` **9g. E2E reutilizável da hierarquia de Projetos (débito do 9f).** _(processo; entregue 2026-07-11)_ Script reutilizável no padrão do projeto, **dirigindo a homologação REAL** (não `localhost`): `e2e_hml.sh` (contrato de API contra o hml, **18/18 PASS**, auto-limpante) + `e2e_shots.sh`/`e2e_drive.mjs` (prints headless via CDP abrindo criar→abrir→arquivar→excluir projeto **na tela**, 8/8). Robustez: alvos localizados pela **árvore semântica do Flutter** + `<input>` do DOM (sem pixel fixo). Cria um único projeto de teste e purga o rastro (começo e fim); nunca toca o `default`. Evidências em `docs/09-crud-projeto/evidencias/rodada_03/`. Fecha o buraco de método que deixou as três quebras do #43 passarem (ver memória `e2e-precisa-exercitar-de-verdade`).
-- `[x]` **10. API de conteúdos com filtro, busca, ordenação e paginação + fundação de Categoria.** _(item 7)_ `GET /v1/contents` agora é **envelope `{data,nextCursor}`** com **cursor keyset**, filtro por `categoryId`, busca acento-insensível (`q`, via `nameNormalized`), ordenação (`updatedAt`/`createdAt`/`name`) e `limit` (1–100→400); tabela **`Category`** (árvore `parentId`, por projeto, FK NOT NULL → Project) + **CRUD de categoria** + **"Geral" por projeto** (na transação de criação do projeto); `contents_module` do editor adaptado ao envelope **na mesma fatia**. E2E de contrato: **59 PASS/0 FAIL** (`docs/08.../evidencias`). Docs vivas + `final_report` em `docs/08-api-conteudos-filtro-busca/`.
-- `[x]` **11. Árvore de categorias/subcategorias na tela do projeto (lado esquerdo).** _(item 1)_ **UI entregue** (P2) — recursiva por `parentId`, com raiz, contador por nó, editar/excluir no hover, nova categoria com seletor de pai.
-- `[x]` **12. "Todos os conteúdos" como entrada de topo, selecionada por padrão.** _(item 6)_ **UI entregue** — nó "Todos os conteúdos" (filtro ver-tudo, `apps_outlined`, separado da árvore), default. Substituiu o "Não categorizados" enganoso (ver `variance_report` VR-08-02; `categoryId` é NOT NULL, não há "sem categoria").
-- `[x]` **13. Selecionar categoria filtra o painel de conteúdos à direita.** _(item 3)_ **UI entregue** — clicar num nó dispara request com `categoryId` (nó exato).
-- `[x]` **14. Atribuir/mover conteúdo entre categorias.** _(item 2)_ **UI entregue** — seletor de categoria no form de conteúdo + ação "Mover" (dialog) usando `PUT categoryId`. _Drag-and-drop card→árvore fica como polimento futuro._
-- `[x]` **15. Busca e ordenação de conteúdos no painel.** _(item 4; ordenação entregue 2026-07-11)_ **Busca** (caixa `q` com debounce) + **ordenação na UI**: controle no header do painel — campo (`Atualização`/`Criação`/`Nome`, menu) + direção (asc/desc, toggle); toda mudança recarrega **do servidor** via `ContentListCubit.changeSort` (sort/order já aceitos por `GET /v1/contents`). Espelho local para exibição, cubit é a fonte da verdade da query. Teste de cubit para `changeSort` + getters.
-- `[x]` **16. Listagem infinita (paginação por cursor).** _(item 5; entregue 2026-07-11)_ Scroll infinito fiado: `ContentListLoaded` guarda `nextCursor`/`isLoadingMore`; `ContentListCubit.loadMore()` busca a próxima página (`cursor`) e **anexa** (no-op se sem cursor ou já carregando; falha mantém lista+cursor). O painel antecipa via `NotificationListener` ~400px antes do fim e mostra rodapé "Carregando mais…" (spinner + texto). Delete otimista preserva o cursor. Testes de cubit cobrindo append, fim de paginação, no-op e falha.
-- `[x]` **16b. Nome da categoria no card de conteúdo (grade).** _(polimento de UI; surgiu do uso; docs/11)_ O card de grade do painel passa a exibir, numa linha abaixo do título, o **nome da categoria** do conteúdo (ícone de pasta + texto discreto), incluindo a seed **"Geral"**. Nome derivado da árvore já carregada (`CategoryTreeCubit`, **sem rede nova**) e passado por **prop drilling** até o card — presentation pura; fallback **omite a linha** (sem placeholder) quando não resolve. `mainAxisExtent` do grid 162→182. 5 widget tests. Docs vivas + `final_report` em `docs/11-categoria-no-card/`.
-- `[x]` **16c. AppBar global de duas faixas + breadcrumb (via `ShellRoute`).** _(polimento de navegação; surgiu do uso; PR #71)_ Um chassi único no topo de **todas** as telas — faixa de logo/ações (56px) + faixa fina de **breadcrumb** discreto (30px) — substitui os quatro topos que cada página montava à mão (`EditorTopBar`, `_ProjectDetailHeader`, `_ArchivedLinkButton` deletados). As 4 rotas passam a viver num `ShellRoute` (usa a `rootNavigatorKey` já reservada). Breadcrumb reflete a hierarquia (`Projetos › projeto › conteúdo`), cada nível clicável por rota nomeada. Mecanismo de **slot** em `core/widgets/app_shell/`: a página publica crumbs/ações como **dados** + closures no `AppShellController`; o shell nunca lê cubit (acoplamento invertido → preserva o isolamento dos módulos e evita `ProviderNotFound` no topo). Publicação lifecycle-safe (pós-frame + guarda de posse). Editor mostra Salvar/Publish/status no topo global. 4 widget tests do shell (pegaram 2 bugs no caminho: ancestral `Material` faltando e `ChangeNotifier` pós-dispose).
+---
 
-> **Cobertura do "fluxo inteiro do protótipo".** Entregue em 3 fatias (`docs/08.../plan.md`): **P1** = item 10 (backend + editor data/domain, fatia vertical); **P2** = a **tela do projeto** (`/projects/:id`: árvore + painel + forms + `ProjectScope` por projeto) — fiel ao `.dc.html` do handoff (`docs/web-prototipe/design-handoff-projetos/`), cobre a UI dos itens 11–14; **P3** = contadores (`_count`) nos cards e na árvore, nome do projeto no header, mover conteúdo. Restam só **UI-only**: toggle de ordenação (15) e scroll infinito (16). Projetos → Categorias → Conteúdos → Construtor **navegável fim-a-fim**.
-- `[ ]` **17. Offline-first na tela de conteúdos.** _(item 8)_ Cache local; atualiza apenas ao salvar. Depende da lista já com filtro/busca/paginação (itens 13–16) e reaproveita a persistência do item 3.
-- `[ ]` **18. Pull-to-refresh que refaz o cache.** _(item 9)_ Puxar para atualizar força a ida à API e reconstrói o cache local. Depende do item 17.
+## Marco 4 — Ergonomia do construtor
 
-## Marco 4 — Componentes (widgets reutilizáveis)
+_0-dep. Barato perto do ganho: é o que separa "dá para brincar" de "dá para trabalhar o dia inteiro"._
 
-_A maior frente; depende do construtor maduro (Marcos 1–2) e das categorias (Marco 3)._
+- `[x]` **23. Histórico do editor — desfazer/refazer, atalhos e duplicar/copiar/colar.** _(surgiu do uso; 0-dep)_ Entregue em `develop` nas quatro fases do plano: #111 (`cloneWithNewIds` no kernel), #112 (pilha de histórico no `EditorCubit`, com coalescing por chave, teto de 50 e reconciliação do status de salvamento), #116 (`EditorShortcuts` — `Ctrl+Z`/`Ctrl+Shift+Z`/`Ctrl+Y`/`Escape`, botões no topo e a guarda de foco), #114 (duplicar/copiar/colar) e #115 (bateria). De carona, dois defeitos que estavam no ar: `Delete` com o cursor num campo do Inspector apagava o **nó selecionado** (o `Shortcuts` do editor vence o `DefaultTextEditingShortcuts`), e o `updateSafeAreaProps` emitia fora do funil de mutação — `_emitDocument` passou a receber o `ContentSpec` inteiro, o que também é o que o item 29 precisa. **Pendente:** E2E manual em homologação (o merge em `develop` disparou o deploy). → **[plano](plans/23-historico-editor/plan.md)**
 
-- `[ ]` **19. Home passa a exibir Conteúdos e Componentes.** _(item 17)_ Divisão de nível superior entre as duas coisas. Depende da lista de conteúdos madura.
-- `[ ]` **20. Componente como widget reutilizável, com construtor próprio.** _(item 18)_ Mesma premissa de Conteúdo; um componente é um widget que poderá ser usado como conteúdo. Depende do item 19.
-- `[ ]` **21. Diferenciar construtor de Componente e de Conteúdo; nova aba "Componentes" no editor.** _(item 19)_ Componentes criados pelo usuário aparecem numa aba "Componentes", ao lado de Widgets e Árvore, prontos para uso no construtor de conteúdo. Depende do item 20 e das abas do editor.
-- `[ ]` **22. Lista de componentes no padrão da lista de Widgets.** _(item 20)_ Ao salvar um componente, escolher/criar categoria e definir ícone ou imagem, para ele aparecer bonito na lista como os widgets. Depende do item 20 e da infra de categorias (itens 11/14).
+## Marco 5 — Ciclo de vida do conteúdo (o gargalo do produto)
+
+_Aqui o driva deixa de ser um editor e vira uma plataforma: alguém do outro lado passa a consumir o que foi montado._
+
+- `[ ]` **24. Publicação e versionamento do conteúdo.** _(o botão "Publish" hoje é um placeholder literal — `tooltip: 'Publicação chega no incremento I4'`)_ Um `Content` tem **um** campo `spec`: salvar é publicar, e um app em produção leria o mesmo registro que o editor está mexendo. Entra a separação **rascunho × publicado**, a tabela de **versões** (histórico imutável, com autor e data), o **publicar** (promove o rascunho a versão publicada) e o **rollback** (republica uma versão antiga). Pré-requisito duro do item 25. → **[plano](plans/24-publicacao-versionamento/plan.md)**
+- `[ ]` **25. Entrega ao app cliente — API pública de leitura, runtime SDK e app de exemplo.** `DrivaContent` no `sdui_flutter` hoje é um `throw UnimplementedError` explícito, e não existe endpoint de leitura para app. Entra o `GET` público por slug (só versão **publicada**, com `ETag`/cache e chave publicável por projeto), o runtime no `sdui_flutter` (`Driva.init` + `DrivaContent(slug:)` com cache em disco e fallback embarcado) e um **app de exemplo** que prova o ciclo fim-a-fim. Depende do item 24. → **[plano](plans/25-entrega-app-cliente/plan.md)**
+
+## Marco 6 — Produção de verdade
+
+_Débitos assumidos por decisão do humano em 2026-07-09 (`docs/09-crud-projeto/variance_report.md`). O limite registrado: **auth entra antes de abrir para usuários reais**._
+
+- `[ ]` **26. Autenticação e multi-tenant real.** Hoje o "auth" é o header `x-project-id` — qualquer um que saiba um id lê e escreve o projeto inteiro. Entra usuário/sessão, vínculo usuário↔projeto e o escopo de tenant deixando de vir do cliente. Impacta **todos** os controllers do backend e o `DioClient`/`ProjectScope` do editor. → **[plano](plans/26-auth-multi-tenant/plan.md)**
+- `[ ]` **27. Storage S3/Garage ligado.** A pipeline de imagem e a `StorageService` já existem com implementação local; falta apontar para o **Garage** (`s3.bmjtech.duckdns.org`), com key `<projectId>/midias/<uuid>.<ext>` e credenciais só via env no Coolify. Depende do item 26 (decisão registrada). → **[plano](plans/27-storage-garage/plan.md)**
+
+## Marco 7 — Interatividade (o spec deixa de ser estático)
+
+- `[ ]` **28. Eventos e ações editáveis no Inspector.** `SduiAction` e o `renderer.dispatch` existem no kernel, mas **só o `button` dispara** e **nada no editor edita eventos** — um botão montado no editor não faz nada. Entra o catálogo de eventos por widget (no `WidgetDescriptor`), o catálogo de ações (navegar, abrir URL, mostrar mensagem, chamar API), o editor de eventos no Inspector e o dispatch no renderer. Depende do item 25 para ter sentido de ponta a ponta (é o app cliente quem executa a ação). → **[plano](plans/28-eventos-acoes/plan.md)**
+- `[ ]` **29. Contexto de dados e binding com contrato.** `{{expressão}}` já é reconhecida e editável (item 9b), mas nada define **o que existe** para bindar: o campo é texto livre e o renderer não resolve. Entram os **parâmetros da página**, a **fonte de dados** por conteúdo e a resolução do binding no renderer, com o Inspector oferecendo as chaves disponíveis em vez de texto livre. Depende do item 28. → **[plano](plans/29-contexto-de-dados/plan.md)**
+
+## Marco 8 — Componentes (widgets reutilizáveis)
+
+_A maior frente. Depende do construtor maduro (Marcos 1–2, 4) e da hierarquia (Marco 3). Ganha muito se vier depois do ciclo de publicação (24/25), porque componente publicado tem os mesmos problemas de versão._
+
+- `[ ]` **19. Home passa a exibir Conteúdos e Componentes.** _(item 17)_ Divisão de nível superior entre as duas coisas dentro da tela do projeto. → **[plano](plans/19-home-conteudos-componentes/plan.md)**
+- `[ ]` **20. Componente como widget reutilizável, com construtor próprio.** _(item 18)_ Mesma premissa de Conteúdo; um componente é um widget que poderá ser usado dentro de um conteúdo. Depende do item 19. → **[plano](plans/20-componente-construtor/plan.md)**
+- `[ ]` **21. Aba "Componentes" no editor, ao lado de Widgets e Árvore.** _(item 19)_ Componentes do projeto ficam disponíveis para uso no construtor de conteúdo, com instância por referência. Depende do item 20. → **[plano](plans/21-aba-componentes-editor/plan.md)**
+- `[ ]` **22. Metadados e listagem de componentes no padrão da lista de Widgets.** _(item 20)_ Ao salvar um componente, escolher categoria e definir ícone/imagem, para ele aparecer bonito na lista como os widgets. Depende dos itens 20 e 21. → **[plano](plans/22-metadados-componente/plan.md)**
+
+## Marco 9 — Offline-first no editor
+
+- `[ ]` **17. Offline-first na tela de conteúdos.** _(item 8)_ Cache local da lista; atualiza ao salvar. Depende da lista já com filtro/busca/paginação (itens 13–16, entregues) e reaproveita a persistência do item 3. → **[plano](plans/17-offline-first/plan.md)**
+- `[ ]` **18. Pull-to-refresh que refaz o cache.** _(item 9)_ Depende do item 17. → **[plano](plans/18-pull-to-refresh/plan.md)**
+
+## Track contínuo — encaixáveis a qualquer momento
+
+- `[ ]` **30. Responsividade — o spec ganha variação por breakpoint.** _(surgiu da análise; 2026-08-13)_ O mock tem presets de dispositivo, mas o spec descreve **uma** tela: o mesmo JSON vai para celular e tablet sem alternativa. Entra o conceito de override por breakpoint em props selecionadas, com o canvas mostrando qual breakpoint está sendo editado. Independente, mas **mais barato antes** dos componentes (item 20) — depois, cada componente precisaria migrar junto. → **[plano](plans/30-responsividade-breakpoints/plan.md)**
+
+---
+
+## Débitos e riscos vivos (não são itens, são vigilâncias)
+
+| Assunto | Estado | Onde está registrado |
+| --- | --- | --- |
+| Auth por `x-project-id` | Aceito para hml/demo; vira o item **26** antes de produção real | `docs/09-crud-projeto/variance_report.md` |
+| Storage S3 não ligado | Local em hml; vira o item **27** | idem |
+| E2E precisa exercitar a UI real no hml | Corrigido no item 9g; **regra permanente** para toda feature | memória `e2e-precisa-exercitar-de-verdade` |
+| Bateria automatizada vem por último | Regra de método (cap. 22 do livro), não débito | `CLAUDE.md` › Método de trabalho |
