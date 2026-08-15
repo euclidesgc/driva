@@ -1,0 +1,86 @@
+Alvo: https://hml.driva.duckdns.org  API: https://api-hml.driva.duckdns.org/v1  projeto: default  slug: e2e-38-canvas
+Conteúdo de teste: vzk208s468nmzobb6fg01i20
+
+=== §10.1 — conteúdo novo, página vazia (sem root)
+  [32mPASS[0m a página nasce sem root
+  [2m·[0m 01_pagina_vazia.png
+
+=== §10.2 — arrastar Text da paleta → vira a raiz
+  [32mPASS[0m o primeiro widget solto virou a raiz
+  [2m·[0m 02_text_vira_raiz.png
+
+=== §10.3 — arrastar Image sobre o mock → agrupa em vez de recusar (F4/D5)
+  [32mPASS[0m o drop na raiz-folha agrupou numa column
+  [2m·[0m 03_drop_agrupou_column.png
+
+=== §10.4 — UM Ctrl+Z desfaz agrupamento + inserção (D4) — print do DoD
+  [32mPASS[0m um único Ctrl+Z voltou ao text sozinho (não a column[text])
+  [2m·[0m 04_undo_unico.png
+
+=== §10.5 — Ctrl+Y refaz o agrupamento
+  [32mPASS[0m o redo trouxe o agrupamento de volta
+  [2m·[0m 05_redo.png
+
+=== §10.6a — comando "Envolver em Row" pelo inspector (F2)
+  [2m·[0m 06a_menu_envolver.png
+  [32mPASS[0m "Envolver em Row" produziu row[text] sem mexer no irmão
+  [2m·[0m 06b_envolvido_em_row.png
+
+=== §10.6b — Ctrl+G envolve em Column (D8)
+  [32mPASS[0m Ctrl+G envolveu o nó selecionado numa column
+  [2m·[0m 06c_ctrl_g_envolve.png
+
+=== §10.6c — Ctrl+G é inerte com o cursor num campo de texto (guarda _isEditingText)
+  [32mPASS[0m o foco está num campo de texto real
+  [32mPASS[0m Ctrl+G dentro do campo não envolveu nada
+  [2m·[0m 06d_ctrl_g_inerte_no_campo.png
+
+=== §10.7 — a regra única do 8e: o mesmo agrupamento nos três pontos de drop
+  [32mPASS[0m drop na LINHA DA ÁRVORE, com a cadeia de slots esgotada, agrupou
+  [2m·[0m 07a_drop_na_linha_da_arvore.png
+  [32mPASS[0m drop no RODAPÉ DA ÁRVORE agrupou igual
+  [2m·[0m 07b_drop_no_rodape_da_arvore.png
+  [32mPASS[0m drop SOBRE O NÓ DO CANVAS agrupou igual
+  [2m·[0m 07c_drop_sobre_o_no_do_canvas.png
+
+=== §10.8 — Ctrl+C / Ctrl+V com a raiz folha cola agrupando (não recusa)
+  [32mPASS[0m a colagem sobre raiz folha agrupou
+  [2m·[0m 08_colar_agrupa.png
+
+=== §10.9 — marcação de problema no próprio nó (F5) — print do DoD
+  [32mPASS[0m o expanded entrou no padding (fora de Row/Column)
+  [2m·[0m 09a_erro_no_canvas.png
+  [2m·[0m 09b_lista_de_problemas.png
+  [32mPASS[0m a árvore ganhou marcação de diagnóstico
+  [32mPASS[0m a marcação da árvore agrega o erro E o aviso do mesmo nó
+  [2m·[0m 09c_erro_na_arvore.png
+  [32mPASS[0m o text solto na raiz ocupada agrupou de novo
+  [32mPASS[0m o text entrou no slot livre do expanded
+  [32mPASS[0m com o nó desenhando, o selo do canvas aparece
+  [2m·[0m 09d_selo_ancorado_no_canvas.png
+  [32mPASS[0m envolver o expanded numa column corrigiu a estrutura
+  [32mPASS[0m o erro sumiu da árvore
+  [32mPASS[0m o erro sumiu do canvas
+  [2m·[0m 09e_marcacao_some.png
+
+=== §10.10 — "Esvaziar conteúdo" na raiz (F6/D9)
+  [2m·[0m 10a_tooltip_esvaziar_na_arvore.png
+  [2m·[0m 10b_tooltip_esvaziar_no_inspector.png
+  [32mPASS[0m esvaziar a raiz apagou o conteúdo inteiro, sem diálogo
+  [2m·[0m 10c_conteudo_esvaziado.png
+  [32mPASS[0m um Ctrl+Z devolveu o conteúdo
+  [2m·[0m 10d_undo_restaura.png
+
+=== §10.11 — salvar e recarregar: o conteúdo reabre idêntico (D1) — print do DoD
+  [32mPASS[0m o spec não mudou com o reload
+  [32mPASS[0m o spec salvo é o mesmo de antes do reload
+  [32mPASS[0m o editor reabriu a árvore inteira (column + text + image)
+  [2m·[0m 11_reabre_apos_reload.png
+
+=== §10.12 — reordenar por drag dentro da column criada pelo wrap
+  [32mPASS[0m a column criada pelo wrap reordena como qualquer outra
+  [2m·[0m 12_reordenar_na_column.png
+
+Limpando o rastro…
+
+[32mPASS=28[0m  [31mFAIL=0[0m
