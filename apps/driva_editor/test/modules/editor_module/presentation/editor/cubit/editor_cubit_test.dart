@@ -232,13 +232,30 @@ void main() {
     );
 
     blocTest<EditorCubit, EditorState>(
-      'addNodeAt em pai que não aceita lista só avisa',
+      'addNodeAt em pai que não aceita lista converge com addNode '
+      '(redireciona)',
       build: buildLoaded,
       act: (cubit) => cubit.addNodeAt('divider', 'nd_text', 0),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
+        expect(state.document.root!.children.map((n) => n.type), [
+          'container',
+          'text',
+          'divider',
+        ]);
+        expect(state.notice?.kind, EditorNoticeKind.dropRedirected);
+        expect(state.notice?.subjectType, 'text');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'addNodeAt com parentId inexistente segue recusando',
+      build: buildLoaded,
+      act: (cubit) => cubit.addNodeAt('divider', 'nd_fantasma', 0),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
         expect(state.document, content);
-        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+        expect(state.notice?.kind, EditorNoticeKind.dropUnknownTarget);
       },
     );
 
@@ -408,24 +425,48 @@ void main() {
     }
 
     blocTest<EditorCubit, EditorState>(
-      'addNode em raiz folha não cria children inválido, só avisa',
+      'addNode em raiz folha agrupa numa Column em vez de recusar',
       build: () => buildWith(leafRootContent),
       act: (cubit) => cubit.addNode('button', targetId: 'nd_root_text'),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(state.document, leafRootContent);
-        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+        final root = state.document.root!;
+        expect(root.type, 'column');
+        expect(root.children, hasLength(2));
+        expect(root.children.first.id, 'nd_root_text');
+        expect(root.children.last.type, 'button');
+        expect(state.notice?.kind, EditorNoticeKind.dropWrapped);
       },
     );
 
     blocTest<EditorCubit, EditorState>(
-      'addNode em raiz single já ocupada não cria sibling inválido, só avisa',
+      'addNode em raiz single já ocupada agrupa numa Column em vez de recusar',
       build: () => buildWith(occupiedSingleRootContent),
       act: (cubit) => cubit.addNode('button', targetId: 'nd_root_container'),
       verify: (cubit) {
         final state = cubit.state as EditorReady;
-        expect(state.document, occupiedSingleRootContent);
-        expect(state.notice?.kind, EditorNoticeKind.dropNoSlot);
+        final root = state.document.root!;
+        expect(root.type, 'column');
+        expect(root.children, hasLength(2));
+        expect(root.children.first.id, 'nd_root_container');
+        expect(root.children.first.child?.id, 'nd_text');
+        expect(root.children.last.type, 'button');
+        expect(state.notice?.kind, EditorNoticeKind.dropWrapped);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'um único Ctrl+Z desfaz o agrupamento e o encaixe de uma vez (D4)',
+      build: () => buildWith(leafRootContent),
+      act: (cubit) {
+        cubit
+          ..addNode('button', targetId: 'nd_root_text')
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, leafRootContent);
+        expect(state.canRedo, isTrue);
       },
     );
   });

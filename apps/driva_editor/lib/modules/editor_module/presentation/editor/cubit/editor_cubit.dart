@@ -12,6 +12,7 @@ import 'package:sdui_core/sdui_core.dart'
         DropAccepted,
         DropRefusal,
         DropRefused,
+        DropRequiresWrap,
         SduiNode,
         SpecDiagnostic,
         defaultNode;
@@ -108,6 +109,27 @@ class EditorCubit extends Cubit<EditorState> {
               ? _nextNotice(EditorNoticeKind.dropRedirected, target.type)
               : null,
         );
+      case DropRequiresWrap(:final wrapTargetId, :final wrapperType):
+        final wrap = _wrap(root, wrapTargetId, wrapperType);
+        if (wrap == null) return;
+        final node = defaultNode(type, id: _nextNodeId(wrap.root));
+        final newRoot = sdui.attachNode(
+          wrap.root,
+          wrap.wrapperId,
+          _appendIndex(wrap.root, wrap.wrapperId),
+          node,
+        );
+        if (newRoot == null) return;
+        _emitRoot(
+          current,
+          newRoot,
+          selectedNodeId: node.id,
+          notice: _nextNotice(
+            EditorNoticeKind.dropWrapped,
+            target.type,
+            wrapperType: wrapperType,
+          ),
+        );
     }
   }
 
@@ -141,21 +163,49 @@ class EditorCubit extends Cubit<EditorState> {
               ? _nextNotice(EditorNoticeKind.dropRedirected, target.type)
               : null,
         );
+      case DropRequiresWrap(:final wrapTargetId, :final wrapperType):
+        final wrap = _wrap(root, wrapTargetId, wrapperType);
+        if (wrap == null) return;
+        final newRoot = sdui.moveNode(
+          wrap.root,
+          nodeId,
+          wrap.wrapperId,
+          _appendIndex(wrap.root, wrap.wrapperId),
+        );
+        if (newRoot == wrap.root) return;
+        _emitRoot(
+          current,
+          newRoot,
+          notice: _nextNotice(
+            EditorNoticeKind.dropWrapped,
+            target.type,
+            wrapperType: wrapperType,
+          ),
+        );
     }
   }
 
   /// Encaixe numa posição exata da lista de filhos de [parentId] — as frestas
   /// entre as linhas da árvore, únicas capazes de reordenar para o começo.
+  ///
+  /// `attachNode` nulo por [parentId] inexistente é recusa de verdade; nulo
+  /// por pai que não aceita lista converge para [addNode], que resolve o
+  /// mesmo gesto (redirect ou wrap) que os outros quatro pontos de drop.
   void addNodeAt(String type, String parentId, int index) {
     final current = state;
     if (current is! EditorReady) return;
     final root = current.document.root;
     if (root == null) return;
 
+    if (sdui.findNode(root, parentId) == null) {
+      _emitNotice(current, EditorNoticeKind.dropUnknownTarget);
+      return;
+    }
+
     final node = defaultNode(type, id: _nextNodeId(root));
     final newRoot = sdui.attachNode(root, parentId, index, node);
     if (newRoot == null) {
-      _emitNotice(current, EditorNoticeKind.dropNoSlot);
+      addNode(type, targetId: parentId);
       return;
     }
     _emitRoot(current, newRoot, selectedNodeId: node.id);
@@ -250,7 +300,24 @@ class EditorCubit extends Cubit<EditorState> {
           node,
           parentId,
           index,
-          redirectedFrom: redirected ? parent.type : null,
+          notice: redirected
+              ? _nextNotice(EditorNoticeKind.dropRedirected, parent.type)
+              : null,
+        );
+      case DropRequiresWrap(:final wrapTargetId, :final wrapperType):
+        final wrap = _wrap(root, wrapTargetId, wrapperType);
+        if (wrap == null) return;
+        _emitClone(
+          current,
+          wrap.root,
+          node,
+          wrap.wrapperId,
+          _appendIndex(wrap.root, wrap.wrapperId),
+          notice: _nextNotice(
+            EditorNoticeKind.dropWrapped,
+            parent.type,
+            wrapperType: wrapperType,
+          ),
         );
     }
   }
@@ -284,7 +351,24 @@ class EditorCubit extends Cubit<EditorState> {
           source,
           parentId,
           index,
-          redirectedFrom: redirected ? target.type : null,
+          notice: redirected
+              ? _nextNotice(EditorNoticeKind.dropRedirected, target.type)
+              : null,
+        );
+      case DropRequiresWrap(:final wrapTargetId, :final wrapperType):
+        final wrap = _wrap(root, wrapTargetId, wrapperType);
+        if (wrap == null) return;
+        _emitClone(
+          current,
+          wrap.root,
+          source,
+          wrap.wrapperId,
+          _appendIndex(wrap.root, wrap.wrapperId),
+          notice: _nextNotice(
+            EditorNoticeKind.dropWrapped,
+            target.type,
+            wrapperType: wrapperType,
+          ),
         );
     }
   }
@@ -295,22 +379,15 @@ class EditorCubit extends Cubit<EditorState> {
     SduiNode source,
     String parentId,
     int index, {
-    String? redirectedFrom,
+    EditorNotice? notice,
   }) {
     final clone = sdui.cloneWithNewIds(source, () => _nextNodeId(root));
     final newRoot = sdui.attachNode(root, parentId, index, clone);
     if (newRoot == null) {
-      _emitNotice(current, EditorNoticeKind.dropNoSlot);
+      _emitNotice(current, EditorNoticeKind.dropUnknownTarget);
       return;
     }
-    _emitRoot(
-      current,
-      newRoot,
-      selectedNodeId: clone.id,
-      notice: redirectedFrom == null
-          ? null
-          : _nextNotice(EditorNoticeKind.dropRedirected, redirectedFrom),
-    );
+    _emitRoot(current, newRoot, selectedNodeId: clone.id, notice: notice);
   }
 
   /// Comando explícito de envolver (D6, item 38). Uma chamada de
@@ -409,16 +486,41 @@ class EditorCubit extends Cubit<EditorState> {
 
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
     DropRefusal.cycle => EditorNoticeKind.dropCycle,
-    DropRefusal.noSlotAvailable => EditorNoticeKind.dropNoSlot,
     DropRefusal.unknownTarget => EditorNoticeKind.dropUnknownTarget,
   };
 
-  EditorNotice _nextNotice(EditorNoticeKind kind, String? subjectType) =>
-      EditorNotice(
-        kind: kind,
-        sequence: ++_noticeSequence,
-        subjectType: subjectType,
-      );
+  /// Compõe o [sdui.wrapNode] (D3) com o encaixe que motivou o gesto, em
+  /// memória — quem chama emite **uma** vez só, para que o `Ctrl+Z` desfaça
+  /// o agrupamento inteiro numa tacada (D4).
+  ({SduiNode root, String wrapperId})? _wrap(
+    SduiNode root,
+    String wrapTargetId,
+    String wrapperType,
+  ) {
+    final wrapperId = _nextNodeId(root);
+    final wrapped = sdui.wrapNode(
+      root,
+      wrapTargetId,
+      wrapperType,
+      newId: wrapperId,
+    );
+    if (wrapped == null) return null;
+    return (root: wrapped, wrapperId: wrapperId);
+  }
+
+  int _appendIndex(SduiNode root, String parentId) =>
+      sdui.findNode(root, parentId)?.children.length ?? 0;
+
+  EditorNotice _nextNotice(
+    EditorNoticeKind kind,
+    String? subjectType, {
+    String? wrapperType,
+  }) => EditorNotice(
+    kind: kind,
+    sequence: ++_noticeSequence,
+    subjectType: subjectType,
+    wrapperType: wrapperType,
+  );
 
   void _emitNotice(
     EditorReady current,

@@ -18,8 +18,8 @@ viraram decisões travadas (§4). Nada bloqueia a execução.
 | --- | --- | --- | --- | --- |
 | F1 | `wrapNode` no kernel | especialista-dominio | 1 | `[x]` |
 | F2 | Comando "Envolver em Column/Row" + `Ctrl+G` | especialista-apresentacao | 2 | `[x]` |
-| F3 | `DropRequiresWrap` no kernel | especialista-dominio | 3 | `[ ]` |
-| F4 | O drop agrupa em vez de recusar | especialista-apresentacao | 3 | `[ ]` |
+| F3 | `DropRequiresWrap` no kernel | especialista-dominio | 3 | `[x]` |
+| F4 | O drop agrupa em vez de recusar | especialista-apresentacao | 3 | `[x]` |
 | F5 | Marcação de problema no próprio nó | especialista-apresentacao | 4 | `[ ]` |
 | F6 | Rótulo honesto no excluir da raiz | especialista-apresentacao | 5 | `[ ]` |
 | F7 | Bateria automatizada (por último) | qa | 6 | `[ ]` |
@@ -456,7 +456,21 @@ status: `status_bar_area.dart:15` é o **único** consumidor de `diagnostics`; n
   notice correta.
 - Widget test — botão de envolver no `InspectorHeader`; marcação de erro na `TreeRow`.
 
-**Aceite:** os testes acima passam e a suíte existente continua verde.
+**Pendências identificadas na revisão do PR3 (QA, 2026-08-15) — registradas aqui para
+não se perderem, cobertura entra só na F7:**
+
+- `Ctrl+Y` chamando `redo()` de fato — hoje o teste do undo do wrap só afirma `canRedo`,
+  não que o `redo()` reaplica o agrupamento.
+- `Ctrl+V` com a raiz sendo uma folha — o braço `DropRequiresWrap` de `paste()` existe e
+  está correto, mas sem teste dedicado.
+- **A mais importante:** o braço `DropRequiresWrap` de `moveNode`
+  (`editor_cubit.dart:162-176`) é **alcançável pelo usuário** (arrastar um nó existente
+  para cima de um alvo cuja cadeia de slots únicos está esgotada) e não tem teste. Caso:
+  `card(child: padding(child: text))`, arrastar o `text` sobre o `card` →
+  `column[card(padding()), text]`.
+
+**Aceite:** os testes acima (incluindo as três pendências) passam e a suíte existente
+continua verde.
 
 ## 6. Ordem de PRs e paralelismo
 

@@ -4,7 +4,7 @@
 enum EditorNoticeKind {
   dropRedirected,
   dropCycle,
-  dropNoSlot,
+  dropWrapped,
   dropUnknownTarget,
   rootNotMovable,
   rootNotDuplicable,

@@ -9,6 +9,7 @@ class EditorNotice extends Equatable {
     required this.kind,
     required this.sequence,
     this.subjectType,
+    this.wrapperType,
   });
 
   final EditorNoticeKind kind;
@@ -17,6 +18,11 @@ class EditorNotice extends Equatable {
   /// Tipo do widget que recusou receber o nó, quando há um.
   final String? subjectType;
 
+  /// Tipo do contêiner criado pelo kernel em [EditorNoticeKind.dropWrapped] —
+  /// carregado até aqui para a mensagem não hardcodar o rótulo enquanto o
+  /// kernel só devolve `'column'`.
+  final String? wrapperType;
+
   @override
-  List<Object?> get props => [kind, sequence, subjectType];
+  List<Object?> get props => [kind, sequence, subjectType, wrapperType];
 }
