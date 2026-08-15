@@ -21,7 +21,7 @@ viraram decisões travadas (§4). Nada bloqueia a execução.
 | F3 | `DropRequiresWrap` no kernel | especialista-dominio | 3 | `[x]` |
 | F4 | O drop agrupa em vez de recusar | especialista-apresentacao | 3 | `[x]` |
 | F5 | Marcação de problema no próprio nó | especialista-apresentacao | 4 | `[x]` |
-| F6 | Rótulo honesto no excluir da raiz | especialista-apresentacao | 5 | `[ ]` |
+| F6 | Rótulo honesto no excluir da raiz | especialista-apresentacao | 5 | `[x]` |
 | F7 | Bateria automatizada (por último) | qa | 6 | `[ ]` |
 
 `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída e revisada pelo QA

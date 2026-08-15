@@ -4,6 +4,7 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/remove_node_labels.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_content.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -44,6 +45,8 @@ class TreeRow extends StatelessWidget {
     return isRoot ? 'Conteúdo ($base)' : base;
   }
 
+  String get _removeLabel => isRoot ? clearContentLabel : removeNodeLabel;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
@@ -62,6 +65,7 @@ class TreeRow extends StatelessWidget {
         diagnostics: diagnostics,
         onSelect: onSelect,
         onRemove: onRemove,
+        removeLabel: _removeLabel,
       ),
     );
 
