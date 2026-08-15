@@ -3,8 +3,13 @@ name: CI
 # A cancela roda no servidor: o PR de um agente passa pela mesma régua que o de
 # um humano (cap. 35 do livro). Verde aqui é pré-requisito de merge em develop/main.
 on:
+  # PR empilhado (stacked PR) aponta para a branch de suporte de baixo, não para
+  # develop — sem `feature/**` e amigos aqui, só o PR do fundo da pilha via a
+  # régua, e os do meio passavam com GitGuardian sozinho. Aconteceu no item 38:
+  # a F5 subiu para homologação com o job de format vermelho, porque o
+  # auto-deploy do Coolify dispara no push sem consultar o CI.
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, 'feature/**', 'bugfix/**', 'hotfix/**', 'release/**']
   push:
     branches: [develop, main]
 
