@@ -1,4 +1,5 @@
 import { json, urlencoded } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -23,6 +24,23 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('v1', { exclude: ['health'] });
+
+  // Leitura de conteúdo publicado é consumida pelo app de qualquer cliente,
+  // de qualquer origem — a lista de `CORS_ORIGINS` vale só para o editor.
+  app.use('/v1/public', (req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'content-type, if-none-match, x-driva-key',
+    );
+    res.setHeader('Access-Control-Expose-Headers', 'etag');
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
 
   const corsOrigins =
     process.env.CORS_ORIGINS?.split(',')

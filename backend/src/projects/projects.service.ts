@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { generatePublishableKey } from './publishable-key';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProcessedImage } from './image-pipeline';
 
@@ -17,6 +18,7 @@ type ProjectRow = {
   archivedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  publishableKey: string;
   _count?: { contents: number; categories: number };
 };
 
@@ -32,6 +34,7 @@ const PROJECT_SELECT = {
   archivedAt: true,
   createdAt: true,
   updatedAt: true,
+  publishableKey: true,
   ...COUNTS_SELECT,
 } as const;
 
@@ -64,6 +67,7 @@ export class ProjectsService {
           data: {
             title: dto.title,
             description: dto.description,
+            publishableKey: generatePublishableKey(),
           },
         });
         if (image) {
@@ -225,6 +229,7 @@ export class ProjectsService {
       archivedAt: row.archivedAt ? row.archivedAt.toISOString() : null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      publishableKey: row.publishableKey,
       contentCount: row._count?.contents ?? 0,
       categoryCount: row._count?.categories ?? 0,
     };
