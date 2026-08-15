@@ -15,10 +15,10 @@ Rastreamento vivo do que está **feito**, **em andamento** e **por fazer**. A li
 O que destrava o quê, em uma linha. Os números são identidade do item (histórica), **não** posição na fila.
 
 ```
-23 (histórico/undo) ─┐
-                     ├─► 24 (publicação) ─► 25 (entrega ao app) ─► 26 (auth) ─► 27 (storage)
- 9 (catálogo, contínuo) ┘                          │
-                                                   ├─► 28 (eventos/ações) ─► 29 (dados/binding)
+38 (drop sem beco sem saída) ─┐
+39 (image: erro visível)      ├─► 24 (publicação) ─► 25 (entrega ao app) ─► 26 (auth) ─► 27 (storage)
+23 (histórico/undo) ──────────┤                    │
+ 9 (catálogo, contínuo) ──────┘                    ├─► 28 (eventos/ações) ─► 29 (dados/binding)
                                                    │
                                                    └─► 19 ─► 20 ─► 21 ─► 22 (componentes)
 
@@ -26,6 +26,8 @@ O que destrava o quê, em uma linha. Os números são identidade do item (histó
 ```
 
 **O gargalo do produto hoje é o item 24 + 25**: o driva ainda não entrega conteúdo para app cliente nenhum. Tudo entregue até aqui é o lado do editor.
+
+**Na frente do 24, dois defeitos do uso real (2026-08-15).** Os itens **38** e **39** não são pré-requisito técnico da publicação — entram antes porque são 0-dep, não tocam backend e travam quem usa o editor hoje: o 38 deixa a página **sem saída** depois de um drop recusado (a única alternativa apaga o conteúdo inteiro) e o 39 faz a imagem falhar em silêncio, indistinguível de "sem URL".
 
 ---
 
@@ -67,6 +69,8 @@ _Sem dependências entre si; vieram primeiro porque tornam todo o resto viável 
   - **Incremento 2 (entregue):** `textField` abrangente — `borderStyle`, `keyboardType`, `maxLength`, `prefixIcon`.
   - **Incremento 3 (entregue):** `radio`, `dropdown`, `slider`.
   - **Próximos incrementos:** ver a fila no plano.
+  - `[-]` **Incremento 4: `image` abrangente** — entra junto com o item 39 (`alignment`, raio, `DimensionValue` em `width`/`height`, e o resto do básico que o `container` já tem e o `image` não).
+- `[-]` **39. Widget `image` — a URL aparece, e o editor de propriedades cresce.** _(relato do uso real, 2026-08-15; 0-dep)_ Duas coisas no mesmo plano, e o plano as separa: **(F1, defeito)** informar uma URL não exibe a imagem e o editor **não diz por quê** — o `errorBuilder` do builder desenha o mesmo quadrado cinza do estado "sem URL", então falha de rede, host bloqueado por CORS no Flutter Web e campo vazio são pixel a pixel idênticos; F1 torna o erro visível e passa `WebHtmlElementStrategy.fallback` para o caminho `<img>`. **(F2, catálogo)** o `image` tem 4 propriedades contra 12 do `container` — vira o **Incremento 4** do item 9. → **[plano](plans/39-image-url-e-props/plan.md)**
 - `[x]` **9b. Editores de propriedade avançados no Inspector (estados + binding).** Estados múltiplos por propriedade (`padding`/`margin`, `DimensionValue`, `AlignmentValue`) e **binding por propriedade** (`isBindable` + `SduiBinding` no kernel), enum como grupo de ícones, slider com faixa, "voltar ao padrão", seções colapsáveis e busca de propriedade.
 
 ## Marco 3 — Hierarquia Projeto → Categoria → Conteúdo (o fluxo do protótipo)
@@ -89,6 +93,7 @@ _Sem dependências entre si; vieram primeiro porque tornam todo o resto viável 
 _0-dep. Barato perto do ganho: é o que separa "dá para brincar" de "dá para trabalhar o dia inteiro"._
 
 - `[x]` **23. Histórico do editor — desfazer/refazer, atalhos e duplicar/copiar/colar.** _(surgiu do uso; 0-dep)_ Entregue em `develop` nas quatro fases do plano: #111 (`cloneWithNewIds` no kernel), #112 (pilha de histórico no `EditorCubit`, com coalescing por chave, teto de 50 e reconciliação do status de salvamento), #116 (`EditorShortcuts` — `Ctrl+Z`/`Ctrl+Shift+Z`/`Ctrl+Y`/`Escape`, botões no topo e a guarda de foco), #114 (duplicar/copiar/colar) e #115 (bateria). De carona, dois defeitos que estavam no ar: `Delete` com o cursor num campo do Inspector apagava o **nó selecionado** (o `Shortcuts` do editor vence o `DefaultTextEditingShortcuts`), e o `updateSafeAreaProps` emitia fora do funil de mutação — `_emitDocument` passou a receber o `ContentSpec` inteiro, o que também é o que o item 29 precisa. **Pendente:** E2E manual em homologação (o merge em `develop` disparou o deploy). → **[plano](plans/23-historico-editor/plan.md)**
+- `[-]` **38. Destravar o construtor — envolver um nó e drop sem beco sem saída.** _(relato do uso real, 2026-08-15; 0-dep)_ **É a metade que falta do item 8c.** Desde que a raiz virou livre, ela pode ser uma **folha** (`text`, `image`…), e o 8e fez o encaixe subir para o primeiro ancestral que aceita filhos — mas ninguém escreveu o que acontece quando a subida **não acha ancestral nenhum**: `resolveDrop` devolve `noSlotAvailable`, o gesto é recusado e a página fica sem saída. O dev não consegue criar o contêiner que faltava nem tirar de lá o widget que já está; a única saída é excluir a raiz, **que apaga o conteúdo inteiro sem aviso**. Entra a operação de **envolver um nó** no kernel (`wrapNode`), o comando explícito "Envolver em Column/Row" no editor, o `resolveDrop` devolvendo **`DropRequiresWrap`** em vez de recusar (o drop agrupa sozinho, desfazível num `Ctrl+Z`), a **marcação de problema no próprio nó** (árvore e canvas, hoje só no rodapé) e o rótulo honesto no excluir da raiz. → **[plano](plans/38-destravar-drop-e-envolver/plan.md)**
 
 ## Marco 5 — Ciclo de vida do conteúdo (o gargalo do produto)
 
