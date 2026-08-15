@@ -15,6 +15,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onUpdateProps,
     required this.onUpdateSafeAreaProps,
     required this.onRemove,
+    required this.onWrap,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class InspectorPanel extends StatelessWidget {
   final void Function(String nodeId, Map<String, dynamic> patch) onUpdateProps;
   final ValueChanged<Map<String, dynamic>> onUpdateSafeAreaProps;
   final ValueChanged<String> onRemove;
+  final ValueChanged<String> onWrap;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class InspectorPanel extends StatelessWidget {
             subtitle: '$contentName · slug $contentSlug',
             iconType: null,
             onRemove: null,
+            onWrap: null,
           ),
           Expanded(
             child: InspectorPropList(
@@ -63,6 +66,7 @@ class InspectorPanel extends StatelessWidget {
           subtitle: 'id ${node.id}',
           iconType: node.type,
           onRemove: () => onRemove(node.id),
+          onWrap: onWrap,
         ),
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty

@@ -26,6 +26,8 @@ abstract final class EditorNoticeMessage {
         '${label ?? 'Widget'} copiado — cole com Ctrl+V.',
       EditorNoticeKind.clipboardEmpty =>
         'Nada para colar: copie um widget antes, com Ctrl+C.',
+      EditorNoticeKind.nodeWrapped =>
+        'Envolvido numa ${label ?? 'Column'}.',
     };
   }
 }

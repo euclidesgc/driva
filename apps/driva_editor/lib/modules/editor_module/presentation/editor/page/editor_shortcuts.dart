@@ -34,6 +34,7 @@ class EditorShortcuts extends StatelessWidget {
             CopyNodeIntent(),
         SingleActivator(LogicalKeyboardKey.keyV, control: true):
             PasteNodeIntent(),
+        SingleActivator(LogicalKeyboardKey.keyG, control: true): WrapIntent(),
         SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
         SingleActivator(LogicalKeyboardKey.escape): ClearSelectionIntent(),
       },
@@ -53,6 +54,10 @@ class EditorShortcuts extends StatelessWidget {
           ),
           PasteNodeIntent: CallbackAction<PasteNodeIntent>(
             onInvoke: (_) => _isEditingText ? null : cubit.paste(),
+          ),
+          WrapIntent: CallbackAction<WrapIntent>(
+            onInvoke: (_) =>
+                _isEditingText ? null : cubit.wrapSelected('column'),
           ),
           ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
             onInvoke: (_) => _isEditingText ? null : cubit.selectNode(null),

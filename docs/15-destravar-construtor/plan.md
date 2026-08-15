@@ -17,7 +17,7 @@ viraram decisões travadas (§4). Nada bloqueia a execução.
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
 | F1 | `wrapNode` no kernel | especialista-dominio | 1 | `[x]` |
-| F2 | Comando "Envolver em Column/Row" + `Ctrl+G` | especialista-apresentacao | 2 | `[ ]` |
+| F2 | Comando "Envolver em Column/Row" + `Ctrl+G` | especialista-apresentacao | 2 | `[x]` |
 | F3 | `DropRequiresWrap` no kernel | especialista-dominio | 3 | `[ ]` |
 | F4 | O drop agrupa em vez de recusar | especialista-apresentacao | 3 | `[ ]` |
 | F5 | Marcação de problema no próprio nó | especialista-apresentacao | 4 | `[ ]` |
@@ -589,12 +589,22 @@ _Ponto de partida do QA. Em homologação, editor web no Chrome._
 
 ## 11. Definition of Done
 
+> **O DoD é a cancela do plano — enquanto ele não fecha, a feature não está pronta.**
+> Cada linha abaixo é verificável: responde *como eu provo que isto está feito*.
+
 - `flutter analyze` verde no workspace; `dart test` / `flutter test -r compact`
   existentes passando.
 - `DropRefusal.noSlotAvailable` **não existe mais** no workspace, e há teste de
   invariante varrendo o catálogo provando que nenhum tipo como raiz produz gesto sem
   destino.
-- E2E manual da §10 atestado pelo dev humano.
+- **E2E da §10 executado e atestado pelo dev humano.** O QA instrumenta o script
+  (`instrumentar-e2e`), o humano confere os prints, a evidência fica em
+  `evidencias/rodada_MM/`. Roda contra a **UI real em homologação**, não `localhost`
+  (lição do item 9g). O roteiro só conta como cumprido se os passos **4** (um único
+  `Ctrl+Z`), **6** (o `Ctrl+G` sem o Chrome reagir, e o mesmo `Ctrl+G` inerte dentro de
+  campo de texto), **9** (marcação de erro visível **na árvore e no canvas**, não só no
+  rodapé) e **11** (o conteúdo reabre após reload) tiverem print próprio — são os quatro
+  que provam o que a feature promete; o resto é caminho feliz.
 - Bateria da F7 escrita **depois** do E2E.
 - Docs vivas nesta pasta: `final_report.md` ao fechar e `variance_report.md`
   (já aberto, com o **VR-15-01**; desvios novos entram como `VR-15-NN`).
