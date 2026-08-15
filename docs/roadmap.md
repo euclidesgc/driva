@@ -2,7 +2,7 @@
 
 Rastreamento vivo do que está **feito**, **em andamento** e **por fazer**. A lista está ordenada **por dependência**: o que vem antes destrava o que vem depois. Cada item traz, entre parênteses, o número original em `docs/03-melhorias/` para rastreabilidade.
 
-**Legenda:** `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída.
+**Legenda:** `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída · ⚠️ **precisa de refinamento** (feature registrada a partir de conversa com o humano; ainda **sem discovery** — não entra em implementação antes de specs/prd).
 
 > **Documento vivo.** Mantido atualizado pela IA a cada fechamento de trabalho (junto da faxina de branches): marca o item entregue como `[x]`, o item da vez como `[-]`, e — quando surgem features novas — reescreve o texto para dar clareza e **reordena** para o ponto de precedência correto. Ver `CLAUDE.md` › _Método de trabalho_.
 
@@ -38,6 +38,7 @@ _Depende só do editor atual; independente de backend e de categorias._
 
 - `[x]` **8e. Mover widgets no mock + barra de status de problemas.** _(surgiu do uso; docs/12)_ Todo nó do canvas virou origem e destino de arraste, e a árvore ganhou **frestas de inserção** entre as linhas (posição exata na lista de filhos, inclusive a primeira) — reorganizar deixa de exigir excluir e remontar. `resolveDrop` (kernel) é a regra única dos dois painéis: alvo que não recebe filhos não cancela o gesto, o encaixe **sobe** para o primeiro ancestral que recebe. O rodapé do editor lista os problemas do documento (`diagnoseTree`: `expanded`/`spacer` fora de flex = erro; embrulho de slot único vazio = aviso), com atalho para selecionar o nó culpado, e mostra o recado do último arraste desviado. De carona: `spacer` fora de flex parou de derrubar o canvas (era `ParentDataWidget` solto).
 - `[x]` **8f. Área segura obrigatória em toda página.** _(surgiu do uso; docs/12)_ `SafeArea` vira **chrome da página** (`ContentSpec.safeArea`), fora do catálogo — não é nó, não entra na paleta nem na árvore. Editada no Inspector quando nenhum widget está selecionado (ou pela linha "Página · área segura" no topo da árvore), com `enabled`, os quatro lados, `minimum` e `maintainBottomViewPadding`. O mock passou a injetar o recuo real do dispositivo no `MediaQuery`, então o preview mostra onde o conteúdo de fato começa. Mapa vazio = tudo no padrão; nenhum spec salvo precisou migrar.
+- `[x]` **8g. Histórico de edição, duplicar/copiar/colar e atalhos de teclado.** _(surgiu do uso; PRs #111–#116)_ O `EditorCubit` ganhou pilha de **desfazer/refazer**, com os botões no topo global (Ctrl+Z / Ctrl+Shift+Z). `cloneWithNewIds` (kernel) copia uma subárvore inteira gerando ids novos — base de **duplicar (Ctrl+D)**, **copiar (Ctrl+C)** e **colar (Ctrl+V)**. Os atalhos têm **guarda de foco** (não sequestram a tecla quando o cursor está num campo de texto do Inspector). Bateria de testes cobrindo histórico, clonagem e atalhos.
 
 ## Marco 2 — Catálogo de widgets (track contínuo)
 
@@ -65,14 +66,59 @@ _Track interdependente que exige mudança de backend antes do frontend. **Projet
 - `[x]` **16c. AppBar global de duas faixas + breadcrumb (via `ShellRoute`).** _(polimento de navegação; surgiu do uso; PR #71)_ Um chassi único no topo de **todas** as telas — faixa de logo/ações (56px) + faixa fina de **breadcrumb** discreto (30px) — substitui os quatro topos que cada página montava à mão (`EditorTopBar`, `_ProjectDetailHeader`, `_ArchivedLinkButton` deletados). As 4 rotas passam a viver num `ShellRoute` (usa a `rootNavigatorKey` já reservada). Breadcrumb reflete a hierarquia (`Projetos › projeto › conteúdo`), cada nível clicável por rota nomeada. Mecanismo de **slot** em `core/widgets/app_shell/`: a página publica crumbs/ações como **dados** + closures no `AppShellController`; o shell nunca lê cubit (acoplamento invertido → preserva o isolamento dos módulos e evita `ProviderNotFound` no topo). Publicação lifecycle-safe (pós-frame + guarda de posse). Editor mostra Salvar/Publish/status no topo global. 4 widget tests do shell (pegaram 2 bugs no caminho: ancestral `Material` faltando e `ChangeNotifier` pós-dispose).
 
 > **Cobertura do "fluxo inteiro do protótipo".** Entregue em 3 fatias (`docs/08.../plan.md`): **P1** = item 10 (backend + editor data/domain, fatia vertical); **P2** = a **tela do projeto** (`/projects/:id`: árvore + painel + forms + `ProjectScope` por projeto) — fiel ao `.dc.html` do handoff (`docs/web-prototipe/design-handoff-projetos/`), cobre a UI dos itens 11–14; **P3** = contadores (`_count`) nos cards e na árvore, nome do projeto no header, mover conteúdo. Restam só **UI-only**: toggle de ordenação (15) e scroll infinito (16). Projetos → Categorias → Conteúdos → Construtor **navegável fim-a-fim**.
-- `[ ]` **17. Offline-first na tela de conteúdos.** _(item 8)_ Cache local; atualiza apenas ao salvar. Depende da lista já com filtro/busca/paginação (itens 13–16) e reaproveita a persistência do item 3.
-- `[ ]` **18. Pull-to-refresh que refaz o cache.** _(item 9)_ Puxar para atualizar força a ida à API e reconstrói o cache local. Depende do item 17.
+> **Itens 17 e 18 saíram deste marco.** Offline-first e pull-to-refresh **não são do editor** — são do **SDK do cliente** que consome os specs (o app do cliente é que precisa abrir sem rede e revalidar). Foram realocados para o **Marco 5 — SDK cliente Flutter**, onde estão descritos com o escopo correto.
 
-## Marco 4 — Componentes (widgets reutilizáveis)
+## Marco 4 — Loop SDUI fechado (publicação + consumo real)
 
-_A maior frente; depende do construtor maduro (Marcos 1–2) e das categorias (Marco 3)._
+_**O marco da vez.** Até aqui o driva só provou o lado do **editor**: o spec nasce, é salvo e é desenhado no mock — sempre dentro do mesmo app Flutter Web. O renderer (`sdui_flutter`) **nunca renderizou um spec vindo da API dentro de um app de cliente**, que é a tese do produto. Este marco fecha o círculo com a menor fatia possível: leitura pública por slug + um app real consumindo. Não é o I4 inteiro (workflow, papéis, versionamento e agendamento continuam fora); é a prova de que o loop funciona, e o insumo que diz quais buracos do kernel atacar primeiro (ações, binding, ciclo de vida)._
+
+- `[-]` **23. Publicação mínima: leitura pública do conteúdo por slug.** Endpoint de leitura para **consumo** (não para o editor), devolvendo o spec pronto para renderizar a partir de `projectId` + `slug`. Sem máquina de estados por ora — "publicado" é o que está salvo; a trava de publicação de verdade é o item 40. Precede os itens 24–25.
+- `[ ]` **24. App de demonstração consumindo o spec publicado (`apps/driva_demo_app`).** App Flutter mínimo (mobile), sem regra de negócio: busca o spec por slug na API de homologação e monta com `SduiView`. É o **primeiro consumidor externo** do renderer e o embrião do SDK (item 26). Depende do item 23.
+- `[ ]` **25. Relatório do que o consumo revelou.** O que o app real cobra do kernel e o editor esconde: `events` que precisam **executar** (hoje são só dado), binding sem fonte de dados, tamanho/latência do payload, versionamento do `specVersion` no cliente. Vira insumo priorizado dos Marcos 5–7. Depende do item 24.
+
+## Marco 5 — SDK cliente Flutter (`driva_sdk`)
+
+_A forma **empacotada** de consumir o driva: em vez de cada app do cliente escrever seu próprio fetch + cache + renderer, ele adiciona um package e aponta para projeto/conteúdo. Absorve os antigos itens 17 e 18, que estavam erradamente no editor. Depende do Marco 4 (o app demo é quem descobre a API certa do SDK)._
+
+> ⚠️ **Todo este marco precisa de refinamento** (discovery + specs/prd antes de qualquer código).
+
+- `[ ]` **26. Package `driva_sdk` — fachada de consumo.** Novo package Flutter no workspace: configuração (base URL, projeto, chave de acesso, ambiente), cliente HTTP, resolução de conteúdo por slug, cache e um widget de entrada (`DrivaContentView`) que entrega a tela pronta. Depende de `sdui_core`/`sdui_flutter` e do item 24. ⚠️ refinar.
+- `[ ]` **17. Offline-first no SDK (era "na tela de conteúdos").** _(item 8 original)_ O app do cliente **abre sem rede**: o SDK guarda o spec localmente na primeira carga e serve do cache no boot, revalidando em segundo plano. Depende do item 26. ⚠️ refinar.
+- `[ ]` **18. Refresh do cache sob demanda (pull-to-refresh).** _(item 9 original)_ API do SDK para forçar a ida à origem e reconstruir o cache, plugável no pull-to-refresh do app do cliente. Depende do item 17. ⚠️ refinar.
+- `[ ]` **27. Política de atualização e invalidação.** Como o app sabe que o spec mudou: TTL, `ETag`/`If-None-Match`, versão do conteúdo, e o que fazer quando o `specVersion` do servidor é mais novo que o renderer embarcado (degradar com elegância, nunca tela branca). Depende do item 26. ⚠️ refinar.
+
+## Marco 6 — Dados, variáveis remotas, testes A/B e ciclo de vida
+
+_Onde o driva deixa de servir **telas estáticas** e passa a servir **telas com comportamento**: valores que mudam sem republicar, dados vindos de API e pontos definidos no tempo para disparar coisas. É a frente mais complexa do produto — a referência declarada é o **ConfigCat** (variáveis remotas) e o **Firebase A/B Testing** (experimentos). Depende do runtime existir (Marcos 4–5): variável e fetch só valem se alguém os resolve no cliente._
+
+> ⚠️ **Todo este marco precisa de refinamento.** São features com decisão de produto pesada (unidade de sorteio, consistência de variante, cache × frescor, segurança de chamada autenticada a partir do app). Nada aqui entra em implementação antes de discovery + specs/prd + revisão do CISO.
+
+- `[ ]` **28. Variáveis remotas por projeto e por conteúdo.** Chave/valor **tipado** (bool, número, texto, JSON) com valor padrão, definidas no editor e entregues ao cliente junto do spec. Escopo em dois níveis: variável do **projeto** (vale para tudo) e do **conteúdo** (sobrescreve). É a base dos itens 29–30. ⚠️ refinar.
+- `[ ]` **29. Variável como valor de propriedade.** Qualquer prop `isBindable` passa a aceitar uma variável como origem (na mesma mecânica de `{{...}}` já existente no Inspector), resolvida em runtime pelo SDK; o editor mostra o **valor padrão** no preview e sinaliza que aquilo é dinâmico. Depende dos itens 28 e 26. ⚠️ refinar.
+- `[ ]` **30. Testes A/B sobre as variáveis.** Experimento = conjunto de **variantes** de uma ou mais variáveis + regra de distribuição + público-alvo. O ponto difícil não é sortear: é a **consistência** (o mesmo usuário vê sempre a mesma variante, inclusive offline e entre sessões), a **unidade de sorteio** (usuário? dispositivo? instalação?), a convivência de experimentos simultâneos e a coleta de métrica que diz quem ganhou. Depende do item 28. ⚠️ refinar — provavelmente vira um marco próprio no refinamento.
+- `[ ]` **31. Fontes de dados: API como origem de propriedades.** Declarar no editor uma chamada HTTP (URL, método, cabeçalhos, auth) e **mapear** a resposta para variáveis/propriedades, para que o conteúdo exiba dado real (lista de produtos, nome do usuário, saldo). Inclui o que fazer enquanto carrega e quando falha. Depende do item 28 (o resultado aterrissa em variável). ⚠️ refinar — **CISO obrigatório** (segredo de API nunca pode descer para o app).
+- `[ ]` **32. Gatilhos e ciclos de vida.** Os "lugares" onde algo dispara. Espelhar o modelo mental do Flutter, em três escopos: **app** (ao iniciar), **projeto**, **conteúdo** (ao abrir, antes do build, depois do build, ao fechar) e **componente** (init, dispose). Um gatilho amarra um evento a uma ação (item 33) — por exemplo, "ao abrir o conteúdo, buscar a API X e preencher a variável Y". Depende dos itens 31 e 33. ⚠️ refinar.
+- `[ ]` **33. Runtime de ações no cliente.** Hoje `events` é **dado inerte** (o editor não executa, por regra). Para o app do cliente, alguém precisa executar: navegar para outro conteúdo, chamar uma fonte de dados, escrever numa variável, abrir URL, mostrar aviso. Aqui nasce o catálogo de ações e seu executor no SDK — a peça que o item 25 vai cobrar primeiro. Depende do item 26. ⚠️ refinar.
+
+## Marco 7 — Componentes (widgets reutilizáveis)
+
+_A maior frente do **editor**; depende do construtor maduro (Marcos 1–2) e das categorias (Marco 3)._
 
 - `[ ]` **19. Home passa a exibir Conteúdos e Componentes.** _(item 17)_ Divisão de nível superior entre as duas coisas. Depende da lista de conteúdos madura.
 - `[ ]` **20. Componente como widget reutilizável, com construtor próprio.** _(item 18)_ Mesma premissa de Conteúdo; um componente é um widget que poderá ser usado como conteúdo. Depende do item 19.
 - `[ ]` **21. Diferenciar construtor de Componente e de Conteúdo; nova aba "Componentes" no editor.** _(item 19)_ Componentes criados pelo usuário aparecem numa aba "Componentes", ao lado de Widgets e Árvore, prontos para uso no construtor de conteúdo. Depende do item 20 e das abas do editor.
 - `[ ]` **22. Lista de componentes no padrão da lista de Widgets.** _(item 20)_ Ao salvar um componente, escolher/criar categoria e definir ícone ou imagem, para ele aparecer bonito na lista como os widgets. Depende do item 20 e da infra de categorias (itens 11/14).
+- `[ ]` **34. Área exclusiva de construção de componentes personalizados.** Um espaço dedicado (não o construtor de conteúdo com um chapéu diferente) para criar o componente, definir suas **propriedades públicas** (o que quem usa o componente poderá configurar), pré-visualizar em isolamento e publicá-lo na lista de componentes. Depende dos itens 20–22. ⚠️ refinar — a modelagem das props públicas (o "contrato" do componente) é a decisão central.
+
+## Marco 8 — SaaS: contas, acesso e integrações
+
+_O driva como **produto multi-cliente**. Hoje o tenant vem do header `x-project-id` **sem autenticação** (fallback `"default"`) — a estrutura de isolamento existe, a cancela não. Débito registrado desde o `docs/02-conteudos/plan.md` e reafirmado no 9d; **é pré-requisito de qualquer exposição pública real**, e as chaves de acesso (item 37) são pré-requisito do SDK (Marco 5) em produção._
+
+> ⚠️ **Todo este marco precisa de refinamento**, com **CISO obrigatório** em cada fase.
+
+- `[ ]` **35. Autenticação e contas.** Login no editor, sessão, recuperação de senha; amarrar o tenant à identidade autenticada em vez do header cru. Precede todo o resto deste marco. ⚠️ refinar.
+- `[ ]` **36. Organizações, usuários e permissões (RBAC).** Convidar gente para uma organização, papéis (quem edita, quem só vê, quem publica) e o isolamento sendo cobrado em toda query. Depende do item 35. ⚠️ refinar.
+- `[ ]` **37. Chaves de acesso (API keys) para o SDK.** Chave por projeto e por ambiente, com escopo (leitura de conteúdo publicado), rotação e revogação — é o que o app do cliente apresenta ao consumir. Depende do item 35; destrava o Marco 5 em produção. ⚠️ refinar.
+- `[ ]` **38. Área de administração.** As telas onde tudo isso é operado: usuários e convites, papéis, chaves, ambientes, webhooks e auditoria do que mudou. Depende dos itens 36–37. ⚠️ refinar.
+- `[ ]` **39. Webhooks de integração.** Avisar sistemas de fora quando algo acontece no driva (conteúdo publicado, variável alterada, experimento iniciado/encerrado), com entrega assinada, reentrega em falha e log do que foi enviado. Depende do item 35. ⚠️ refinar.
+- `[ ]` **40. Publicação de verdade: rascunho → publicado, com versionamento.** O que o item 23 deliberadamente adiou: estados do conteúdo, histórico de versões publicadas, promover/reverter e (mais tarde) agendamento. Era o "I4" das specs originais. Depende dos itens 23 e 35. ⚠️ refinar.
