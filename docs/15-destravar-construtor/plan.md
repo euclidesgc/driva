@@ -20,7 +20,7 @@ viraram decisões travadas (§4). Nada bloqueia a execução.
 | F2 | Comando "Envolver em Column/Row" + `Ctrl+G` | especialista-apresentacao | 2 | `[x]` |
 | F3 | `DropRequiresWrap` no kernel | especialista-dominio | 3 | `[x]` |
 | F4 | O drop agrupa em vez de recusar | especialista-apresentacao | 3 | `[x]` |
-| F5 | Marcação de problema no próprio nó | especialista-apresentacao | 4 | `[ ]` |
+| F5 | Marcação de problema no próprio nó | especialista-apresentacao | 4 | `[x]` |
 | F6 | Rótulo honesto no excluir da raiz | especialista-apresentacao | 5 | `[ ]` |
 | F7 | Bateria automatizada (por último) | qa | 6 | `[ ]` |
 
@@ -423,6 +423,28 @@ status: `status_bar_area.dart:15` é o **único** consumidor de `diagnostics`; n
    (`canvas_panel_golden_test.dart` verde sem regravar).
 5. `editor_perf_test.dart` continua dentro do orçamento (R3).
 
+**Desvios da implementação:** ver **VR-15-02** (critério de bypass de `SelectableNode`
+trocado de `node.type` para `built is Expanded`/`Spacer`) e **VR-15-03** (o helper de
+agrupamento saiu como `widgets/node_diagnostics_summary.dart`, não como VM de área) em
+`variance_report.md`.
+
+**Limitações conhecidas do E2E (não são bug — registradas para o dev humano não as
+reportar como regressão na rodada):**
+
+- Um **aviso** de `emptySingleSlot` num `expanded` **válido** (dentro de `Row`/`Column`,
+  sem filho) marca **na árvore mas não no canvas** — é o mesmo `expanded` que continua
+  bypassado pelo `SelectableNode` (`_isRawFlexParentDataWidget`) para não derrubar a
+  árvore por `ParentDataWidget`; nesse caso específico não há onde pendurar o selo sem
+  reintroduzir o crash.
+- O selo de diagnóstico e o `NodeTag` compartilham a mesma linha (`top: -AppSpacing.s18`,
+  um à esquerda e outro à direita) e podem se sobrepor visualmente num nó estreito.
+- O selo de um nó de tamanho zero (ex.: `spacer` fora do flex, que degrada para
+  `SizedBox.shrink()`) flutua sobre o widget vizinho, porque não há área própria para
+  ancorar.
+- **Efeito colateral da VR-15-02:** um `expanded`/`spacer` solto fora de `Row`/`Column`
+  agora é arrastável **pelo canvas** (antes só pela árvore) — coerente com o resto do
+  editor, mas é mudança de comportamento além de "marcar o problema", e o dev vai notar.
+
 ### F6 — Higiene: excluir a raiz apaga a página · **[0-dep; ∥ com tudo]** · **[sub-agente: especialista-apresentacao]**
 
 - **`$E widgets/inspector/inspector_header.dart:57-63`** — quando o nó é a raiz,
@@ -455,6 +477,18 @@ status: `status_bar_area.dart:15` é o **único** consumidor de `diagnostics`; n
   `addNode` sobre raiz folha; **`Ctrl+Z` desfaz wrap+drop numa única entrada** (D4);
   notice correta.
 - Widget test — botão de envolver no `InspectorHeader`; marcação de erro na `TreeRow`.
+
+**Pendências identificadas na revisão da F5 (QA e CISO, 2026-08-15) — registradas aqui
+para não se perderem, cobertura entra só na F7:**
+
+- `selectable_node_test.dart` — caso novo: `expanded`/`spacer` **fora** de `Row`/`Column`
+  é embrulhado, selecionável e recebe a marcação de erro sem lançar exceção (efeito da
+  VR-15-02). Mantém `selectable_node_test.dart:41` como guard do caso **dentro** do flex
+  (`built is Expanded` continua `true` ali, bypass continua ativo, sem crash).
+- `canvas_panel_golden_test.dart` — golden novo com um documento que **tenha**
+  diagnóstico (ex.: `expanded` fora de `Row`/`Column`). Hoje nenhum golden exercita o
+  caminho novo do `SelectableNodeSurface`; o selo pode regredir em posição, cor ou ícone
+  sem quebrar nenhum teste existente.
 
 **Pendências identificadas na revisão do PR3 (QA, 2026-08-15) — registradas aqui para
 não se perderem, cobertura entra só na F7:**

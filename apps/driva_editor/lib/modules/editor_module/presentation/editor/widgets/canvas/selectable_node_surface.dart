@@ -1,8 +1,11 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/device_mock_colors.dart';
 import 'package:driva_editor/core/widgets/painters/painters.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/node_diagnostic_badge.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/node_tag.dart';
 import 'package:flutter/material.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 /// A pele do nó no canvas: contorno de seleção/hover/alvo de drop e a etiqueta
 /// com o rótulo. Separado do `SelectableNode` porque o `Draggable` precisa da
@@ -14,6 +17,7 @@ class SelectableNodeSurface extends StatelessWidget {
     required this.isSelected,
     required this.isHovered,
     required this.isDropTarget,
+    required this.diagnostics,
     super.key,
   });
 
@@ -22,6 +26,10 @@ class SelectableNodeSurface extends StatelessWidget {
   final bool isSelected;
   final bool isHovered;
   final bool isDropTarget;
+
+  /// Aditivo aos quatro ramos abaixo, nunca um quinto ramo: senão a marcação
+  /// some justamente quando o nó está selecionado.
+  final List<SpecDiagnostic> diagnostics;
 
   static final Color _hoverColor = AppTheme.primary.withValues(alpha: 0.4);
 
@@ -67,9 +75,15 @@ class SelectableNodeSurface extends StatelessWidget {
           ),
         if (isSelected || isHovered || isDropTarget)
           Positioned(
-            top: -18,
+            top: -AppSpacing.s18,
             left: 0,
             child: NodeTag(label: label, isSelected: isSelected),
+          ),
+        if (diagnostics.isNotEmpty)
+          Positioned(
+            top: -AppSpacing.s18,
+            right: 0,
+            child: NodeDiagnosticBadge(diagnostics: diagnostics),
           ),
       ],
     );

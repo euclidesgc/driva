@@ -29,6 +29,7 @@ void main() {
         body: WidgetTreePanel(
           root: root,
           selectedNodeId: selectedNodeId,
+          nodeDiagnostics: const {},
           onSelect: onSelect ?? (_) {},
           onRemove: onRemove ?? (_) {},
           onDropNew: (_, _) {},

@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/empty_preview.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -36,6 +37,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
 
   late ContentSpec _rendered;
   String? _selectedNodeId;
+  Map<String, List<SpecDiagnostic>> _nodeDiagnostics = const {};
 
   String? _hoveredNodeId;
   Timer? _cooldown;
@@ -47,6 +49,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
     final state = _cubit.state as EditorReady;
     _rendered = state.document;
     _selectedNodeId = state.selectedNodeId;
+    _nodeDiagnostics = diagnosticsByNode(diagnoseTree(_rendered.root));
     _subscription = _cubit.stream.listen(_onState);
   }
 
@@ -69,7 +72,10 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
   void _applyDocument() {
     final state = _cubit.state;
     if (state is! EditorReady || !mounted) return;
-    setState(() => _rendered = state.document);
+    setState(() {
+      _rendered = state.document;
+      _nodeDiagnostics = diagnosticsByNode(diagnoseTree(_rendered.root));
+    });
     _pendingRender = false;
     _cooldown = Timer(_throttle, () {
       if (_pendingRender && mounted) _applyDocument();
@@ -109,6 +115,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                   built: built,
                   isSelected: node.id == _selectedNodeId,
                   isHovered: node.id == _hoveredNodeId,
+                  diagnostics: _nodeDiagnostics[node.id] ?? const [],
                   onSelect: () => widget.onSelect(node.id),
                   onAccept: (payload) => widget.onDropOn(payload, node.id),
                   onHover: (hovering) {
