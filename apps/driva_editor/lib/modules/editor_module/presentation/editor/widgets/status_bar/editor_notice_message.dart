@@ -8,14 +8,19 @@ abstract final class EditorNoticeMessage {
     final label = subject == null
         ? null
         : descriptorFor(subject)?.label ?? subject;
+    final wrapper = notice.wrapperType;
+    final wrapperLabel = wrapper == null
+        ? null
+        : descriptorFor(wrapper)?.label ?? wrapper;
     return switch (notice.kind) {
       EditorNoticeKind.dropRedirected =>
         '${label ?? 'O destino'} não recebe esse widget — '
             'ele foi encaixado no container acima.',
       EditorNoticeKind.dropCycle =>
         'Um widget não pode ser movido para dentro de si mesmo.',
-      EditorNoticeKind.dropNoSlot =>
-        'Não há onde encaixar: nenhum widget acima do destino aceita filhos.',
+      EditorNoticeKind.dropWrapped =>
+        '${label ?? 'O destino'} não recebia esse widget — os dois foram '
+            'agrupados numa ${wrapperLabel ?? 'Column'}.',
       EditorNoticeKind.dropUnknownTarget =>
         'O destino do arraste não existe mais.',
       EditorNoticeKind.rootNotMovable =>
@@ -26,8 +31,7 @@ abstract final class EditorNoticeMessage {
         '${label ?? 'Widget'} copiado — cole com Ctrl+V.',
       EditorNoticeKind.clipboardEmpty =>
         'Nada para colar: copie um widget antes, com Ctrl+C.',
-      EditorNoticeKind.nodeWrapped =>
-        'Envolvido numa ${label ?? 'Column'}.',
+      EditorNoticeKind.nodeWrapped => 'Envolvido numa ${label ?? 'Column'}.',
     };
   }
 }
