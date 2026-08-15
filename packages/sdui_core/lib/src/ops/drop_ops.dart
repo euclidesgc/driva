@@ -5,7 +5,7 @@ import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
 import 'package:sdui_core/src/ops/tree_ops.dart';
 
-enum DropRefusal { unknownTarget, cycle, noSlotAvailable }
+enum DropRefusal { unknownTarget, cycle }
 
 /// Onde um drop realmente encaixa, dado o alvo apontado pelo usuário.
 ///
@@ -45,6 +45,22 @@ final class DropRefused extends DropResolution {
   List<Object?> get props => [refusal];
 }
 
+/// Nenhum ancestral do alvo aceita filhos: a cadeia até a raiz esgotou slots
+/// livres. Todo caso assim é resolvível envolvendo [wrapTargetId] num
+/// [wrapperType] — não existe recusa genuína aqui (ver corolário do plano).
+final class DropRequiresWrap extends DropResolution {
+  const DropRequiresWrap({
+    required this.wrapTargetId,
+    required this.wrapperType,
+  });
+
+  final String wrapTargetId;
+  final String wrapperType;
+
+  @override
+  List<Object?> get props => [wrapTargetId, wrapperType];
+}
+
 /// [movingNodeId] null = nó novo vindo da paleta.
 DropResolution resolveDrop(
   SduiNode root,
@@ -73,7 +89,9 @@ DropResolution resolveDrop(
   var rejected = target;
   while (true) {
     final parent = findParent(root, rejected.id);
-    if (parent == null) return const DropRefused(DropRefusal.noSlotAvailable);
+    if (parent == null) {
+      return DropRequiresWrap(wrapTargetId: target.id, wrapperType: 'column');
+    }
     if (_accepts(parent, movingNodeId)) {
       final position = parent.children.indexWhere((c) => c.id == rejected.id);
       return DropAccepted(

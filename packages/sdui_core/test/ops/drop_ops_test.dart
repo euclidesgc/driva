@@ -70,11 +70,30 @@ void main() {
       );
     });
 
-    test('recusa quando nenhum ancestral aceita filhos (raiz folha)', () {
-      const leafRoot = SduiNode(id: 'só', type: 'text');
+    test(
+      'pede envolver quando nenhum ancestral aceita filhos (raiz folha)',
+      () {
+        const leafRoot = SduiNode(id: 'só', type: 'text');
+        expect(
+          resolveDrop(leafRoot, 'só'),
+          const DropRequiresWrap(wrapTargetId: 'só', wrapperType: 'column'),
+        );
+      },
+    );
+
+    test('pede envolver o alvo apontado, não o topo da cadeia esgotada', () {
+      const chain = SduiNode(
+        id: 'root',
+        type: 'card',
+        child: SduiNode(
+          id: 'mid',
+          type: 'padding',
+          child: SduiNode(id: 'leaf', type: 'divider'),
+        ),
+      );
       expect(
-        resolveDrop(leafRoot, 'só'),
-        const DropRefused(DropRefusal.noSlotAvailable),
+        resolveDrop(chain, 'leaf'),
+        const DropRequiresWrap(wrapTargetId: 'leaf', wrapperType: 'column'),
       );
     });
 
@@ -97,16 +116,46 @@ void main() {
       );
     });
 
-    test('o encaixe resolvido nunca produz documento que o schema recusa', () {
-      for (final targetId in ['root', 'card', 'inner', 'txt', 'container']) {
-        final resolution = resolveDrop(tree, targetId);
-        if (resolution is! DropAccepted) continue;
-        final attached = attachNode(
-          tree,
-          resolution.parentId,
-          resolution.index,
-          defaultNode('text', id: 'novo'),
+    test('nenhum tipo do catálogo como raiz produz gesto sem destino', () {
+      for (final type in widgetCatalog.keys) {
+        final leafRoot = defaultNode(type, id: 'raiz');
+        final resolution = resolveDrop(leafRoot, 'raiz');
+        expect(
+          resolution,
+          isNot(isA<DropRefused>()),
+          reason: '$type como raiz recusou o drop em vez de resolver',
         );
+      }
+    });
+
+    test('o encaixe resolvido nunca produz documento que o schema recusa', () {
+      void assertValidAfterResolve(SduiNode base, String targetId) {
+        final resolution = resolveDrop(base, targetId);
+        SduiNode? attached;
+        if (resolution is DropAccepted) {
+          attached = attachNode(
+            base,
+            resolution.parentId,
+            resolution.index,
+            defaultNode('text', id: 'novo'),
+          );
+        } else if (resolution is DropRequiresWrap) {
+          final wrapped = wrapNode(
+            base,
+            resolution.wrapTargetId,
+            resolution.wrapperType,
+            newId: 'wrapper_$targetId',
+          );
+          expect(wrapped, isNotNull, reason: 'alvo $targetId');
+          attached = attachNode(
+            wrapped!,
+            'wrapper_$targetId',
+            1,
+            defaultNode('text', id: 'novo'),
+          );
+        } else {
+          return;
+        }
         expect(attached, isNotNull, reason: 'alvo $targetId');
         final json = {
           'specVersion': kSpecVersion,
@@ -122,6 +171,13 @@ void main() {
           reason: 'alvo $targetId gerou documento inválido',
         );
       }
+
+      for (final targetId in ['root', 'card', 'inner', 'txt', 'container']) {
+        assertValidAfterResolve(tree, targetId);
+      }
+
+      const leafRoot = SduiNode(id: 'só', type: 'text');
+      assertValidAfterResolve(leafRoot, 'só');
     });
   });
 }
