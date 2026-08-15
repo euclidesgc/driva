@@ -19,9 +19,25 @@ motivo está na §8._
 **Plano fechado em 2026-08-15** — as quatro perguntas foram respondidas pelo humano (§9) e
 viraram decisões travadas (§4). Nada bloqueia a execução.
 
+**Rodada 1 da F1 reprovada pelo QA (2026-08-15).** Três bloqueios; o de plano era o **B1** —
+o aceite 3 exigia um estado "carregando" que o `loadingBuilder` **não produz no Flutter
+Web**. Não foi enfraquecido: o mecanismo virou **`frameBuilder`** (**D12**), o aceite 3 foi
+reescrito com como se verifica, e dois aceites mal redigidos (7 e 8) foram corrigidos.
+
+**Rodada 2 — código aprovado pelo QA; o plano é que devia à fase (2026-08-15).** Quatro
+ajustes, todos já refletidos aqui: **D13** registra o `showDiagnostics` que o CISO exigiu na
+F1 e que o plano desconhecia (a §3.1 dizia haver **um** hook quando já havia **dois** — quem
+pegasse a F3 o reinventaria); **D14** faz o Gate 4 do CI varrer o `sdui_flutter`, porque a D7
+tornou falsa a isenção antiga; **D15** reescreve o aceite do `width: 0` para medir o fim do
+silêncio, não a visibilidade de 1px; **D16** registra o intervalo sem teste automático do
+contrato da D12. A lista de arquivos da §5›F1 foi completada.
+
+**Leitura obrigatória para quem escrever aceite daqui em diante: §8, item 13.** Três aceites
+seguidos passaram no papel e eram falsos na tela — é padrão, não acidente.
+
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
-| F1 | Os três estados ficam distintos + tokens + clamp | especialista-infra | 1 (`bugfix/*`) | `[ ]` |
+| F1 | Os três estados ficam distintos + tokens + clamp | especialista-infra | 1 (`bugfix/*`) | `[-]` |
 | F2 | **Backend: proxy de mídia + gate CISO** | especialista-infra + **ciso** | 2 (`feature/*`) | `[ ]` |
 | F3 | Renderer ganha o resolver; o editor injeta o proxy | especialista-infra | 3 (`feature/*`) | `[ ]` |
 | F4 | Catálogo: `image` abrangente (Incremento 4 do item 9) | especialista-dominio + especialista-infra | 4 (`feature/*`) | `[ ]` |
@@ -91,6 +107,7 @@ return Image.network(src, width: width, height: height, fit: boxFitFrom(p['fit']
 
 **O `errorBuilder` (`:26-30`) desenha exatamente o mesmo quadrado cinza do caso "sem `src`"
 (`:15-19`)** — mesmo `Color(0x22000000)`, mesmo tamanho, mesma ausência de texto. E não há
+estado de carregamento nenhum — nem `frameBuilder` (o mecanismo certo, D12) nem
 `loadingBuilder`. Do ponto de vista do usuário, "falhou", "está carregando" e "não preenchi"
 são **o mesmo pixel**. Ele digita a URL, o quadrado cinza continua lá, e a conclusão
 inevitável é "não está exibindo".
@@ -171,8 +188,9 @@ Qualquer que tenha sido o caso, sai explicado na tela na F1 e resolvido na F3.
 | O que | Onde (atual) | Uso |
 | --- | --- | --- |
 | `buildImage` + registro | `sdui_flutter/lib/src/builders/image.dart:8`, `default_registry.dart:36` | Alvo de F1, F3 e F4 |
-| `SduiRenderer` (`registry`, `onAction`, `nodeWrapper`) | `sdui_flutter/lib/src/renderer.dart:11-17` | **Onde o resolver da F3 entra** — o padrão de hook opcional já existe (`nodeWrapper`) |
-| `SduiView` + `SduiView.content` repassando os hooks | `sdui_flutter/lib/src/sdui_view.dart:9-31,47-51` | Os dois construtores precisam repassar o resolver novo |
+| `SduiRenderer` — hooks opcionais: `onAction`, `nodeWrapper` e **`showDiagnostics`** (`:17,28`, entregue na F1) | `sdui_flutter/lib/src/renderer.dart` | **Onde o resolver da F3 entra.** ⚠️ **São dois hooks, não um:** o `showDiagnostics` já existe e é o precedente mais próximo do resolver (mesma fronteira editor × app cliente — D13). **Não reinventar o mecanismo** |
+| `SduiView` + `SduiView.content` repassando **os três** hooks, `showDiagnostics` com default `false` (`:17,26,34,47,57`) | `sdui_flutter/lib/src/sdui_view.dart` | Os dois construtores já repassam; o resolver da F3 entra **no mesmo lugar e no mesmo formato** |
+| `preview_surface.dart:104` liga `showDiagnostics: true` — o **único** ponto do repo que o liga | `apps/driva_editor/.../canvas/preview_surface.dart` | **É aqui que o editor injeta o resolver da F3.** Um ponto, um arquivo |
 | `SduiDimensionBox` (px / % / "preenche") | `sdui_flutter/lib/src/layout/sdui_dimension_box.dart:13` | O que `image` passa a usar na F4 (D3) |
 | `buildContainer` já usa `SduiDimensionBox` | `sdui_flutter/lib/src/builders/container.dart:29-35` | **O gabarito literal da F4** |
 | `parseDouble` (**só `num`**), `parseColor`, `parseBorderRadius` | `sdui_flutter/lib/src/parsing/parsers.dart:45,9,79` | `parseDouble:45` é o que **não** entende `"100%"` |
@@ -227,6 +245,10 @@ cor nunca é o único sinal de informação (CLAUDE.md, acessibilidade).
 **A D1 não vira dispensável com o proxy.** O proxy resolve o caso B; **C continua falhando**
 (URL errada continua errada) e D continua vazio. Sem a D1, a F2 trocaria uma falha
 silenciosa por outra.
+
+**⚠️ O estado "carregando" vem do `frameBuilder`, nunca do `loadingBuilder`** — ver D12. O
+`loadingBuilder` não funciona no Flutter Web e usá-lo faz o terceiro estado sumir justamente
+onde o relato do dev mora.
 
 ### D2 — **O proxy de mídia no backend.** O `WebHtmlElementStrategy.fallback` está **descartado**.
 
@@ -375,6 +397,160 @@ Portanto:
 **Consequência para o teste:** o `buildImage` fica testável sem rede e sem backend — o golden
 e o widget test injetam um resolver identidade.
 
+### D12 — **[nova]** O estado "carregando" sai do **`frameBuilder`**. O `loadingBuilder` está **proibido** neste builder.
+
+> **Decidida pelo tech-lead em 2026-08-15**, sobre o bloqueio **B1** levantado pelo QA na
+> revisão da F1. O diagnóstico do QA está correto e a evidência é do SDK, não de opinião.
+
+**O `loadingBuilder` não funciona no Flutter Web.** No SDK **3.38.6**:
+
+- `_network_image_web.dart` › `loadViaDecode()` (`:128-140`) constrói o
+  `MultiFrameImageStreamCompleter` **sem o argumento `chunkEvents:`**, e `_fetchImageBytes`
+  registra só os listeners `load` e `error` do XHR — não há `progress`.
+- `grep -c chunkEvents _network_image_web.dart` = **0**; no `_network_image_io.dart` = **9**.
+  A assimetria é a prova: o caminho mobile emite progresso, o web não emite **nenhum**.
+- Logo `_ImageState._loadingProgress` (`widgets/image.dart:1093`) nasce `null` e **nunca**
+  recebe evento (só `:1227`, dentro do listener de chunk, o atribuiria). O `loadingBuilder`
+  é chamado (`:1409`) sempre com `null`, e a convenção do builder
+  (`if (loadingProgress == null) return child;`) devolve o `RawImage` vazio.
+
+**Resultado se ignorarmos isto:** o `ImageLoadingBox` aparece **só no mobile** — o terceiro
+estado não existe justamente no editor web, que é onde o relato do dev mora. Seria um
+aceite cumprido no papel e falso na tela.
+
+**O `frameBuilder` resolve, e resolve de verdade:**
+
+- É chamado em **todo** build (`widgets/image.dart:1404-1405`), inclusive antes de existir
+  qualquer frame.
+- `_frameNumber` nasce `null` (`:1096`), volta a `null` a cada requisição nova (`:1262`) e só
+  vira `0` quando o **primeiro frame decodificado chega** (`:1219`, dentro de
+  `_handleImageFrame`).
+- Portanto **`frame == null` ⇔ nenhum frame decodificado ainda ⇔ carregando**. O sinal vem da
+  chegada do `ImageInfo`, **não** de `ImageChunkEvent` — e por isso funciona **idêntico em web
+  e mobile**.
+- A própria doc do SDK manda fazer assim (`widgets/image.dart:836-840`): _"for simpler cases
+  such as displaying a placeholder widget that doesn't depend on the loading progress (e.g.
+  static 'loading' text), [frameBuilder] will likely work and not incur as much cost."_
+
+**Custo, registrado:** perdemos a **porcentagem** de progresso — que no web não existia de
+qualquer forma. O estado é binário ("carregando" / "carregada"), que é exatamente o que a D1
+pede: três estados **distinguíveis**, não uma barra de progresso.
+
+**Comportamento correto que não é defeito:** em cache hit o frame chega no primeiro build
+(`_wasSynchronouslyLoaded`, `:1220`) e o estado "carregando" **não pisca**. Isso é desejável —
+e é por isso que o E2E exige throttling de rede para observá-lo (§10 passo 2, DoD item 22).
+
+**Alternativa descartada:** wrapper com estado próprio (`StatefulWidget` ouvindo o
+`ImageStream`). Reimplementaria o que o `_ImageState` já faz, com `didUpdateWidget`,
+`dispose` e ciclo de vida de listener por conta própria — mais código e mais superfície de
+bug para chegar ao mesmo `frame == null`.
+
+**Não há saída pelo `webHtmlElementStrategy`:** a **D2** manda manter o default `never` — o
+humano escolheu o proxy no backend em vez do `fallback`.
+
+### D13 — **[nova]** `showDiagnostics` no `SduiRenderer`: o renderer precisa saber de que lado da fronteira está.
+
+> **Nasceu de achado bloqueante do CISO na F1 (2026-08-15)** e já está implementada. Está
+> registrada aqui **em atraso**, porque a §3.1 dizia que o `nodeWrapper` era _o_ padrão de
+> hook — quem pegasse a F3 leria um plano que desconhecia o segundo hook e o reinventaria.
+
+**O problema.** `sdui_flutter` é **o mesmo renderer dos dois lados**: editor e app publicado.
+O `ImageErrorBox` da D1 mostra o motivo da falha em texto — e `NetworkImageLoadException`
+embute a própria URL na mensagem (`'HTTP request failed, statusCode: $c, $uri'`). Num app
+cliente com URL assinada, isso **vaza a URL para o usuário final**. Omitir só o campo `src`
+não bastaria: o vazamento está dentro do `toString()` da exceção.
+
+**A correção.** `SduiRenderer.showDiagnostics`, **default `false`**, repassado por `SduiView`
+e `SduiView.content` (também default `false`), ligado **em um único ponto do repo**:
+`preview_surface.dart:104`, o canvas do editor. Fora do editor,
+`NetworkImageLoadException` vira `'HTTP $statusCode'` e todo o resto cai num `else` genérico
+que **nunca** toca `.toString()`.
+
+**É a mesma razão da D11**, e por isso as duas andam juntas: o renderer é compartilhado, então
+tudo que é **chrome de autoria** (diagnóstico detalhado, proxy de imagem) entra por hook
+opcional com default seguro — nunca por detecção de ambiente dentro do builder.
+
+**Regra que fica, e vale para a F3:** hook novo no `SduiRenderer` nasce com o default do
+**app cliente**, não o do editor. O editor é quem liga; o app publicado é quem não sabe que
+existe.
+
+### D14 — **[nova]** O Gate 4 passa a varrer `sdui_flutter`. O Gate 1 continua isento, e vira item próprio.
+
+> **Decidida pelo tech-lead em 2026-08-15**, sobre apontamento do QA na F1.
+
+`scripts/gates_guard.sh` isentava **`packages/sdui_flutter/` inteiro** dos Gates 1 e 4, com a
+justificativa de que _"seu styling vem do spec SDUI"_. **A D7 tornou isso falso:** agora há
+chrome tokenizado no pacote (`lib/src/theme/sdui_chrome_tokens.dart` + os quatro widgets de
+estado do `image`), e sem o gate ele ficaria guardado só por revisão humana — para sempre.
+
+**Medido antes de decidir**, que é o que torna a decisão barata:
+
+| Gate | Se `sdui_flutter` entrasse hoje | Decisão |
+| --- | --- | --- |
+| **Gate 4** | **zero violações** — a migração da D7 já deixou o pacote limpo | **Entra agora**, no PR da F1. Custo nulo, e é o gate que guarda o que a F1 acabou de criar |
+| **Gate 1** | **28 ocorrências, todas legítimas**: 24 funções `buildX(...)` do registry, o `typedef` de `registry.dart:7` e os métodos `render`/`renderAll`/`renderFlexChildren` do próprio renderer | **Continua isento.** Estreitar exige exceção por caminho **mais** escapes por linha no `renderer.dart` — trabalho próprio, sem urgência (§12) |
+
+**A isenção de tokens é por caminho exato, não por nome de pasta.** `find … | grep -v '/theme/'`
+seria mais curto e **erraria**: `apps/driva_editor/lib/modules/preferences_module/presentation/theme/`
+existe e **não** é fonte de token — ficaria fora dos dois gates sem ninguém notar. O script usa
+`/core/theme/` para os apps e `/src/theme/` para o pacote.
+
+**Entra nesta fase** porque é a rede que guarda a entrega da própria F1; deixar para depois
+significa mergear tokens novos sem gate automático desde o dia um.
+
+### D15 — **[nova]** `width: 0` — o aceite passa a medir **o fim do silêncio**, não a visibilidade da imagem.
+
+> **Decidida pelo tech-lead em 2026-08-15**, sobre o bloqueio **T2** do QA. **Não reabre a
+> D6:** `min` continua `1`.
+
+**O problema com o texto antigo.** O aceite dizia _"digitar `0` não faz a imagem sumir"_ e o
+DoD pedia print da imagem _"continua visível"_. Com o clamp da D6, `0` vira `1` — e **1px é
+invisível na prática**. O aceite era falso na tela, exatamente como o `Ctrl+Shift+W` e o
+`loadingBuilder` (§8.13).
+
+**Por que NÃO subir o piso** (a saída (b) que o QA ofereceu): `min` é uma **restrição de
+domínio**, parte do contrato do catálogo — vale para o app do cliente, não só para o campo do
+editor. "Visível" é um **julgamento de UX** que depende de zoom, densidade de pixel e do
+tamanho do contêiner: **não existe número certo**. Escolher `8` ou `16` proibiria para sempre,
+em todos os clientes, uma imagem decorativa fina de 4px — para consertar um erro de digitação
+no editor. **Seria codificar uma decisão de UX na camada errada**, e é por isso que a saída (b)
+está recusada.
+
+**O que a F1 entrega de verdade, e entrega bem:** o valor deixa de sumir **em silêncio**. O
+campo mostra "Ajustado para o mínimo (1)" como `helperText`, distinto do `errorText` de
+entrada inválida. É a **mesma tese do item inteiro** — a D1 faz o carregamento parar de
+falhar calado; a D15 faz a digitação parar de falhar calada. Reescrever o aceite não é
+recuo: é o aceite finalmente descrevendo o que o mecanismo faz.
+
+**O que fica registrado como evolução** (§12), porque é a pergunta de produto que sobra:
+tratar `0` (e talvez o campo vazio) como **"automático"** — devolver a imagem ao tamanho
+intrínseco em vez de clampar. É mudança de semântica de prop numérica em **todo** o catálogo,
+não carona deste bugfix.
+
+### D16 — **[nova]** O teste do contrato da D12 **não** desce para a F1. O intervalo fica registrado.
+
+> **Decidida pelo tech-lead em 2026-08-15**, sobre o apontamento **T5** do QA.
+
+**O que estava incoerente** era o aceite, não o cronograma: o aceite 3 dizia que o teste de
+widget "é o que fecha o aceite", mas o teste está na F5. Um aceite não pode depender de prova
+que só existe três PRs depois. **Corrigido no aceite** (a prova na F1 é o contrato em revisão
++ o grep + o print do E2E); o teste da F5 é o **guarda de regressão**, não a prova inicial.
+
+**Por que o teste não desce:** "a bateria automatizada é escrita por último" é regra do
+projeto (CLAUDE.md, cap. 22 do livro). Antecipá-la é **desvio**, e desvio exige aprovação do
+humano com registro em `variance_report.md` — não é chamada do tech-lead sozinho.
+
+**O intervalo, dito em voz alta:** entre o merge da F1 e a F5, o único guarda automático do
+contrato da D12 é o `grep loadingBuilder` do CI. **Ele não cobre o caso real de regressão:**
+alguém reescrever o `frameBuilder` de um jeito que compile, não use `loadingBuilder` e mesmo
+assim não mostre o estado (devolver `child` cedo demais, por exemplo). E **F3 e F4 editam esse
+mesmo arquivo** — são duas oportunidades de quebrar sem rede.
+
+**Mitigação sem desvio:** o aceite da **F3** e o da **F4** repetem o print do estado
+"carregando" (a regressão apareceria no E2E de cada fase, não só no final). Se o humano
+preferir a rede automática mais cedo, a saída é aprovar **um** teste de widget descendo para a
+F1 como `VR-16-01` — está identificado e é barato, mas **é decisão dele**, não nossa.
+
 ## 5. Fases
 
 ### F1 — Os três estados ficam distintos · **[base]** · **[∥ com F2]** · **[sub-agente: especialista-infra]**
@@ -384,7 +560,9 @@ e o widget test injetam um resolver identidade.
 - **`packages/sdui_flutter/lib/src/theme/sdui_chrome_tokens.dart`** (arquivo novo, D7) —
   tokens do chrome do renderer. Migrar `renderer.dart:77,81` **preservando os valores**.
 - **`packages/sdui_flutter/lib/src/builders/image.dart`** —
-  - `loadingBuilder` → estado "carregando" próprio;
+  - **`frameBuilder`** → estado "carregando" próprio quando `frame == null` (**D12**).
+    **Não usar `loadingBuilder`:** no Flutter Web ele nunca recebe progresso e o estado
+    sumiria justamente no editor;
   - `errorBuilder` → estado "falhou" **visualmente distinto** do vazio, com ícone + borda +
     `Semantics`/tooltip trazendo o motivo e a URL (D1);
   - o `Color(0x22000000)` duplicado em `:18,29` **desaparece** — os dois casos deixam de
@@ -392,8 +570,18 @@ e o widget test injetam um resolver identidade.
   - **Não** mexer em `webHtmlElementStrategy` — o default `never` fica (D2).
 - **Widgets novos, arquivo próprio cada um** (Gates 1 e 3):
   `sdui_flutter/lib/src/builders/image/image_empty_box.dart`, `.../image_loading_box.dart`,
-  `.../image_error_box.dart`. _A exceção de Gate 1 cobre a **função builder** do registry,
-  não os widgets que ela monta._
+  `.../image_error_box.dart` e **`.../image_error_detail.dart`** (o detalhe do erro, só
+  renderizado sob `showDiagnostics`). _A exceção de Gate 1 cobre a **função builder** do
+  registry, não os widgets que ela monta._
+- **`packages/sdui_flutter/lib/src/renderer.dart` + `.../sdui_view.dart`** — o flag
+  `showDiagnostics`, default `false`, repassado pelos **dois** construtores (**D13**).
+- **`apps/driva_editor/lib/.../canvas/preview_surface.dart`** — `showDiagnostics: true`. É o
+  **único** ponto do repo que liga o flag, e é o mesmo ponto onde a F3 injeta o resolver.
+- **`apps/driva_editor/lib/.../prop_field/number_text_field.dart`** — `errorText` e
+  `helperText`, para o campo poder sinalizar (entrada inválida × ajuste ao mínimo).
+- **`scripts/gates_guard.sh`** — o Gate 4 passa a varrer `packages/sdui_flutter/lib`
+  (isentando só `lib/src/theme/`). **A D7 tornou falsa a justificativa da isenção antiga** —
+  agora há chrome tokenizado no pacote, e sem isto o CI não o guardaria (D14).
 - **`packages/sdui_core/lib/src/catalog/widget_catalog.dart:329,336`** — `min: 0` → `min: 1`
   (D6). **Só estas duas linhas** do descriptor.
 - **`apps/driva_editor/lib/.../prop_field/number_editor.dart:55-62`** — clampar contra
@@ -406,14 +594,50 @@ e o widget test injetam um resolver identidade.
    em texto, **visualmente distinto** do estado vazio.
 2. **Caso D** — campo vazio mostra o estado **"vazio"**, distinto de (1).
 3. **Caso A** — URL de host com ACAO continua renderizando (nenhuma regressão), e enquanto
-   carrega aparece o estado **"carregando"**, distinto de (1) e (2).
+   carrega aparece o estado **"carregando"**, distinto de (1) e (2), **no editor web e no
+   mobile**.
+   - **Como se verifica na F1, já que "esperar carregar" não é observável de propósito:**
+     (a) o contrato da **D12** lido no código em revisão — `frameBuilder` com
+     `frame == null` → `ImageLoadingBox`; (b) `grep -rn "loadingBuilder" packages/sdui_flutter/lib`
+     = zero; (c) no E2E, o print com **throttling de rede** no DevTools (§10 passo 2).
+   - **O teste de widget deste contrato mora na F5**, com o resto da bateria (regra do
+     projeto: automatizado por último). Ele é o que torna o contrato **permanente**, não o que
+     o torna **verdadeiro** agora — ver **D16** para o intervalo que isso abre e por que ele
+     foi aceito.
+   - **`grep -rn "loadingBuilder" packages/sdui_flutter/lib` devolve zero** — o mecanismo
+     errado não pode reaparecer (D12).
+   - **Não é falha:** em cache hit o estado não pisca (`_wasSynchronouslyLoaded`). Sem
+     throttling, não esperar vê-lo.
 4. **Caso B** — URL de host sem ACAO cai no estado **"falhou"** com motivo legível.
    **Ainda não carrega, e isso é esperado nesta fase** (é a F3).
-5. Digitar `0` em Largura **não faz a imagem sumir** (D6 + clamp).
-6. Digitar `abc` em Largura **sinaliza**, em vez de sumir com a digitação.
-7. `grep "Color(0x" packages/sdui_flutter/lib` devolve **zero** (D7).
-8. Comportamento no `driva_demo_app` (celular) **inalterado**.
+5. Digitar `0` em Largura **não some em silêncio**: o valor é clampado para `1` e o campo
+   mostra **"Ajustado para o mínimo (1)"** como `helperText`, **visualmente distinto** do
+   `errorText` de entrada inválida (aceite 6). **A imagem fica com 1px — ou seja, continua
+   praticamente invisível, e isso é esperado** (D15). O que a F1 entrega aqui é o fim do
+   silêncio, não a imagem de volta: o usuário passa a saber que digitou um valor fora da
+   faixa, em vez de ver a imagem evaporar sem explicação.
+6. Digitar `abc` em Largura mostra `errorText` e **não** propaga o valor, em vez de descartar
+   a digitação calada.
+7. **Nenhum literal de cor fora do arquivo de tokens** (D7):
+   `grep "Color(0x" packages/sdui_flutter/lib | grep -v "lib/src/theme/"` devolve **zero**.
+   _O arquivo de tokens **contém** literais — é a definição dele; o mesmo padrão do
+   `driva_editor` (`core/theme/`). Um grep que exigisse zero no pacote inteiro só se
+   cumpriria trocando `Color(0x…)` por `Color.fromARGB(…)` para enganar o grep, que é o
+   oposto do gate._
+8. **`driva_demo_app`:** a suíte continua verde e o **fonte do app não muda** (zero diff em
+   `apps/driva_demo_app/`). O **comportamento visual muda de propósito** — ele consome o mesmo
+   `sdui_flutter` e passa a mostrar a caixa de erro no lugar do quadrado cinza mudo, que é a
+   correção. O que **não** pode mudar é o caminho de rede: continua puxando direto do host
+   (D11).
 9. Golden `goldens/node_image.png` regravado com o diff citado na descrição do PR (R1).
+10. **`showDiagnostics` (D13):** default `false` nos **dois** construtores
+    (`SduiView` e `SduiView.content`); `grep -rn showDiagnostics apps/driva_demo_app` devolve
+    **zero**; e com o flag desligado a caixa de erro **não** contém a URL nem
+    `error.toString()` — provado com uma `NetworkImageLoadException`, cuja mensagem embute a
+    própria URI.
+11. **`gates_guard.sh` (D14):** roda verde com `packages/sdui_flutter/lib` sob o Gate 4, e um
+    `Color(0x…)` plantado fora de `lib/src/theme/` **faz o script sair 1**. _Sem esse segundo
+    teste o gate pode estar passando por não varrer nada._
 
 ### F2 — Backend: proxy de mídia · **[0-dep; ∥ com F1]** · **[sub-agente: especialista-infra]** · **[⛔ gate CISO obrigatório]**
 
@@ -491,7 +715,9 @@ caso B) atravessa o proxy e volta com `Content-Type` de imagem e ACAO da origem 
 
 1. **Caso B carrega no editor web em homologação.** É o relato do dev, fechado.
 2. **Caso A continua carregando** (agora via proxy) e o estado "carregando" continua
-   aparecendo.
+   aparecendo, com throttling — **print obrigatório**, porque esta fase edita
+   `builders/image.dart` e é uma das duas janelas sem teste automático do contrato da D12
+   (**D16**).
 3. **Caso C** continua no estado "falhou" — o proxy devolve erro tipado e o `errorBuilder`
    da F1 o mostra.
 4. **`driva_demo_app` inalterado**: não injeta resolver, puxa direto do host. Provado por
@@ -533,6 +759,8 @@ caso B) atravessa o proxy e volta com `Content-Type` de imagem e ACAO da origem 
 5. **Nenhuma linha nova no editor** foi necessária para os campos novos — regra do item 9.
    O diff em `apps/driva_editor/` é **só** o `helpText`; nada de `if (type == 'image')`.
 6. `semanticLabel` chega ao leitor de tela (`find.bySemanticsLabel`).
+7. O estado "carregando" **continua aparecendo** com throttling — **print obrigatório**. Esta
+   fase é a segunda e última janela sem teste automático do contrato da D12 (**D16**).
 
 ### F5 — Bateria automatizada · **[por último, depois do E2E atestado]** · **[dono: qa]**
 
@@ -541,8 +769,10 @@ caso B) atravessa o proxy e volta com `Content-Type` de imagem e ACAO da origem 
 - `sdui_core/test/catalog/widget_catalog_test.dart` — descriptor novo; **round-trip de
   compatibilidade** (`{"width": 200}` e `{"width": "100%"}`).
 - `sdui_flutter/test/builders/image_test.dart` (novo) — os três estados são **widgets
-  diferentes**; `width: 0` não colapsa; `fit`/`alignment`/raio aplicados; `semanticLabel`
-  presente; **resolver aplicado só a `http`/`https`** e **não** aplicado quando ausente (D11).
+  diferentes**; **`frame == null` produz o `ImageLoadingBox` e `frame != null` produz a
+  imagem** (o contrato da D12, e o que impede a regressão do bloqueio B1); `width: 0` não
+  colapsa; `fit`/`alignment`/raio aplicados; `semanticLabel` presente; **resolver aplicado só
+  a `http`/`https`** e **não** aplicado quando ausente (D11).
 - `sdui_flutter/test/renderer_golden_test.dart` — golden `node_image` regravado (R1).
 - `apps/driva_editor/test/.../prop_field/number_editor_test.dart` — clamp e sinalização.
 - Widget test do `helpText` na `PropFieldShell`, **pelos dois caminhos** (D8).
@@ -662,13 +892,68 @@ matriz CORS e na assimetria dos dois editores numéricos. Correções incorporad
    estar na lista de opções ignoradas no caminho `<img>`; com o proxy esse caminho não existe.
    A decisão do humano continua valendo, com **razão nova registrada** na D9 — senão alguém a
    reabre corretamente daqui a três semanas.
-7. **A `publishableKey` não é segredo** — não aparece no gaveta. `publishable-key.ts` gera
+7. **⚠️ O `loadingBuilder` não funciona no Flutter Web — o gaveta e a v1 deste plano o
+   prescreviam.** Descoberto pelo QA na reprovação da F1 (bloqueio **B1**), com evidência do
+   SDK 3.38.6: `loadViaDecode()` (`_network_image_web.dart:128-140`) cria o
+   `MultiFrameImageStreamCompleter` **sem `chunkEvents:`**;
+   `grep -c chunkEvents _network_image_web.dart` = **0** contra **9** no
+   `_network_image_io.dart`. Sem eventos de chunk, `_loadingProgress`
+   (`widgets/image.dart:1093`) fica `null` para sempre e o `loadingBuilder` (`:1409`) devolve
+   sempre o filho — **o estado "carregando" existiria só no mobile, e o relato do dev é no
+   editor web**. Virou a **D12**: o estado vem do **`frameBuilder`** (`:1404-1405`), onde
+   `frame == null` significa "nenhum frame decodificado" (`:1096,1219,1262`) e o sinal
+   independe de `chunkEvents`. **Não é um aceite enfraquecido — é o mecanismo corrigido:** o
+   aceite 3 continua exigindo os três estados no web, agora com como verificar.
+   **É o mesmo erro do `Ctrl+Shift+W` no item 38** — um mecanismo que compila, passa em teste
+   de widget e nunca dispara no ambiente real. Regra que fica: **toda promessa de
+   comportamento no editor precisa ser verificada no Chrome, não só na suíte.**
+8. **Dois aceites da F1 estavam mal escritos** e foram reformulados na revisão da F1:
+   o de tokens exigia `grep "Color(0x" packages/sdui_flutter/lib` = zero, mas a D7 manda
+   migrar os literais **para** um arquivo de tokens, que por definição os contém — o gate
+   correto exclui `lib/src/theme/`, como no `driva_editor`; e "comportamento do
+   `driva_demo_app` inalterado" era falso: o fonte não muda e a suíte segue verde, mas o app
+   consome o mesmo `sdui_flutter` e **passa a mostrar a caixa de erro**, que é a correção
+   chegando. O que não pode mudar lá é o caminho de rede (D11).
+9. **A `publishableKey` não é segredo** — não aparece no gaveta. `publishable-key.ts` gera
    `pk_` + 32 bytes e o app cliente a embarca no binário. Virou a **D10**.
-8. **Precedente de rate limit já existe no repo** (`projects.module.ts:11`,
+9b. **`showDiagnostics` não estava no plano** — nasceu de achado do CISO durante a F1 e foi
+    registrado em atraso, como **D13**. O sintoma do atraso é instrutivo: a §3.1 continuou
+    dizendo que o `nodeWrapper` era _o_ padrão de hook, quando já havia **dois**. Quem
+    pegasse a F3 reinventaria o mecanismo. **Regra que fica: decisão de arquitetura tomada
+    durante a execução volta para o plano no mesmo dia** — o plano é o estado que sobrevive
+    ao reset de contexto; o que não está nele não existe para a próxima fase.
+9c. **A isenção do `gates_guard.sh` ficou falsa** quando a D7 criou tokens no `sdui_flutter`
+    — a justificativa escrita no script ("styling vem do spec SDUI") deixou de valer para o
+    chrome do renderer. Virou a **D14**. Vale como lembrete de que **texto de justificativa
+    em script de CI envelhece** e precisa ser relido quando a premissa muda.
+10. **Precedente de rate limit já existe no repo** (`projects.module.ts:11`,
    `projects.controller.ts:48,70`) — a F2 imita, não inventa.
-9. **F1 e F4 não são tão disjuntas quanto o gaveta diz** (ambas tocam `builders/image.dart` e
+11. **F1 e F4 não são tão disjuntas quanto o gaveta diz** (ambas tocam `builders/image.dart` e
    o bloco `'image'` do catálogo), mas **F1 e F2 são**: o paralelismo real mudou de lugar.
-10. **Deslocamentos de linha:** descriptor do `image` em `widget_catalog.dart:310`; clamp do
+13. **⚠️ Padrão de falha, não acidente: três aceites seguidos passaram no papel e eram falsos
+    na tela.** Vale mais que qualquer um dos três isolados.
+
+    | # | Aceite | O que prometia | Por que era falso |
+    | --- | --- | --- | --- |
+    | 1 | `Ctrl+Shift+W` (item 38) | atalho de envolver | o Chrome consome a tecla; o binding nunca dispara |
+    | 2 | `loadingBuilder` (B1, F1) | estado "carregando" | não recebe progresso no Flutter Web; o estado só existia no mobile |
+    | 3 | `width: 0` "não some" (T2, F1) | imagem continua visível | clampada para `1`, ela é invisível do mesmo jeito |
+
+    **A forma é sempre a mesma:** o aceite foi escrito a partir da **API do mecanismo**
+    ("existe um `loadingBuilder`", "existe um clamp", "existe um binding") em vez do **estado
+    observável** ("o que um humano vê, e onde"). Todos os três compilavam, passariam em teste
+    de widget e reprovariam na tela.
+
+    **Regra que fica, e é a mais barata de aplicar:** _escreva o aceite como o **print** que o
+    provaria._ Se não dá para descrever o print — o que aparece, em que tela, em que ambiente,
+    e de que outro estado ele se distingue — **o aceite não é verificável e vai falhar
+    tarde**. É a mesma disciplina que o DoD §11.3 já exige das evidências; ela precisa subir
+    para o momento em que o aceite é **escrito**, não só quando é conferido.
+
+    Os três foram achados por **medição do QA**, nunca por releitura do plano. Aceite escrito
+    da API é invisível na revisão de texto, porque parece correto.
+
+12. **Deslocamentos de linha:** descriptor do `image` em `widget_catalog.dart:310`; clamp do
     `DimensionEditor` em `:73-74`; `hasRange` em `prop_field.dart:55`; `loadViaDecode` em
     `_network_image_web.dart:128`; `WebHtmlElementStrategy` em `image_provider.dart:1495`;
     golden gerado pelo laço `for (final type in widgetCatalog.keys)` (`:160`), arquivo
@@ -727,8 +1012,10 @@ inteiro._
 
 1. Criar conteúdo novo e arrastar `image` da paleta. **Esperado:** estado **vazio**,
    reconhecível como "falta a URL", não como erro.
-2. Colar **`URL_A`**. **Esperado:** durante o carregamento, estado **carregando**; depois, a
-   imagem.
+2. **Ligar o throttling de rede no DevTools** (`Slow 3G`) e colar **`URL_A`**. **Esperado:**
+   durante o carregamento, estado **carregando**; depois, a imagem. _Sem throttling o estado
+   pode não piscar — é cache hit, não defeito (D12). Se a imagem já foi carregada antes,
+   desmarcar o cache do DevTools._
 3. Colar **`URL_C`**. **Esperado:** estado **falhou**, com o motivo em texto, **diferente do
    passo 1**. Tooltip diz o motivo e mostra a URL.
 4. Colar **`URL_B`**. **Esperado:** **a imagem aparece.** É o passo que fecha o relato — e
@@ -767,7 +1054,10 @@ inteiro._
 | 2 | Suíte existente passando em `sdui_core`, `sdui_flutter` e `driva_editor` | `flutter test -r compact`, saída no PR |
 | 3 | Suíte do backend passando (`npm test` + `test:e2e`) | saída no PR 2 |
 | 4 | Golden `goldens/node_image.png` regravado **com o diff citado na descrição do PR** (R1) | o PR mostra o antes/depois; regravação sem citação **reprova** |
-| 5 | `grep "Color(0x" packages/sdui_flutter/lib` devolve **zero** (D7) | saída do grep |
+| 5 | Nenhum literal de cor **fora** do arquivo de tokens (D7) | `grep "Color(0x" packages/sdui_flutter/lib \| grep -v "lib/src/theme/"` = **zero**. O arquivo de tokens contém literais por definição — exigir zero no pacote inteiro só se cumpriria enganando o grep |
+| 5b | O `loadingBuilder` **não** foi usado (D12) | `grep -rn "loadingBuilder" packages/sdui_flutter/lib` = **zero** |
+| 5c | **`showDiagnostics` com default seguro** (D13) | default `false` nos dois construtores; `grep -rn showDiagnostics apps/driva_demo_app` = **zero**; e com o flag desligado a caixa de erro não contém a URL nem `error.toString()` |
+| 5d | **O Gate 4 do CI guarda o `sdui_flutter`** (D14) | `bash scripts/gates_guard.sh` verde **e** um `Color(0x…)` plantado fora de `lib/src/theme/` faz o script sair `1` |
 | 6 | O diff em `apps/driva_editor/` na F4 é **só** o `helpText` — nenhum `if (type == 'image')` | leitura do diff pelo QA na `revisar-fase` |
 | 7 | CI verde em todos os PRs — a mesma régua do humano | checks do GitHub |
 
@@ -804,8 +1094,8 @@ DoD exige a **matriz inteira**, cada caso com print próprio:
 | 19 | **URL sem ACAO** (`URL_B`) — **o caso do relato** | imagem carregada **e** a aba Network mostrando `…/v1/media/proxy?url=…` | não carrega — a D2 não entregou e o relato do dev continua de pé |
 | 20 | **URL 404/inexistente** (`URL_C`) | estado "falhou" **com o motivo legível em texto** | mostra quadrado cinza mudo, ou é igual ao print 21 |
 | 21 | **Campo vazio** | estado "vazio" | é igual ao 20 ou ao 22 |
-| 22 | **Carregando** (rede lenta / throttle do DevTools) | estado "carregando" | é igual ao 20 ou ao 21 |
-| 23 | **`width` e `height` = `0`** | a imagem **continua visível** | some |
+| 22 | **Carregando** — **obrigatoriamente com throttling de rede ligado no DevTools** (sem ele o estado não pisca em cache hit, e isso é correto: D12) | estado "carregando" **no editor web**, mais o teste de widget de `frame == null` (F1 aceite 3) | é igual ao 20 ou ao 21 — **ou** se só existir no mobile, que era o bloqueio B1 |
+| 23 | **`width` = `0`** (D15) | print do **campo**, mostrando "Ajustado para o mínimo (1)" como `helperText` — e um segundo print com `abc`, mostrando o `errorText`, para provar que os dois sinais **se distinguem** | o valor é engolido sem sinal nenhum, ou os dois casos produzem a mesma mensagem. **Não** falha por a imagem ficar invisível em 1px: isso é esperado (D15) |
 | 24 | **Os quatro estados lado a lado** (20, 21, 22 + carregado) | um único print comparativo | **dois quaisquer forem visualmente iguais** — é literalmente o bug original |
 | 25 | **Compatibilidade** — conteúdo salvo antes da F4 reabrindo igual | antes/depois | o `width` numérico antigo deixa de renderizar |
 | 26 | **`driva_demo_app` no celular** com o mesmo conteúdo, log de rede à vista | imagem carregada **direto do host**, sem proxy | passou pelo proxy — a D11 vazou para o app cliente |
@@ -858,6 +1148,13 @@ aberto.**
   Web. Hoje o `driva_demo_app` é móvel e não precisa (D11). **Quem construir isso leia a
   D10 antes:** a `publishableKey` é pública, então a rota nasce sem fronteira de identidade —
   e a conta de banda (R6) muda de ordem de grandeza.
+- **Gate 1 automático no `sdui_flutter`** — hoje o pacote segue isento (D14). Estreitar exige
+  isentar `lib/src/builders/*.dart` (as 24 funções `buildX` do registry) **e** escapar
+  `render`/`renderAll`/`renderFlexChildren` em `renderer.dart`, que são a API do renderer.
+  Medido: **28 ocorrências, todas legítimas** — é refino de script, sem urgência.
+- **`0` (e campo vazio) como "automático"** nas props numéricas de dimensão — devolver a
+  imagem ao tamanho intrínseco em vez de clampar para o mínimo (D15). É a pergunta de produto
+  que sobra do T2, e muda a semântica de prop numérica em **todo** o catálogo.
 - **`opacity` para o catálogo inteiro** — prop genérica ou primitivo próprio, não campo
   avulso no `image` (D9).
 - **`SduiAuthoringScope`** — separar o chrome de autoria (placeholders) do que o app do

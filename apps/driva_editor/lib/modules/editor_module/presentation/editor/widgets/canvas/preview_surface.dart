@@ -101,6 +101,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
           : SingleChildScrollView(
               child: SduiView.content(
                 document,
+                showDiagnostics: true,
                 onAction: (action) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

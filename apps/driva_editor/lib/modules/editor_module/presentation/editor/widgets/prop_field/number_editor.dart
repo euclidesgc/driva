@@ -23,10 +23,14 @@ class NumberEditor extends StatefulWidget {
 
 class _NumberEditorState extends State<NumberEditor> {
   static const _sliderWidth = 72.0;
+  static const _invalidValueMessage = 'Valor inválido';
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.value?.toString() ?? '',
   );
+
+  bool _hasError = false;
+  String? _clampMessage;
 
   num? _parse(String text) {
     final trimmed = text.trim();
@@ -36,13 +40,44 @@ class _NumberEditorState extends State<NumberEditor> {
         : double.tryParse(trimmed.replaceAll(',', '.'));
   }
 
+  /// Mesmo contrato do `DimensionEditor`: o valor emitido é clampado contra
+  /// `field.min`/`field.max`, mas o texto digitado fica como está — reescrevê-lo
+  /// a cada tecla moveria o cursor.
+  num _clamp(num value) {
+    final min = widget.field.min;
+    final max = widget.field.max;
+    var result = value;
+    if (min != null && result < min) result = min;
+    if (max != null && result > max) result = max;
+    return widget.isInt ? result.round() : result.toDouble();
+  }
+
+  num? _committedValueOf(String text) {
+    final parsed = _parse(text);
+    return parsed == null ? null : _clamp(parsed);
+  }
+
+  static String _formatNum(num value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toString();
+
+  String _clampMessageFor(num raw, num clamped) {
+    final min = widget.field.min;
+    final isMinClamp = min != null && raw < min;
+    return isMinClamp
+        ? 'Ajustado para o mínimo (${_formatNum(clamped)})'
+        : 'Ajustado para o máximo (${_formatNum(clamped)})';
+  }
+
   @override
   void didUpdateWidget(covariant NumberEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Ressincroniza só em mudança externa; comparar por texto moveria o cursor.
     if (widget.value != oldWidget.value &&
-        widget.value != _parse(_controller.text)) {
+        widget.value != _committedValueOf(_controller.text)) {
       _controller.text = widget.value?.toString() ?? '';
+      _hasError = false;
+      _clampMessage = null;
     }
   }
 
@@ -52,18 +87,39 @@ class _NumberEditorState extends State<NumberEditor> {
     super.dispose();
   }
 
+  void _setSignal({required bool hasError, String? clampMessage}) {
+    if (_hasError == hasError && _clampMessage == clampMessage) return;
+    setState(() {
+      _hasError = hasError;
+      _clampMessage = clampMessage;
+    });
+  }
+
   void _onTextChanged(String text) {
     if (text.trim().isEmpty) {
+      _setSignal(hasError: false);
       widget.onChanged(null);
       return;
     }
     final parsed = _parse(text);
-    if (parsed != null) widget.onChanged(parsed);
+    if (parsed == null) {
+      _setSignal(hasError: true);
+      return;
+    }
+    final clamped = _clamp(parsed);
+    _setSignal(
+      hasError: false,
+      clampMessage: clamped == parsed
+          ? null
+          : _clampMessageFor(parsed, clamped),
+    );
+    widget.onChanged(clamped);
   }
 
   void _onSliderChanged(double raw) {
     final value = widget.isInt ? raw.round() : raw;
     _controller.text = value.toString();
+    _setSignal(hasError: false);
     widget.onChanged(value);
   }
 
@@ -73,6 +129,8 @@ class _NumberEditorState extends State<NumberEditor> {
     final numberField = NumberTextField(
       controller: _controller,
       onChanged: _onTextChanged,
+      errorText: _hasError ? _invalidValueMessage : null,
+      helperText: _clampMessage,
     );
 
     if (!field.hasRange) return numberField;

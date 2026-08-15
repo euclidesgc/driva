@@ -14,6 +14,7 @@ class SduiView extends StatelessWidget {
     this.onAction,
     this.nodeWrapper,
     this.safeArea,
+    this.showDiagnostics = false,
   });
 
   SduiView.content(
@@ -22,6 +23,7 @@ class SduiView extends StatelessWidget {
     SduiRegistry? registry,
     SduiActionHandler? onAction,
     SduiNodeWrapper? nodeWrapper,
+    bool showDiagnostics = false,
   }) : this(
          key: key,
          node: spec.root,
@@ -29,6 +31,7 @@ class SduiView extends StatelessWidget {
          onAction: onAction,
          nodeWrapper: nodeWrapper,
          safeArea: spec.safeArea,
+         showDiagnostics: showDiagnostics,
        );
 
   final SduiNode? node;
@@ -40,6 +43,9 @@ class SduiView extends StatelessWidget {
   /// chrome de página (o construtor `SduiView` cru).
   final Map<String, dynamic>? safeArea;
 
+  /// Repassado ao [SduiRenderer] — só o editor liga.
+  final bool showDiagnostics;
+
   @override
   Widget build(BuildContext context) {
     final root = node;
@@ -48,6 +54,7 @@ class SduiView extends StatelessWidget {
       registry ?? defaultRegistry,
       onAction: onAction,
       nodeWrapper: nodeWrapper,
+      showDiagnostics: showDiagnostics,
     );
     final rendered = renderer.render(context, root);
     final pageChrome = safeArea;

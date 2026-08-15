@@ -5,11 +5,15 @@ class NumberTextField extends StatelessWidget {
   const NumberTextField({
     required this.controller,
     required this.onChanged,
+    this.errorText,
+    this.helperText,
     super.key,
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,12 @@ class NumberTextField extends StatelessWidget {
       controller: controller,
       style: const TextStyle(fontSize: AppTypography.base),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: const InputDecoration(isDense: true, hintText: '—'),
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: '—',
+        errorText: errorText,
+        helperText: errorText == null ? helperText : null,
+      ),
       onChanged: onChanged,
     );
   }
