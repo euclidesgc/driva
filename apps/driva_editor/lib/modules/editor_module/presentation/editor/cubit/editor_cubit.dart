@@ -313,6 +313,31 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  /// Comando explícito de envolver (D6, item 38). Uma chamada de
+  /// [sdui.wrapNode] + uma de [_emitRoot]: uma única entrada de undo (D4).
+  void wrapSelected(String wrapperType) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final root = current.document.root;
+    final nodeId = current.selectedNodeId;
+    if (root == null || nodeId == null) return;
+
+    final newId = _nextNodeId(root);
+    final newRoot = sdui.wrapNode(root, nodeId, wrapperType, newId: newId);
+    assert(
+      newRoot != null,
+      'wrapNode($wrapperType) devolveu null: $wrapperType não aceita '
+      'múltiplos filhos no catálogo — só column/row chegam aqui pela UI.',
+    );
+    if (newRoot == null) return;
+    _emitRoot(
+      current,
+      newRoot,
+      selectedNodeId: newId,
+      notice: _nextNotice(EditorNoticeKind.nodeWrapped, wrapperType),
+    );
+  }
+
   void removeSelected() {
     final current = state;
     if (current is! EditorReady) return;

@@ -26,6 +26,7 @@ Future<void> _pump(
             onUpdateProps: (_, _) {},
             onUpdateSafeAreaProps: onUpdateSafeAreaProps ?? (_) {},
             onRemove: (_) {},
+            onWrap: (_) {},
           ),
         ),
       ),

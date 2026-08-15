@@ -94,6 +94,14 @@ void main() {
 
       verify(() => cubit.selectNode(null)).called(1);
     });
+
+    testWidgets('Ctrl+G envolve em column', (tester) async {
+      await pumpEditor(tester);
+
+      await pressWithControl(tester, LogicalKeyboardKey.keyG);
+
+      verify(() => cubit.wrapSelected('column')).called(1);
+    });
   });
 
   group('com o cursor num campo de texto', () {
@@ -133,6 +141,15 @@ void main() {
       await tester.pump();
 
       verifyNever(() => cubit.selectNode(null));
+    });
+
+    testWidgets('Ctrl+G não envolve', (tester) async {
+      await pumpEditor(tester);
+      await focusTextField(tester);
+
+      await pressWithControl(tester, LogicalKeyboardKey.keyG);
+
+      verifyNever(() => cubit.wrapSelected('column'));
     });
   });
 

@@ -1,7 +1,9 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +13,7 @@ class InspectorHeader extends StatelessWidget {
     required this.subtitle,
     required this.iconType,
     required this.onRemove,
+    required this.onWrap,
     super.key,
   });
 
@@ -18,6 +21,7 @@ class InspectorHeader extends StatelessWidget {
   final String subtitle;
   final String? iconType;
   final VoidCallback? onRemove;
+  final ValueChanged<String>? onWrap;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class InspectorHeader extends StatelessWidget {
             iconType == null
                 ? Icons.phone_iphone_outlined
                 : paletteIconFor(iconType!),
-            size: 18,
+            size: AppIconSizes.s18,
             color: AppTheme.primary,
           ),
           const SizedBox(width: AppSpacing.s8),
@@ -54,10 +58,11 @@ class InspectorHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (onWrap != null) WrapNodeButton(onWrap: onWrap!),
           if (onRemove != null)
             IconButton(
               tooltip: 'Remover bloco (Delete)',
-              iconSize: 18,
+              iconSize: AppIconSizes.s18,
               icon: const Icon(Icons.delete_outline),
               onPressed: onRemove,
             ),

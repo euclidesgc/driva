@@ -10,4 +10,5 @@ enum EditorNoticeKind {
   rootNotDuplicable,
   nodeCopied,
   clipboardEmpty,
+  nodeWrapped,
 }
