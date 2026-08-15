@@ -157,6 +157,77 @@ void main() {
     });
   });
 
+  group('wrapNode', () {
+    test('envolver a raiz troca a raiz e preserva a subárvore original', () {
+      final result = wrapNode(root, 'root', 'row', newId: 'w');
+
+      expect(result, isNotNull);
+      expect(result!.id, 'w');
+      expect(result.type, 'row');
+      expect(result.children.single, root);
+    });
+
+    test(
+      'envolver o ocupante de um slot único mantém o pai e troca só o child',
+      () {
+        final result = wrapNode(root, 'b1', 'column', newId: 'w')!;
+
+        final pai = findNode(result, 'b')!;
+        expect(pai.child?.id, 'w');
+        expect(pai.child?.children.single.id, 'b1');
+        expect(findNode(result, 'b1'), equals(b1));
+      },
+    );
+
+    test('envolver um nó em slot múltiplo não mexe nos irmãos', () {
+      final result = wrapNode(root, 'b', 'row', newId: 'w')!;
+
+      expect(result.children.map((n) => n.id), ['a', 'w', 'c']);
+      expect(result.children[0], equals(root.children[0]));
+      expect(result.children[2], equals(root.children[2]));
+      expect(findNode(result, 'w')!.children.single, equals(root.children[1]));
+    });
+
+    test('wrapperType folha devolve null', () {
+      expect(wrapNode(root, 'a', 'text', newId: 'w'), isNull);
+    });
+
+    test('wrapperType de slot único devolve null', () {
+      expect(wrapNode(root, 'a', 'container', newId: 'w'), isNull);
+    });
+
+    test('wrapperType fora do catálogo devolve null', () {
+      expect(wrapNode(root, 'a', 'inexistente', newId: 'w'), isNull);
+    });
+
+    test('nodeId inexistente devolve null', () {
+      expect(wrapNode(root, 'nao-existe', 'column', newId: 'w'), isNull);
+    });
+
+    test('newId que já existe na árvore devolve null', () {
+      expect(wrapNode(root, 'b1', 'column', newId: 'b1'), isNull);
+      expect(wrapNode(root, 'a', 'column', newId: 'c'), isNull);
+    });
+
+    test('o resultado sobrevive a um round-trip toJson/parseContentSpec', () {
+      final result = wrapNode(root, 'root', 'row', newId: 'w')!;
+      final documento = ContentSpec(
+        specVersion: kSpecVersion,
+        id: 'ct',
+        name: 'Conteúdo',
+        slug: 'conteudo',
+        root: result,
+      );
+
+      final parsed = parseContentSpec(
+        documento.toJson(),
+      ).getRight().toNullable();
+
+      expect(parsed, isNotNull);
+      expect(parsed!.root, result);
+    });
+  });
+
   group('updateNodeProps', () {
     test('faz merge preservando as demais props', () {
       final base = updateNodeProps(root, 'a', {'data': 'oi', 'fontSize': 14.0});
