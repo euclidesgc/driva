@@ -1,5 +1,6 @@
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ class LeftPanel extends StatelessWidget {
                       return WidgetTreePanel(
                         root: state.document.root,
                         selectedNodeId: state.selectedNodeId,
+                        nodeDiagnostics: diagnosticsByNode(state.diagnostics),
                         onSelect: cubit.selectNode,
                         onRemove: cubit.removeNode,
                         onDropNew: (type, targetId) =>

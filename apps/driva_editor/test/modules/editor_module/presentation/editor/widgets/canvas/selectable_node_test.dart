@@ -25,6 +25,7 @@ Future<void> _pumpCanvas(
             built: built,
             isSelected: each.id == selectedNodeId,
             isHovered: each.id == hoveredNodeId,
+            diagnostics: const [],
             onSelect: () {},
             onHover: (_) {},
             onAccept: (payload) => onAccept?.call(each.id, payload),

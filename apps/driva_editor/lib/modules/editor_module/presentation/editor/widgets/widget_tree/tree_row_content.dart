@@ -3,7 +3,9 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diagnostic_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 class TreeRowContent extends StatelessWidget {
   const TreeRowContent({
@@ -12,6 +14,7 @@ class TreeRowContent extends StatelessWidget {
     required this.label,
     required this.nodeType,
     required this.depth,
+    required this.diagnostics,
     required this.onSelect,
     required this.onRemove,
     super.key,
@@ -22,6 +25,7 @@ class TreeRowContent extends StatelessWidget {
   final String label;
   final String nodeType;
   final int depth;
+  final List<SpecDiagnostic> diagnostics;
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
 
@@ -68,6 +72,11 @@ class TreeRowContent extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (diagnostics.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.s4),
+                  child: TreeRowDiagnosticIcon(diagnostics: diagnostics),
+                ),
               if (onRemove != null && isSelected)
                 IconButton(
                   tooltip: 'Remover bloco (Delete)',

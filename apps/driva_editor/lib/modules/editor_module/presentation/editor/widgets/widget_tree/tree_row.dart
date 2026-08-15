@@ -14,6 +14,7 @@ class TreeRow extends StatelessWidget {
     required this.depth,
     required this.isRoot,
     required this.isSelected,
+    required this.diagnostics,
     required this.onSelect,
     required this.onRemove,
     required this.onAccept,
@@ -24,6 +25,7 @@ class TreeRow extends StatelessWidget {
   final int depth;
   final bool isRoot;
   final bool isSelected;
+  final List<SpecDiagnostic> diagnostics;
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
   final ValueChanged<DragPayload> onAccept;
@@ -57,6 +59,7 @@ class TreeRow extends StatelessWidget {
         label: _label,
         nodeType: node.type,
         depth: depth,
+        diagnostics: diagnostics,
         onSelect: onSelect,
         onRemove: onRemove,
       ),

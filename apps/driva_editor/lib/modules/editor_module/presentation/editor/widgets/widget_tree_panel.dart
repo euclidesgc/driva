@@ -14,10 +14,15 @@ class WidgetTreePanel extends StatelessWidget {
     required this.onDropMove,
     required this.onDropNewAt,
     required this.onDropMoveAt,
+    required this.nodeDiagnostics,
     super.key,
   });
 
   final SduiNode? root;
+
+  /// Agrupado uma vez fora deste widget (`diagnosticsByNode`) — cada linha só
+  /// faz uma leitura de mapa, nunca varre `diagnoseTree` de novo.
+  final Map<String, List<SpecDiagnostic>> nodeDiagnostics;
 
   /// `null` = a página (área segura) está no Inspector.
   final String? selectedNodeId;
@@ -82,6 +87,7 @@ class WidgetTreePanel extends StatelessWidget {
         depth: depth,
         isRoot: node.id == root.id,
         isSelected: node.id == selectedNodeId,
+        diagnostics: nodeDiagnostics[node.id] ?? const [],
         onSelect: () => onSelect(node.id),
         onRemove: () => onRemove(node.id),
         onAccept: (payload) => switch (payload) {

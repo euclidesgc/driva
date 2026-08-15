@@ -14,6 +14,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     required this.success,
     required this.warning,
     required this.danger,
+    required this.onWarning,
+    required this.onDanger,
   });
 
   final Color canvasBackdrop;
@@ -38,6 +40,13 @@ class EditorColors extends ThemeExtension<EditorColors> {
 
   final Color danger;
 
+  /// Ícone/texto sobre [warning]/[danger] — nunca branco cru: em modo escuro
+  /// essas duas cores são claras demais e branco cai a ~2:1, abaixo do 3:1 de
+  /// contraste mínimo para objeto gráfico (WCAG 1.4.11).
+  final Color onWarning;
+
+  final Color onDanger;
+
   static const EditorColors light = EditorColors(
     canvasBackdrop: Color(0xFFEEF0F2),
     panel: Color(0xFFFFFFFF),
@@ -50,6 +59,9 @@ class EditorColors extends ThemeExtension<EditorColors> {
     success: Color(0xFF16A34A),
     warning: Color(0xFFB45309),
     danger: Color(0xFFDC2626),
+    // Branco puro: 5.02:1 em warning e 4.83:1 em danger, folgado acima do 3:1.
+    onWarning: Color(0xFFFFFFFF),
+    onDanger: Color(0xFFFFFFFF),
   );
 
   static const EditorColors dark = EditorColors(
@@ -64,6 +76,10 @@ class EditorColors extends ThemeExtension<EditorColors> {
     success: Color(0xFF3FBE6B),
     warning: Color(0xFFF0A93B),
     danger: Color(0xFFF2726B),
+    // Branco cairia a ~2:1 aqui — warning/danger são claros demais no escuro.
+    // 9.34:1 em warning e 6.61:1 em danger.
+    onWarning: Color(0xFF0F1216),
+    onDanger: Color(0xFF0F1216),
   );
 
   @override
@@ -79,6 +95,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
     Color? success,
     Color? warning,
     Color? danger,
+    Color? onWarning,
+    Color? onDanger,
   }) {
     return EditorColors(
       canvasBackdrop: canvasBackdrop ?? this.canvasBackdrop,
@@ -92,6 +110,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
       success: success ?? this.success,
       warning: warning ?? this.warning,
       danger: danger ?? this.danger,
+      onWarning: onWarning ?? this.onWarning,
+      onDanger: onDanger ?? this.onDanger,
     );
   }
 
@@ -110,6 +130,8 @@ class EditorColors extends ThemeExtension<EditorColors> {
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       danger: Color.lerp(danger, other.danger, t)!,
+      onWarning: Color.lerp(onWarning, other.onWarning, t)!,
+      onDanger: Color.lerp(onDanger, other.onDanger, t)!,
     );
   }
 }
