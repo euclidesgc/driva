@@ -14,13 +14,18 @@ class InspectorHeader extends StatelessWidget {
     required this.iconType,
     required this.onRemove,
     required this.onWrap,
+    this.removeLabel,
     super.key,
-  });
+  }) : assert(
+         onRemove == null || removeLabel != null,
+         'removeLabel é obrigatório quando onRemove existe',
+       );
 
   final String title;
   final String subtitle;
   final String? iconType;
   final VoidCallback? onRemove;
+  final String? removeLabel;
   final ValueChanged<String>? onWrap;
 
   @override
@@ -61,7 +66,7 @@ class InspectorHeader extends StatelessWidget {
           if (onWrap != null) WrapNodeButton(onWrap: onWrap!),
           if (onRemove != null)
             IconButton(
-              tooltip: 'Remover bloco (Delete)',
+              tooltip: removeLabel,
               iconSize: AppIconSizes.s18,
               icon: const Icon(Icons.delete_outline),
               onPressed: onRemove,

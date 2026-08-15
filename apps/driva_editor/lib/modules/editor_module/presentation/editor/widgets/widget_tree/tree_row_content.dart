@@ -17,6 +17,7 @@ class TreeRowContent extends StatelessWidget {
     required this.diagnostics,
     required this.onSelect,
     required this.onRemove,
+    required this.removeLabel,
     super.key,
   });
 
@@ -28,6 +29,7 @@ class TreeRowContent extends StatelessWidget {
   final List<SpecDiagnostic> diagnostics;
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
+  final String removeLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +81,7 @@ class TreeRowContent extends StatelessWidget {
                 ),
               if (onRemove != null && isSelected)
                 IconButton(
-                  tooltip: 'Remover bloco (Delete)',
+                  tooltip: removeLabel,
                   iconSize: 16,
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.delete_outline),

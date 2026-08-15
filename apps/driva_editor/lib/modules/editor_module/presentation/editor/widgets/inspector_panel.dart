@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/remove_node_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -9,6 +10,7 @@ import 'package:sdui_core/sdui_core.dart';
 class InspectorPanel extends StatelessWidget {
   const InspectorPanel({
     required this.node,
+    required this.isRoot,
     required this.safeArea,
     required this.contentName,
     required this.contentSlug,
@@ -20,6 +22,7 @@ class InspectorPanel extends StatelessWidget {
   });
 
   final SduiNode? node;
+  final bool isRoot;
   final Map<String, dynamic> safeArea;
   final String contentName;
   final String contentSlug;
@@ -66,6 +69,7 @@ class InspectorPanel extends StatelessWidget {
           subtitle: 'id ${node.id}',
           iconType: node.type,
           onRemove: () => onRemove(node.id),
+          removeLabel: isRoot ? clearContentLabel : removeNodeLabel,
           onWrap: onWrap,
         ),
         Expanded(

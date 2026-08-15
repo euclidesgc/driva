@@ -8,6 +8,7 @@ import 'package:sdui_core/sdui_core.dart';
 Future<void> _pump(
   WidgetTester tester, {
   SduiNode? node,
+  bool isRoot = false,
   Map<String, dynamic> safeArea = const {},
   ValueChanged<Map<String, dynamic>>? onUpdateSafeAreaProps,
 }) async {
@@ -20,6 +21,7 @@ Future<void> _pump(
           height: 700,
           child: InspectorPanel(
             node: node,
+            isRoot: isRoot,
             safeArea: safeArea,
             contentName: 'Home',
             contentSlug: 'home',
