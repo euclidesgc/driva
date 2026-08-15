@@ -21,6 +21,11 @@ model Project {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
+  /// Chave que o app do cliente embarca para ler conteúdo publicado. É pública
+  /// por natureza (vai no binário distribuído) e por isso **só** dá leitura do
+  /// que está publicado — nunca escrita, nunca lista projetos.
+  publishableKey String @unique @map("publishable_key")
+
   contents   Content[]
   categories Category[]
 

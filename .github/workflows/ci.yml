@@ -50,6 +50,10 @@ jobs:
         run: flutter test
         working-directory: apps/driva_editor
 
+      - name: Testes — driva_demo_app (app de consumo)
+        run: flutter test
+        working-directory: apps/driva_demo_app
+
   backend:
     name: Backend — build
     runs-on: ubuntu-latest

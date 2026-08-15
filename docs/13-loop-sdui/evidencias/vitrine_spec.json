@@ -1,0 +1,254 @@
+{
+  "specVersion": 1,
+  "kind": "content",
+  "id": "PLACEHOLDER_ID",
+  "name": "Vitrine do renderer",
+  "slug": "vitrine-do-renderer",
+  "description": "Conteúdo de demonstração: exercita o catálogo no app cliente.",
+  "safeArea": {
+    "enabled": true,
+    "top": true,
+    "bottom": true
+  },
+  "root": {
+    "id": "root-list",
+    "type": "listView",
+    "props": {
+      "scrollDirection": "vertical",
+      "shrinkWrap": false,
+      "padding": { "all": 0.0 }
+    },
+    "children": [
+      {
+        "id": "hero",
+        "type": "container",
+        "props": {
+          "width": "inf",
+          "height": 148.0,
+          "color": "#3B5BDB",
+          "padding": { "horizontal": 20.0, "vertical": 20.0 },
+          "alignment": "centerLeft"
+        },
+        "child": {
+          "id": "hero-column",
+          "type": "column",
+          "props": {
+            "mainAxisAlignment": "center",
+            "crossAxisAlignment": "start",
+            "mainAxisSize": "min",
+            "spacing": 6.0
+          },
+          "children": [
+            {
+              "id": "hero-title",
+              "type": "text",
+              "props": {
+                "data": "Servido pelo driva",
+                "fontSize": 26.0,
+                "fontWeight": "w700",
+                "color": "#FFFFFF"
+              }
+            },
+            {
+              "id": "hero-subtitle",
+              "type": "text",
+              "props": {
+                "data": "Esta tela não existe no código do app: veio da API como spec JSON.",
+                "fontSize": 14.0,
+                "color": "#DDE3FF",
+                "maxLines": 3
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "features-card",
+        "type": "card",
+        "props": {
+          "elevation": 2.0,
+          "borderRadius": 14.0,
+          "margin": { "horizontal": 16.0, "vertical": 16.0 }
+        },
+        "child": {
+          "id": "features-padding",
+          "type": "padding",
+          "props": { "padding": { "all": 16.0 } },
+          "child": {
+            "id": "features-column",
+            "type": "column",
+            "props": {
+              "crossAxisAlignment": "start",
+              "mainAxisSize": "min",
+              "spacing": 12.0
+            },
+            "children": [
+              {
+                "id": "features-title",
+                "type": "text",
+                "props": {
+                  "data": "O que esta tela prova",
+                  "fontSize": 18.0,
+                  "fontWeight": "w600"
+                }
+              },
+              {
+                "id": "feature-row-1",
+                "type": "row",
+                "props": {
+                  "crossAxisAlignment": "center",
+                  "mainAxisSize": "min",
+                  "spacing": 10.0
+                },
+                "children": [
+                  {
+                    "id": "feature-icon-1",
+                    "type": "icon",
+                    "props": {
+                      "icon": "check",
+                      "size": 20.0,
+                      "color": "#2F9E44"
+                    }
+                  },
+                  {
+                    "id": "feature-text-1",
+                    "type": "text",
+                    "props": {
+                      "data": "O mesmo renderer do editor roda no app.",
+                      "fontSize": 14.0
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "feature-row-2",
+                "type": "row",
+                "props": {
+                  "crossAxisAlignment": "center",
+                  "mainAxisSize": "min",
+                  "spacing": 10.0
+                },
+                "children": [
+                  {
+                    "id": "feature-icon-2",
+                    "type": "icon",
+                    "props": {
+                      "icon": "check",
+                      "size": 20.0,
+                      "color": "#2F9E44"
+                    }
+                  },
+                  {
+                    "id": "feature-text-2",
+                    "type": "text",
+                    "props": {
+                      "data": "Editar no editor e recarregar aqui muda a tela.",
+                      "fontSize": 14.0
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "features-divider",
+                "type": "divider",
+                "props": { "thickness": 1.0 }
+              },
+              {
+                "id": "action-button",
+                "type": "button",
+                "props": {
+                  "label": "Disparar uma ação",
+                  "variant": "filled",
+                  "borderRadius": 10.0
+                },
+                "events": {
+                  "onPressed": [
+                    {
+                      "action": "showMessage",
+                      "params": { "text": "veio do spec" }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "form-card",
+        "type": "card",
+        "props": {
+          "elevation": 2.0,
+          "borderRadius": 14.0,
+          "margin": { "horizontal": 16.0, "vertical": 0.0 }
+        },
+        "child": {
+          "id": "form-padding",
+          "type": "padding",
+          "props": { "padding": { "all": 16.0 } },
+          "child": {
+            "id": "form-column",
+            "type": "column",
+            "props": {
+              "crossAxisAlignment": "start",
+              "mainAxisSize": "min",
+              "spacing": 12.0
+            },
+            "children": [
+              {
+                "id": "form-title",
+                "type": "text",
+                "props": {
+                  "data": "Controles de formulário",
+                  "fontSize": 18.0,
+                  "fontWeight": "w600"
+                }
+              },
+              {
+                "id": "form-field",
+                "type": "textField",
+                "props": {
+                  "label": "Seu nome",
+                  "hint": "Digite aqui",
+                  "borderStyle": "outline",
+                  "prefixIcon": "person"
+                }
+              },
+              {
+                "id": "form-switch",
+                "type": "switch",
+                "props": {
+                  "label": "Receber novidades",
+                  "value": true
+                }
+              },
+              {
+                "id": "form-checkbox",
+                "type": "checkbox",
+                "props": {
+                  "label": "Li e aceito os termos",
+                  "value": false
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "footer-padding",
+        "type": "padding",
+        "props": { "padding": { "all": 24.0 } },
+        "child": {
+          "id": "footer-text",
+          "type": "text",
+          "props": {
+            "data": "driva · demo",
+            "fontSize": 12.0,
+            "color": "#868E96",
+            "textAlign": "center"
+          }
+        }
+      }
+    ]
+  }
+}

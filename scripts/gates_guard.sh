@@ -22,13 +22,13 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-EDITOR_LIB="apps/driva_editor/lib"
+TARGET_LIBS=("apps/driva_editor/lib" "apps/driva_demo_app/lib")
 fail=0
 
 # ----------------------------------------------------------------------------
-# Coleta os arquivos-alvo (editor, fora de core/theme).
+# Coleta os arquivos-alvo (apps Flutter, fora de core/theme).
 # ----------------------------------------------------------------------------
-mapfile -t FILES < <(find "$EDITOR_LIB" -name '*.dart' | grep -v '/core/theme/' | sort)
+mapfile -t FILES < <(find "${TARGET_LIBS[@]}" -name '*.dart' | grep -v '/core/theme/' | sort)
 
 emit() { # <GATE> <file:line> <trecho>
   printf '  [%s] %s\n      %s\n' "$1" "$2" "$3"
@@ -71,5 +71,5 @@ if [ "$fail" -ne 0 ]; then
   echo "✗ gates_guard: violação(ões) acima. Tokenize (core/theme) ou justifique com // gateN-ok: <motivo>."
   exit 1
 fi
-echo "✓ gates_guard: Gates 1 e 4 limpos em $EDITOR_LIB."
+echo "✓ gates_guard: Gates 1 e 4 limpos em ${TARGET_LIBS[*]}."
 exit 0
