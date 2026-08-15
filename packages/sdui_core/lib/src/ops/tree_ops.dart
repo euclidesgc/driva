@@ -106,6 +106,51 @@ SduiNode cloneWithNewIds(SduiNode node, String Function() nextId) {
   );
 }
 
+/// O wrapper nasce como pai do nó apontado, ocupando exatamente a posição em
+/// que ele estava — raiz vira raiz, ocupante de slot único ou de slot
+/// múltiplo mantém pai e posição, sem mexer nos irmãos. `null` cobre três
+/// motivos de recusa: `nodeId` que não existe, `wrapperType` que não aceita
+/// múltiplos filhos (envolver em folha ou em slot único não faz sentido), e
+/// `newId` que já existe na árvore — sem essa guarda o wrapper e o alvo
+/// dividiriam id, e `findNode`/`updateNodeProps`/`removeNode` passariam a
+/// casar os dois de uma vez. `parseContentSpec` não valida unicidade de id,
+/// então essa corrupção passaria em silêncio por um round-trip.
+/// `target` segue por referência para o `children` do wrapper — mesmo
+/// raciocínio de `cloneWithNewIds`: `properties`/`events` são imutáveis por
+/// contrato, não há por que reconstruí-los.
+SduiNode? wrapNode(
+  SduiNode root,
+  String nodeId,
+  String wrapperType, {
+  required String newId,
+}) {
+  if (descriptorFor(wrapperType)?.slot != SlotKind.multi) return null;
+  final target = findNode(root, nodeId);
+  if (target == null) return null;
+  if (findNode(root, newId) != null) return null;
+
+  final wrapper = defaultNode(
+    wrapperType,
+    id: newId,
+  ).copyWith(children: [target]);
+  if (target.id == root.id) return wrapper;
+
+  return _rebuild(root, (current) {
+    if (current.child?.id == nodeId) {
+      return current.copyWith(child: () => wrapper);
+    }
+    if (current.children.any((c) => c.id == nodeId)) {
+      return current.copyWith(
+        children: [
+          for (final c in current.children)
+            if (c.id == nodeId) wrapper else c,
+        ],
+      );
+    }
+    return current;
+  });
+}
+
 SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   return _rebuild(root, (current) {
     if (current.id != id) return current;
