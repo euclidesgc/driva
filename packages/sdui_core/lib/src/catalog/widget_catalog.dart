@@ -326,14 +326,14 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
         kind: FieldKind.doubleNum,
         label: 'Largura',
         group: FieldGroups.size,
-        min: 0,
+        min: 1,
       ),
       PropField(
         key: 'height',
         kind: FieldKind.doubleNum,
         label: 'Altura',
         group: FieldGroups.size,
-        min: 0,
+        min: 1,
       ),
       PropField(
         key: 'fit',

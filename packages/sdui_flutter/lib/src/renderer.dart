@@ -3,17 +3,29 @@ import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/flex_scope.dart';
 import 'package:sdui_flutter/src/registry.dart';
+import 'package:sdui_flutter/src/theme/sdui_chrome_tokens.dart';
 
 typedef SduiNodeWrapper = Widget Function(SduiNode node, Widget built);
 
 typedef SduiActionHandler = void Function(SduiAction action);
 
 class SduiRenderer {
-  const SduiRenderer(this.registry, {this.onAction, this.nodeWrapper});
+  const SduiRenderer(
+    this.registry, {
+    this.onAction,
+    this.nodeWrapper,
+    this.showDiagnostics = false,
+  });
 
   final SduiRegistry registry;
   final SduiActionHandler? onAction;
   final SduiNodeWrapper? nodeWrapper;
+
+  /// `true` só no editor. Builders podem usá-lo para decidir se expõem
+  /// detalhe interno (URL, mensagem crua de exceção) — o mesmo renderer
+  /// desenha o app publicado, onde esse detalhe não pode vazar ao usuário
+  /// final (ex.: URL assinada com token na query).
+  final bool showDiagnostics;
 
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
@@ -72,13 +84,16 @@ class _UnknownTypeBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: SduiChromeTokens.unknownTypePadding,
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFCC3333)),
+        border: Border.all(color: SduiChromeTokens.unknownTypeAccent),
       ),
       child: Text(
         'Tipo desconhecido: "$type"',
-        style: const TextStyle(color: Color(0xFFCC3333), fontSize: 12),
+        style: const TextStyle(
+          color: SduiChromeTokens.unknownTypeAccent,
+          fontSize: SduiChromeTokens.unknownTypeFontSize,
+        ),
       ),
     );
   }
