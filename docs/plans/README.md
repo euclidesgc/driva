@@ -11,6 +11,8 @@ Um plano por item **aberto** do [`docs/roadmap.md`](../roadmap.md). Cada pasta g
 | Item | Assunto | Plano | Depende de |
 | --- | --- | --- | --- |
 | ~~23~~ | ~~Histórico do editor (undo/redo, atalhos, duplicar/colar)~~ — **entregue** em `develop` (#111, #112, #116, #114, #115) | [`23-historico-editor`](23-historico-editor/plan.md) | — |
+| 38 | Destravar o construtor — envolver nó e drop sem beco sem saída | [`38-destravar-drop-e-envolver`](38-destravar-drop-e-envolver/plan.md) | — (0-dep; **antes do 24**) |
+| 39 | Widget `image` — a URL aparece e o editor de propriedades cresce | [`39-image-url-e-props`](39-image-url-e-props/plan.md) | — (0-dep; **antes do 24**) |
 | 24 | Publicação e versionamento do conteúdo | [`24-publicacao-versionamento`](24-publicacao-versionamento/plan.md) | — |
 | 25 | Entrega ao app cliente (API pública + runtime + exemplo) | [`25-entrega-app-cliente`](25-entrega-app-cliente/plan.md) | 24 |
 | 26 | Autenticação e multi-tenant real | [`26-auth-multi-tenant`](26-auth-multi-tenant/plan.md) | 25 (convive) |
