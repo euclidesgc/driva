@@ -18,6 +18,11 @@ gaveta**: escopo novo, nascido do pedido do dev humano em 2026-08-15. A matéria
 
 ## Estado
 
+**Sete fases em `develop`: F1 (#137), F1b (#136), F2 (#135), F4 (#138) e a leva da 4ª
+revisão — F4b (#141), F2c (#142) e F2b (#143), mergeadas como stack. A próxima é a F3,
+com a status bar do mock dentro (5.1) e a D32 valendo: golden regravado por duas causas =
+dois commits.**
+
 **2026-08-16 — plano revisado duas vezes no mesmo dia; duas evidências de campo.** A F2
 (rota de preview) **mergeou no PR #135 e está no ar em hml**. A F1 está em execução. A
 segunda foto — o **editor** no celular, com o canvas desaparecido — abriu a **F1b**.
@@ -34,14 +39,14 @@ bloqueada" agora é só ordem de PR.
 
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
-| F1 | **Navegar no celular funciona** — projeto, categorias, lista, busca, diálogos | especialista-apresentacao | — | `[-]` |
-| **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | — | `[-]` |
+| F1 | **Navegar no celular funciona** — projeto, categorias, lista, busca, diálogos | especialista-apresentacao | **#137** | `[x]` |
+| **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | **#136** | `[x]` |
 | F2 | Rota `/preview/:projectId/:id` — o conteúdo no celular | especialista-apresentacao + especialista-infra | **#135** | `[x]` |
-| **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | — | `[ ]` |
-| **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | — | `[ ]` |
+| **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | **#143** | `[x]` |
+| **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | **#142** | `[x]` |
 | F3 | Piso do editor: overflows do shell + "ajustar à janela" **+ a status bar do mock (5.1)** | especialista-apresentacao | — | `[ ]` |
-| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | — | `[x]` |
-| **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | — | `[ ]` |
+| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | **#138** | `[x]` |
+| **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | **#141** | `[x]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | — | `[ ]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | — | `[ ]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
@@ -1264,6 +1269,35 @@ sozinho, sem precisar do contraste.
 **A regra que fica para as próximas rodadas:** evidência de campo é arquivada **no mesmo dia
 em que chega**, antes de qualquer PR que a torne irreproduzível. Uma foto no aplicativo de
 mensagens não é evidência arquivada.
+
+### D34 — **[nova, humano, 2026-08-16]** A pílula se apaga sozinha — e o que a traz de volta é o **sucesso**, não o gesto
+
+A F2b subiu e o dev viu a pílula no Chrome do desktop: *"não pedi pra remover isso?"*. O
+pedido 4.1 era o **botão**, e a D30 tinha guardado a **frase** de propósito — ela é o único
+sinal do caso do meio (puxou, buscou, não havia mudança). O incômodo, porém, é real: a
+frase fica permanente sobre um preview que existe para ser olhado.
+
+**Decisão do humano:** a pílula aparece, fica legível por `AppDurations.transientNotice` e
+desvanece. Volta a cada busca **bem-sucedida**.
+
+**O que faz a decisão ser segura é ela reagir a `fetchedAt`, não ao gesto.** O timer
+reinicia no `didUpdateWidget` quando o carimbo muda — e pela D30 o carimbo **não** muda
+quando o `refresh()` falha. A falha, portanto, não traz a pílula de volta: quem puxa sem
+rede vê o banner de erro e **nenhuma** pílula, e quem puxa com sucesso vê a pílula com a
+hora nova. Os dois prints continuam diferentes, que é o que a D30 protegia. Se o gatilho
+fosse "puxou", os dois voltariam a ser o mesmo print e a D30 estaria desfeita.
+
+**Consequência que veio junto, e não é opcional.** Com o botão fora (D30) e a pílula
+transitória, no **Chrome do desktop** não sobrava nada: o `MaterialScrollBehavior` não põe
+o mouse em `dragDevices`, então o `RefreshIndicator` **nunca** responde a arraste de mouse
+— o gesto que substituiu o botão não existe no PC, e a única saída era recarregar a página.
+Nasce a `PreviewScrollBehavior`, que soma `PointerDeviceKind.mouse` aos `dragDevices` só na
+árvore do preview. _Não é escopo novo: é o que faz a promessa da F2b valer no aparelho em
+que o dev estava quando reclamou._
+
+**A pílula também deixa de interceptar ponteiro** (`IgnorePointer`). Ela é rótulo desde a
+D30, e um `Material` opaco no rodapé do `Stack` engolia o arraste que começasse ali —
+justamente a borda de onde se puxa numa tela pequena.
 
 ---
 

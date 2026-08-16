@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_durations.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/preview/preview_scroll_behavior.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/last_saved_pill.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/preview_refresh_failure_banner.dart';
 import 'package:flutter/material.dart';
@@ -34,16 +35,21 @@ class PreviewContent extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: RefreshIndicator(
-            onRefresh: onRefresh,
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: SduiView.content(
-                    spec,
-                    imageUrlResolver: imageUrlResolver,
+          child: ScrollConfiguration(
+            behavior: const PreviewScrollBehavior(),
+            child: RefreshIndicator(
+              onRefresh: onRefresh,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: SduiView.content(
+                      spec,
+                      imageUrlResolver: imageUrlResolver,
+                    ),
                   ),
                 ),
               ),
@@ -67,7 +73,9 @@ class PreviewContent extends StatelessWidget {
           left: AppSpacing.s16,
           right: AppSpacing.s16,
           bottom: AppSpacing.s16,
-          child: Center(child: LastSavedPill(fetchedAt: fetchedAt)),
+          child: IgnorePointer(
+            child: Center(child: LastSavedPill(fetchedAt: fetchedAt)),
+          ),
         ),
       ],
     );
