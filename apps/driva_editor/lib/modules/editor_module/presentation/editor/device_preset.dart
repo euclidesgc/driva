@@ -62,4 +62,13 @@ enum DevicePreset {
   /// o recuo do navegador e o preview mentiria.
   EdgeInsets get safeAreaPadding =>
       EdgeInsets.only(top: safeAreaTop, bottom: safeAreaBottom);
+
+  /// Tamanho externo real da moldura, bezels inclusos — a `DeviceFrame` soma
+  /// `bezel` dos dois lados mais `bezel * 0.55` de cada lado para os botões
+  /// laterais transbordarem. Fonte única: quem precisar do tamanho de fora
+  /// (o ajuste "à janela") lê daqui em vez de duplicar a conta.
+  Size get frameSize {
+    final buttonWidth = bezel * 0.55;
+    return Size(width + bezel * 2 + buttonWidth * 2, height + bezel * 2);
+  }
 }

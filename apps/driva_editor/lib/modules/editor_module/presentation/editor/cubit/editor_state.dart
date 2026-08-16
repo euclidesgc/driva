@@ -27,6 +27,7 @@ final class EditorReady extends EditorState {
     this.selectedNodeId,
     this.device = DevicePreset.smartphone,
     this.zoom = 0.9,
+    this.fitToWindow = true,
     this.saveStatus = SaveStatus.saved,
     this.notice,
     this.canUndo = false,
@@ -39,6 +40,10 @@ final class EditorReady extends EditorState {
   final String? selectedNodeId;
   final DevicePreset device;
   final double zoom;
+
+  /// Escala calculada para caber a moldura na janela (D9) prevalece sobre
+  /// [zoom] enquanto ligado; um clique manual no zoom desliga (P5).
+  final bool fitToWindow;
   final SaveStatus saveStatus;
 
   /// Recado do último arraste que não terminou onde o usuário apontou. Vive
@@ -70,6 +75,7 @@ final class EditorReady extends EditorState {
     String? Function()? selectedNodeId,
     DevicePreset? device,
     double? zoom,
+    bool? fitToWindow,
     SaveStatus? saveStatus,
     EditorNotice? Function()? notice,
     bool? canUndo,
@@ -82,6 +88,7 @@ final class EditorReady extends EditorState {
           : this.selectedNodeId,
       device: device ?? this.device,
       zoom: zoom ?? this.zoom,
+      fitToWindow: fitToWindow ?? this.fitToWindow,
       saveStatus: saveStatus ?? this.saveStatus,
       notice: notice != null ? notice() : this.notice,
       canUndo: canUndo ?? this.canUndo,
@@ -95,6 +102,7 @@ final class EditorReady extends EditorState {
     selectedNodeId,
     device,
     zoom,
+    fitToWindow,
     saveStatus,
     notice,
     canUndo,

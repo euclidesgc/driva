@@ -22,17 +22,29 @@ class CanvasArea extends StatelessWidget {
     return BlocSelector<
       EditorCubit,
       EditorState,
-      ({DevicePreset device, double zoom, bool ready})
+      ({DevicePreset device, double zoom, bool fitToWindow, bool ready})
     >(
       selector: (state) => state is EditorReady
-          ? (device: state.device, zoom: state.zoom, ready: true)
-          : (device: DevicePreset.smartphone, zoom: 0.9, ready: false),
+          ? (
+              device: state.device,
+              zoom: state.zoom,
+              fitToWindow: state.fitToWindow,
+              ready: true,
+            )
+          : (
+              device: DevicePreset.smartphone,
+              zoom: 0.9,
+              fitToWindow: true,
+              ready: false,
+            ),
       builder: (context, vm) => CanvasPanel(
         device: vm.device,
         zoom: vm.zoom,
+        fitToWindow: vm.fitToWindow,
         onSelect: cubit.selectNode,
         onChangeDevice: cubit.changeDevice,
         onChangeZoom: cubit.changeZoom,
+        onToggleFitToWindow: cubit.toggleFitToWindow,
         imageUrlResolver: imageUrlResolver,
         onOpenPreview: vm.ready
             ? () => _openPreviewDialog(context, cubit)

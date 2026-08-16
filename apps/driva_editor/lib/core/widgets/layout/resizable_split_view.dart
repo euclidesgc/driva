@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +12,9 @@ class ResizableSplitView extends StatefulWidget {
     super.key,
     this.initialLeftWidth = 280,
     this.initialRightWidth = 320,
-    this.minPanelWidth = 200,
+    this.minPanelWidth = AppSizes.workspacePanelMinWidth,
     this.maxPanelWidth = 480,
+    this.minCenterWidth = AppSizes.minCenterWidth,
   });
 
   final Widget left;
@@ -20,6 +24,7 @@ class ResizableSplitView extends StatefulWidget {
   final double initialRightWidth;
   final double minPanelWidth;
   final double maxPanelWidth;
+  final double minCenterWidth;
 
   @override
   State<ResizableSplitView> createState() => _ResizableSplitViewState();
@@ -34,20 +39,51 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(width: _leftWidth, child: widget.left),
-        ResizeHandle(
-          onDrag: (dx) => setState(() => _leftWidth = _clamp(_leftWidth + dx)),
-        ),
-        Expanded(child: widget.center),
-        ResizeHandle(
-          onDrag: (dx) =>
-              setState(() => _rightWidth = _clamp(_rightWidth - dx)),
-        ),
-        SizedBox(width: _rightWidth, child: widget.right),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final floor =
+            2 * widget.minPanelWidth +
+            AppSizes.workspaceDividersWidth +
+            widget.minCenterWidth;
+        final storedRequirement =
+            _leftWidth +
+            _rightWidth +
+            AppSizes.workspaceDividersWidth +
+            widget.minCenterWidth;
+        final storedWidthsFit = constraints.maxWidth >= storedRequirement;
+
+        final leftWidth = storedWidthsFit ? _leftWidth : widget.minPanelWidth;
+        final rightWidth = storedWidthsFit
+            ? _rightWidth
+            : widget.minPanelWidth;
+
+        final row = Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(width: leftWidth, child: widget.left),
+            ResizeHandle(
+              onDrag: (dx) =>
+                  setState(() => _leftWidth = _clamp(leftWidth + dx)),
+            ),
+            Expanded(child: widget.center),
+            ResizeHandle(
+              onDrag: (dx) =>
+                  setState(() => _rightWidth = _clamp(rightWidth - dx)),
+            ),
+            SizedBox(width: rightWidth, child: widget.right),
+          ],
+        );
+
+        final rowWidth = math.max(constraints.maxWidth, floor);
+        if (rowWidth <= constraints.maxWidth) {
+          return row;
+        }
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(width: rowWidth, child: row),
+        );
+      },
     );
   }
 }

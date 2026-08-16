@@ -1836,8 +1836,13 @@ entrega um par de prints em que nada de relevante muda.
 16. **Breadcrumb a 1280 com nome de ~80 caracteres:** o último crumb **com reticências, em
     uma linha**. _Camada do sintoma, D22._
 17. **Faixa 1 a 700 e a 560:** o botão de overflow aparece **e o print é com o menu
-    aberto**, mostrando "Salvar" e "Publish" dentro. _O `⋮` visível não basta: um menu que
-    abre vazio passaria no aceite e reprovaria na prática._
+    aberto**, mostrando **"Publish", "Desfazer" e "Refazer"** dentro — e **"Salvar" como
+    ícone `filled` fora do menu**, a um toque (D35: a ação primária nunca entra no menu).
+    _O `⋮` visível não basta: um menu que abre vazio passaria no aceite e reprovaria na
+    prática. **[Correção editorial, 2026-08-16 — QA da F3]:** a redação anterior dizia
+    "Salvar" dentro do menu, contradizendo a D35 (mesma seção, mesmo dia). A D35 é a
+    decisão nomeada e travada; este texto só corrige o aceite para bater com ela — não é
+    mudança de decisão._
 17-A. **A faixa 600–1280 deixa de ser terra de ninguém** — é a F3 que a herda (§2.5›4,
     §5›F1b›7-E). **O que se prova é uma invariante, não três números:** *acima de
     `AppBreakpoints.compact` o canvas nunca tem largura zero* — ou porque sobra espaço, ou
