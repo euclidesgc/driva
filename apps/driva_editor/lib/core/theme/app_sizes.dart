@@ -1,9 +1,16 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 
 /// Larguras de componente que não cabem no ritmo genérico de espaçamento —
 /// medidas contra a composição real, não um valor de design abstrato.
 abstract final class AppSizes {
   static const double categoryTreePanelWidth = 272;
+
+  /// Largura da faixa fina de ícones do painel colapsado (D2, F5): o
+  /// `IconButton` padrão do Material 3 mantém [AppIconSizes.s40] de área de
+  /// toque mesmo com um ícone [AppIconSizes.s18] — é essa pegada que a faixa
+  /// respira com [AppSpacing.s8] de cada lado, não um valor abstrato.
+  static const double panelRailWidth = AppIconSizes.s40 + (AppSpacing.s8 * 2);
 
   /// Largura fixa do campo de busca no cabeçalho do painel de conteúdos, em
   /// faixa larga (linha única, ao lado da ordenação e do modo de
