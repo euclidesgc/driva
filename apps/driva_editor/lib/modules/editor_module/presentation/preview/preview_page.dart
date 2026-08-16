@@ -56,15 +56,14 @@ class PreviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<PreviewCubit, PreviewState>(
-        buildWhen: (previous, current) =>
-            previous.runtimeType != current.runtimeType,
         builder: (context, state) => switch (state) {
           PreviewLoading() => const Center(child: CircularProgressIndicator()),
           final PreviewFailure s => PreviewErrorView(failure: s.failure),
           final PreviewReady s => PreviewContent(
             spec: s.spec,
             fetchedAt: s.fetchedAt,
-            onReload: () => context.read<PreviewCubit>().load(),
+            refreshFailure: s.refreshFailure,
+            onRefresh: () => context.read<PreviewCubit>().refresh(),
             imageUrlResolver: imageUrlResolver,
           ),
         },

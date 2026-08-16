@@ -39,6 +39,15 @@
         .setAttribute('href', 'preview_manifest.json');
     }
   </script>
+
+  <style>
+    /* Sem isto, puxar no Chrome Android dispara dois refreshes: o
+       RefreshIndicator do Flutter (F2b, item 41) e o reload nativo da aba,
+       que derruba o app e refaz a carga do zero. */
+    html, body {
+      overscroll-behavior-y: contain;
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
