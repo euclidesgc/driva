@@ -34,6 +34,14 @@ class EditorCubit extends Cubit<EditorState> {
   /// projeto (categorias), não a home de projetos.
   final String projectId;
 
+  /// Piso e teto do zoom manual — o clamp de [changeZoom]. O ajuste
+  /// automático (D9) não passa por aqui, mas `CanvasToolbar` usa [minZoom]
+  /// para saber quando o "−" chegaria a esse piso mesmo com o ajuste ligado
+  /// e escala efetiva abaixo dele.
+  static const double minZoom = 0.4;
+
+  static const double maxZoom = 1.5;
+
   int _idSequence = 0;
   int _noticeSequence = 0;
 
@@ -466,7 +474,7 @@ class EditorCubit extends Cubit<EditorState> {
     final current = state;
     if (current is! EditorReady) return;
     emit(
-      current.copyWith(zoom: zoom.clamp(0.4, 1.5), fitToWindow: false),
+      current.copyWith(zoom: zoom.clamp(minZoom, maxZoom), fitToWindow: false),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:flutter/material.dart';
 
@@ -40,6 +41,7 @@ class CanvasToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
+    final canZoomOut = !(fitToWindow && effectiveScale <= EditorCubit.minZoom);
     return Container(
       height: AppSizes.canvasToolbarHeight,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
@@ -97,10 +99,14 @@ class CanvasToolbar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.s16),
           IconButton(
-            tooltip: 'Diminuir zoom',
+            tooltip: canZoomOut
+                ? 'Diminuir zoom'
+                : 'Diminuir zoom (já no piso do ajuste automático)',
             iconSize: AppIconSizes.s18,
             icon: const Icon(Icons.zoom_out),
-            onPressed: () => onChangeZoom(effectiveScale - 0.1),
+            onPressed: canZoomOut
+                ? () => onChangeZoom(effectiveScale - 0.1)
+                : null,
           ),
           Text(
             '${(effectiveScale * 100).round()}%',
