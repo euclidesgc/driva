@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:driva_editor/core/config/app_config.dart';
 import 'package:driva_editor/core/error/error.dart';
-import 'package:driva_editor/core/network/project_scope.dart';
+import 'package:driva_editor/core/network/network.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/injection.dart';
 import 'package:driva_editor/modules/contents_module/contents_module.dart';
@@ -13,11 +14,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 class EditorPage extends StatelessWidget {
-  const EditorPage({required this.projectFuture, super.key});
+  const EditorPage({
+    required this.projectFuture,
+    this.imageUrlResolver,
+    super.key,
+  });
 
   final Future<Either<Failure, Project>> projectFuture;
+
+  /// Só o `pageBuilder` toca o `get_it` para montá-lo (regra do projeto);
+  /// aqui ele só é repassado adiante.
+  final SduiImageUrlResolver? imageUrlResolver;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
@@ -36,8 +46,24 @@ class EditorPage extends StatelessWidget {
         unawaited(cubit.loadContent(id));
         return cubit;
       },
-      child: EditorPage(projectFuture: getIt<GetProjectUseCase>()(projectId)),
+      child: EditorPage(
+        projectFuture: getIt<GetProjectUseCase>()(projectId),
+        imageUrlResolver: _imageUrlResolverFor(getIt<AppConfig>()),
+      ),
     );
+  }
+
+  /// `apiBaseUrl` vazio (`String.fromEnvironment` sem
+  /// `--dart-define-from-file`) viraria `/v1/media/proxy?url=…` — relativo
+  /// à origem do editor, que não serve esse caminho. Sem servidor real
+  /// (`useFakeData`), o mesmo proxy aponta para um backend que não existe.
+  /// Nos dois casos o resolver precisa ficar `null`: sem ele o builder busca
+  /// a imagem direto do host, que é o comportamento de antes da F3 —
+  /// degradação correta, não a tela "falhou" generalizada que reintroduziria
+  /// o sintoma do item 39.
+  static SduiImageUrlResolver? _imageUrlResolverFor(AppConfig config) {
+    if (config.apiBaseUrl.isEmpty || config.useFakeData) return null;
+    return mediaProxyImageUrlResolver(config.apiBaseUrl);
   }
 
   @override
@@ -69,7 +95,10 @@ class EditorPage extends StatelessWidget {
             ),
           ),
         ),
-        EditorReady() => EditorWorkspace(projectFuture: projectFuture),
+        EditorReady() => EditorWorkspace(
+          projectFuture: projectFuture,
+          imageUrlResolver: imageUrlResolver,
+        ),
       },
     );
   }

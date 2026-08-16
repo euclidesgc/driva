@@ -3,9 +3,12 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/canv
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_tab_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/json_preview_panel.dart';
 import 'package:flutter/material.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 class CenterArea extends StatelessWidget {
-  const CenterArea({super.key});
+  const CenterArea({this.imageUrlResolver, super.key});
+
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +42,7 @@ class CenterArea extends StatelessWidget {
               children: [
                 ColoredBox(
                   color: colors.canvasBackdrop,
-                  child: const CanvasArea(),
+                  child: CanvasArea(imageUrlResolver: imageUrlResolver),
                 ),
                 const JsonPreviewPanel(),
               ],

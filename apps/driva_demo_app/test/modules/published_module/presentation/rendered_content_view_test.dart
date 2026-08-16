@@ -45,6 +45,22 @@ void main() {
     expect(find.textContaining('ainda não tem widgets'), findsOneWidget);
   });
 
+  testWidgets('imagem não é proxyada — o app não injeta resolver', (
+    tester,
+  ) async {
+    const src = 'https://example.com/logo.png';
+    await tester.pumpWidget(
+      _host(
+        _contentOf(
+          const SduiNode(id: 'n1', type: 'image', properties: {'src': src}),
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect((image.image as NetworkImage).url, src);
+  });
+
   testWidgets('evento do spec chega ao app como dado', (tester) async {
     await tester.pumpWidget(
       _host(

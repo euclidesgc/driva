@@ -10,11 +10,17 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/stat
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart' hide State;
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 class EditorWorkspace extends StatelessWidget {
-  const EditorWorkspace({required this.projectFuture, super.key});
+  const EditorWorkspace({
+    required this.projectFuture,
+    this.imageUrlResolver,
+    super.key,
+  });
 
   final Future<Either<Failure, Project>> projectFuture;
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,7 @@ class EditorWorkspace extends StatelessWidget {
             Expanded(
               child: ResizableSplitView(
                 left: const LeftPanel(),
-                center: const CenterArea(),
+                center: CenterArea(imageUrlResolver: imageUrlResolver),
                 right: ColoredBox(
                   color: colors.panel,
                   child: const InspectorArea(),

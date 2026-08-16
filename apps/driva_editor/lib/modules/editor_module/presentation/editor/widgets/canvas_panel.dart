@@ -3,6 +3,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/device_pr
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
 /// renderizando o documento com o renderer REAL (`SduiView`) — preview fiel
@@ -21,6 +22,7 @@ class CanvasPanel extends StatelessWidget {
     required this.onChangeZoom,
     required this.onDropOnDevice,
     required this.onDropOnNode,
+    this.imageUrlResolver,
     super.key,
   });
 
@@ -34,6 +36,8 @@ class CanvasPanel extends StatelessWidget {
   final ValueChanged<DragPayload> onDropOnDevice;
 
   final void Function(DragPayload payload, String targetId) onDropOnNode;
+
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +69,7 @@ class CanvasPanel extends StatelessWidget {
                       child: PreviewSurface(
                         onSelect: onSelect,
                         onDropOn: onDropOnNode,
+                        imageUrlResolver: imageUrlResolver,
                       ),
                     ),
                   ),
