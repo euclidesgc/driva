@@ -35,8 +35,9 @@ class _LeftPanelState extends State<LeftPanel>
   /// grupos colapsados da paleta não sobrevivem além deste `State` nesse
   /// cenário isolado, mesmo papel do `_uncontrolledNotifier` do
   /// `ResizableSplitView`.
-  final ValueNotifier<Set<String>> _fallbackCollapsedCategories =
-      ValueNotifier({});
+  final ValueNotifier<Set<String>> _fallbackCollapsedCategories = ValueNotifier(
+    {},
+  );
 
   late final TabController _tabController = TabController(
     length: 2,
