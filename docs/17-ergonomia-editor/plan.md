@@ -38,7 +38,7 @@ atestado — a F3 mexe em `canvas_panel.dart`, que está sendo instrumentado em
 | **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | — | `[-]` |
 | F2 | Rota `/preview/:projectId/:id` — o conteúdo no celular | especialista-apresentacao + especialista-infra | **#135** | `[x]` |
 | F3 | Piso do editor: overflows do shell + "ajustar à janela" | especialista-apresentacao | — | `[ ]` |
-| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | — | `[ ]` |
+| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | — | `[x]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | — | `[ ]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | — | `[ ]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
