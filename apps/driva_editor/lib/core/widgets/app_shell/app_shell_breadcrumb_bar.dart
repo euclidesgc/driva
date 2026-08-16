@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
@@ -15,7 +16,7 @@ class AppShellBreadcrumbBar extends StatelessWidget {
     return Material(
       color: colors.panelAlt,
       child: Container(
-        height: 30,
+        height: AppSizes.breadcrumbBarHeight,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: colors.border)),
@@ -32,9 +33,11 @@ class AppShellBreadcrumbBar extends StatelessWidget {
                         size: 16,
                         color: colors.inkMuted,
                       ),
-                    CrumbLabel(
-                      crumb: crumbs[i],
-                      isLast: i == crumbs.length - 1,
+                    Flexible(
+                      child: CrumbLabel(
+                        crumb: crumbs[i],
+                        isLast: i == crumbs.length - 1,
+                      ),
                     ),
                   ],
                 ],

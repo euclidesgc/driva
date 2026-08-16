@@ -54,4 +54,19 @@ abstract final class AppSizes {
   /// lateral), este valor muda junto, e é dele que os aceites de outras
   /// fases tiram a largura de teste (R13).
   static const double workspaceMinimumWidth = 200 + 200 + 12 + minCenterWidth;
+
+  // F3 — piso do shell (D35).
+  /// Altura fixa da faixa 1 do `AppShell` (wordmark + ações + status + tema).
+  static const double topBarHeight = 56;
+
+  /// Altura fixa da faixa 2 do `AppShell` (breadcrumb).
+  static const double breadcrumbBarHeight = 30;
+
+  /// Abaixo desta largura, a `AppShellTopBar` degrada em três peças (D35):
+  /// wordmark curto, a ação `filled` primária vira só ícone (um toque) e as
+  /// demais colapsam no `AppShellActionsOverflowMenu`. Não é breakpoint — é
+  /// o limiar em que a composição mais densa do shell (o topo do editor:
+  /// desfazer + refazer + Salvar + Publish, com status e o botão de tema)
+  /// para de caber (mesmo papel de `contentPanelWideHeaderFitWidth`).
+  static const double topBarActionsFitWidth = 760;
 }
