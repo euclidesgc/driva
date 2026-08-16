@@ -3,4 +3,6 @@
 /// cabe numa escala t-shirt limpa.
 abstract final class AppIconSizes {
   static const double s18 = 18;
+
+  static const double s40 = 40;
 }
