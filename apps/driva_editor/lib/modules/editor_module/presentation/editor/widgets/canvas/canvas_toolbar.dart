@@ -10,6 +10,7 @@ class CanvasToolbar extends StatelessWidget {
     required this.zoom,
     required this.onChangeDevice,
     required this.onChangeZoom,
+    required this.onOpenPreview,
     super.key,
   });
 
@@ -17,6 +18,13 @@ class CanvasToolbar extends StatelessWidget {
   final double zoom;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
+
+  /// Abre o diálogo com a URL/QR do preview no celular (D3, item 41). Quem
+  /// monta este widget só o faz com `EditorReady` (`CanvasArea` carrega o
+  /// canvas inteiro a partir daí), então `null` aqui é só o estado transitório
+  /// antes disso — o botão some em vez de aparecer desabilitado sem explicar
+  /// por quê, e nunca chega a existir um toque para ignorar em silêncio.
+  final VoidCallback? onOpenPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +66,15 @@ class CanvasToolbar extends StatelessWidget {
               color: colors.inkMuted,
             ),
           ),
+          if (onOpenPreview != null) ...[
+            const SizedBox(width: AppSpacing.s16),
+            IconButton(
+              tooltip: 'Ver no celular',
+              iconSize: 18,
+              icon: const Icon(Icons.smartphone),
+              onPressed: onOpenPreview,
+            ),
+          ],
           const SizedBox(width: AppSpacing.s16),
           IconButton(
             tooltip: 'Diminuir zoom',

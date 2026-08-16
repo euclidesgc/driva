@@ -35,4 +35,8 @@ abstract final class AppSpacing {
   static const double s70 = 70;
   static const double s80 = 80;
   static const double s90 = 90;
+
+  // O tamanho do QR code do preview (item 41) também é "respiro de layout",
+  // não ritmo de UI densa — mesma faixa dos anteriores.
+  static const double s180 = 180;
 }

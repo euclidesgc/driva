@@ -16,5 +16,11 @@ class DateFormatUtil {
     return '$day/$month/$year $hour:$minute';
   }
 
+  /// `2026-07-12T12:15:00Z` → `09:15` (no fuso local).
+  static String hourMinute(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    return '${_two(local.hour)}:${_two(local.minute)}';
+  }
+
   static String _two(int value) => value.toString().padLeft(2, '0');
 }

@@ -7,4 +7,15 @@ class EditorRoutes {
 
   static GoRoute get route =>
       GoRoute(path: editor, name: editorName, builder: EditorPage.pageBuilder);
+
+  /// Sem chrome (D3, item 41): `app_router.dart` instala esta rota como irmã
+  /// do `ShellRoute`, no `routes:` do root — nunca dentro dele.
+  static const String preview = '/preview/:projectId/:id';
+  static const String previewName = 'preview';
+
+  static GoRoute get previewRoute => GoRoute(
+    path: preview,
+    name: previewName,
+    builder: PreviewPage.pageBuilder,
+  );
 }

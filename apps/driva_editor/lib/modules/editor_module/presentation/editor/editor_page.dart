@@ -48,22 +48,9 @@ class EditorPage extends StatelessWidget {
       },
       child: EditorPage(
         projectFuture: getIt<GetProjectUseCase>()(projectId),
-        imageUrlResolver: _imageUrlResolverFor(getIt<AppConfig>()),
+        imageUrlResolver: imageUrlResolverFor(getIt<AppConfig>()),
       ),
     );
-  }
-
-  /// `apiBaseUrl` vazio (`String.fromEnvironment` sem
-  /// `--dart-define-from-file`) viraria `/v1/media/proxy?url=…` — relativo
-  /// à origem do editor, que não serve esse caminho. Sem servidor real
-  /// (`useFakeData`), o mesmo proxy aponta para um backend que não existe.
-  /// Nos dois casos o resolver precisa ficar `null`: sem ele o builder busca
-  /// a imagem direto do host, que é o comportamento de antes da F3 —
-  /// degradação correta, não a tela "falhou" generalizada que reintroduziria
-  /// o sintoma do item 39.
-  static SduiImageUrlResolver? _imageUrlResolverFor(AppConfig config) {
-    if (config.apiBaseUrl.isEmpty || config.useFakeData) return null;
-    return mediaProxyImageUrlResolver(config.apiBaseUrl);
   }
 
   @override
