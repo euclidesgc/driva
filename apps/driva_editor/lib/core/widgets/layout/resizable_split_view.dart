@@ -53,9 +53,7 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
         final storedWidthsFit = constraints.maxWidth >= storedRequirement;
 
         final leftWidth = storedWidthsFit ? _leftWidth : widget.minPanelWidth;
-        final rightWidth = storedWidthsFit
-            ? _rightWidth
-            : widget.minPanelWidth;
+        final rightWidth = storedWidthsFit ? _rightWidth : widget.minPanelWidth;
 
         final row = Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,

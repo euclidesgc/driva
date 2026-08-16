@@ -7,19 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Widget harness(DevicePreset device, {required Widget child}) =>
-      MaterialApp(
-        theme: AppTheme.light,
-        home: Scaffold(
-          body: Center(
-            child: DeviceFrame(
-              device: device,
-              highlighted: false,
-              child: child,
-            ),
-          ),
+  Widget harness(DevicePreset device, {required Widget child}) => MaterialApp(
+    theme: AppTheme.light,
+    home: Scaffold(
+      body: Center(
+        child: DeviceFrame(
+          device: device,
+          highlighted: false,
+          child: child,
         ),
-      );
+      ),
+    ),
+  );
 
   const marker = Key('content-marker');
   const markerWidget = Align(
