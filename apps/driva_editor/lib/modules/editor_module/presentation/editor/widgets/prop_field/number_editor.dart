@@ -1,5 +1,6 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/number_text_field.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/numeric_clamp.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -23,7 +24,6 @@ class NumberEditor extends StatefulWidget {
 
 class _NumberEditorState extends State<NumberEditor> {
   static const _sliderWidth = 72.0;
-  static const _invalidValueMessage = 'Valor inválido';
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.value?.toString() ?? '',
@@ -37,36 +37,24 @@ class _NumberEditorState extends State<NumberEditor> {
     if (trimmed.isEmpty) return null;
     return widget.isInt
         ? int.tryParse(trimmed)
-        : double.tryParse(trimmed.replaceAll(',', '.'));
+        : tryParseFiniteDouble(trimmed.replaceAll(',', '.'));
   }
 
   /// Mesmo contrato do `DimensionEditor`: o valor emitido é clampado contra
   /// `field.min`/`field.max`, mas o texto digitado fica como está — reescrevê-lo
   /// a cada tecla moveria o cursor.
   num _clamp(num value) {
-    final min = widget.field.min;
-    final max = widget.field.max;
-    var result = value;
-    if (min != null && result < min) result = min;
-    if (max != null && result > max) result = max;
-    return widget.isInt ? result.round() : result.toDouble();
+    final clamped = clampToRange(
+      value,
+      min: widget.field.min,
+      max: widget.field.max,
+    );
+    return widget.isInt ? clamped.round() : clamped.toDouble();
   }
 
   num? _committedValueOf(String text) {
     final parsed = _parse(text);
     return parsed == null ? null : _clamp(parsed);
-  }
-
-  static String _formatNum(num value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toString();
-
-  String _clampMessageFor(num raw, num clamped) {
-    final min = widget.field.min;
-    final isMinClamp = min != null && raw < min;
-    return isMinClamp
-        ? 'Ajustado para o mínimo (${_formatNum(clamped)})'
-        : 'Ajustado para o máximo (${_formatNum(clamped)})';
   }
 
   @override
@@ -109,9 +97,7 @@ class _NumberEditorState extends State<NumberEditor> {
     final clamped = _clamp(parsed);
     _setSignal(
       hasError: false,
-      clampMessage: clamped == parsed
-          ? null
-          : _clampMessageFor(parsed, clamped),
+      clampMessage: clampMessageFor(parsed, clamped, min: widget.field.min),
     );
     widget.onChanged(clamped);
   }
@@ -129,7 +115,7 @@ class _NumberEditorState extends State<NumberEditor> {
     final numberField = NumberTextField(
       controller: _controller,
       onChanged: _onTextChanged,
-      errorText: _hasError ? _invalidValueMessage : null,
+      errorText: _hasError ? invalidNumberMessage : null,
       helperText: _clampMessage,
     );
 

@@ -1,6 +1,7 @@
-import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/dimension_unit_toggle.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/number_text_field.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/numeric_clamp.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -36,6 +37,9 @@ class _DimensionEditorState extends State<DimensionEditor> {
     text: _textOf(widget.value),
   );
 
+  bool _hasError = false;
+  String? _clampMessage;
+
   static DimensionUnit _unitOf(Object? value) =>
       DimensionValue.parse(value) is PercentDimension
       ? DimensionUnit.percent
@@ -58,6 +62,9 @@ class _DimensionEditorState extends State<DimensionEditor> {
   bool get _isInfinite =>
       DimensionValue.parse(widget.value) is InfiniteDimension;
 
+  // `field.min`/`max` são sempre em pixels — o teto não faz sentido em
+  // percentual (150% de largura é transbordo intencional), mas o piso 0 vale
+  // nos dois: um valor negativo não é uma dimensão em nenhuma unidade.
   Object? _encode(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
@@ -67,14 +74,75 @@ class _DimensionEditorState extends State<DimensionEditor> {
           : null;
     }
 
-    final number = double.tryParse(trimmed.replaceAll(',', '.'));
+    final number = _parseNumber(trimmed);
     if (number == null) return null;
 
-    final min = widget.field.min?.toDouble() ?? 0;
-    final clamped = number < min ? min : number;
-    return _unit == DimensionUnit.pixels
-        ? clamped
-        : PercentDimension(clamped / 100).toJson();
+    if (_unit == DimensionUnit.percent) {
+      return PercentDimension(_clampedPercent(number) / 100).toJson();
+    }
+    return _clampedPixels(number);
+  }
+
+  num _clampedPercent(num raw) => clampToRange(raw, min: 0);
+
+  double _clampedPixels(num raw) => clampToRange(
+    raw,
+    min: widget.field.min ?? 0,
+    max: widget.field.max,
+  ).toDouble();
+
+  static double? _parseNumber(String trimmed) =>
+      tryParseFiniteDouble(trimmed.replaceAll(',', '.'));
+
+  void _setSignal({required bool hasError, String? clampMessage}) {
+    if (_hasError == hasError && _clampMessage == clampMessage) return;
+    setState(() {
+      _hasError = hasError;
+      _clampMessage = clampMessage;
+    });
+  }
+
+  void _onTextChanged(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) {
+      _setSignal(hasError: false);
+      widget.onChanged(null);
+      return;
+    }
+
+    if (trimmed == DimensionValue.infiniteToken) {
+      final isValid = _unit == DimensionUnit.pixels;
+      _setSignal(hasError: !isValid);
+      if (isValid) widget.onChanged(DimensionValue.infiniteToken);
+      return;
+    }
+
+    final number = _parseNumber(trimmed);
+    if (number == null) {
+      _setSignal(hasError: true);
+      return;
+    }
+
+    if (_unit == DimensionUnit.percent) {
+      final clamped = _clampedPercent(number);
+      _setSignal(
+        hasError: false,
+        clampMessage: clampMessageFor(number, clamped, min: 0),
+      );
+      widget.onChanged(PercentDimension(clamped / 100).toJson());
+      return;
+    }
+
+    final clamped = _clampedPixels(number);
+    _setSignal(
+      hasError: false,
+      clampMessage: clampMessageFor(
+        number,
+        clamped,
+        min: widget.field.min ?? 0,
+      ),
+    );
+    widget.onChanged(clamped);
   }
 
   @override
@@ -86,6 +154,8 @@ class _DimensionEditorState extends State<DimensionEditor> {
     if (_encode(_controller.text) != widget.value) {
       _controller.text = _textOf(widget.value);
       _unit = _unitOf(widget.value);
+      _hasError = false;
+      _clampMessage = null;
     }
   }
 
@@ -100,12 +170,15 @@ class _DimensionEditorState extends State<DimensionEditor> {
     setState(() {
       _unit = unit;
       _controller.clear();
+      _hasError = false;
+      _clampMessage = null;
     });
     widget.onChanged(null);
   }
 
   void _fillAvailable() {
     _controller.text = DimensionValue.infiniteToken;
+    _setSignal(hasError: false);
     widget.onChanged(DimensionValue.infiniteToken);
   }
 
@@ -129,29 +202,22 @@ class _DimensionEditorState extends State<DimensionEditor> {
         if (acceptsInfinite) ?widget.bindingButton,
         ?widget.resetButton,
       ],
-      body: TextField(
+      body: NumberTextField(
         controller: _controller,
-        style: const TextStyle(fontSize: AppTypography.base),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: _unit == DimensionUnit.pixels ? 'auto' : '0–100',
-          suffixIcon: acceptsInfinite
-              ? IconButton(
-                  tooltip: 'Preencher o espaço disponível',
-                  iconSize: 14,
-                  visualDensity: VisualDensity.compact,
-                  color: _isInfinite ? colors.inkPrimary : colors.inkMuted,
-                  icon: const Icon(Icons.all_inclusive),
-                  onPressed: _fillAvailable,
-                )
-              : null,
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 28,
-            minHeight: 28,
-          ),
-        ),
-        onChanged: (text) => widget.onChanged(_encode(text)),
+        onChanged: _onTextChanged,
+        errorText: _hasError ? invalidNumberMessage : null,
+        helperText: _clampMessage,
+        hintText: acceptsInfinite ? 'auto' : '0+',
+        suffixIcon: acceptsInfinite
+            ? IconButton(
+                tooltip: 'Preencher o espaço disponível',
+                iconSize: 14,
+                visualDensity: VisualDensity.compact,
+                color: _isInfinite ? colors.inkPrimary : colors.inkMuted,
+                icon: const Icon(Icons.all_inclusive),
+                onPressed: _fillAvailable,
+              )
+            : null,
       ),
     );
   }
