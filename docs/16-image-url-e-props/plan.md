@@ -55,7 +55,7 @@ seguidos passaram no papel e eram falsos na tela — é padrão, não acidente.
 | F1 | Os três estados ficam distintos + tokens + clamp | especialista-infra | 1 (`bugfix/*`) | `[-]` |
 | F2 | **Backend: proxy de mídia + gate CISO** | especialista-infra + **ciso** | 2 (`feature/*`) | `[-]` |
 | F3 | Renderer ganha o resolver; o editor injeta o proxy | especialista-infra | 3 (`feature/*`) | `[-]` |
-| F4 | Catálogo: `image` abrangente (Incremento 4 do item 9) | especialista-dominio + especialista-infra | 4 (`feature/*`) | `[ ]` |
+| F4 | Catálogo: `image` abrangente (Incremento 4 do item 9) | especialista-dominio + especialista-infra | 4 (`feature/*`) | `[x]` |
 | F5 | Bateria automatizada (por último) | qa | 5 | `[ ]` |
 
 `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída e revisada pelo QA

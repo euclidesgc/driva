@@ -117,6 +117,7 @@ class _DimensionEditorState extends State<DimensionEditor> {
     return PropFieldShell(
       label: widget.field.label,
       isRequired: widget.field.isRequired,
+      helpText: widget.field.helpText,
       headerTrailing: DimensionUnitToggle(
         unit: _unit,
         onChanged: _changeUnit,

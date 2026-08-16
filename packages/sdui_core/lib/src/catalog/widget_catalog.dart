@@ -320,20 +320,27 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
         label: 'URL da imagem',
         group: FieldGroups.content,
         isRequired: true,
+        helpText: 'URL http(s) de uma imagem pública.',
       ),
       PropField(
         key: 'width',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Largura',
         group: FieldGroups.size,
         min: 1,
+        helpText:
+            'Pixels (200), porcentagem do pai ("100%") ou "inf" para '
+            'preencher o espaço disponível.',
       ),
       PropField(
         key: 'height',
-        kind: FieldKind.doubleNum,
+        kind: FieldKind.dimension,
         label: 'Altura',
         group: FieldGroups.size,
         min: 1,
+        helpText:
+            'Pixels (200), porcentagem do pai ("100%") ou "inf" para '
+            'preencher o espaço disponível.',
       ),
       PropField(
         key: 'fit',
@@ -350,6 +357,33 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
           PropOption('scaleDown', label: 'Reduzir'),
         ],
         defaultValue: 'contain',
+      ),
+      PropField(
+        key: 'alignment',
+        kind: FieldKind.alignment,
+        label: 'Alinhamento',
+        group: FieldGroups.content,
+      ),
+      PropField(
+        key: 'borderRadius',
+        kind: FieldKind.doubleNum,
+        label: 'Raio da borda',
+        group: FieldGroups.style,
+        min: 0,
+        max: 64,
+      ),
+      PropField(
+        key: 'backgroundColor',
+        kind: FieldKind.color,
+        label: 'Cor de fundo',
+        group: FieldGroups.style,
+      ),
+      PropField(
+        key: 'semanticLabel',
+        kind: FieldKind.string,
+        label: 'Rótulo para leitor de tela',
+        group: FieldGroups.content,
+        helpText: 'Descreve a imagem para acessibilidade.',
       ),
     ],
   ),

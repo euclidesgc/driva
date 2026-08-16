@@ -4,6 +4,7 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/src/builders/image/image_empty_box.dart';
 import 'package:sdui_flutter/src/builders/image/image_error_box.dart';
 import 'package:sdui_flutter/src/builders/image/image_loading_box.dart';
+import 'package:sdui_flutter/src/layout/sdui_dimension_box.dart';
 import 'package:sdui_flutter/src/parsing/enums.dart';
 import 'package:sdui_flutter/src/parsing/parsers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
@@ -11,34 +12,52 @@ import 'package:sdui_flutter/src/renderer.dart';
 Widget buildImage(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final src = (p['src'] ?? '').toString();
-  final width = parseDouble(p['width']);
-  final height = parseDouble(p['height']);
+  final borderRadius = parseBorderRadius(p['borderRadius']);
+  final backgroundColor = parseColor(p['backgroundColor']);
+  final semanticLabel = (p['semanticLabel'] as String?)?.trim();
 
+  Widget content;
   if (src.isEmpty) {
-    return ImageEmptyBox(width: width, height: height);
+    content = const ImageEmptyBox();
+  } else {
+    final resolvedSrc = _resolve(src, r.imageUrlResolver);
+
+    content = Image.network(
+      resolvedSrc,
+      fit: boxFitFrom(p['fit']),
+      alignment: alignmentFrom(p['alignment']) ?? Alignment.center,
+      semanticLabel: semanticLabel != null && semanticLabel.isNotEmpty
+          ? semanticLabel
+          : null,
+      // O callback de progresso do `Image.network` nunca dispara no Flutter
+      // Web (`loadViaDecode()` não reporta chunks). `frameBuilder` roda em
+      // cada build, nas duas plataformas — `frame == null` é o sinal de
+      // "ainda sem pixel decodificado", web e mobile igual.
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) return child;
+        return const ImageLoadingBox();
+      },
+      errorBuilder: (context, error, stackTrace) => ImageErrorBox(
+        reason: _reasonFor(error, showDiagnostics: r.showDiagnostics),
+        src: r.showDiagnostics ? src : null,
+      ),
+    );
   }
 
-  final resolvedSrc = _resolve(src, r.imageUrlResolver);
+  if (backgroundColor != null) {
+    content = DecoratedBox(
+      decoration: BoxDecoration(color: backgroundColor),
+      child: content,
+    );
+  }
+  if (borderRadius != null) {
+    content = ClipRRect(borderRadius: borderRadius, child: content);
+  }
 
-  return Image.network(
-    resolvedSrc,
-    width: width,
-    height: height,
-    fit: boxFitFrom(p['fit']),
-    // O callback de progresso do `Image.network` nunca dispara no Flutter Web
-    // (`loadViaDecode()` não reporta chunks). `frameBuilder` roda em todo
-    // build nas duas plataformas — `frame == null` é o sinal de "ainda sem
-    // pixel decodificado", web e mobile igual.
-    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-      if (wasSynchronouslyLoaded || frame != null) return child;
-      return ImageLoadingBox(width: width, height: height);
-    },
-    errorBuilder: (context, error, stackTrace) => ImageErrorBox(
-      reason: _reasonFor(error, showDiagnostics: r.showDiagnostics),
-      src: r.showDiagnostics ? src : null,
-      width: width,
-      height: height,
-    ),
+  return SduiDimensionBox(
+    width: p['width'],
+    height: p['height'],
+    child: content,
   );
 }
 
