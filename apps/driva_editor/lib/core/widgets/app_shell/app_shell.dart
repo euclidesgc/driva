@@ -41,15 +41,20 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return AppShellScope(
       controller: _controller,
-      child: Column(
-        children: [
-          AppShellTopBar(
-            homeRouteName: widget.homeRouteName,
-            themeButton: widget.themeButton,
-          ),
-          const AppShellBreadcrumbBar(),
-          Expanded(child: widget.child),
-        ],
+      child: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) => Column(
+          children: [
+            if (!_controller.immersive) ...[
+              AppShellTopBar(
+                homeRouteName: widget.homeRouteName,
+                themeButton: widget.themeButton,
+              ),
+              const AppShellBreadcrumbBar(),
+            ],
+            Expanded(child: widget.child),
+          ],
+        ),
       ),
     );
   }

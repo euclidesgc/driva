@@ -1,8 +1,41 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_breadcrumb_bar.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+
+class _ImmersiveTogglePage extends StatefulWidget {
+  const _ImmersiveTogglePage({super.key});
+
+  @override
+  State<_ImmersiveTogglePage> createState() => _ImmersiveTogglePageState();
+}
+
+class _ImmersiveTogglePageState extends State<_ImmersiveTogglePage> {
+  final Object _token = Object();
+  AppShellController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller = AppShellScope.of(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _controller?.publish(_token, crumbs: const [], actions: const []);
+    });
+  }
+
+  void enterImmersive() => _controller?.setImmersive(_token, value: true);
+
+  void exitImmersive() => _controller?.setImmersive(_token, value: false);
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Conteúdo')));
+}
 
 GoRouter _router({VoidCallback? onAction}) => GoRouter(
   initialLocation: '/alpha',
@@ -98,4 +131,50 @@ void main() {
     expect(find.text('Agir'), findsNothing);
     expect(find.text('Beta'), findsOneWidget);
   });
+
+  testWidgets(
+    'esconde as duas faixas quando imersivo, mostra normalmente quando não',
+    (tester) async {
+      final key = GlobalKey<_ImmersiveTogglePageState>();
+      final router = GoRouter(
+        initialLocation: '/gamma',
+        routes: [
+          ShellRoute(
+            builder: (context, state, child) => AppShell(
+              homeRouteName: 'gamma',
+              themeButton: const SizedBox.shrink(),
+              child: child,
+            ),
+            routes: [
+              GoRoute(
+                path: '/gamma',
+                name: 'gamma',
+                builder: (context, state) => _ImmersiveTogglePage(key: key),
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(_harness(router));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppShellTopBar), findsOneWidget);
+      expect(find.byType(AppShellBreadcrumbBar), findsOneWidget);
+      expect(find.text('Conteúdo'), findsOneWidget);
+
+      key.currentState!.enterImmersive();
+      await tester.pump();
+
+      expect(find.byType(AppShellTopBar), findsNothing);
+      expect(find.byType(AppShellBreadcrumbBar), findsNothing);
+      expect(find.text('Conteúdo'), findsOneWidget);
+
+      key.currentState!.exitImmersive();
+      await tester.pump();
+
+      expect(find.byType(AppShellTopBar), findsOneWidget);
+      expect(find.byType(AppShellBreadcrumbBar), findsOneWidget);
+      expect(find.text('Conteúdo'), findsOneWidget);
+    },
+  );
 }
