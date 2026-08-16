@@ -48,7 +48,7 @@ bloqueada" agora é só ordem de PR.
 | F4 | Grupos da paleta colapsáveis | especialista-apresentacao | **#138** | `[x]` |
 | **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | **#141** | `[x]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | **#155** | `[-]` |
-| F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | **#158** | `[-]` |
+| F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | **#159** | `[-]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
 | F8 | E2E manual em homologação, executado e **atestado pelo humano** | qa instrumenta · dev humano atesta | — | `[ ]` |
 | F9 | Bateria automatizada + docs vivas | qa | — | `[ ]` |
@@ -2028,7 +2028,7 @@ print para isso — é teste de widget na F9.
 
 ---
 
-### F6 — O layout do editor é lembrado entre sessões · **[PR #158, aberto]** · **[sub-agente: especialista-dominio + especialista-dados + especialista-apresentacao]**
+### F6 — O layout do editor é lembrado entre sessões · **[PR #159, aberto]** · **[sub-agente: especialista-dominio + especialista-dados + especialista-apresentacao]**
 
 Fase própria, depois da F4 e da F5, **de propósito**: uma pilha de persistência escrita uma
 vez, servindo quatro clientes que já existem (larguras, painéis, grupos da paleta, seções
