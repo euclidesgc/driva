@@ -25,11 +25,11 @@ class DeviceStatusBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '9:41',
+              mock.statusBarClockLabel,
               style: TextStyle(
                 color: mock.statusBarIcon,
                 fontSize: AppTypography.base,
-                fontWeight: FontWeight.w600,
+                fontWeight: mock.statusBarClockWeight,
               ),
             ),
             Row(
