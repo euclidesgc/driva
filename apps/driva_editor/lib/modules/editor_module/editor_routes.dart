@@ -18,4 +18,15 @@ class EditorRoutes {
     name: previewName,
     builder: PreviewPage.pageBuilder,
   );
+
+  /// O `start_url` do manifest do preview (D31, item 41): sem ids, existe só
+  /// para não dar em 404 ao abrir pelo ícone da tela inicial.
+  static const String previewHome = '/preview';
+  static const String previewHomeName = 'preview-home';
+
+  static GoRoute get previewHomeRoute => GoRoute(
+    path: previewHome,
+    name: previewHomeName,
+    builder: PreviewHomePage.pageBuilder,
+  );
 }
