@@ -39,4 +39,19 @@ abstract final class AppSizes {
   /// já está fora do que `DialogContentWidth` mede (ele embrulha o
   /// `content`, que já está dentro do `contentPadding`).
   static const double dialogInsetBudget = 80;
+
+  /// Largura mínima do centro (canvas) do editor abaixo da qual o `Expanded`
+  /// deixa de fazer sentido — o mock precisa de espaço pra existir, não só
+  /// de um pixel de sobra. É o `minCentro` da D14.
+  static const double minCenterWidth = 320;
+
+  /// Piso mecânico do workspace do editor (D14): abaixo desta largura, o
+  /// `ResizableSplitView` deixa de encolher os painéis e passa a rolar na
+  /// horizontal — nada desaparece, nada mente. Somatório dos mínimos:
+  /// painel esquerdo (200) + painel direito (200) + os dois `ResizeHandle`
+  /// (6px cada, 12 no total) + [minCenterWidth]. Derivado, não reescrito à
+  /// mão — se um dos mínimos mudar (ex.: 5.3 acrescenta um terceiro painel
+  /// lateral), este valor muda junto, e é dele que os aceites de outras
+  /// fases tiram a largura de teste (R13).
+  static const double workspaceMinimumWidth = 200 + 200 + 12 + minCenterWidth;
 }
