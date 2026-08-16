@@ -2,6 +2,8 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/device_mock_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/camera_cutout.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_home_indicator.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_status_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/side_button.dart';
 import 'package:flutter/material.dart';
 
@@ -83,28 +85,59 @@ class DeviceFrame extends StatelessWidget {
               ),
               child: Stack(
                 children: [
+                  // A status bar e o indicador de home entram **dentro** deste
+                  // ClipRRect (não como irmãos do conteúdo): ambos desenham
+                  // até a borda do aparelho, e fora do clip vazariam
+                  // retangulares por cima das quinas arredondadas da tela.
                   ClipRRect(
                     borderRadius: BorderRadius.circular(device.cornerRadius),
                     child: SizedBox(
                       width: device.width,
                       height: device.height,
-                      child: ColoredBox(
-                        color: mock.screen,
-                        child: MediaQuery(
-                          data: MediaQuery.of(context).copyWith(
-                            size: Size(device.width, device.height),
-                            padding: device.safeAreaPadding,
-                            viewPadding: device.safeAreaPadding,
-                            viewInsets: EdgeInsets.zero,
+                      child: Stack(
+                        children: [
+                          // `Positioned.fill`, não filho solto do Stack: um
+                          // filho não-posicionado recebe constraints
+                          // afrouxadas (`loosen()`) e o conteúdo encolheria
+                          // para o próprio tamanho intrínseco, deixando o
+                          // corpo escuro do aparelho aparecer por trás.
+                          Positioned.fill(
+                            child: ColoredBox(
+                              color: mock.screen,
+                              child: MediaQuery(
+                                data: MediaQuery.of(context).copyWith(
+                                  size: Size(device.width, device.height),
+                                  padding: device.safeAreaPadding,
+                                  viewPadding: device.safeAreaPadding,
+                                  viewInsets: EdgeInsets.zero,
+                                ),
+                                child: child,
+                              ),
+                            ),
                           ),
-                          child: child,
-                        ),
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: DeviceStatusBar(device: device),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CameraCutout(notch: device.notch),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: DeviceHomeIndicator(device: device),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CameraCutout(notch: device.notch),
                     ),
                   ),
                   if (highlighted)

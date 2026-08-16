@@ -72,4 +72,12 @@ abstract final class AppSizes {
 
   /// Altura da barra de ferramentas do canvas (presets de device + zoom).
   static const double canvasToolbarHeight = 44;
+
+  // F3 — status bar do mock (D29).
+  /// Largura da cápsula do indicador de home do mock — cabe sem colidir com
+  /// as bordas no menor preset (Smartphone, 393 de largura).
+  static const double deviceHomeIndicatorWidth = 120;
+
+  /// Espessura da cápsula do indicador de home do mock.
+  static const double deviceHomeIndicatorHeight = 4;
 }

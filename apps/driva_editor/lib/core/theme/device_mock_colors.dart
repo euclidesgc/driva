@@ -17,6 +17,8 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
     required this.glow,
     required this.nodeTag,
     required this.dropHint,
+    required this.statusBarIcon,
+    required this.homeIndicator,
   });
 
   final Color body;
@@ -40,6 +42,14 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
 
   final Color dropHint;
 
+  /// Cor do relógio e dos ícones (sinal, wifi, bateria) da status bar do mock
+  /// (D29). Chrome desenhado, não derivado do conteúdo — a cor de verdade,
+  /// condicionada ao fundo da página, é o item 43.
+  final Color statusBarIcon;
+
+  /// Cor da cápsula do indicador de home do mock (D29).
+  final Color homeIndicator;
+
   static const DeviceMockColors light = DeviceMockColors(
     body: Color(0xFF1B1D21),
     bodyGradientTop: Color(0xFF25282E),
@@ -51,6 +61,8 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
     glow: Color(0x66E8602C),
     nodeTag: Color(0xCC3A3D44),
     dropHint: Color(0x66A0A4AD),
+    statusBarIcon: Color(0xFF1B1D21),
+    homeIndicator: Color(0x991B1D21),
   );
 
   /// Idêntico ao claro por ora (o mock não varia entre temas hoje).
@@ -68,6 +80,8 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
     Color? glow,
     Color? nodeTag,
     Color? dropHint,
+    Color? statusBarIcon,
+    Color? homeIndicator,
   }) {
     return DeviceMockColors(
       body: body ?? this.body,
@@ -80,6 +94,8 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
       glow: glow ?? this.glow,
       nodeTag: nodeTag ?? this.nodeTag,
       dropHint: dropHint ?? this.dropHint,
+      statusBarIcon: statusBarIcon ?? this.statusBarIcon,
+      homeIndicator: homeIndicator ?? this.homeIndicator,
     );
   }
 
@@ -97,6 +113,8 @@ class DeviceMockColors extends ThemeExtension<DeviceMockColors> {
       glow: Color.lerp(glow, other.glow, t)!,
       nodeTag: Color.lerp(nodeTag, other.nodeTag, t)!,
       dropHint: Color.lerp(dropHint, other.dropHint, t)!,
+      statusBarIcon: Color.lerp(statusBarIcon, other.statusBarIcon, t)!,
+      homeIndicator: Color.lerp(homeIndicator, other.homeIndicator, t)!,
     );
   }
 }
