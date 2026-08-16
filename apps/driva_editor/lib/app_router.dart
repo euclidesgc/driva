@@ -14,6 +14,9 @@ final GoRouter appRoutes = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: ProjectsRoutes.projects,
   routes: [
+    // Irmã do ShellRoute: nasce sem chrome (D3, item 41) — a vista de
+    // conteúdo que sai do laptop, para o celular.
+    EditorRoutes.previewRoute,
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (context, state, child) => AppShell(

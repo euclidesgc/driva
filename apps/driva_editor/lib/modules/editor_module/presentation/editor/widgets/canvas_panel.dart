@@ -23,6 +23,7 @@ class CanvasPanel extends StatelessWidget {
     required this.onDropOnDevice,
     required this.onDropOnNode,
     this.imageUrlResolver,
+    this.onOpenPreview,
     super.key,
   });
 
@@ -31,6 +32,8 @@ class CanvasPanel extends StatelessWidget {
   final ValueChanged<String?> onSelect;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
+
+  final VoidCallback? onOpenPreview;
 
   /// Soltar fora de qualquer nó mira o conteúdo inteiro (raiz).
   final ValueChanged<DragPayload> onDropOnDevice;
@@ -48,6 +51,7 @@ class CanvasPanel extends StatelessWidget {
           zoom: zoom,
           onChangeDevice: onChangeDevice,
           onChangeZoom: onChangeZoom,
+          onOpenPreview: onOpenPreview,
         ),
         Expanded(
           child: DragTarget<DragPayload>(
