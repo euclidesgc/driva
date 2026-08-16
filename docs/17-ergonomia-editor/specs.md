@@ -529,17 +529,17 @@ A tabela `SlotKind` → semântica **não morreu; mudou de função**. Ela deixa
 dizer *qual gesto significa o quê* e passa a dizer *quais opções do menu ficam
 habilitadas*. Ver §"O menu, opção por opção".
 
-#### Fresta e menu convivem — **assumido, pendente de confirmação (P11)**
+#### Fresta e menu convivem — **decidido pelo humano (H8), 2026-08-16**
 
-Ele disse "não precisa se preocupar com o arrastar na fresta". Isso admite duas
-leituras, e a spec assume a segunda:
+Ele disse "não precisa se preocupar com o arrastar na fresta". Isso admitia duas
+leituras, e ele confirmou a segunda:
 
 - **remover as frestas** — mas elas já funcionam desde o item 8e; removê-las é
   trabalho, não economia. E se **todo** drop virar menu, montar uma tela de 20
   widgets vira **20 diálogos**;
 - **deixar de depender** delas para desambiguar — que é o que o menu resolve.
 
-**P11 — Desenho assumido, sujeito a veto:**
+**H8 — Confirmado. As frestas ficam:**
 
 | Onde se solta | O que acontece | Por quê |
 | --- | --- | --- |
@@ -549,6 +549,11 @@ leituras, e a spec assume a segunda:
 **Duas semânticas, não três**, e **nenhuma exige mira fina**: o corpo do nó
 recuperou os 34 px inteiros porque parou de disputá-los com as outras duas. Quem
 quer velocidade usa a fresta; quem quer certeza usa o corpo.
+
+**A razão que fechou a decisão:** o que ele descreveu como imprevisível era soltar
+**em cima** de um widget. A fresta nunca teve ambiguidade — a posição *é* a
+resposta. Trocar as duas por menu resolveria um problema que a fresta não tem, e
+cobraria um clique a mais em todo drop.
 
 #### O menu, opção por opção
 

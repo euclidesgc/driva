@@ -562,6 +562,8 @@ e **P10** (ordem de entrega, com F3 antes da E1) — **ambas aprovadas**. A **P7
 (regra do corpo do nó) ficou **vazia** com o menu da H6, e a **P9** (nó inválido
 fora de escopo) foi **recusada** pela H7.
 
-**Assumidas pelo TM, pendentes de confirmação:** **P11** (fresta e menu convivem)
-e **P12** (opção impossível aparece desabilitada com o motivo, em vez de
-habilitada-e-erro-depois).
+**H8 — confirmada pelo humano:** fresta e menu **convivem**. Fresta insere direto;
+corpo do nó abre o menu.
+
+**Assumida pelo TM, pendente de veto:** **P12** — a opção impossível aparece
+desabilitada com o motivo visível, em vez de habilitada-e-erro-depois.
