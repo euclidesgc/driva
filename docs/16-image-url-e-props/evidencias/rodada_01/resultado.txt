@@ -1,0 +1,74 @@
+Alvo: https://hml.driva.duckdns.org  API: https://api-hml.driva.duckdns.org/v1  projeto: default  slug: e2e-39-canvas
+URL_A=https://picsum.photos/300/200
+URL_B=https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png
+URL_C=https://exemplo.invalido/x.png
+Conteúdo de teste: bsxl9um2nn9x83fz6px7vnr1
+
+=== D — campo vazio (DoD 21) — o estado "vazio", que não pode se parecer com "falhou"
+  [2m·[0m 20_estado_vazio.png
+  [32mPASS[0m o estado vazio não busca nada na rede
+
+=== A — host COM ACAO (DoD 18 e 22) — carregando sob throttling, depois carregado
+  [2m·[0m 12_inspector_helptext.png
+  [2m·[0m 22_estado_carregando.png
+  [32mPASS[0m a requisição ao proxy da imagem pesada existe
+  [32mPASS[0m e o download ainda NÃO tinha terminado no instante da captura (é por isso que o estado pisca)
+  [2m·[0m 18_estado_carregado.png
+  [32mPASS[0m caso A: o proxy respondeu 200
+  [32mPASS[0m caso A: o content-type que chegou ao Chrome é de imagem
+  [32mPASS[0m o que foi digitado no campo chegou ao spec
+
+=== C — URL inexistente (DoD 20) — o estado "falhou", com motivo legível
+  [2m·[0m 20b_estado_falhou.png
+  [32mPASS[0m caso C: o proxy respondeu 502 (erro tipado, não silêncio)
+  [2m·[0m 20c_tooltip_do_erro.png
+  [32mPASS[0m a URL inválida também chegou ao spec
+
+=== DoD 24 — os quatro estados lado a lado — a cancela da feature
+  [32mPASS[0m "vazio" e "carregando" não são o mesmo pixel
+  [32mPASS[0m "vazio" e "falhou" não são o mesmo pixel
+  [32mPASS[0m "vazio" e "carregado" não são o mesmo pixel
+  [32mPASS[0m "carregando" e "falhou" não são o mesmo pixel
+  [32mPASS[0m "carregando" e "carregado" não são o mesmo pixel
+  [32mPASS[0m "falhou" e "carregado" não são o mesmo pixel
+
+=== B — host SEM ACAO (DoD 19) — o caso do relato: agora carrega, e carrega VIA PROXY
+  [2m·[0m 19_caso_b_carregado.png
+  [32mPASS[0m caso B: houve chamada ao proxy com a URL do relato
+  [32mPASS[0m caso B: o proxy respondeu 200
+  [32mPASS[0m caso B: NENHUMA requisição direta ao host da imagem saiu do editor (D11 no caminho do editor)
+  [32mPASS[0m a rodada NÃO correu em modo fake — o resolver está ligado (DoD 13b)
+
+=== §10.8–9 (DoD 23) — width 0 e width abc — os dois sinais têm de se distinguir
+  [2m·[0m 23a_largura_zero.png
+  [32mPASS[0m o clamp da D6 agiu: 0 virou 1 no spec
+  [31mFAIL[0m (D15/DoD 23) o campo mostra "Ajustado para o mínimo (1)"
+       [2mesperado=true obtido=false[0m
+  [2m·[0m 23b_largura_abc.png
+  [31mFAIL[0m (D15/DoD 23) o campo mostra errorText de valor inválido
+       [2mesperado=true obtido=false[0m
+  [31mFAIL[0m (D15/DoD 23) os dois sinais se distinguem
+       [2mesperado=true obtido=false[0m
+
+=== §10.10–11 (F4) — width 100%, alignment, borderRadius e backgroundColor
+  [2m·[0m 11a_props_f4.png
+  [32mPASS[0m width percentual sobreviveu ao round-trip
+  [32mPASS[0m borderRadius sobreviveu
+  [32mPASS[0m alignment sobreviveu
+
+=== DoD 25 — conteúdo salvo ANTES da F4 (width numérico) reabre igual
+  [2m·[0m 25_compat_width_numerico.png
+  [32mPASS[0m o width numérico antigo continua no spec, intocado
+  [32mPASS[0m e nenhuma requisição de imagem falhou nesse estado
+
+=== §10.14 — recarregar a página do navegador — o conteúdo reabre idêntico
+  [2m·[0m 14_reabre_apos_reload.png
+  [32mPASS[0m o spec não mudou com o reload
+
+=== DoD 13b/19 — o log de rede — a prova de que a rodada correu contra o backend real
+  [32mPASS[0m toda imagem do canvas passou pelo proxy do backend real
+
+Limpando o rastro…
+
+[32mPASS=26[0m  [31mFAIL=3[0m
+[31mFalhas:[0m (D15/DoD 23) o campo mostra "Ajustado para o mínimo (1)" | (D15/DoD 23) o campo mostra errorText de valor inválido | (D15/DoD 23) os dois sinais se distinguem
