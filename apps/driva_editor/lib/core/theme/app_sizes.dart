@@ -39,4 +39,7 @@ abstract final class AppSizes {
   /// já está fora do que `DialogContentWidth` mede (ele embrulha o
   /// `content`, que já está dentro do `contentPadding`).
   static const double dialogInsetBudget = 80;
+
+  /// Altura da barra de ferramentas do canvas (presets de device + zoom).
+  static const double canvasToolbarHeight = 44;
 }

@@ -1,3 +1,5 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -7,17 +9,26 @@ import 'package:flutter/material.dart';
 class CanvasToolbar extends StatelessWidget {
   const CanvasToolbar({
     required this.device,
-    required this.zoom,
+    required this.effectiveScale,
+    required this.fitToWindow,
     required this.onChangeDevice,
     required this.onChangeZoom,
+    required this.onToggleFitToWindow,
     required this.onOpenPreview,
     super.key,
   });
 
   final DevicePreset device;
-  final double zoom;
+
+  /// Escala de fato aplicada ao mock — o `zoom` manual do cubit com o ajuste
+  /// desligado, ou a saída de `fitScaleFor` com ele ligado (D9). É o que a
+  /// barra mostra, para nunca exibir um percentual que a moldura desmente —
+  /// e a base dos botões +/-, para o clique continuar do que está na tela.
+  final double effectiveScale;
+  final bool fitToWindow;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
+  final VoidCallback onToggleFitToWindow;
 
   /// Abre o diálogo com a URL/QR do preview no celular (D3, item 41). Quem
   /// monta este widget só o faz com `EditorReady` (`CanvasArea` carrega o
@@ -30,7 +41,7 @@ class CanvasToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     return Container(
-      height: 44,
+      height: AppSizes.canvasToolbarHeight,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       decoration: BoxDecoration(
         color: colors.panel,
@@ -70,27 +81,36 @@ class CanvasToolbar extends StatelessWidget {
             const SizedBox(width: AppSpacing.s16),
             IconButton(
               tooltip: 'Ver no celular',
-              iconSize: 18,
+              iconSize: AppIconSizes.s18,
               icon: const Icon(Icons.smartphone),
               onPressed: onOpenPreview,
             ),
           ],
           const SizedBox(width: AppSpacing.s16),
           IconButton(
+            tooltip: 'Ajustar à janela',
+            iconSize: AppIconSizes.s18,
+            isSelected: fitToWindow,
+            icon: const Icon(Icons.fit_screen_outlined),
+            selectedIcon: const Icon(Icons.fit_screen),
+            onPressed: onToggleFitToWindow,
+          ),
+          const SizedBox(width: AppSpacing.s16),
+          IconButton(
             tooltip: 'Diminuir zoom',
-            iconSize: 18,
+            iconSize: AppIconSizes.s18,
             icon: const Icon(Icons.zoom_out),
-            onPressed: () => onChangeZoom(zoom - 0.1),
+            onPressed: () => onChangeZoom(effectiveScale - 0.1),
           ),
           Text(
-            '${(zoom * 100).round()}%',
+            '${(effectiveScale * 100).round()}%',
             style: const TextStyle(fontSize: AppTypography.md),
           ),
           IconButton(
             tooltip: 'Aumentar zoom',
-            iconSize: 18,
+            iconSize: AppIconSizes.s18,
             icon: const Icon(Icons.zoom_in),
-            onPressed: () => onChangeZoom(zoom + 0.1),
+            onPressed: () => onChangeZoom(effectiveScale + 0.1),
           ),
         ],
       ),

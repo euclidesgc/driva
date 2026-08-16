@@ -882,5 +882,61 @@ void main() {
         expect(state.zoom, 1.5);
       },
     );
+
+    blocTest<EditorCubit, EditorState>(
+      'fitToWindow começa ligado por padrão',
+      build: buildLoaded,
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.fitToWindow, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'changeZoom (manual) desliga o fitToWindow — P5',
+      build: buildLoaded,
+      act: (cubit) => cubit.changeZoom(0.7),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.fitToWindow, isFalse);
+        expect(state.zoom, 0.7);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'toggleFitToWindow religa depois do zoom manual ter desligado',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..changeZoom(0.7)
+          ..toggleFitToWindow();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.fitToWindow, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'toggleFitToWindow alterna: ligado → desligado → ligado',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..toggleFitToWindow()
+          ..toggleFitToWindow();
+      },
+      expect: () => [
+        isA<EditorReady>().having(
+          (s) => s.fitToWindow,
+          'fitToWindow',
+          isFalse,
+        ),
+        isA<EditorReady>().having(
+          (s) => s.fitToWindow,
+          'fitToWindow',
+          isTrue,
+        ),
+      ],
+    );
   });
 }
