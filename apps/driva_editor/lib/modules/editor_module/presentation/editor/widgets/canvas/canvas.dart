@@ -4,6 +4,7 @@ export 'device_frame.dart';
 export 'empty_preview.dart';
 export 'node_drag_feedback.dart';
 export 'node_tag.dart';
+export 'preview_share_dialog.dart';
 export 'preview_surface.dart';
 export 'selectable_node.dart';
 export 'selectable_node_surface.dart';
