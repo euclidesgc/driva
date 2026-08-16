@@ -54,19 +54,29 @@ class PreviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<PreviewCubit, PreviewState>(
-        builder: (context, state) => switch (state) {
-          PreviewLoading() => const Center(child: CircularProgressIndicator()),
-          final PreviewFailure s => PreviewErrorView(failure: s.failure),
-          final PreviewReady s => PreviewContent(
-            spec: s.spec,
-            fetchedAt: s.fetchedAt,
-            refreshFailure: s.refreshFailure,
-            onRefresh: () => context.read<PreviewCubit>().refresh(),
-            imageUrlResolver: imageUrlResolver,
-          ),
-        },
+    // O `MaterialApp.title` reescreve o `document.title` para "Driva Builder"
+    // assim que o app sobe, apagando o que o script do `index.html` deixou. No
+    // iOS é esse título que o "Adicionar à tela inicial" sugere, e sem isto os
+    // dois alvos instaláveis chegariam ao aparelho com o mesmo nome.
+    return Title(
+      title: 'Driva Preview',
+      color: Theme.of(context).colorScheme.primary,
+      child: Scaffold(
+        body: BlocBuilder<PreviewCubit, PreviewState>(
+          builder: (context, state) => switch (state) {
+            PreviewLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            final PreviewFailure s => PreviewErrorView(failure: s.failure),
+            final PreviewReady s => PreviewContent(
+              spec: s.spec,
+              fetchedAt: s.fetchedAt,
+              refreshFailure: s.refreshFailure,
+              onRefresh: () => context.read<PreviewCubit>().refresh(),
+              imageUrlResolver: imageUrlResolver,
+            ),
+          },
+        ),
       ),
     );
   }
