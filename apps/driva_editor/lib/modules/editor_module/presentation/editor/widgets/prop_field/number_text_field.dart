@@ -7,6 +7,8 @@ class NumberTextField extends StatelessWidget {
     required this.onChanged,
     this.errorText,
     this.helperText,
+    this.hintText = '—',
+    this.suffixIcon,
     super.key,
   });
 
@@ -14,6 +16,8 @@ class NumberTextField extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final String? errorText;
   final String? helperText;
+  final String hintText;
+  final Widget? suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +27,13 @@ class NumberTextField extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         isDense: true,
-        hintText: '—',
+        hintText: hintText,
         errorText: errorText,
         helperText: errorText == null ? helperText : null,
+        suffixIcon: suffixIcon,
+        suffixIconConstraints: suffixIcon == null
+            ? null
+            : const BoxConstraints(minWidth: 28, minHeight: 28),
       ),
       onChanged: onChanged,
     );
