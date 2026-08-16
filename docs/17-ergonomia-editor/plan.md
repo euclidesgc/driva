@@ -18,6 +18,11 @@ gaveta**: escopo novo, nascido do pedido do dev humano em 2026-08-15. A matéria
 
 ## Estado
 
+**Sete fases em `develop`: F1 (#137), F1b (#136), F2 (#135), F4 (#138) e a leva da 4ª
+revisão — F4b (#141), F2c (#142) e F2b (#143), mergeadas como stack. A próxima é a F3,
+com a status bar do mock dentro (5.1) e a D32 valendo: golden regravado por duas causas =
+dois commits.**
+
 **2026-08-16 — plano revisado duas vezes no mesmo dia; duas evidências de campo.** A F2
 (rota de preview) **mergeou no PR #135 e está no ar em hml**. A F1 está em execução. A
 segunda foto — o **editor** no celular, com o canvas desaparecido — abriu a **F1b**.
@@ -34,14 +39,14 @@ bloqueada" agora é só ordem de PR.
 
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
-| F1 | **Navegar no celular funciona** — projeto, categorias, lista, busca, diálogos | especialista-apresentacao | — | `[-]` |
-| **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | — | `[-]` |
+| F1 | **Navegar no celular funciona** — projeto, categorias, lista, busca, diálogos | especialista-apresentacao | **#137** | `[x]` |
+| **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | **#136** | `[x]` |
 | F2 | Rota `/preview/:projectId/:id` — o conteúdo no celular | especialista-apresentacao + especialista-infra | **#135** | `[x]` |
-| **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | — | `[ ]` |
-| **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | — | `[ ]` |
+| **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | **#143** | `[x]` |
+| **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | **#142** | `[x]` |
 | F3 | Piso do editor: overflows do shell + "ajustar à janela" **+ a status bar do mock (5.1)** | especialista-apresentacao | — | `[ ]` |
-| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | — | `[x]` |
-| **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | — | `[ ]` |
+| F4 | Grupos da paleta colapsáveis | especialista-apresentacao | **#138** | `[x]` |
+| **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | **#141** | `[x]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | — | `[ ]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | — | `[ ]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
