@@ -11,6 +11,9 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/editor_pa
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_status_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
@@ -39,6 +42,17 @@ ContentSpec _docWithText(String text) => ContentSpec(
       SduiNode(id: 'nd_text', type: 'text', properties: {'data': text}),
     ],
   ),
+);
+
+/// `spacer` como raiz (fora de `row`/`column`) dispara
+/// `DiagnosticCode.flexOnlyOutsideFlex` — o mesmo diagnóstico que
+/// `EditorStatusBar` mostra no rodapé (P2, aceite 34).
+const ContentSpec _docWithError = ContentSpec(
+  specVersion: kSpecVersion,
+  id: 'ct_1',
+  name: 'Home',
+  slug: 'home',
+  root: SduiNode(id: 'nd_root', type: 'spacer'),
 );
 
 void main() {
@@ -266,4 +280,91 @@ void main() {
       expect(find.byTooltip('Recolher Listas'), findsOneWidget);
     },
   );
+
+  group('tela cheia (F7)', () {
+    testWidgets(
+      'modo ligado esconde a paleta e o Inspector, sem faixa colapsada '
+      'sobrando, e o botão de sair fica visível (aceite 32)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        layoutController
+          ..collapseLeftPanel()
+          ..collapseRightPanel();
+        await tester.pump();
+        expect(find.byType(PanelRail), findsNWidgets(2));
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+
+        expect(find.byType(LeftPanel), findsNothing);
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(PanelRail), findsNothing);
+        expect(find.byTooltip('Sair da tela cheia (Esc)'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'sair do modo devolve exatamente a mesma largura e o mesmo colapso '
+      'de antes (aceite 33)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        layoutController
+          ..setLeftPanelWidth(340)
+          ..collapseRightPanel();
+        await tester.pump();
+        final widthBefore = layoutController.value.leftPanelWidth;
+        final rightCollapsedBefore = layoutController.value.rightPanelCollapsed;
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+        layoutController.exitFullscreen();
+        await tester.pump();
+
+        expect(layoutController.value.leftPanelWidth, widthBefore);
+        expect(
+          layoutController.value.rightPanelCollapsed,
+          rightCollapsedBefore,
+        );
+        expect(find.byType(LeftPanel), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'com erro de diagnóstico no rodapé, o modo tela cheia não o esconde '
+      '(aceite 34/P2)',
+      (tester) async {
+        cubit.emit(const EditorReady(document: _docWithError));
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        expect(find.byType(EditorStatusBar), findsOneWidget);
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+
+        expect(find.byType(EditorStatusBar), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a visibilidade do rodapé não muda ao entrar em tela cheia — a '
+      'F7 não toca a regra de exibição do `StatusBarArea` (P2)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        final before = find.byType(EditorStatusBar).evaluate().length;
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+        final after = find.byType(EditorStatusBar).evaluate().length;
+
+        expect(after, before);
+      },
+    );
+  });
 }

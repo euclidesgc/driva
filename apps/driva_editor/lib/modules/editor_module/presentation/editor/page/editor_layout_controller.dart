@@ -50,6 +50,18 @@ class EditorLayoutController extends ValueNotifier<EditorLayout> {
     {},
   );
 
+  /// Modo tela cheia (F7/D15). Notifier irmão, fora de [EditorLayout] de
+  /// propósito: ao contrário de largura/colapso/aba, tela cheia não é hábito
+  /// de trabalho — é um momento da sessão — e por isso nunca passa por
+  /// [_snapshotNow]/[_applySnapshot] (a ida e volta com o disco).
+  final ValueNotifier<bool> isFullscreen = ValueNotifier(false);
+
+  void enterFullscreen() => isFullscreen.value = true;
+
+  void exitFullscreen() => isFullscreen.value = false;
+
+  void toggleFullscreen() => isFullscreen.value = !isFullscreen.value;
+
   Timer? _saveTimer;
   bool _isBooting = false;
   bool _disposed = false;
@@ -180,6 +192,7 @@ class EditorLayoutController extends ValueNotifier<EditorLayout> {
     collapsedInspectorSections
       ..removeListener(_scheduleSave)
       ..dispose();
+    isFullscreen.dispose();
     super.dispose();
   }
 }

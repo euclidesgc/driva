@@ -42,27 +42,41 @@ class EditorWorkspace extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: ResizableSplitView(
-                left: const LeftPanel(),
-                leftPanelRail: const LeftPanelRail(),
-                center: CenterArea(imageUrlResolver: imageUrlResolver),
-                right: ColoredBox(
-                  color: colors.panel,
-                  child: const InspectorArea(),
-                ),
-                rightPanelRail: const RightPanelRail(),
-                // Lido só aqui, na montagem (D13): `EditorPage` só monta este
-                // widget depois que `EditorLayoutController.ready` resolve, e
-                // já vem reclampado — não precisa reagir a mudança pós-boot.
-                initialLeftWidth: layoutController.value.leftPanelWidth,
-                initialRightWidth: layoutController.value.rightPanelWidth,
-                onLeftWidthChanged: layoutController.setLeftPanelWidth,
-                onRightWidthChanged: layoutController.setRightPanelWidth,
-                layoutListenable: layoutController,
-                isLeftCollapsed: () =>
-                    layoutController.value.leftPanelCollapsed,
-                isRightCollapsed: () =>
-                    layoutController.value.rightPanelCollapsed,
+              // F7/D15: fullscreen só esconde a paleta e o Inspector (nem a
+              // faixa colapsada, que ainda mostraria ~40px de cada lado) — o
+              // `EditorLayout` por trás do `ResizableSplitView` nunca é
+              // tocado, então sair do modo remonta as mesmas larguras e os
+              // mesmos colapsos de antes (aceite 33).
+              child: ValueListenableBuilder<bool>(
+                valueListenable: layoutController.isFullscreen,
+                builder: (context, isFullscreen, _) => isFullscreen
+                    ? CenterArea(imageUrlResolver: imageUrlResolver)
+                    : ResizableSplitView(
+                        left: const LeftPanel(),
+                        leftPanelRail: const LeftPanelRail(),
+                        center: CenterArea(imageUrlResolver: imageUrlResolver),
+                        right: ColoredBox(
+                          color: colors.panel,
+                          child: const InspectorArea(),
+                        ),
+                        rightPanelRail: const RightPanelRail(),
+                        // Lido só aqui, na montagem (D13): `EditorPage` só
+                        // monta este widget depois que
+                        // `EditorLayoutController.ready` resolve, e já vem
+                        // reclampado — não precisa reagir a mudança
+                        // pós-boot.
+                        initialLeftWidth: layoutController.value.leftPanelWidth,
+                        initialRightWidth:
+                            layoutController.value.rightPanelWidth,
+                        onLeftWidthChanged: layoutController.setLeftPanelWidth,
+                        onRightWidthChanged:
+                            layoutController.setRightPanelWidth,
+                        layoutListenable: layoutController,
+                        isLeftCollapsed: () =>
+                            layoutController.value.leftPanelCollapsed,
+                        isRightCollapsed: () =>
+                            layoutController.value.rightPanelCollapsed,
+                      ),
               ),
             ),
             const StatusBarArea(),

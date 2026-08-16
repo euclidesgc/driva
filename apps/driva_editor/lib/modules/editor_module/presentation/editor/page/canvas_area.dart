@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:driva_editor/modules/editor_module/editor_routes.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_share_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
@@ -19,6 +20,9 @@ class CanvasArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    // D7: alcança o `EditorLayoutController` pelo soquete, não por um sexto
+    // parâmetro de construtor a partir de `EditorWorkspace` (`VR-16-02`).
+    final layoutController = EditorLayoutScope.of(context)!;
     return BlocSelector<
       EditorCubit,
       EditorState,
@@ -37,26 +41,31 @@ class CanvasArea extends StatelessWidget {
               fitToWindow: true,
               ready: false,
             ),
-      builder: (context, vm) => CanvasPanel(
-        device: vm.device,
-        zoom: vm.zoom,
-        fitToWindow: vm.fitToWindow,
-        onSelect: cubit.selectNode,
-        onChangeDevice: cubit.changeDevice,
-        onChangeZoom: cubit.changeZoom,
-        onToggleFitToWindow: cubit.toggleFitToWindow,
-        imageUrlResolver: imageUrlResolver,
-        onOpenPreview: vm.ready
-            ? () => _openPreviewDialog(context, cubit)
-            : null,
-        onDropOnDevice: (payload) {
-          final state = cubit.state;
-          if (state is! EditorReady) return;
-          // Conteúdo vazio: o nó vira a raiz (alvo null resolve isso).
-          _dispatch(cubit, payload, state.document.root?.id);
-        },
-        onDropOnNode: (payload, targetId) =>
-            _dispatch(cubit, payload, targetId),
+      builder: (context, vm) => ValueListenableBuilder<bool>(
+        valueListenable: layoutController.isFullscreen,
+        builder: (context, isFullscreen, _) => CanvasPanel(
+          device: vm.device,
+          zoom: vm.zoom,
+          fitToWindow: vm.fitToWindow,
+          onSelect: cubit.selectNode,
+          onChangeDevice: cubit.changeDevice,
+          onChangeZoom: cubit.changeZoom,
+          onToggleFitToWindow: cubit.toggleFitToWindow,
+          imageUrlResolver: imageUrlResolver,
+          onOpenPreview: vm.ready
+              ? () => _openPreviewDialog(context, cubit)
+              : null,
+          isFullscreen: isFullscreen,
+          onToggleFullscreen: layoutController.toggleFullscreen,
+          onDropOnDevice: (payload) {
+            final state = cubit.state;
+            if (state is! EditorReady) return;
+            // Conteúdo vazio: o nó vira a raiz (alvo null resolve isso).
+            _dispatch(cubit, payload, state.document.root?.id);
+          },
+          onDropOnNode: (payload, targetId) =>
+              _dispatch(cubit, payload, targetId),
+        ),
       ),
     );
   }

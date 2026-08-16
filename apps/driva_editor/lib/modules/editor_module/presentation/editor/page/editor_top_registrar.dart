@@ -2,6 +2,7 @@ import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
 import 'package:driva_editor/modules/contents_module/contents_module.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +21,9 @@ class EditorTopRegistrar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    // D7: alcança o `EditorLayoutController` pelo soquete, não por um sexto
+    // parâmetro de construtor a partir de `EditorWorkspace` (`VR-16-02`).
+    final layoutController = EditorLayoutScope.of(context)!;
     return FutureBuilder<Either<Failure, Project>>(
       future: projectFuture,
       builder: (context, snapshot) {
@@ -42,41 +46,46 @@ class EditorTopRegistrar extends StatelessWidget {
               : ('', SaveStatus.saved, false, false),
           builder: (context, vm) {
             final (contentName, status, canUndo, canRedo) = vm;
-            return AppShellSlot(
-              crumbs: [
-                const Crumb(
-                  label: 'Projetos',
-                  routeName: ProjectsRoutes.projectsName,
-                ),
-                Crumb(
-                  label: projectTitle,
-                  routeName: ContentsRoutes.projectDetailName,
-                  pathParameters: {'id': cubit.projectId},
-                ),
-                Crumb(label: contentName),
-              ],
-              status: _statusFor(status),
-              actions: [
-                AppBarAction.icon(
-                  icon: Icons.undo,
-                  tooltip: 'Desfazer (Ctrl+Z)',
-                  onPressed: canUndo ? cubit.undo : null,
-                ),
-                AppBarAction.icon(
-                  icon: Icons.redo,
-                  tooltip: 'Refazer (Ctrl+Shift+Z)',
-                  onPressed: canRedo ? cubit.redo : null,
-                ),
-                AppBarAction.filled(
-                  label: 'Salvar',
-                  icon: Icons.save_outlined,
-                  onPressed: status == SaveStatus.saving ? null : cubit.save,
-                ),
-                const AppBarAction.outlined(
-                  label: 'Publish',
-                  tooltip: 'Publicação chega no incremento I4',
-                ),
-              ],
+            return ValueListenableBuilder<bool>(
+              valueListenable: layoutController.isFullscreen,
+              builder: (context, isFullscreen, staticChild) => AppShellSlot(
+                crumbs: [
+                  const Crumb(
+                    label: 'Projetos',
+                    routeName: ProjectsRoutes.projectsName,
+                  ),
+                  Crumb(
+                    label: projectTitle,
+                    routeName: ContentsRoutes.projectDetailName,
+                    pathParameters: {'id': cubit.projectId},
+                  ),
+                  Crumb(label: contentName),
+                ],
+                status: _statusFor(status),
+                immersive: isFullscreen,
+                actions: [
+                  AppBarAction.icon(
+                    icon: Icons.undo,
+                    tooltip: 'Desfazer (Ctrl+Z)',
+                    onPressed: canUndo ? cubit.undo : null,
+                  ),
+                  AppBarAction.icon(
+                    icon: Icons.redo,
+                    tooltip: 'Refazer (Ctrl+Shift+Z)',
+                    onPressed: canRedo ? cubit.redo : null,
+                  ),
+                  AppBarAction.filled(
+                    label: 'Salvar',
+                    icon: Icons.save_outlined,
+                    onPressed: status == SaveStatus.saving ? null : cubit.save,
+                  ),
+                  const AppBarAction.outlined(
+                    label: 'Publish',
+                    tooltip: 'Publicação chega no incremento I4',
+                  ),
+                ],
+                child: staticChild!,
+              ),
               child: child,
             );
           },

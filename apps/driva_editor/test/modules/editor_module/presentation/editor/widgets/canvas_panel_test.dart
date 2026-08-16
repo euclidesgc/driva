@@ -61,6 +61,8 @@ void main() {
               onToggleFitToWindow: onToggleFitToWindow ?? () {},
               onDropOnDevice: (_) {},
               onDropOnNode: (_, _) {},
+              isFullscreen: false,
+              onToggleFullscreen: () {},
             ),
           ),
         ),

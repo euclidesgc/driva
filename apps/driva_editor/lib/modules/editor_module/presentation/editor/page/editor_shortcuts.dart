@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_intents.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,50 +22,79 @@ class EditorShortcuts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
-    return Shortcuts(
-      shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.keyS, control: true): SaveIntent(),
-        SingleActivator(LogicalKeyboardKey.keyZ, control: true): UndoIntent(),
-        SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true):
-            RedoIntent(),
-        SingleActivator(LogicalKeyboardKey.keyY, control: true): RedoIntent(),
-        SingleActivator(LogicalKeyboardKey.keyD, control: true):
-            DuplicateIntent(),
-        SingleActivator(LogicalKeyboardKey.keyC, control: true):
-            CopyNodeIntent(),
-        SingleActivator(LogicalKeyboardKey.keyV, control: true):
-            PasteNodeIntent(),
-        SingleActivator(LogicalKeyboardKey.keyG, control: true): WrapIntent(),
-        SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
-        SingleActivator(LogicalKeyboardKey.escape): ClearSelectionIntent(),
-      },
-      child: Actions(
-        actions: {
-          SaveIntent: CallbackAction<SaveIntent>(onInvoke: (_) => cubit.save()),
-          UndoIntent: CallbackAction<UndoIntent>(onInvoke: (_) => cubit.undo()),
-          RedoIntent: CallbackAction<RedoIntent>(onInvoke: (_) => cubit.redo()),
-          DeleteIntent: CallbackAction<DeleteIntent>(
-            onInvoke: (_) => _isEditingText ? null : cubit.removeSelected(),
-          ),
-          DuplicateIntent: CallbackAction<DuplicateIntent>(
-            onInvoke: (_) => _isEditingText ? null : cubit.duplicateSelected(),
-          ),
-          CopyNodeIntent: CallbackAction<CopyNodeIntent>(
-            onInvoke: (_) => _isEditingText ? null : cubit.copySelected(),
-          ),
-          PasteNodeIntent: CallbackAction<PasteNodeIntent>(
-            onInvoke: (_) => _isEditingText ? null : cubit.paste(),
-          ),
-          WrapIntent: CallbackAction<WrapIntent>(
-            onInvoke: (_) =>
-                _isEditingText ? null : cubit.wrapSelected('column'),
-          ),
-          ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
-            onInvoke: (_) => _isEditingText ? null : cubit.selectNode(null),
-          ),
+    // D7: alcança o `EditorLayoutController` pelo soquete, não por um sexto
+    // parâmetro de construtor a partir de `EditorWorkspace` (`VR-16-02`).
+    final layoutController = EditorLayoutScope.of(context)!;
+    return ValueListenableBuilder<bool>(
+      valueListenable: layoutController.isFullscreen,
+      builder: (context, isFullscreen, staticChild) => Shortcuts(
+        shortcuts: {
+          const SingleActivator(LogicalKeyboardKey.keyS, control: true):
+              const SaveIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyZ, control: true):
+              const UndoIntent(),
+          const SingleActivator(
+            LogicalKeyboardKey.keyZ,
+            control: true,
+            shift: true,
+          ): const RedoIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyY, control: true):
+              const RedoIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyD, control: true):
+              const DuplicateIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyC, control: true):
+              const CopyNodeIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyV, control: true):
+              const PasteNodeIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyG, control: true):
+              const WrapIntent(),
+          const SingleActivator(LogicalKeyboardKey.delete):
+              const DeleteIntent(),
+          // F7/D16: `Esc` só sai do fullscreen enquanto ele está ativo;
+          // fora dele, a tecla continua exclusiva de ClearSelectionIntent.
+          const SingleActivator(LogicalKeyboardKey.escape): isFullscreen
+              ? const ExitFullscreenIntent()
+              : const ClearSelectionIntent(),
         },
-        child: Focus(autofocus: true, child: child),
+        child: Actions(
+          actions: {
+            SaveIntent: CallbackAction<SaveIntent>(
+              onInvoke: (_) => cubit.save(),
+            ),
+            UndoIntent: CallbackAction<UndoIntent>(
+              onInvoke: (_) => cubit.undo(),
+            ),
+            RedoIntent: CallbackAction<RedoIntent>(
+              onInvoke: (_) => cubit.redo(),
+            ),
+            DeleteIntent: CallbackAction<DeleteIntent>(
+              onInvoke: (_) => _isEditingText ? null : cubit.removeSelected(),
+            ),
+            DuplicateIntent: CallbackAction<DuplicateIntent>(
+              onInvoke: (_) =>
+                  _isEditingText ? null : cubit.duplicateSelected(),
+            ),
+            CopyNodeIntent: CallbackAction<CopyNodeIntent>(
+              onInvoke: (_) => _isEditingText ? null : cubit.copySelected(),
+            ),
+            PasteNodeIntent: CallbackAction<PasteNodeIntent>(
+              onInvoke: (_) => _isEditingText ? null : cubit.paste(),
+            ),
+            WrapIntent: CallbackAction<WrapIntent>(
+              onInvoke: (_) =>
+                  _isEditingText ? null : cubit.wrapSelected('column'),
+            ),
+            ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
+              onInvoke: (_) => _isEditingText ? null : cubit.selectNode(null),
+            ),
+            ExitFullscreenIntent: CallbackAction<ExitFullscreenIntent>(
+              onInvoke: (_) => layoutController.exitFullscreen(),
+            ),
+          },
+          child: Focus(autofocus: true, child: staticChild!),
+        ),
       ),
+      child: child,
     );
   }
 }
