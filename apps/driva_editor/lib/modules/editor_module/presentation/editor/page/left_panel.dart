@@ -7,8 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-class LeftPanel extends StatelessWidget {
+class LeftPanel extends StatefulWidget {
   const LeftPanel({super.key});
+
+  @override
+  State<LeftPanel> createState() => _LeftPanelState();
+}
+
+class _LeftPanelState extends State<LeftPanel> {
+  // Nasce aqui, não desce do EditorWorkspace: só assim o `const LeftPanel()`
+  // continua curto-circuitando o rebuild do painel a cada `emit` (D28).
+  final ValueNotifier<Set<String>> _collapsedCategories = ValueNotifier({});
+
+  @override
+  void dispose() {
+    _collapsedCategories.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +44,9 @@ class LeftPanel extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  const WidgetPalettePanel(),
+                  WidgetPalettePanel(
+                    collapsedCategories: _collapsedCategories,
+                  ),
                   BlocSelector<EditorCubit, EditorState, String>(
                     selector: (state) {
                       if (state is! EditorReady) return '';
