@@ -24,14 +24,24 @@ class _LeftPanelState extends State<LeftPanel>
   // que `EditorWorkspace` instala — colapsar o painel desmonta este `State`
   // por inteiro (é a faixa fina tomando o lugar dele), então não há cenário
   // em que a aba mude enquanto este `State` sobrevive fora de um novo mount.
-  late final EditorLayoutController _layoutController = EditorLayoutScope.of(
+  // `null` = sem `EditorLayoutScope` acima (ex. teste isolado do painel) —
+  // mesma degradação do `PanelCollapseButton`: a aba não sincroniza com o
+  // controller e o botão de recolher some, mas o painel continua funcional.
+  late final EditorLayoutController? _layoutController = EditorLayoutScope.of(
     context,
-  )!;
+  );
+
+  /// Alimenta `WidgetPalettePanel` quando [_layoutController] é `null` — os
+  /// grupos colapsados da paleta não sobrevivem além deste `State` nesse
+  /// cenário isolado, mesmo papel do `_uncontrolledNotifier` do
+  /// `ResizableSplitView`.
+  final ValueNotifier<Set<String>> _fallbackCollapsedCategories =
+      ValueNotifier({});
 
   late final TabController _tabController = TabController(
     length: 2,
     vsync: this,
-    initialIndex: _layoutController.value.leftPanelTab.index,
+    initialIndex: _layoutController?.value.leftPanelTab.index ?? 0,
   );
 
   @override
@@ -42,7 +52,7 @@ class _LeftPanelState extends State<LeftPanel>
 
   void _syncTabToController() {
     if (_tabController.indexIsChanging) return;
-    _layoutController.setLeftPanelTab(
+    _layoutController?.setLeftPanelTab(
       LeftPanelTab.values[_tabController.index],
     );
   }
@@ -52,6 +62,7 @@ class _LeftPanelState extends State<LeftPanel>
     _tabController
       ..removeListener(_syncTabToController)
       ..dispose();
+    _fallbackCollapsedCategories.dispose();
     super.dispose();
   }
 
@@ -59,6 +70,7 @@ class _LeftPanelState extends State<LeftPanel>
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
     final colors = Theme.of(context).extension<EditorColors>()!;
+    final layoutController = _layoutController;
     return ColoredBox(
       color: colors.panel,
       child: Column(
@@ -77,7 +89,7 @@ class _LeftPanelState extends State<LeftPanel>
               PanelCollapseButton(
                 icon: Icons.chevron_left,
                 label: 'Recolher painel',
-                onCollapse: _layoutController.collapseLeftPanel,
+                onCollapse: layoutController?.collapseLeftPanel,
               ),
             ],
           ),
@@ -87,7 +99,8 @@ class _LeftPanelState extends State<LeftPanel>
               children: [
                 WidgetPalettePanel(
                   collapsedCategories:
-                      _layoutController.collapsedPaletteCategories,
+                      layoutController?.collapsedPaletteCategories ??
+                      _fallbackCollapsedCategories,
                 ),
                 BlocSelector<EditorCubit, EditorState, String>(
                   selector: (state) {
