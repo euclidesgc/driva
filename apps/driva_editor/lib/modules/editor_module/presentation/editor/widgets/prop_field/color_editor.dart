@@ -1,8 +1,10 @@
-import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/util/upper_case_text_formatter.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/color_preview_swatch.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/color_quick_swatch.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -46,6 +48,35 @@ class _ColorEditorState extends State<ColorEditor> {
     return intVal == null ? null : Color(intVal);
   }
 
+  Future<void> _openFullPicker() async {
+    final initial = _parse(widget.value) ?? Colors.white;
+    var picked = initial;
+    final confirmed = await ColorPicker(
+      color: initial,
+      onColorChanged: (color) => picked = color,
+      pickersEnabled: const {
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.wheel: true,
+        ColorPickerType.both: false,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: false,
+        ColorPickerType.customSecondary: false,
+      },
+      // `enableOpacity` fica no default (false): canal de opacidade é fora
+      // do escopo desta troca de pacote — o spec SDUI espera `#RRGGBB`.
+      showColorCode: true,
+      actionButtons: const ColorPickerActionButtons(
+        dialogOkButtonLabel: 'Selecionar',
+        dialogCancelButtonLabel: 'Cancelar',
+      ),
+    ).showPickerDialog(context, title: const Text('Selecionar cor'));
+    if (!mounted || !confirmed) return;
+    final hex = '#${picked.hex}';
+    _controller.text = hex;
+    widget.onChanged(hex);
+  }
+
   @override
   void didUpdateWidget(covariant ColorEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -63,29 +94,13 @@ class _ColorEditorState extends State<ColorEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
     final current = _parse(widget.value);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: current ?? Colors.transparent,
-                border: Border.all(color: colors.border),
-                borderRadius: BorderRadius.circular(AppRadii.r4),
-              ),
-              child: current == null
-                  ? Icon(
-                      Icons.format_color_reset_outlined,
-                      size: 14,
-                      color: colors.inkMuted,
-                    )
-                  : null,
-            ),
+            ColorPreviewSwatch(color: current, onTap: _openFullPicker),
             const SizedBox(width: AppSpacing.s8),
             Expanded(
               child: TextField(
@@ -109,7 +124,7 @@ class _ColorEditorState extends State<ColorEditor> {
             if (widget.value != null)
               IconButton(
                 tooltip: 'Limpar cor',
-                iconSize: 16,
+                iconSize: AppIconSizes.s16,
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.close),
                 onPressed: () => widget.onChanged(null),
@@ -121,20 +136,10 @@ class _ColorEditorState extends State<ColorEditor> {
           spacing: AppSpacing.s6,
           children: [
             for (final hex in _swatches)
-              Tooltip(
-                message: hex,
-                child: InkWell(
-                  onTap: () => widget.onChanged(hex),
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: _parse(hex),
-                      border: Border.all(color: colors.border),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                  ),
-                ),
+              ColorQuickSwatch(
+                hex: hex,
+                color: _parse(hex)!,
+                onTap: () => widget.onChanged(hex),
               ),
           ],
         ),

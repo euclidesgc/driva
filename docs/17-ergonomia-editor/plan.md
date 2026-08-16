@@ -44,10 +44,10 @@ bloqueada" agora é só ordem de PR.
 | F2 | Rota `/preview/:projectId/:id` — o conteúdo no celular | especialista-apresentacao + especialista-infra | **#135** | `[x]` |
 | **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | **#143** | `[x]` |
 | **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | **#142** | `[x]` |
-| F3 | Piso do editor: overflows do shell + "ajustar à janela" **+ a status bar do mock (5.1)** | especialista-apresentacao | — | `[ ]` |
+| F3 | Piso do editor: overflows do shell + "ajustar à janela" **+ a status bar do mock (5.1)** | especialista-apresentacao | **#153** | `[x]` |
 | F4 | Grupos da paleta colapsáveis | especialista-apresentacao | **#138** | `[x]` |
 | **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | **#141** | `[x]` |
-| F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | — | `[ ]` |
+| F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | **#155** | `[-]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | — | `[ ]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
 | F8 | E2E manual em homologação, executado e **atestado pelo humano** | qa instrumenta · dev humano atesta | — | `[ ]` |
@@ -1762,7 +1762,7 @@ que segue pendente.
 
 ---
 
-### F3 — Piso do editor: overflows do shell, "ajustar à janela" **e a status bar do mock** · **[desbloqueada — E2E do 38/39 atestado em 2026-08-16]** · **[∥ com F1, F2b, F2c, F4, F4b]** · **[sub-agente: especialista-apresentacao]**
+### F3 — Piso do editor: overflows do shell, "ajustar à janela" **e a status bar do mock** · **[MERGEADA — PR #153]** · **[sub-agente: especialista-apresentacao]**
 
 É a D1, verbatim, **mais a frente 5.1** do feedback. As duas metades da D1 entram no mesmo
 PR porque foi assim que o humano definiu o piso do editor, e porque nenhuma vale sozinha
@@ -1986,7 +1986,7 @@ seguintes, que herdam este notifier em vez de reescrevê-lo.
 
 ---
 
-### F5 — Painel do editor colapsa numa faixa fina de ícones · **[dep. F3]** · **[∥ com F4]** · **[sub-agente: especialista-apresentacao]**
+### F5 — Painel do editor colapsa numa faixa fina de ícones · **[PR #155, aberto]** · **[sub-agente: especialista-apresentacao]**
 
 **Arquivos:** `.../editor/page/editor_layout.dart` (**novo** — valor imutável,
 Equatable), `editor_layout_controller.dart` (**novo** — `ValueNotifier<EditorLayout>`,
