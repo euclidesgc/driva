@@ -4,6 +4,7 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/util/new_tab_launcher.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_install_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -120,6 +121,8 @@ class PreviewShareDialog extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.s16),
+          const PreviewInstallHint(),
         ],
       ),
       actions: [
