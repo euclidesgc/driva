@@ -60,7 +60,7 @@ jobs:
         working-directory: apps/driva_demo_app
 
   backend:
-    name: Backend — build
+    name: Backend — build + testes
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -89,3 +89,16 @@ jobs:
 
       - name: Build (tsc via nest)
         run: pnpm build
+
+      - name: Testes unitários
+        run: pnpm test
+
+      # A suíte de segurança do proxy de mídia (docs/16-image-url-e-props
+      # §11.4) depende de um default do runtime (`autoSelectFamily`/Happy
+      # Eyeballs) que muda entre versões do Node — rodar fora do Node 22
+      # (a mesma versão do `Dockerfile` de produção, linha acima) validaria
+      # outro runtime, não o que serve o proxy de verdade. Custo ~17-20s,
+      # dominado pelo teste de timeout (#38); as deps já vieram do
+      # `pnpm install --frozen-lockfile`.
+      - name: Testes e2e (proxy de mídia — matriz de segurança SSRF)
+        run: pnpm test:e2e

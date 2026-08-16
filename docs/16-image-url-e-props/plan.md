@@ -32,13 +32,22 @@ tornou falsa a isenção antiga; **D15** reescreve o aceite do `width: 0` para m
 silêncio, não a visibilidade de 1px; **D16** registra o intervalo sem teste automático do
 contrato da D12. A lista de arquivos da §5›F1 foi completada.
 
+**F2 — código aprovado e gate CISO liberado _com ressalvas_ (2026-08-15); ainda `[-]`** porque
+o QA achou furos na **prova** (três mutações sobreviveram à matriz) e eles estão sendo
+fechados. A ressalva do CISO era o `trust proxy` e já foi aplicada: **`VR-16-01`** em
+`variance_report.md` desta pasta. Três
+ajustes de documento entraram junto: **D17** registra que a matriz de segurança é a **exceção
+documentada** à regra "testes por último" e nasce na F2 (o bullet duplicado saiu da F5);
+**D18** registra que a suíte roda contra **servidor local efêmero** — ela prova o guarda,
+**não** que a URL do relato carrega; e a lista de arquivos da F2 foi completada.
+
 **Leitura obrigatória para quem escrever aceite daqui em diante: §8, item 13.** Três aceites
 seguidos passaram no papel e eram falsos na tela — é padrão, não acidente.
 
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
 | F1 | Os três estados ficam distintos + tokens + clamp | especialista-infra | 1 (`bugfix/*`) | `[-]` |
-| F2 | **Backend: proxy de mídia + gate CISO** | especialista-infra + **ciso** | 2 (`feature/*`) | `[ ]` |
+| F2 | **Backend: proxy de mídia + gate CISO** | especialista-infra + **ciso** | 2 (`feature/*`) | `[-]` |
 | F3 | Renderer ganha o resolver; o editor injeta o proxy | especialista-infra | 3 (`feature/*`) | `[ ]` |
 | F4 | Catálogo: `image` abrangente (Incremento 4 do item 9) | especialista-dominio + especialista-infra | 4 (`feature/*`) | `[ ]` |
 | F5 | Bateria automatizada (por último) | qa | 5 | `[ ]` |
@@ -549,7 +558,49 @@ mesmo arquivo** — são duas oportunidades de quebrar sem rede.
 **Mitigação sem desvio:** o aceite da **F3** e o da **F4** repetem o print do estado
 "carregando" (a regressão apareceria no E2E de cada fase, não só no final). Se o humano
 preferir a rede automática mais cedo, a saída é aprovar **um** teste de widget descendo para a
-F1 como `VR-16-01` — está identificado e é barato, mas **é decisão dele**, não nossa.
+F1 como **`VR-16-02`** (o `VR-16-01` já é o `trust proxy` da F2) — está identificado e é
+barato, mas **é decisão dele**, não nossa.
+
+### D17 — **[nova]** A matriz de segurança é a **exceção documentada** à regra "testes por último". Ela nasce **na F2**.
+
+> **Decidida pelo tech-lead em 2026-08-15**, resolvendo contradição do próprio plano: a §5›F5
+> listava `media-proxy.e2e-spec.ts` como entrega da F5 ("por último"), enquanto o aceite da
+> §5›F2 já exigia "a matriz do §11.4 inteira, executada como teste `e2e` do Nest". **O dev
+> seguiu a F2, e é a leitura correta.**
+
+**A razão, e ela é curta: um gate CISO sem prova executável não é gate.** Os 11 controles da
+F2 são afirmações sobre o que o endpoint **recusa** — `file://`, `169.254.169.254`, redirect
+para IP interno, resposta gigante, `Content-Type: text/html`. Recusa não tem print: a única
+forma de demonstrar que ela acontece é executá-la. Adiar a matriz para a F5 significaria
+mergear um proxy de SSRF para homologação com a segurança **atestada por leitura de código**,
+e só prová-la três PRs depois. É exatamente o que a §11.4 já proíbe ao escrever "controle sem
+caso que o exercite não conta como feito".
+
+**O recorte da exceção, para não virar brecha:** vale **só** para a matriz de segurança do
+proxy. O resto da bateria (F5) continua depois do E2E atestado — inclusive o teste do contrato
+da D12, que **não** desceu (D16). A régua que separa os dois casos: **teste que é a única
+prova possível de uma recusa de segurança vem junto com o código; teste que é guarda de
+regressão de comportamento visível vem depois do E2E.**
+
+**Consequência editorial:** o bullet do `media-proxy.e2e-spec.ts` **saiu da F5**. Estava nos
+dois lugares e alguém o escreveria duas vezes.
+
+### D18 — **[nova]** A matriz roda contra **servidor local efêmero**. O caminho de rede real **não** é provado pela F2.
+
+> **Registrada em 2026-08-15**, na revisão da F2.
+
+A suíte sobe um servidor HTTP efêmero no próprio teste e aponta o proxy para ele. **É a
+escolha certa** — hermética, sem dependência de rede externa, sem flakiness em CI, e é a única
+forma de encenar redirect para IP interno e resposta gigante de propósito.
+
+**O preço, que precisa estar escrito para ninguém confundir:** a matriz verde prova que o
+**guarda** funciona, **não** que a imagem do relato carrega. O caminho real — DNS público,
+CORS do host, ACAO na resposta que chega ao Chrome — é provado **só** pelos itens **18 e 19 do
+DoD §11.3**, no E2E manual em homologação.
+
+**Que ninguém leia "linha 44 verde" como "a URL do relato carrega".** São afirmações
+diferentes: a 44 diz que o proxy repassa uma imagem servida por um servidor de teste; a 19 diz
+que a URL que o dev reclamou aparece na tela dele. A segunda é a que fecha o item.
 
 ## 5. Fases
 
@@ -647,10 +698,20 @@ caso concreto que o prova no DoD §11.4 — **controle sem caso que o exercite n
 feito**.
 
 - **`backend/src/media/`** (módulo novo: `media.module.ts`, `media.controller.ts`,
-  `media.service.ts`, `url-guard.ts`) — `GET /v1/media/proxy?url=<url-encoded>`, registrado
-  em `app.module.ts`. Sob o prefixo `v1` (`main.ts:26`), herda o
+  `media.service.ts`, `url-guard.ts`, **`media.constants.ts`**) — `GET /v1/media/proxy?url=<url-encoded>`,
+  registrado em `app.module.ts`. Sob o prefixo `v1` (`main.ts:26`), herda o
   `app.enableCors({ origin: [...corsOrigins, localhost] })` (`main.ts:50`) — **é isso que faz
-  a imagem carregar no editor**.
+  a imagem carregar no editor**. O `media.constants.ts` tira os números mágicos (teto,
+  timeout, saltos, `Content-Type` permitidos, throttle) do serviço: os limites viram valor
+  nomeado e auditável num lugar só, que é o que o gate CISO precisa reler.
+- **`backend/src/main.ts` — `app.set('trust proxy', 1)`.** ⚠️ **Não nasceu do plano: veio do
+  gate CISO.** Registrado como **VR-16-01** em `variance_report.md` desta pasta. Sem isso o
+  `req.ip` — chave do `ThrottlerGuard` — é o IP interno do Traefik, **igual para todo mundo**,
+  e o rate limit do controle 7 vira balde global.
+- **Infraestrutura de teste do backend** — `backend/test/jest-e2e.json`, devDependencies
+  (`jest`, `ts-jest`, `supertest`) e os scripts `test`/`test:e2e`. **Aditivo e benigno, mas
+  registre-se o que ele revela:** o `backend/` **não tinha bateria de teste nenhuma** até esta
+  fase. Nasceu de carona aqui; virar infraestrutura de verdade é item próprio (§12).
 
 **Controles obrigatórios:**
 
@@ -694,8 +755,14 @@ feito**.
     repetir a busca a cada tecla digitada no inspector.
 
 **Aceite (validável):** a **matriz de segurança do DoD §11.4 inteira**, executada como teste
-`e2e` do Nest, **mais** o gate do CISO aprovado por escrito. Uma imagem legítima (caso A e
-caso B) atravessa o proxy e volta com `Content-Type` de imagem e ACAO da origem do editor.
+`e2e` do Nest **nesta fase** (exceção da **D17**), **mais** o gate do CISO aprovado por
+escrito. Uma imagem legítima atravessa o proxy e volta com `Content-Type` de imagem e ACAO da
+origem do editor.
+
+**O que este aceite NÃO prova (D18):** a suíte roda contra **servidor local efêmero**. Ela
+demonstra que o **guarda** funciona; **não** demonstra que a URL do relato carrega no Chrome.
+Isso são os itens **18 e 19 do DoD §11.3**, no E2E manual em homologação — e é lá que a fase
+encosta na realidade.
 
 ### F3 — O renderer ganha o resolver; o editor injeta · **[depende de F1 + F2]** · **[sub-agente: especialista-infra]**
 
@@ -764,8 +831,10 @@ caso B) atravessa o proxy e volta com `Content-Type` de imagem e ACAO da origem 
 
 ### F5 — Bateria automatizada · **[por último, depois do E2E atestado]** · **[dono: qa]**
 
-- **`backend/test/media-proxy.e2e-spec.ts`** (novo) — **a matriz de segurança do §11.4
-  inteira**, caso a caso. É o teste mais importante deste item.
+_**Não** inclui `backend/test/media-proxy.e2e-spec.ts`: a matriz de segurança nasce **na F2**,
+junto com o proxy — é a exceção documentada da **D17**, porque recusa de segurança não tem
+print e um gate CISO sem prova executável não é gate._
+
 - `sdui_core/test/catalog/widget_catalog_test.dart` — descriptor novo; **round-trip de
   compatibilidade** (`{"width": 200}` e `{"width": "100%"}`).
 - `sdui_flutter/test/builders/image_test.dart` (novo) — os três estados são **widgets
@@ -1127,7 +1196,7 @@ aberto.**
 | 41 | Nada de confused deputy | requisição com `Authorization`, `Cookie`, `x-driva-key` | headers **não** chegam ao alvo (provado por servidor de eco) |
 | 42 | Resposta limpa | alvo devolve `Set-Cookie` | não repassado ao navegador |
 | 43 | Erro sem oráculo | alvo interno devolve corpo/status distintivos | resposta de erro **não** vaza corpo, status nem tempo do alvo |
-| 44 | Caminho feliz | `URL_A` e `URL_B` | `200`, `Content-Type` de imagem, ACAO da origem do editor, ETag presente |
+| 44 | Caminho feliz **contra o servidor efêmero da suíte** — não contra a internet (**D18**) | imagem servida pelo servidor de teste | `200`, `Content-Type` de imagem, ACAO da origem do editor, ETag presente. **Não confundir com os itens 18/19:** esta linha verde **não** prova que a URL do relato carrega no Chrome |
 | 45 | **Parecer do CISO por escrito**, tendo lido `url-guard.ts` **e** o mecanismo de conexão | — | aprovado; se reprovado, o item para e volta ao humano (§9, nota 2) |
 
 ### 11.5 Fechamento
@@ -1138,7 +1207,7 @@ aberto.**
 | 47 | Gate do CISO em cada fase e os dois gates gerais | registro do agente `ciso` |
 | 48 | `CHANGELOG` `Unreleased` atualizado **no mesmo PR** de cada mudança | o diff do PR contém o CHANGELOG |
 | 49 | Variáveis novas do proxy (teto, timeout, rate limit) documentadas em `docs/deploy/coolify.md` e configuradas no painel — **nunca no repo** | a doc e o painel |
-| 50 | Docs vivas desta pasta: `final_report.md` ao fechar; `variance_report.md` se houve desvio | os arquivos existem |
+| 50 | Docs vivas desta pasta: `final_report.md` ao fechar; **`variance_report.md` já aberto com o `VR-16-01`** — desvios novos entram como `VR-16-NN` | os arquivos existem, e todo desvio tem "como estava / por que mudou / o que mudou" |
 | 51 | `docs/roadmap.md` — item **39** vira `[x]` e o **"Incremento 4"** do item 9 vira `[x]` | as duas linhas marcadas |
 | 52 | `docs/plans/README.md` atualizado; o plano de gaveta aponta para esta pasta | o índice |
 
@@ -1148,6 +1217,18 @@ aberto.**
   Web. Hoje o `driva_demo_app` é móvel e não precisa (D11). **Quem construir isso leia a
   D10 antes:** a `publishableKey` é pública, então a rota nasce sem fronteira de identidade —
   e a conta de banda (R6) muda de ordem de grandeza.
+- **⭐ O `backend/` ganha bateria de testes de verdade — merece item próprio no roadmap.**
+  Até a F2 deste item, o backend **não tinha infraestrutura de teste nenhuma**. Ela nasceu
+  aqui de carona, e isso se vê: o `jest-e2e.json` é one-off (não há config de teste
+  unitário) e a suíte redeclarava o bootstrap em vez de reusar o `main.ts` — os dois pontos
+  corrigidos ainda nesta fase, mas o buraco de fundo continua. **O que falta:** config de
+  unitário, cobertura dos módulos que já existem (`contents`, `projects`, `categories`,
+  `public`, `storage`), e o backend entrando na mesma cancela de CI que o Flutter.
+  **Enquanto não for item, isso vai continuar nascendo de carona na próxima feature que
+  precisar** — que é exatamente como chegou aqui.
+- **Rate limit por chave** — hoje o balde é por IP (VR-16-01 fez o por-IP funcionar de fato).
+  Bucketização por chave depende de identidade no caminho do editor: item 26 (auth) ou a rota
+  pública. Ver D10 e R9.
 - **Gate 1 automático no `sdui_flutter`** — hoje o pacote segue isento (D14). Estreitar exige
   isentar `lib/src/builders/*.dart` (as 24 funções `buildX` do registry) **e** escapar
   `render`/`renderAll`/`renderFlexChildren` em `renderer.dart`, que são a API do renderer.
