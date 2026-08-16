@@ -1215,6 +1215,19 @@ Safari, um link sempre abre no Safari, mesmo com o app na tela inicial. No iPhon
 No Android tem os dois limpos. Um aceite que não nomeie a plataforma passa no aparelho
 errado e mente.
 
+> ⚠️ **Corrigido em 2026-08-16, depois do primeiro teste de campo.** A troca do `href` por
+> script **perdia a corrida**: o Chrome começa a processar o `<link rel="manifest">` no
+> instante em que o parser o insere, e quem instalava a partir do `/preview` recebia o alvo
+> do **editor** (`scope: "/"`) — o oposto exato do que esta decisão desenhou. O link passou
+> a ser **criado** pelo script, sem href errado no documento em momento nenhum.
+>
+> **E o aceite desta decisão era cego para o defeito.** "Abriu sem barra de endereços" é
+> verdade **também** com o app errado instalado, porque `scope: "/"` cobre `/preview`
+> igualmente — o print do cenário quebrado é idêntico ao do cenário correto. O aceite passa
+> a ser o **nome embaixo do ícone**: `Preview` (certo) contra `driva` (o `short_name` do
+> editor). É mais um caso da §11.0, e o de forma mais cara: um aceite que **não pode
+> falhar** não é aceite.
+
 ### D32 — **[nova, 2026-08-16]** Golden regravado por **duas** causas = **dois commits**, e o discriminador é `git show --stat`
 
 A F3 e a 5.1 entram no mesmo PR por decisão do humano (economizar uma rodada de E2E). O
