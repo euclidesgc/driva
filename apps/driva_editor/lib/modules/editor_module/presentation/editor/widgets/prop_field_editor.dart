@@ -64,6 +64,7 @@ class PropFieldEditor extends StatelessWidget {
     return PropFieldShell(
       label: field.label,
       isRequired: field.isRequired,
+      helpText: field.helpText,
       actions: [?bindingButton, ?resetButton],
       body: expression != null
           ? PropBindingEditor(

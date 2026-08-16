@@ -17,6 +17,7 @@ class PropFieldShell extends StatelessWidget {
     this.isRequired = false,
     this.headerTrailing,
     this.actions = const [],
+    this.helpText,
     super.key,
   });
 
@@ -25,10 +26,12 @@ class PropFieldShell extends StatelessWidget {
   final bool isRequired;
   final Widget? headerTrailing;
   final List<Widget> actions;
+  final String? helpText;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -60,6 +63,16 @@ class PropFieldShell extends StatelessWidget {
               ...actions,
             ],
           ),
+          if (helpText case final text?) ...[
+            const SizedBox(height: AppSpacing.s2),
+            Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: AppTypography.sm,
+                color: colors.inkMuted,
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.s4),
           body,
         ],

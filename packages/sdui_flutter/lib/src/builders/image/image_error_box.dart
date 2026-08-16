@@ -8,18 +8,10 @@ import 'package:sdui_flutter/src/theme/sdui_chrome_tokens.dart';
 /// editor) — no app publicado ele é `null` e nunca aparece no `Tooltip`/
 /// `Semantics`, para não vazar URL (possivelmente assinada) ao usuário final.
 class ImageErrorBox extends StatelessWidget {
-  const ImageErrorBox({
-    required this.reason,
-    this.src,
-    this.width,
-    this.height,
-    super.key,
-  });
+  const ImageErrorBox({required this.reason, this.src, super.key});
 
   final String reason;
   final String? src;
-  final double? width;
-  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +26,8 @@ class ImageErrorBox extends StatelessWidget {
       child: Semantics(
         label: detail,
         child: Container(
-          width: width ?? SduiChromeTokens.imageDefaultExtent,
-          height: height ?? SduiChromeTokens.imageDefaultExtent,
+          width: SduiChromeTokens.imageDefaultExtent,
+          height: SduiChromeTokens.imageDefaultExtent,
           padding: SduiChromeTokens.imageStatePadding,
           decoration: BoxDecoration(
             color: SduiChromeTokens.imageErrorBackground,
