@@ -1,22 +1,16 @@
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:equatable/equatable.dart';
 
 enum LeftPanelTab { widgets, tree }
 
 class EditorLayout extends Equatable {
   const EditorLayout({
-    this.leftPanelWidth = defaultLeftPanelWidth,
-    this.rightPanelWidth = defaultRightPanelWidth,
+    this.leftPanelWidth = AppSizes.workspacePanelDefaultLeftWidth,
+    this.rightPanelWidth = AppSizes.workspacePanelDefaultRightWidth,
     this.leftPanelCollapsed = false,
     this.rightPanelCollapsed = false,
     this.leftPanelTab = LeftPanelTab.widgets,
   });
-
-  /// Espelha `ResizableSplitView.initialLeftWidth`/`initialRightWidth`
-  /// (`core/widgets/layout/`) e `EditorLayoutSnapshot.defaultLeftPanelWidth`/
-  /// `defaultRightPanelWidth` (domain) — duplicado nas três camadas de
-  /// propósito, cada uma sem depender da outra.
-  static const double defaultLeftPanelWidth = 280;
-  static const double defaultRightPanelWidth = 320;
 
   final double leftPanelWidth;
   final double rightPanelWidth;

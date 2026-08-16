@@ -22,10 +22,11 @@ class EditorLayoutSnapshot extends Equatable {
     this.collapsedInspectorSections = const {},
   });
 
-  /// Espelha `ResizableSplitView.initialLeftWidth`/`initialRightWidth`
-  /// (`core/widgets/layout/`). Duplicado, não importado: domain é Dart puro e
-  /// não depende de `core/theme`/`core/widgets`. Aceite 31 do plano é a fonte
-  /// da verdade caso os dois valores um dia divirjam.
+  /// Espelha `AppSizes.workspacePanelDefaultLeftWidth`/
+  /// `workspacePanelDefaultRightWidth` (`core/theme/app_sizes.dart`).
+  /// Duplicado, não importado: domain é Dart puro e não depende de
+  /// `core/theme`/`core/widgets`. Aceite 31 do plano é a fonte da verdade
+  /// caso os dois valores um dia divirjam.
   static const double defaultLeftPanelWidth = 280;
   static const double defaultRightPanelWidth = 320;
 

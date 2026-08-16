@@ -62,6 +62,14 @@ abstract final class AppSizes {
   /// arraste e do reclamp na restauração da persistência de layout (D13).
   static const double workspacePanelMaxWidth = 480;
 
+  /// Largura inicial do painel esquerdo do `ResizableSplitView`, antes de
+  /// qualquer arraste ou layout restaurado (F6).
+  static const double workspacePanelDefaultLeftWidth = 280;
+
+  /// Largura inicial do painel direito do `ResizableSplitView` — mesmo papel
+  /// de [workspacePanelDefaultLeftWidth], para o outro lado.
+  static const double workspacePanelDefaultRightWidth = 320;
+
   /// Largura somada dos dois `ResizeHandle` (6px cada) entre os três
   /// painéis do `ResizableSplitView` — o "12" da D14.
   static const double workspaceDividersWidth = 12;
