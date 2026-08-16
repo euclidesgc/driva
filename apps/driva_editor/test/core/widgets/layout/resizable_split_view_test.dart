@@ -5,7 +5,6 @@ import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
 import 'package:driva_editor/core/widgets/layout/resizable_split_view.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -37,31 +36,27 @@ Widget _controlledHarness({
   required Widget right,
 }) => MaterialApp(
   theme: AppTheme.light,
-  home: EditorLayoutScope(
-    controller: controller,
-    child: ResizableSplitView(
-      left: left,
-      leftPanelRail: const PanelRail(
-        items: [
-          PanelRailButton(
-            icon: Icons.widgets_outlined,
-            label: 'Widgets',
-            onPressed: _noop,
-          ),
-        ],
-      ),
-      center: center,
-      right: right,
-      rightPanelRail: const PanelRail(
-        items: [
-          PanelRailButton(
-            icon: Icons.tune,
-            label: 'Inspector',
-            onPressed: _noop,
-          ),
-        ],
-      ),
+  home: ResizableSplitView(
+    left: left,
+    leftPanelRail: const PanelRail(
+      items: [
+        PanelRailButton(
+          icon: Icons.widgets_outlined,
+          label: 'Widgets',
+          onPressed: _noop,
+        ),
+      ],
     ),
+    center: center,
+    right: right,
+    rightPanelRail: const PanelRail(
+      items: [
+        PanelRailButton(icon: Icons.tune, label: 'Inspector', onPressed: _noop),
+      ],
+    ),
+    layoutListenable: controller,
+    isLeftCollapsed: () => controller.value.leftPanelCollapsed,
+    isRightCollapsed: () => controller.value.rightPanelCollapsed,
   ),
 );
 

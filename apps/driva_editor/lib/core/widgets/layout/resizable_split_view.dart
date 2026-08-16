@@ -2,8 +2,6 @@ import 'dart:math' as math;
 
 import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:flutter/material.dart';
 
 class ResizableSplitView extends StatefulWidget {
@@ -14,6 +12,9 @@ class ResizableSplitView extends StatefulWidget {
     super.key,
     this.leftPanelRail,
     this.rightPanelRail,
+    this.layoutListenable,
+    this.isLeftCollapsed,
+    this.isRightCollapsed,
     this.initialLeftWidth = 280,
     this.initialRightWidth = 320,
     this.minPanelWidth = AppSizes.workspacePanelMinWidth,
@@ -25,14 +26,28 @@ class ResizableSplitView extends StatefulWidget {
   final Widget center;
   final Widget right;
 
-  /// Renderizado no lugar de [left]/[right] quando o `EditorLayoutController`
-  /// alcançado via `EditorLayoutScope` (D7) marca aquele lado colapsado
-  /// (D2) — na prática, sempre um `PanelRail`, mas `Widget` para este widget
-  /// não precisar conhecer o tipo concreto. `null` = o lado correspondente
-  /// nunca colapsa — é o que mantém o teste que monta este widget sozinho,
-  /// sem `EditorLayoutScope` acima, funcionando como antes da F5.
+  /// Renderizado no lugar de [left]/[right] quando [isLeftCollapsed]/
+  /// [isRightCollapsed] marcam aquele lado colapsado (D2) — na prática,
+  /// sempre um `PanelRail`, mas `Widget` para este widget não precisar
+  /// conhecer o tipo concreto. `null` = o lado correspondente nunca colapsa —
+  /// é o que mantém o teste que monta este widget sozinho, sem nenhum dos
+  /// três parâmetros de controle abaixo, funcionando como antes da F5.
   final Widget? leftPanelRail;
   final Widget? rightPanelRail;
+
+  /// Dispara rebuild quando o estado de colapso muda. Tipo genérico
+  /// (`Listenable`, de `package:flutter/foundation.dart`) de propósito: quem
+  /// controla o colapso hoje é o `EditorLayoutController` do `editor_module`,
+  /// mas este widget mora em `core/widgets/` — tier reutilizável por
+  /// qualquer módulo — e não pode importar um módulo específico para saber
+  /// disso.
+  final Listenable? layoutListenable;
+
+  /// Lidas a cada rebuild disparado por [layoutListenable] — nunca cacheadas
+  /// — para refletir o estado de colapso corrente sem este widget conhecer
+  /// onde ele mora.
+  final bool Function()? isLeftCollapsed;
+  final bool Function()? isRightCollapsed;
 
   final double initialLeftWidth;
   final double initialRightWidth;
@@ -48,40 +63,38 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
   late double _leftWidth = widget.initialLeftWidth;
   late double _rightWidth = widget.initialRightWidth;
 
-  /// Alimenta o `ValueListenableBuilder` quando não há `EditorLayoutScope`
-  /// acima (o cenário do teste isolado) — estável entre rebuilds e
-  /// descartado no `dispose`, ao contrário de um `ValueNotifier` novo a cada
-  /// `build`.
-  final ValueNotifier<EditorLayout> _uncontrolledLayout = ValueNotifier(
-    const EditorLayout(),
-  );
+  /// Alimenta o `ListenableBuilder` quando
+  /// [ResizableSplitView.layoutListenable] não é passado (o cenário do teste
+  /// isolado) — nunca dispara, então `isLeftCollapsed`/`isRightCollapsed`
+  /// caem no `?? false` de qualquer forma, e os dois lados nunca colapsam.
+  final ChangeNotifier _uncontrolledNotifier = ChangeNotifier();
 
   double _clamp(double value) =>
       value.clamp(widget.minPanelWidth, widget.maxPanelWidth);
 
   @override
   void dispose() {
-    _uncontrolledLayout.dispose();
+    _uncontrolledNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = EditorLayoutScope.of(context);
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        // D8: o `ValueListenableBuilder` fica aqui dentro, escopado à
-        // montagem da `Row` — nunca em `EditorWorkspace.build`, que
-        // reconstruiria `LeftPanel`/`CenterArea`/`InspectorArea` a cada
-        // clique no controller.
-        return ValueListenableBuilder<EditorLayout>(
-          valueListenable: controller ?? _uncontrolledLayout,
-          builder: (context, layout, _) {
+        // D8: o `ListenableBuilder` fica aqui dentro, escopado à montagem da
+        // `Row` — nunca em `EditorWorkspace.build`, que reconstruiria
+        // `LeftPanel`/`CenterArea`/`InspectorArea` a cada clique no
+        // controller.
+        return ListenableBuilder(
+          listenable: widget.layoutListenable ?? _uncontrolledNotifier,
+          builder: (context, _) {
             final leftCollapsed =
-                layout.leftPanelCollapsed && widget.leftPanelRail != null;
+                (widget.isLeftCollapsed?.call() ?? false) &&
+                widget.leftPanelRail != null;
             final rightCollapsed =
-                layout.rightPanelCollapsed && widget.rightPanelRail != null;
+                (widget.isRightCollapsed?.call() ?? false) &&
+                widget.rightPanelRail != null;
 
             // D14 convivendo com a F5: um lado colapsado vira faixa fina, bem
             // mais estreita que `minPanelWidth` — o piso mecânico precisa da

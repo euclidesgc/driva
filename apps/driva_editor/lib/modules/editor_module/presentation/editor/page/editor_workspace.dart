@@ -51,6 +51,11 @@ class EditorWorkspace extends StatelessWidget {
                   child: const InspectorArea(),
                 ),
                 rightPanelRail: const RightPanelRail(),
+                layoutListenable: layoutController,
+                isLeftCollapsed: () =>
+                    layoutController.value.leftPanelCollapsed,
+                isRightCollapsed: () =>
+                    layoutController.value.rightPanelCollapsed,
               ),
             ),
             const StatusBarArea(),
