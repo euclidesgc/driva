@@ -20,6 +20,7 @@ class EditorPage extends StatelessWidget {
   const EditorPage({
     required this.projectFuture,
     this.imageUrlResolver,
+    this.contentId = '',
     super.key,
   });
 
@@ -28,6 +29,13 @@ class EditorPage extends StatelessWidget {
   /// Só o `pageBuilder` toca o `get_it` para montá-lo (regra do projeto);
   /// aqui ele só é repassado adiante.
   final SduiImageUrlResolver? imageUrlResolver;
+
+  /// `id` da rota (`/contents/:id/edit`), repassado ao [EditorViewportGate]
+  /// para o botão "Ver conteúdo" (D24) — o mesmo `id`, não o do documento já
+  /// carregado, porque o portão decide antes de o `EditorCubit` ter estado.
+  /// Opcional (D19): `editor_perf_test.dart` e `canvas_panel_golden_test.dart`
+  /// montam `EditorPage` sem DI e sempre em largura acima de `compact`.
+  final String contentId;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
@@ -49,44 +57,48 @@ class EditorPage extends StatelessWidget {
       child: EditorPage(
         projectFuture: getIt<GetProjectUseCase>()(projectId),
         imageUrlResolver: imageUrlResolverFor(getIt<AppConfig>()),
+        contentId: id,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EditorCubit, EditorState>(
-      buildWhen: (previous, current) =>
-          previous.runtimeType != current.runtimeType,
-      builder: (context, state) => switch (state) {
-        EditorLoading() => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-        final EditorLoadFailure s => Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_messageFor(s.failure)),
-                const SizedBox(height: AppSpacing.s12),
-                OutlinedButton(
-                  onPressed: () => context.goNamed(
-                    ContentsRoutes.projectDetailName,
-                    pathParameters: {
-                      'id': context.read<EditorCubit>().projectId,
-                    },
+    return EditorViewportGate(
+      contentId: contentId,
+      child: BlocBuilder<EditorCubit, EditorState>(
+        buildWhen: (previous, current) =>
+            previous.runtimeType != current.runtimeType,
+        builder: (context, state) => switch (state) {
+          EditorLoading() => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          final EditorLoadFailure s => Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_messageFor(s.failure)),
+                  const SizedBox(height: AppSpacing.s12),
+                  OutlinedButton(
+                    onPressed: () => context.goNamed(
+                      ContentsRoutes.projectDetailName,
+                      pathParameters: {
+                        'id': context.read<EditorCubit>().projectId,
+                      },
+                    ),
+                    child: const Text('Voltar para o projeto'),
                   ),
-                  child: const Text('Voltar para o projeto'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        EditorReady() => EditorWorkspace(
-          projectFuture: projectFuture,
-          imageUrlResolver: imageUrlResolver,
-        ),
-      },
+          EditorReady() => EditorWorkspace(
+            projectFuture: projectFuture,
+            imageUrlResolver: imageUrlResolver,
+          ),
+        },
+      ),
     );
   }
 

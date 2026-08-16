@@ -4,4 +4,6 @@
 abstract final class AppIconSizes {
   static const double s14 = 14;
   static const double s18 = 18;
+
+  static const double s40 = 40;
 }
