@@ -1,6 +1,7 @@
-import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/util/slug.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/core/widgets/layout/layout.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 
@@ -96,8 +97,8 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
       title: Text(widget.title),
       content: Form(
         key: _formKey,
-        child: SizedBox(
-          width: 380,
+        child: DialogContentWidth(
+          maxWidth: AppSizes.formDialogWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,6 +153,7 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
               const SizedBox(height: AppSpacing.s12),
               DropdownButtonFormField<String?>(
                 initialValue: _categoryId,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Categoria'),
                 items: [
                   const DropdownMenuItem<String?>(
@@ -160,7 +162,11 @@ class _ContentFormDialogState extends State<ContentFormDialog> {
                   for (final category in widget.categories)
                     DropdownMenuItem<String?>(
                       value: category.id,
-                      child: Text(category.name),
+                      child: Text(
+                        category.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (value) => setState(() => _categoryId = value),
