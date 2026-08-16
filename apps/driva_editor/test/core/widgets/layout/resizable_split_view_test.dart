@@ -75,6 +75,24 @@ Future<void> _pumpAtWidth(WidgetTester tester, double width) async {
   await tester.pump();
 }
 
+Future<void> _pumpControlledAtWidth(
+  WidgetTester tester,
+  double width,
+  EditorLayoutController controller,
+) async {
+  await tester.binding.setSurfaceSize(Size(width, 600));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+  await tester.pumpWidget(
+    _controlledHarness(
+      controller: controller,
+      left: const ColoredBox(color: Colors.red),
+      center: const ColoredBox(color: Colors.green),
+      right: const ColoredBox(color: Colors.blue),
+    ),
+  );
+  await tester.pump();
+}
+
 void main() {
   testWidgets(
     'abaixo do piso mecânico do workspace (D14), o ResizableSplitView rola '
@@ -137,6 +155,35 @@ void main() {
 
         expect(find.byType(PanelRail), findsOneWidget);
         expect(find.byTooltip('Widgets'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'D14 — painel esquerdo colapsado: um pixel abaixo do piso de painel '
+      'cheio ainda não rola, porque o piso caiu para panelRailWidth',
+      (tester) async {
+        controller.collapseLeftPanel();
+        await _pumpControlledAtWidth(
+          tester,
+          AppSizes.workspaceMinimumWidth - 1,
+          controller,
+        );
+
+        expect(_horizontalScrollFinder(), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'D14 — o mesmo painel esquerdo expandido, na mesma largura, ainda '
+      'rola: foi o colapso que mudou o piso, não a largura',
+      (tester) async {
+        await _pumpControlledAtWidth(
+          tester,
+          AppSizes.workspaceMinimumWidth - 1,
+          controller,
+        );
+
+        expect(_horizontalScrollFinder(), findsOneWidget);
       },
     );
 
