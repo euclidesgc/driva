@@ -36,13 +36,6 @@ class _ColorEditorState extends State<ColorEditor> {
     '#FFFFFF',
   ];
 
-  /// O pacote sempre zera o alfa da cor confirmada (mesmo com `enableOpacity:
-  /// false`), então nenhuma seleção real do usuário consegue reproduzir um
-  /// alfa 0 de volta — por isso esse é um marcador seguro de "nenhuma cor
-  /// definida ainda" para distinguir cancelar do diálogo de confirmar a cor
-  /// inicial.
-  static const _emptyPickerSeed = Color(0x00FFFFFF);
-
   late final TextEditingController _controller = TextEditingController(
     text: widget.value?.toString() ?? '',
   );
@@ -56,21 +49,29 @@ class _ColorEditorState extends State<ColorEditor> {
   }
 
   Future<void> _openFullPicker() async {
-    final initial = _parse(widget.value) ?? _emptyPickerSeed;
-    final picked = await showColorPickerDialog(
-      context,
-      initial,
-      pickersEnabled: const {ColorPickerType.wheel: true},
+    final initial = _parse(widget.value) ?? Colors.white;
+    var picked = initial;
+    final confirmed = await ColorPicker(
+      color: initial,
+      onColorChanged: (color) => picked = color,
+      pickersEnabled: const {
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.wheel: true,
+        ColorPickerType.both: false,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: false,
+        ColorPickerType.customSecondary: false,
+      },
       // `enableOpacity` fica no default (false): canal de opacidade é fora
       // do escopo desta troca de pacote — o spec SDUI espera `#RRGGBB`.
       showColorCode: true,
-      dialogTitle: const Text('Selecionar cor'),
       actionButtons: const ColorPickerActionButtons(
         dialogOkButtonLabel: 'Selecionar',
         dialogCancelButtonLabel: 'Cancelar',
       ),
-    );
-    if (!mounted || picked.value32bit == initial.value32bit) return;
+    ).showPickerDialog(context, title: const Text('Selecionar cor'));
+    if (!mounted || !confirmed) return;
     final hex = '#${picked.hex}';
     _controller.text = hex;
     widget.onChanged(hex);
