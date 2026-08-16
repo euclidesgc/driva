@@ -8,8 +8,20 @@ on:
   # régua, e os do meio passavam com GitGuardian sozinho. Aconteceu no item 38:
   # a F5 subiu para homologação com o job de format vermelho, porque o
   # auto-deploy do Coolify dispara no push sem consultar o CI.
+  #
+  # `docs/**` entrou depois, e pelo mesmo buraco: no item 41 a pilha nasceu
+  # sobre uma branch de docs, e o PR #141 passou de novo só com o GitGuardian.
+  # A lista precisa cobrir todo prefixo que pode virar base de pilha, não só os
+  # do GitFlow.
   pull_request:
-    branches: [develop, main, 'feature/**', 'bugfix/**', 'hotfix/**', 'release/**']
+    branches:
+      - develop
+      - main
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+      - 'release/**'
+      - 'docs/**'
   push:
     branches: [develop, main]
 
