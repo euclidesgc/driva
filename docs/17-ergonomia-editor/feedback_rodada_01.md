@@ -88,16 +88,33 @@ não depende de nada.
 A pílula "Verificado às HH:MM · toque para atualizar" foi desenhada assim porque o preview
 mostra o **último salvo** e não havia gesto. `RefreshIndicator` é mais natural no celular.
 
-**Cuidado:** o conteúdo SDUI pode ter scroll próprio, ou não ter scroll nenhum — o
+**Cuidado 1:** o conteúdo SDUI pode ter scroll próprio, ou não ter scroll nenhum — o
 `RefreshIndicator` precisa de um `Scrollable`. Conteúdo curto não puxa.
+
+**Cuidado 2 — o Chrome no Android já tem esse gesto, e ele recarrega a página inteira.**
+Sem `overscroll-behavior-y: contain`, puxar dispara os dois: o `RefreshIndicator` nosso e o
+reload nativo, que derruba o app Flutter e refaz o carregamento do zero. O resultado seria
+**pior** do que a pílula que a fase substitui. É uma linha de CSS, mas é tarefa, não
+detalhe — sem ela a F2b não entrega o que promete.
 
 ### 4.2 A barra de navegação aparece
 
 > _"ele ainda mostra a barra de navegação"_
 
-**Ambíguo — precisa confirmar com ele qual das duas:** a barra de gestos/botões do Android
-(que só some com `SystemChrome.setEnabledSystemUIMode(immersive)`) ou algum chrome nosso
-que sobrou na rota.
+**FECHADO — não é tarefa.** A foto `evidencias/rodada_01/03_preview_android.jpg` mostra a
+rota `/preview` no aparelho: a barra da base é a **do Android**, do sistema. A rota nasce sem
+chrome (é irmã do `ShellRoute`), e não há nada nosso ali.
+
+> **Decisão do dev humano (2026-08-16):** *"esquece a barra do android, ela não é um
+> problema"* — um app de verdade também a tem. O que denuncia o navegador é a barra de
+> endereços, e é só ela que sai (4.3).
+
+**O recorte que ele fixou na mesma conversa, e que limita o escopo do 4.1 e do 4.3:** o
+preview é *"um preview de como irá ficar no app de verdade — só isso"*. Não é ambiente de
+teste real; esse será o app nativo apontando para HML. Melhorias de realismo que não sejam
+a pílula e a barra de endereços estão **fora** — em particular, a supressão de seleção de
+texto, de long-press na imagem e de zoom por pinça foi **proposta e recusada** por inflar
+uma entrega que é para ser simples.
 
 ### 4.3 Esconder a barra de endereços do navegador
 

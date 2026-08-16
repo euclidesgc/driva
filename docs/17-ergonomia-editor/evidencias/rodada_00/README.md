@@ -1,9 +1,18 @@
-# Rodada 00 — evidência de campo (o "antes")
+# Rodada 00 — o "antes", registrado por causa e não por foto
 
-> **Esta pasta guarda o estado ANTES da F1.** Sem ela, os aceites 1 e 28 do DoD não
-> têm contra o que ser comparados — um print "depois" sozinho não prova melhora.
+> **Não há fotos nesta pasta, e não haverá — ver D33 do `plan.md`.** As três chegaram por
+> mensagem e, quando foram salvas, a F1 e a F1b já estavam mergeadas e no ar: o estado que
+> elas mostram não é mais reproduzível em homologação.
+>
+> **O que este README documenta é o "antes".** Cada sintoma tem a causa no código, com
+> arquivo e linha — evidência que não envelhece com o build, ao contrário da foto. Os
+> aceites 28 e 35-A perderam a cláusula de pareamento e apontam para a `rodada_01`.
+>
+> **A regra que fica:** evidência de campo é arquivada **no dia em que chega**, antes de
+> qualquer PR que a torne irreproduzível. Foto em aplicativo de mensagens não é evidência
+> arquivada.
 
-## `00_evidencia_campo_android.jpg` — **pendente de arquivamento pelo dev humano**
+## A lista de conteúdos — tema escuro
 
 Foto enviada pelo dev humano em 2026-08-16, de um Android em modo escuro acessando
 `hml.driva.duckdns.org` — a **tela de conteúdos do projeto** (`contents_module`), não o
@@ -22,14 +31,9 @@ editor. É a evidência que reordenou o item 41 e partiu a F1 em duas (§8 do `p
 categorias não resolve: mesmo com elas fora do caminho, o painel a 412 px tem 364, e
 `220 + sort + toggle` continua estourando.
 
-## Como arquivar
-
-Salve a foto original neste diretório com o nome `00_evidencia_campo_android.jpg`.
-**Antes de a F1 mergear** — é o item 25 do DoD.
-
 ---
 
-## `01_evidencia_campo_editor_android.jpg` — **pendente de arquivamento**
+## O editor — o canvas ausente
 
 Segunda foto do dev humano (2026-08-16), do **editor** no mesmo aparelho — não da
 lista. É um defeito **diferente** do anterior, e mais grave.
@@ -50,7 +54,22 @@ conteúdos"**.
 O que transforma o beco em caminho é a F2 ter chegado antes: sem ela, o aviso seria só
 um "não dá". Com ela, o celular tem o que fazer.
 
-## Uma nota sobre o tema
+---
 
-A foto `00` é do tema escuro; a `01` e a terceira (mesma tela de conteúdos em tema claro)
-mostram que **o defeito não é do tema**. As causas são de layout, não de cor.
+## A lista de conteúdos — tema claro
+
+Terceira foto do dev humano (2026-08-16): a **mesma tela de conteúdos** da primeira, no
+mesmo aparelho, em **tema claro**. Repetia os três sintomas — CATEGORIAS ocupando a maior
+parte da largura, título quebrando por grafema, busca cortada.
+
+Ela existia para fechar uma hipótese antes que alguém a perseguisse: **as causas são de
+layout, não de tema.** E isso continua provado sem a foto — as três causas da tabela acima
+são `SizedBox` e `Expanded`, nenhuma delas lê cor. Nenhuma correção deste item mexe em
+`EditorColors` nem nas paletas.
+
+---
+
+## Onde está o "depois"
+
+`../rodada_01/` — três fotos do mesmo aparelho, com as F1, F1b, F2 e F4 no ar. O README de
+lá diz qual aceite cada uma atende.

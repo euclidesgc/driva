@@ -1,10 +1,11 @@
 # Specs — Ergonomia do editor: espaço de tela, grupos e modo preview
 
-> **Estado: discovery em aberto.** Este documento consolida o que foi levantado
-> no código e no roadmap e **lista as ambiguidades que ainda esperam decisão do
-> humano**. Nada aqui está aprovado. As perguntas em aberto estão marcadas
-> **`A#`** e nenhuma fase começa antes de todas fecharem — a regra do time é
-> "spec com ambiguidade aberta é chute com cara de certeza".
+> **Estado: rodada 01 fechada (A1–A10 → D1–D4, D20 no `plan.md`); rodada 02
+> fechada em 2026-08-16.** Este documento consolida o que foi levantado no
+> código e no roadmap. As perguntas da rodada 01 estão marcadas **`A#`** e todas
+> foram respondidas; a **rodada 02** (itens 5.3 e 1.2 do `feedback_rodada_01.md`)
+> tem seção própria no fim. A regra do time continua valendo: "spec com
+> ambiguidade aberta é chute com cara de certeza".
 
 - **Item no roadmap:** novo, **41**, no Marco 4 (Ergonomia do construtor).
 - **Origem:** pedido do dev humano, 2026-08-15, no uso real do editor.
@@ -419,6 +420,379 @@ sem atestado nem teste. **Registrado para o tech-manager, não resolvido aqui.**
 
 ---
 
+## Rodada 02 (2026-08-16) — a árvore como alvo de arraste (5.3) e o colapso total (1.2)
+
+> **Estado: fechada.** As perguntas que abriram esta rodada foram respondidas
+> pelo dev humano em 2026-08-16. O que sobrou está marcado **`P#`** (proposta do
+> PM, aberta a veto), não `A#`: **nenhuma ambiguidade bloqueia o plano.**
+
+Origem: `feedback_rodada_01.md`, itens **5.3** e **1.2**. O feedback os tratava
+como uma unidade, porque declarava que o 5.3 destravaria o 1.2. **O discovery
+mostrou que não destravava — e que não precisava.**
+
+### O que ele pediu, nas palavras dele
+
+> "Se eu puder visualizar a árvore de widgets e o painel de widgets ao mesmo
+> tempo, eu posso arrastar um widget e soltar ele no local exato onde eu quero e
+> se eu arrastar por exemplo uma column para exatamente um container deveria
+> aparecer a opção de envolver container com column, mas se eu arrastar a column
+> para exatamente acima do container, ou seja entre outros dois widgets eu não
+> estaria fazendo o comando de envolver com coluna, e sim adicionando uma column
+> à árvore de widgets naquela posição. (…) Note que deve ser possível arrastar
+> componentes do painel de widgets bem como arrastar componentes existentes do
+> painel de árvore."
+
+E, sobre o colapso total:
+
+> "a paleta contraída precisa ser descontraída para poder ser utilizada. A
+> feature de contração das paletas serve para aumentar o espaço visível por
+> qualquer motivo que seja, apenas isso."
+
+### A A3 **não** foi reaberta — o 1.2 era outra coisa
+
+O `feedback_rodada_01.md` §1.2 lia "contrair até sumir" como pedido de **remover
+o painel da tela**, o que colidia de frente com a **A3/D2** ("faixa fina de
+ícones, não some", justificada por "com a paleta sumida não há de onde arrastar
+widget"). O discovery gastou uma rodada nessa colisão. **Ela não existia.**
+
+A referência que ele mandou — arquivada em
+`docs/17-ergonomia-editor/referencias/chrome_sidebar_colapsada.png` — é a
+sidebar do Chrome recolhida: **faixa vertical fina de ícones**, com o botão de
+expandir (`⇥`) no topo. O painel **não some**; vira faixa com affordance de
+retorno permanente.
+
+**Isso é a D2, literalmente, e é a F5 já planejada.** Consequências, registradas
+para não serem reinventadas depois:
+
+- **A A3 fica de pé, sem emenda.** A D2 do `plan.md` não muda uma palavra.
+- **O 1.2 é absorvido pela F5.** Não vira fase nova, não vira item de roadmap.
+- **O veredito do discovery — "o 5.3 não destrava o 1.2" — está correto e é
+  irrelevante**, porque o 1.2 nunca precisou ser destravado. Fica registrado
+  como caminho percorrido, não como escopo.
+- **Nada de segunda origem do gesto de criar.** Flyout de paleta,
+  clique-para-adicionar, `+` por nó e command palette foram levantados no
+  discovery como o preço de a paleta sumir de verdade. **A paleta não some.
+  Nenhum deles entra.** Registrados em "Fora de escopo".
+- **A faixa esquerda encolhe de dois botões para um.** Com a Árvore saindo do
+  painel esquerdo (ver abaixo), o `PanelRail` esquerdo perde o botão "Árvore" e
+  fica só com **expandir** — exatamente o print do Chrome. O **aceite 26 da F5**
+  ("clicar no ícone Árvore reabre o painel na aba Árvore") **perde o objeto e
+  precisa ser reescrito** para a aba "Propriedades".
+
+### O layout: a Árvore vai para a direita (decisão do humano)
+
+**Decidido: opção (b).** A **Árvore** passa a ocupar o painel **direito**; as
+**Propriedades** viram a **aba ao lado de Widgets** no painel esquerdo.
+
+| | hoje | depois |
+| --- | --- | --- |
+| Painel esquerdo | abas `Widgets` \| `Árvore` | abas `Widgets` \| `Propriedades` |
+| Painel direito | Propriedades | **Árvore** |
+| Colunas | 3 | **3** |
+
+**O que isso compra:** paleta e árvore visíveis **ao mesmo tempo**, que é a
+premissa inteira do 5.3 — sem custar largura. O piso do workspace continua
+`412 + minCentro`, a largura do canvas não muda, e **o aceite 17-A da F3
+sobrevive intacto**. A alternativa de três painéis laterais foi descartada: ela
+subiria o piso para `618 + minCentro` (~938 px) e cortaria o canvas de 988 para
+~700 px a 1600 px de janela — o oposto do objetivo do item 41.
+
+**Trade-off aceito por ele:** o arraste da paleta até a árvore atravessa o
+canvas. É percurso longo de ponteiro, e torna o autoscroll da árvore
+(§"Riscos herdados") uma tarefa, não um detalhe.
+
+### O gesto: **menu de destino** ao soltar no corpo do nó
+
+**Decisão do humano (H6), 2026-08-16.** Nas palavras dele:
+
+> "Eu mencionei a column, mas esse deve ser o comportamento padrão para qualquer
+> widget, não só column, ok? (…) podemos simplificar com essas opções que são as
+> possíveis, certo? Ex: **Inserir acima, Inserir dentro, Inserir abaixo, Envolver
+> com**, daí o user escolher o que quer e a gente não precisa se preocupar com o
+> arrastar na fresta."
+
+Soltar no **corpo** de um nó **abre um menu com quatro opções**; o usuário
+escolhe. Vale para **todo o catálogo**, não só `column`.
+
+#### A P7 deixou de existir — e não por ter sido resolvida
+
+A rodada anterior desta spec propôs a **P7**: uma regra para o que o corpo do nó
+significa, derivada de `SlotKind` e da presença de fresta. **Essa regra foi
+removida.** O motivo importa e fica registrado para não ser reinventado:
+
+> **A decisão de desenho tornou a P7 vazia, não a respondeu.** A P7 existia para
+> resolver "como o usuário adivinha qual das três coisas vai acontecer". Com o
+> menu, **não há o que adivinhar: o sistema pergunta.** Uma regra que ninguém
+> precisa decorar não é uma regra melhor — é uma regra que não precisa existir.
+
+A tabela `SlotKind` → semântica **não morreu; mudou de função**. Ela deixa de
+dizer *qual gesto significa o quê* e passa a dizer *quais opções do menu ficam
+habilitadas*. Ver §"O menu, opção por opção".
+
+#### Fresta e menu convivem — **assumido, pendente de confirmação (P11)**
+
+Ele disse "não precisa se preocupar com o arrastar na fresta". Isso admite duas
+leituras, e a spec assume a segunda:
+
+- **remover as frestas** — mas elas já funcionam desde o item 8e; removê-las é
+  trabalho, não economia. E se **todo** drop virar menu, montar uma tela de 20
+  widgets vira **20 diálogos**;
+- **deixar de depender** delas para desambiguar — que é o que o menu resolve.
+
+**P11 — Desenho assumido, sujeito a veto:**
+
+| Onde se solta | O que acontece | Por quê |
+| --- | --- | --- |
+| **Fresta** (6 px, entre dois nós) | insere ali, **direto, sem menu** | é onde não existe ambiguidade nenhuma: a posição **é** a resposta |
+| **Corpo do nó** (34 px) | abre o **menu de destino** | é exatamente onde hoje há adivinhação |
+
+**Duas semânticas, não três**, e **nenhuma exige mira fina**: o corpo do nó
+recuperou os 34 px inteiros porque parou de disputá-los com as outras duas. Quem
+quer velocidade usa a fresta; quem quer certeza usa o corpo.
+
+#### O menu, opção por opção
+
+As **quatro opções aparecem sempre** — menu de tamanho estável, e "Envolver com"
+continua **descobrível** mesmo quando o alvo da vez não a aceita. O que varia é
+o que está habilitado.
+
+| Opção | Desabilitada quando | Depende de |
+| --- | --- | --- |
+| **Inserir acima** | o alvo é a **raiz** (ver P13) | o **pai** do alvo |
+| **Inserir dentro** | o alvo é `SlotKind.none`; ou é `single` **já ocupado** | o **alvo** |
+| **Inserir abaixo** | o alvo é a **raiz** (ver P13) | o **pai** do alvo |
+| **Envolver com** | o **widget arrastado** é `SlotKind.none` | o **widget arrastado** |
+
+**Os dois motivos são de eixos diferentes, e é isso que o `SlotKind.none`
+expõe.** "Inserir dentro" olha para o **alvo**; "Envolver com" olha para o
+**arrastado**. Arrastar uma `Column` sobre um `Text`: "Inserir dentro" fica
+cinza (o texto não recebe), **"Envolver com" fica habilitada** (a column
+envolve o texto muito bem). Arrastar um `Text` sobre qualquer coisa: "Envolver
+com" fica cinza, porque quem não pode envolver é o arrastado.
+
+**As palavras que aparecem na tela**, para o motivo ser lido e não deduzido:
+
+- alvo `SlotKind.none` → **"Text não recebe filhos"**
+- alvo `single` ocupado → **"Container já tem um filho"**
+- arrastado `SlotKind.none` → **"Text não pode envolver"**
+- alvo é a raiz → **"A raiz não tem irmãos"**
+
+#### Desabilitada com o motivo — não habilitada-e-depois-erro (P12, assumido)
+
+Ele propôs: *"Deixa sempre as opções (…) disponível e o sistema diz o que
+acontece após a escolha do user, se aceita ou se mostra o erro."*
+
+**A spec assume a variante desabilitada-com-motivo, e a divergência está
+registrada e ainda não foi respondida por ele.** A razão tem nome:
+
+> Deixar clicar numa ação que não age é **exatamente** o padrão que o **item 39**
+> nos custou caro — três dos sete casos da §11.0 do `plan.md` são disso
+> (`loadingBuilder` passado e nunca renderizado, `width: 0` legítimo e invisível,
+> `Ctrl+Shift+W` mapeado e nunca recebido). O controle presente que não produz
+> efeito é o defeito mais caro do repositório, e ele já tem jurisprudência.
+
+O motivo **visível ao lado da opção cinza** entrega o que ele quer — *o sistema
+diz o que acontece* — **antes** do clique em vez de depois, e sem gastar uma
+mensagem de erro para explicar uma escolha que nunca deveria ter sido oferecida.
+
+**Com o `wrapNode` estendido aos 12 (P8), quase nada fica cinza.** O
+`SlotKind.none` é o resto irredutível.
+
+#### P13 — A raiz é o caso que o menu criou (pendência do dev)
+
+"Inserir acima" e "Inserir abaixo" pedem um **pai** que receba o irmão. **A raiz
+não tem pai.** Hoje esse caso é resolvido em silêncio: `resolveDrop` devolve
+`DropRequiresWrap` e o editor **envolve a raiz numa `column` sozinho**, avisando
+só depois (`EditorNoticeKind.dropWrapped`).
+
+Com um menu que existe para acabar com a adivinhação, manter uma ação composta
+escondida atrás de "Inserir acima" contradiz o desenho. **Duas saídas, e é
+decisão dele:**
+
+- **(a)** as duas ficam **cinzas** na raiz, com "A raiz não tem irmãos" — honesto,
+  e o usuário usa "Envolver com" explicitamente se quiser o mesmo efeito;
+- **(b)** ficam **habilitadas** e realizam o wrap implícito, **dizendo-o no
+  próprio rótulo** ("Inserir acima — envolve a raiz em Column").
+
+**A spec assume (a)**, por ser a que não esconde operação composta atrás de
+rótulo simples.
+
+### O que muda de contrato (não é regressão acidental)
+
+O caso **`'soltar sobre uma linha manda o alvo, não o índice'`** em
+`apps/driva_editor/test/modules/editor_module/presentation/editor/widgets/widget_tree_panel_test.dart`
+codifica hoje "**corpo do nó = adicionar como filho**". A P7 troca isso por
+"corpo = envolver" para `none`, `single` ocupado e `multi`.
+
+**É troca de semântica declarada, não quebra a corrigir.** O teste muda junto,
+no mesmo PR, e a descrição do PR nomeia a troca. A semântica antiga não é
+perdida: ela sobrevive onde é a única saída (`single` vazio) e foi substituída
+pelas frestas onde elas já cobriam (`multi`).
+
+### Envolver com quê: `wrapNode` só aceita 6 dos 12
+
+`wrapNode` (`packages/sdui_core/lib/src/ops/tree_ops.dart:127`) abre com
+`if (descriptorFor(wrapperType)?.slot != SlotKind.multi) return null;`. Os
+wrappers `SlotKind.single` — **`container`, `card`, `padding`, `center`,
+`sizedBox`, `expanded`** — devolvem `null` **em silêncio** (em `wrapSelected` é
+um `assert`, que só existe em debug).
+
+Com "Envolver com" virando **item permanente de menu**, isso deixa de ser
+limitação e vira mentira: ver a opção, escolhê-la e nada acontecer é o caso 2/3
+da §11.0 do `plan.md` — controle presente na API, sem efeito na tela. O menu
+**agrava** o problema em relação ao hover, porque uma opção de menu promete mais
+do que um realce.
+
+**P8 — Estender `wrapNode` para `SlotKind.single`. APROVADO pelo dev.** O alvo
+vai para `child` em vez de `children`. A mudança é pequena porque `_rebuild`
+**já** trata o alvo sentado num slot único (`tree_ops.dart:139`,
+`current.copyWith(child: () => wrapper)`); falta só montar o wrapper com `child`
+quando o descriptor for `single`. Teste em
+`packages/sdui_core/test/ops/tree_ops_test.dart`.
+
+**Por que estender em vez de esconder para os 6:** `container` e `padding` são os
+envelopes mais pedidos de um builder. Um "Envolver com" que recusa justamente
+eles obriga o dev a descobrir a regra na mão, uma tentativa por tipo.
+
+Wrappers possíveis depois da P8: **12** (`multi` + `single`). Impossíveis: os
+`SlotKind.none`, e para esses a opção aparece **cinza com o motivo ao lado**
+(P12), não escondida — menu de tamanho estável.
+
+### O nó inválido residente na árvore — **aprovado como fase própria (H7)**
+
+Ele pediu:
+
+> "deve ser possível validar se tal componente pode ser soltado naquela posição
+> sem quebrar a árvore de widgets. Nesse caso o widget até poderia aparecer na
+> lista mas marcado como erro até que o user arraste ele pro local adequado ou
+> exclua ele da árvore."
+
+**Decisão do humano (H7), 2026-08-16: entra, como fase própria — PR separado,
+depois desta entrega.** O PM havia recomendado o contrário, e o registro de por
+que a recomendação caiu importa mais do que a recomendação.
+
+**A recomendação de recusa dizia:** o drop que produziria um nó inválido **não
+existe**. `resolveDrop` nunca devolve árvore inválida — ele aceita, **redireciona**
+para o primeiro ancestral que recebe (`DropAccepted.redirected`), ou pede **wrap**
+(`DropRequiresWrap`). As duas únicas recusas genuínas são `unknownTarget` (alvo
+sumiu) e `cycle` (mover um nó para dentro de si mesmo), e nenhuma das duas se
+resolve deixando o nó marcado na árvore.
+
+**O que derrubou a recomendação: o menu de destino (H6) cria a causa que não
+existia.** Enquanto o destino era inferido pelo sistema, o sistema só inferia
+destinos que funcionam — daí "não há drop que produza inválido". Com o menu, **o
+usuário escolhe**, e pode escolher um destino que o sistema não realiza. A
+premissa da recusa era verdadeira sobre o código de ontem e deixou de ser sobre o
+desenho de hoje.
+
+**A ordem que isto impõe:** a fase do nó inválido vem **depois** da fase do menu.
+Antes dela, não há como produzir o estado que ela trata — e uma fase que constrói
+marcação de erro sem um caminho que a produza não tem como ser testada.
+
+**O motivo de arquitetura, que é o mais caro:** um nó inválido residente
+significa que o `PageSpec` em edição passa a poder estar **temporariamente
+inválido**. Isso abre três frentes que não são de UI:
+
+1. **Política de salvar** — bloqueia? salva marcado? avisa? Hoje o rascunho vai
+   para o backend como JSONB **sem interpretação** (o backend não lê spec), então
+   um spec inválido faz round-trip e chega ao item 24 (publicação) e ao app
+   cliente.
+2. **O rodapé de problemas ganha um tipo novo** — hoje ele diz "Nenhum problema"
+   e o item 38 acabou de fazer dele a fonte de verdade dos erros.
+3. **O kernel passa a ter dois níveis de validade** (parseável vs. correto), e
+   `parsePageSpec` é hoje a única porta de entrada.
+
+**As três frentes acima são o escopo da fase própria** — e a primeira, a política
+de salvar, é a que precisa ser decidida pelo humano antes de a fase abrir. Não é
+detalhe de implementação: define se um spec marcado como inválido pode chegar ao
+item 24 (publicação) e ao app cliente.
+
+**O que ela ganha de graça mais adiante:** quando o catálogo ganhar restrições de
+composição ("`listView` só aceita filhos `listItem`"), que hoje não existem — o
+`_accepts` só olha `SlotKind`, nunca o tipo do filho —, a marcação já estará
+construída e passa a cobrir também esse caso.
+
+**O que acontece com o drop recusado até lá — e não é silêncio.** O item
+39 ensinou que recusa muda não é recusa. As três recusas (`unknownTarget`,
+`cycle`, e a nova "wrapper é `SlotKind.none`") passam a ser **visíveis durante o
+gesto**: o realce do alvo vira estado de recusa (cor + ícone + cursor, nunca só
+cor — regra de a11y), e ao soltar, o rodapé registra o motivo. Isso é **tarefa
+desta entrega**, e é o substituto honesto do nó marcado.
+
+### Riscos herdados que esta rodada carrega para o plano
+
+Levantados no discovery técnico e **não resolvidos pela decisão de layout** —
+o `plan.md` precisa de tarefa para cada um:
+
+- **R-a — largura por slot, não por painel.** A largura mora no `State` de
+  `_ResizableSplitViewState` indexada pelo **slot**, não pelo painel. Trocar
+  Árvore ↔ Propriedades faz o Inspector herdar a largura da paleta no primeiro
+  frame. Problema de `Key`, barato — e **silencioso**, que é o que o torna
+  perigoso.
+- **R-b — zero testes na estrutura que vai ser invertida.**
+  `ResizableSplitView`, `LeftPanel`, `CenterArea` e `InspectorArea` **não têm um
+  teste**. Inverter as colunas hoje passa na suíte inteira. **Rede antes da
+  mudança estrutural** — aceita pelo tech-manager, registrada como pré-requisito
+  no PRD. Não contraria "bateria por último": é rede de refatoração, não bateria
+  da feature.
+- **R-c — a árvore permanente liga o caminho quente que a D8 protege.** Hoje o
+  `TabBarView` desmonta a Árvore fora de foco (é a causa do defeito 1.1). Como
+  painel permanente, o `BlocSelector` com `_structureKey` — que **serializa a
+  árvore inteira em string a cada `emit`** — e o `_buildRows` recursivo passam a
+  rodar em toda mudança estrutural, o usuário olhando ou não.
+- **R-d — sem autoscroll na árvore durante o arraste.** `ListView` comum, nenhum
+  `ensureVisible`. Nó abaixo da dobra é **inalcançável mid-drag**. Tolerável
+  enquanto o canvas era o alvo principal; **bloqueio** agora que a árvore é.
+- **R-e — criar widget segue 100% dependente de ponteiro.** `PaletteItem` é
+  `Draggable` sem `Semantics`. **Não é bloqueio** (a paleta não some mais), mas
+  é dívida registrada: não há caminho por teclado para criar um widget.
+- **R-f — dois goldens com duas causas.** `goldens/canvas_device_mock.png` (que
+  captura o `CanvasPanel`, o `Expanded` do centro) e o caso `'editor pronto monta
+  os três painéis'` de `editor_perf_test.dart` (que assere `find.text('Widgets')`
+  e `find.text('Árvore')` como **rótulos de aba**) quebram. A F3 **também**
+  regrava esse mesmo golden. **A ordem importa e cada regravação precisa nomear
+  a sua causa** — dois motivos no mesmo arquivo é onde a régua do item 39 deixa
+  de discriminar.
+
+### Impacto no item 21 (registrar, não resolver)
+
+`docs/plans/21-aba-componentes-editor/plan.md` especifica *"uma **terceira aba**
+do painel esquerdo — ao lado de Widgets e Árvore"*. Depois desta rodada seria
+**ao lado de Widgets e Propriedades**. A TabBar não morre, muda de conteúdo — o
+item 21 continua encaixando, com o texto do plano dele desatualizado. **Registrado
+aqui; a correção é do plano do 21.**
+
+### Decisões do humano nesta rodada
+
+- **H1 — O incômodo é ver árvore e paleta ao mesmo tempo**, não a falta de um
+  alvo de drop (que já existe). Responde a Q1.
+- **H2 — Semântica por zona, sem tecla modificadora:** corpo do nó = envolver;
+  fresta = inserir irmão naquela posição. Responde a Q4 pela opção (a).
+- **H3 — As duas origens de arraste valem:** da paleta **e** de nó existente
+  dentro da árvore.
+- **H4 — Colapsar painel é só ganhar espaço visível**, e o painel colapsado
+  precisa ser expandido para voltar a ser usado. Mantém a A3/D2; absorve o 1.2
+  na F5.
+- **H5 — Layout:** Árvore para o painel direito, Propriedades para a aba ao lado
+  de Widgets. Responde a Q3 pela opção (b).
+
+### Propostas do PM nesta rodada (abertas a veto)
+
+- ~~**P7** — a regra do corpo do nó.~~ **Vazia desde a H6:** o menu de destino
+  removeu a adivinhação que a P7 existia para regular.
+- **P8** — estender `wrapNode` para `SlotKind.single`; affordance escondida só
+  para `SlotKind.none`.
+- ~~**P9** — nó inválido residente sai de escopo.~~ **Recusada pelo humano
+  (H7):** entra como fase própria, depois da fase do menu. A recusa visível
+  durante o gesto continua nesta entrega, como ponte até lá.
+- **P10 — Ordem de entrega:** rede de teste (R-b) → **F3** → troca de colunas →
+  kernel (P8) → o gesto → F5. **A F3 antes da troca de colunas** porque as duas
+  regravam `canvas_device_mock.png`, e sequenciá-las é o que mantém uma causa por
+  regravação (R-f). O kernel corre em paralelo com a troca de colunas: são
+  camadas diferentes e não se tocam.
+
+---
+
 ## Fora de escopo (declarado, para não voltar como surpresa)
 
 - **Item 30** — variação do spec por breakpoint. Nome parecido, problema outro.
@@ -429,10 +803,34 @@ sem atestado nem teste. **Registrado para o tech-manager, não resolvido aqui.**
 - **Item 28** — eventos e ações. Preview interativo de verdade depende dele.
 - **Layout do editor para celular** — se A1 responder (iii), vira item próprio.
 
+**Acrescentado na rodada 02:**
+
+- **Nó inválido residente na árvore, marcado como erro** — **não é mais fora de
+  escopo do item**, e sim **fase própria depois da fase do menu** (H7). Fora
+  desta *entrega*, dentro do item. A política de salvar um spec marcado como
+  inválido é decisão pendente do humano antes de a fase abrir.
+- **Segunda origem do gesto de criar** — paleta como flyout/overlay,
+  clique-para-adicionar, `+` por nó da árvore, command palette (`Ctrl+K`). Foram
+  levantados no discovery como o preço de a paleta sumir de verdade. **A paleta
+  não some** (H4), então nenhum deles tem justificativa agora. Registrados para
+  não voltarem como ideia solta.
+- **Três painéis laterais** — descartado por custo de largura: piso de ~938 px e
+  canvas caindo de 988 para ~700 px a 1600 px. Contradiz o objetivo do item 41.
+- **Caminho por teclado para criar widget** — a dívida do **R-e** fica registrada,
+  não paga aqui.
+- **Remover os botões "Envolver em Column/Row" da F2 do item 38** — decisão
+  explícita do dev: o 5.3 é **adição**, não substituição. O comando existente
+  fica.
+
 ---
 
 ## Decisões do humano que sustentam esta spec
 
-_Nenhuma ainda._ Este documento está no estado "perguntas levantadas". Assim que
-as respostas de **A1–A10** chegarem, elas entram aqui nominalmente e o PRD é
-consolidado a partir delas.
+**Rodada 01 (A1–A10).** Respondidas e registradas nominalmente no `plan.md` como
+**D1** (A1), **D2** (A3), **D3** (A6), **D4** (A7) e **D20** (a decisão de
+2026-08-16 sobre celular). A **Q2** do plano (colapso do Inspector por rótulo ou
+por tipo de nó) segue como decisão do PM com veto fácil na revisão da F6.
+
+**Rodada 02 (5.3 + 1.2).** **H1** a **H5**, na seção da rodada 02 acima. As
+propostas do PM em aberto são **P7** a **P10**, todas com veto fácil antes de a
+fase abrir.
