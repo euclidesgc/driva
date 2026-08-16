@@ -1,0 +1,71 @@
+Alvo: https://api-hml.driva.duckdns.org/v1   editor: https://hml.driva.duckdns.org   projeto: default   slug: e2e-39-contrato
+
+=== 0. cancelas estáticas do DoD (§11.1 do plan.md) ===
+[32mPASS[0m 0.1 (DoD 5) nenhum Color(0x…) fora de sdui_flutter/lib/src/theme/
+[32mPASS[0m 0.2 (DoD 5b) loadingBuilder não é usado — o estado sai do frameBuilder (D12)
+[32mPASS[0m 0.3 (DoD 5c) showDiagnostics não aparece no app cliente (D13)
+[32mPASS[0m 0.4 (DoD 5c) showDiagnostics nasce false no SduiView
+[32mPASS[0m 0.5 (DoD 5d) scripts/gates_guard.sh verde
+[32mPASS[0m 0.6 (D11) a URL do proxy não existe dentro de packages/ — só o editor a monta
+[32mPASS[0m 0.7 (DoD 6) nenhum condicional sobre o tipo 'image' no editor — os campos vêm do catálogo
+
+=== 1. hml no ar (o ambiente da rodada) ===
+[32mPASS[0m 1.1 GET /contents -> 200
+[32mPASS[0m 1.2 editor web servido em https://hml.driva.duckdns.org
+[32mPASS[0m 1.3 bundle publicado contém "media/proxy"
+[32mPASS[0m 1.3 bundle publicado contém "Imagem sem URL definida"
+[32mPASS[0m 1.3 bundle publicado contém "Carregando imagem"
+[32mPASS[0m 1.3 bundle publicado contém "Falha ao carregar imagem"
+
+=== 2. caso A — host COM ACAO, via proxy (DoD 18) ===
+[32mPASS[0m 2.1 proxy(URL_A) -> 200
+[32mPASS[0m 2.2 content-type de imagem
+[32mPASS[0m 2.3 ACAO é a origem do EDITOR (não '*' — o proxy não é rota pública, D11)
+[32mPASS[0m 2.4 ETag presente ("ac664924f0df0b6bacd…)
+[32mPASS[0m 2.5 Cache-Control com must-revalidate
+[32mPASS[0m 2.6 X-Content-Type-Options: nosniff
+
+=== 3. caso B — host SEM ACAO: o caso do relato (DoD 19) ===
+[32mPASS[0m 3.1 URL_B responde 200 direto
+[32mPASS[0m 3.2 URL_B NÃO serve access-control-allow-origin (ainda é caso B)
+[32mPASS[0m 3.3 proxy(URL_B) -> 200 — é a F3 entregando
+[32mPASS[0m 3.4 content-type de imagem
+[32mPASS[0m 3.5 o proxy põe a ACAO que o host não punha
+[32mPASS[0m 3.6 corpo tem bytes de imagem (3831 B)
+[32mPASS[0m 3.7 revalidação com If-None-Match -> 304
+
+=== 4. caso C — URL inexistente (DoD 20) ===
+[32mPASS[0m 4.1 proxy(URL_C) -> 502
+[32mPASS[0m 4.2 erro sem oráculo: mensagem genérica
+[32mPASS[0m 4.3 ACAO presente também no erro (o Flutter precisa LER o erro para exibi-lo)
+[32mPASS[0m 4.4 (nota) o motivo na tela citará https://api-hml.driva.duckdns.org/v1/media/proxy?url=… — esperado, não é bug
+
+=== 5. bordas do endpoint que a tela não alcança ===
+[32mPASS[0m 5.1 sem parâmetro url -> 400
+[32mPASS[0m 5.2 url vazia -> 400
+[32mPASS[0m 5.3 alvo HTML (content-type não-imagem) -> 400
+[32mPASS[0m 5.4 (D11) /v1/public/media/proxy não existe
+
+=== 6. spec — compatibilidade e as props novas da F4 (DoD 25) ===
+[32mPASS[0m 6.0 categoria de destino resolvida (y13oq8mht5d0u4rxgpggfojo)
+[32mPASS[0m 6.1 criar conteúdo -> 201
+[32mPASS[0m 6.2 id retornado (riro933nxss6b72hzehd8f3l)
+[32mPASS[0m 6.3 spec ANTIGO (width numérico 200) continua válido
+[32mPASS[0m 6.4 reabre com o width numérico intacto
+[32mPASS[0m 6.5 spec NOVO (width "100%" + props da F4) aceito
+[32mPASS[0m 6.6 width percentual preservado
+[32mPASS[0m 6.7 alignment preservado
+[32mPASS[0m 6.8 borderRadius preservado
+[32mPASS[0m 6.9 backgroundColor preservado
+[32mPASS[0m 6.10 semanticLabel preservado
+[32mPASS[0m 6.11 round-trip byte-a-byte
+[32mPASS[0m 6.12 image sem src continua um spec válido (o estado "vazio" é legítimo)
+
+=== 7. limpeza ===
+[32mPASS[0m 7.1 DELETE -> 204
+[32mPASS[0m 7.2 GET após delete -> 404
+
+=== Resumo ===
+[32mPASS=49[0m  [31mFAIL=0[0m
+[2mA matriz de segurança do proxy (§11.4, 27–44) NÃO é refeita aqui: roda como suíte e2e do Nest, no CI.[0m
+[32mTudo verde contra https://api-hml.driva.duckdns.org/v1.[0m

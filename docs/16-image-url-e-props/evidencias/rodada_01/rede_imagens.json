@@ -1,0 +1,58 @@
+[
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fpicsum.photos%2F1600%2F1200",
+  "id": "699820.22",
+  "status": 200,
+  "t": 1786847118414,
+  "mime": "image/jpeg",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fexemplo.invalido%2Fx.png",
+  "id": "699820.24",
+  "status": 502,
+  "t": 1786847134117,
+  "mime": "application/json",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fwww.google.com%2Fimages%2Fbranding%2Fgooglelogo%2F2x%2Fgooglelogo_color_92x30dp.png",
+  "id": "699820.26",
+  "status": 200,
+  "t": 1786847143260,
+  "mime": "image/png",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fpicsum.photos%2F300%2F200",
+  "id": "699820.46",
+  "status": 200,
+  "t": 1786847151674,
+  "mime": "image/jpeg",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fwww.google.com%2Fimages%2Fbranding%2Fgooglelogo%2F2x%2Fgooglelogo_color_92x30dp.png",
+  "id": "699820.68",
+  "status": 200,
+  "t": 1786847176822,
+  "mime": "image/png",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fpicsum.photos%2F300%2F200",
+  "id": "699820.88",
+  "status": 200,
+  "t": 1786847192404,
+  "mime": "image/jpeg",
+  "terminou": true
+ },
+ {
+  "url": "https://api-hml.driva.duckdns.org/v1/media/proxy?url=https%3A%2F%2Fpicsum.photos%2F300%2F200",
+  "id": "699820.108",
+  "status": 200,
+  "t": 1786847208719,
+  "mime": "image/jpeg",
+  "terminou": true
+ }
+]
