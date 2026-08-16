@@ -1137,6 +1137,23 @@ Corolários:
   `/preview`, e está pendente de confirmação do dev. Este é chrome desenhado dentro do
   mock, no editor.
 
+> ⚠️ **Refinamento de 2026-08-16 — a barra é transparente, e o Gate 4 vale só para os
+> ícones.** O dev pediu a status bar com um objetivo que esta decisão não entregava:
+> **prever contraste**. *"Imagina se eu coloco um background preto? todos textos sumiriam e
+> eu só perceberia em HML."* Uma barra pintada com fundo de token fica **sempre legível no
+> mock — inclusive quando no aparelho ela sumiria**: ela não previria o problema, o
+> mascararia. A barra passa a **não pintar fundo**; desenha sobre o fundo real da página, e
+> só os ícones e o relógio consomem token.
+>
+> **E o dev está enganado sobre o `SafeArea`, o que precisa estar escrito aqui porque a
+> conclusão errada é natural:** o `safeArea` do 8f governa o **recuo**, não a cor dos ícones
+> do sistema. Quem governa é o `SystemUiOverlayStyle` (`statusBarIconBrightness` no Android,
+> `statusBarBrightness` no iOS), e ele tem **zero ocorrências** no kernel, no renderer e no
+> editor. Nenhuma combinação das props existentes de `safeArea` resolve o caso do fundo
+> preto. Isso virou o **item 43 do roadmap** — e é dele que a cor dos ícones desta barra
+> passará a vir. Até lá, a barra do mock desenha os ícones no token, e o que ela prova é
+> **onde** a barra fica, não **como** ela ficará.
+
 ### D30 — **[nova, 2026-08-17]** O gesto substitui o **botão**, não a **frase** — e recarregar não pode custar o que está na tela
 
 O pedido (4.1) é *"um botão pra atualizar que incomoda; talvez um simples pushtorefresh
