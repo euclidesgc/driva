@@ -1137,6 +1137,23 @@ Corolários:
   `/preview`, e está pendente de confirmação do dev. Este é chrome desenhado dentro do
   mock, no editor.
 
+> ⚠️ **Refinamento de 2026-08-16 — a barra é transparente, e o Gate 4 vale só para os
+> ícones.** O dev pediu a status bar com um objetivo que esta decisão não entregava:
+> **prever contraste**. *"Imagina se eu coloco um background preto? todos textos sumiriam e
+> eu só perceberia em HML."* Uma barra pintada com fundo de token fica **sempre legível no
+> mock — inclusive quando no aparelho ela sumiria**: ela não previria o problema, o
+> mascararia. A barra passa a **não pintar fundo**; desenha sobre o fundo real da página, e
+> só os ícones e o relógio consomem token.
+>
+> **E o dev está enganado sobre o `SafeArea`, o que precisa estar escrito aqui porque a
+> conclusão errada é natural:** o `safeArea` do 8f governa o **recuo**, não a cor dos ícones
+> do sistema. Quem governa é o `SystemUiOverlayStyle` (`statusBarIconBrightness` no Android,
+> `statusBarBrightness` no iOS), e ele tem **zero ocorrências** no kernel, no renderer e no
+> editor. Nenhuma combinação das props existentes de `safeArea` resolve o caso do fundo
+> preto. Isso virou o **item 43 do roadmap** — e é dele que a cor dos ícones desta barra
+> passará a vir. Até lá, a barra do mock desenha os ícones no token, e o que ela prova é
+> **onde** a barra fica, não **como** ela ficará.
+
 ### D30 — **[nova, 2026-08-17]** O gesto substitui o **botão**, não a **frase** — e recarregar não pode custar o que está na tela
 
 O pedido (4.1) é *"um botão pra atualizar que incomoda; talvez um simples pushtorefresh
@@ -1311,6 +1328,37 @@ que o dev estava quando reclamou._
 **A pílula também deixa de interceptar ponteiro** (`IgnorePointer`). Ela é rótulo desde a
 D30, e um `Material` opaco no rodapé do `Stack` engolia o arraste que começasse ali —
 justamente a borda de onde se puxa numa tela pequena.
+
+### D35 — **[nova, humano, 2026-08-16]** A top bar degrada em **três peças**, e a ação primária não vai para o menu
+
+Foto do aparelho, na tela de projetos: a top bar mostra `Driva Builder`, `Arquivados (2)` e
+o botão `+ Novo projeto` **cortado ao meio**, com o indicador de status e o botão de tema
+fora da tela. `app_shell_top_bar.dart:32` é uma `Row` crua — wordmark, `Spacer`, ações,
+status, tema — sem `LayoutBuilder`, sem `Flexible` e sem menu. Abaixo da soma das larguras
+ela corta, e **sem faixa listrada** (D25): o sintoma é o corte, não um aviso.
+
+A tarefa 1 da F3 já previa "as ações colapsam num menu". A foto acrescentou o que a decisão
+original não tinha: **`Novo projeto` é a ação primária da tela**, e mandá-la para um kebab
+põe a única ação criadora da tela a dois toques, no aparelho em que criar já é mais caro.
+
+**Decisão do humano — três peças, nesta ordem de sacrifício:**
+
+| Peça | Em faixa larga | Em faixa estreita |
+| --- | --- | --- |
+| `AppWordmark` | `Driva Builder` | **`Driva`** — a marca continua legível e devolve ~90 px |
+| Ação `filled` (primária) | ícone + rótulo | **só o ícone**, ainda em destaque e a **um** toque |
+| Demais ações | ícone + rótulo | **menu de overflow** |
+
+**Por que não o FAB**, que seria o padrão Material no celular: a top bar não controla a
+página. Projetar uma ação do shell para dentro do `Scaffold` da página — ou fazer cada
+página declarar o seu FAB — é refatoração de arquitetura, não ajuste de layout, e não cabe
+numa fase cujo objeto é matar overflow. _Fica registrado na §12 como possibilidade, não
+como dívida._
+
+**O que o aceite tem de provar**, e a D25 vale aqui: nada de "não vi faixa listrada". A
+régua é **geometria medida** — a soma das larguras dos filhos da `Row` cabe na viewport, e
+**toda ação declarada continua alcançável** (visível ou dentro do menu). Uma ação que
+desaparece sem entrar no menu é o mesmo defeito com outra roupa.
 
 ---
 
@@ -1740,8 +1788,9 @@ entrega um par de prints em que nada de relevante muda.
 | `.../editor/widgets/canvas/device_status_bar.dart` | **novo** (Gate 1, D29) — relógio, sinal, wifi e bateria; altura = `device.safeAreaTop` |
 | `.../editor/widgets/canvas/device_home_indicator.dart` | **novo** (Gate 1, D29) — altura = `device.safeAreaBottom` |
 | `core/widgets/app_shell/app_shell_breadcrumb_bar.dart` | `Flexible` em cada `CrumbLabel` — a elipse passa a disparar |
-| `core/widgets/app_shell/app_shell_top_bar.dart` | `LayoutBuilder`; abaixo de `topBarActionsFitWidth` as ações colapsam num menu |
+| `core/widgets/app_shell/app_shell_top_bar.dart` | `LayoutBuilder`; abaixo de `topBarActionsFitWidth` as ações **secundárias** colapsam num menu e a primária vira ícone (D35) |
 | `core/widgets/app_shell/app_shell_actions_overflow_menu.dart` | **novo** (Gate 1) |
+| `core/widgets/branding/app_wordmark.dart` | forma curta em faixa estreita (D35) |
 | `core/widgets/layout/resizable_split_view.dart` | `LayoutBuilder`, piso do centro, reclamp, rolagem horizontal (D14) |
 | `.../editor/device_preset.dart` | `Size get frameSize` (D10) |
 | `.../editor/widgets/canvas/device_frame.dart` | consome `frameSize` (D10); e a status bar entra na **mesma camada do `CameraCutout`** (hoje `Positioned.fill` + `IgnorePointer`, linhas 104-108), **não** numa `Column` — D29 |
@@ -1754,7 +1803,9 @@ entrega um par de prints em que nada de relevante muda.
 **Tarefas:**
 
 1. **[paralela: sim]** Overflow do shell: `Flexible` nos crumbs + menu na faixa 1 +
-   `AppSizes`.
+   `AppSizes` + a degradação em três peças da **D35** (wordmark curto, primária em ícone,
+   secundárias no menu). **Tem foto:** `evidencias/rodada_02/` — a barra cortando o "Novo
+   projeto" ao meio no aparelho.
 2. **[paralela: sim]** Piso do centro no `ResizableSplitView` (D14).
 3. **[paralela: sim]** `DevicePreset.frameSize` + `DeviceFrame` consumindo (D10).
 4. **[paralela: não — dep. 3]** `fitScaleFor` + `LayoutBuilder` no `CanvasPanel` +
