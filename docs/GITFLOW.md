@@ -96,3 +96,31 @@ Use a skill `paperclip` para isso.
 5. Ao concluir, mova a tarefa para `in_review` e notifique o Tech Lead. **Não** faça merge em `main`.
 6. Merges `develop → main` (releases) e a criação de `hotfix/*` são **decisão humana**, salvo
    instrução explícita.
+7. **Mais de um PR aberto ao mesmo tempo vai em pilha** — nunca vários PRs independentes
+   apontando cada um para `develop`. Ver a seção 6.
+
+## 6. Pilha de PRs (stacked pull requests)
+
+Quando um trabalho rende **mais de um PR simultâneo**, eles vão numa **pilha**, com o
+recurso nativo do GitHub. A skill **`empilhar-prs`** tem o passo a passo; aqui fica a regra
+e o porquê.
+
+**A regra:** nunca abra N PRs independentes contra `develop`. Encadeie as branches (cada
+uma nasce da anterior) e publique a pilha.
+
+**Dois motivos, e o segundo é o que o humano cobra:**
+
+1. **Um build por pilha, não um por PR.** Cada PR independente contra `develop` dispara o
+   CI inteiro por conta própria. A pilha mergeia o PR escolhido **e todos os não-mergeados
+   abaixo dele** numa operação só.
+2. **O merge para de ser manual e frágil.** Na pilha nativa, o próximo PR é rebaseado
+   automaticamente para a base do stack quando o de baixo entra.
+
+**A armadilha que já mordeu duas vezes.** O filtro `on.pull_request.branches` do
+`ci.yml` precisa cobrir **todo prefixo que pode virar base de pilha**, não só os do
+GitFlow. No item 38 a `F5` subiu para homologação com o job de format vermelho; no item 41
+o PR #141 passou só com o GitGuardian, porque a base era `docs/**` e o prefixo não estava
+na lista. Prefixo novo em uso como base ⇒ **entra no filtro no mesmo PR**.
+
+**Restrições do recurso** (public preview, na data desta escrita): sem auto-merge, não dá
+para mergear um PR do meio isoladamente, e a pilha exige histórico linear.
