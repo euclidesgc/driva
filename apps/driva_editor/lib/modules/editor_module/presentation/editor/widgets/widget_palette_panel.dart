@@ -8,7 +8,9 @@ import 'package:sdui_core/sdui_core.dart';
 /// por categoria colapsável, com busca. Adicionar é só por drag-and-drop (o
 /// clique não adiciona — o usuário controla onde solta).
 class WidgetPalettePanel extends StatefulWidget {
-  const WidgetPalettePanel({super.key});
+  const WidgetPalettePanel({required this.collapsedCategories, super.key});
+
+  final ValueNotifier<Set<String>> collapsedCategories;
 
   @override
   State<WidgetPalettePanel> createState() => _WidgetPalettePanelState();
@@ -16,18 +18,19 @@ class WidgetPalettePanel extends StatefulWidget {
 
 class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
   String _query = '';
-  final Set<String> _collapsedCategories = {};
 
   bool _matches(WidgetDescriptor descriptor) =>
       _query.isEmpty ||
       descriptor.label.toLowerCase().contains(_query) ||
       descriptor.type.toLowerCase().contains(_query);
 
-  void _toggleCategory(String category) => setState(() {
-    if (!_collapsedCategories.remove(category)) {
-      _collapsedCategories.add(category);
+  void _toggleCategory(String category) {
+    final collapsed = {...widget.collapsedCategories.value};
+    if (!collapsed.remove(category)) {
+      collapsed.add(category);
     }
-  });
+    widget.collapsedCategories.value = collapsed;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,21 +62,24 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
         Expanded(
           child: byCategory.isEmpty
               ? const Center(child: Text('Nenhum widget encontrado.'))
-              : ListView(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-                  children: [
-                    for (final entry in byCategory.entries)
-                      PaletteCategorySection(
-                        category: entry.key,
-                        descriptors: entry.value,
-                        isExpanded:
-                            hasQuery ||
-                            !_collapsedCategories.contains(entry.key),
-                        onToggle: hasQuery
-                            ? null
-                            : () => _toggleCategory(entry.key),
-                      ),
-                  ],
+              : ValueListenableBuilder<Set<String>>(
+                  valueListenable: widget.collapsedCategories,
+                  builder: (context, collapsedCategories, _) => ListView(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+                    children: [
+                      for (final entry in byCategory.entries)
+                        PaletteCategorySection(
+                          category: entry.key,
+                          descriptors: entry.value,
+                          isExpanded:
+                              hasQuery ||
+                              !collapsedCategories.contains(entry.key),
+                          onToggle: hasQuery
+                              ? null
+                              : () => _toggleCategory(entry.key),
+                        ),
+                    ],
+                  ),
                 ),
         ),
       ],

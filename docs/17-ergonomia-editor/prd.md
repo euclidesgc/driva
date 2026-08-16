@@ -1,10 +1,12 @@
 # PRD — Ergonomia do editor: espaço de tela, grupos e modo preview
 
-> ⚠️ **NÃO APROVADO.** Este PRD é a **proposta de recorte** do PM, escrita para
-> ser discutida. Ele depende das respostas **A1–A10** do `specs.md`; enquanto
-> elas não chegarem, o que está aqui é hipótese de trabalho, não contrato. O
-> contrato do "pronto" só existe depois do "sim" do humano, e o texto abaixo
-> muda conforme as respostas.
+> **Rodada 01: aprovada.** As respostas **A1–A10** chegaram e viraram **D1–D4** e
+> **D20** no `plan.md`. O recorte abaixo (fatias 1 e 2, F1–F4) é contrato.
+>
+> **Rodada 02 (itens 5.3 e 1.2 do `feedback_rodada_01.md`): decidida em
+> 2026-08-16**, com **H1–H5** no `specs.md`. Tem seção própria no fim deste
+> documento. As propostas **P7–P10** são do PM e têm veto fácil antes de a fase
+> abrir — o resto é contrato.
 
 - **Item no roadmap:** **não existe ainda.** Uma varredura em `docs/` por QR
   code, tela cheia e colapso de painel do editor devolve zero — isto é escopo
@@ -337,3 +339,231 @@ _Nenhuma ainda._ Este PRD está aguardando **A1–A10**.
   `shared_preferences`) — não nasce infraestrutura nova.
 - O E2E precisa exercitar a UI real em homologação (regra permanente desde o
   item 9g), e a bateria automatizada vem por último (cap. 22).
+
+---
+
+# Rodada 02 — a árvore como alvo de arraste (5.3) e o colapso total (1.2)
+
+> Decidida em 2026-08-16. Base: **H1–H5** e **P7–P10** no
+> [`specs.md`](specs.md) §"Rodada 02". Origem: `feedback_rodada_01.md` §5.3 e §1.2.
+
+## Resultado esperado
+
+O dev monta uma página **vendo a paleta e a árvore ao mesmo tempo** e coloca cada
+widget **no lugar exato** que quis, sem tentativa e erro: soltando **sobre** um
+nó ele envolve aquele nó; soltando **entre** dois nós ele insere um irmão
+naquela posição. Quando o gesto não pode dar certo, ele **vê a recusa durante o
+arraste**, não depois.
+
+## O que **não** muda — e por que isso é resultado, não omissão
+
+- **A A3/D2 fica de pé.** Painel colapsado vira **faixa fina de ícones com o
+  controle de expandir sempre visível** — a referência que ele mandou
+  (`referencias/chrome_sidebar_colapsada.png`) é exatamente isso. O item **1.2
+  é absorvido pela F5**; não vira fase nem item novo.
+- **Nada de segunda origem do gesto de criar.** Sem flyout de paleta, sem
+  clique-para-adicionar, sem `Ctrl+K`. A paleta não some, então a origem
+  continua sendo ela.
+- **Os botões "Envolver em Column/Row" da F2 do item 38 ficam.** O 5.3 é adição.
+- **Continuam 3 colunas.** O piso do workspace não sobe e o **aceite 17-A da F3
+  sobrevive intacto**.
+
+## Recorte — cinco etapas
+
+| # | Etapa | Depende de | Por que nesta ordem |
+| --- | --- | --- | --- |
+| **E0** | Rede de teste da estrutura atual | — | `ResizableSplitView`, `LeftPanel`, `CenterArea` e `InspectorArea` têm **zero testes**; depois da inversão não há com o que comparar |
+| **E1** | Troca de colunas: Árvore → direita, Propriedades → aba esquerda | E0, **e a F3 mergeada** | F3 e E1 regravam o **mesmo** golden; sequenciar é o que mantém uma causa por regravação |
+| **E2** | Kernel: `wrapNode` aceita `SlotKind.single` + `wrapNodeWith` no cubit | — (∥ com E1) | Camadas diferentes, não se tocam |
+| **E3** | O gesto: três semânticas de zona, affordance no hover, recusa visível, autoscroll | E1 + E2 | O gesto precisa das colunas trocadas e do kernel que não mente |
+| **E4** | F5 ajustada: faixa fina, `PanelRail` esquerdo com **um** botão | E1 | Só depois da troca é que o botão "Árvore" sai do painel esquerdo |
+
+**P10 justifica a F3 antes da E1**: as duas tocam `goldens/canvas_device_mock.png`,
+e duas causas de regravação no mesmo arquivo é onde a régua do item 39 deixa de
+discriminar.
+
+## Caminho feliz
+
+1. O dev abre o editor. Painel esquerdo: abas **Widgets** \| **Propriedades**.
+   Painel direito: **Árvore**. As duas visíveis, sem trocar de aba.
+2. Ele arrasta **Column** da paleta e para **sobre o corpo** de um `container`
+   que já tem conteúdo. O nó destaca-se inteiro e o rótulo diz **"Envolver
+   container em Column"**.
+3. Ele solta. O `container` passa a ser **filho** da Column nova; a árvore mostra
+   o `container` recuado um nível. O rodapé registra a operação. **Um** passo de
+   desfazer volta tudo.
+4. Ele arrasta **Text** da paleta e para **na fresta** entre dois filhos de uma
+   Column. Aparece a **linha de inserção** naquela posição.
+5. Ele solta. O `text` entra **como irmão**, no índice da fresta.
+6. Ele arrasta um nó **já existente** da árvore e repete os dois gestos: as
+   mesmas duas semânticas valem para mover.
+7. Ele colapsa a paleta. Ela vira **faixa fina** com o botão de expandir no topo;
+   o canvas cresce e o percentual do mock sobe.
+
+## Exceções e casos de borda
+
+| Caso | Comportamento |
+| --- | --- |
+| Alvo é `SlotKind.none` (`text`, `image`, `button`) | Corpo = **envolver**. Nunca "inserir dentro" — não há slot |
+| Alvo é `single` **vazio** (`container` sem `child`) | Corpo = **inserir como filho**. É o único caminho para encher um container vazio |
+| Alvo é `single` **ocupado** | Corpo = **envolver**. O slot está cheio |
+| Alvo é `multi` (cheio **ou vazio**) | Corpo = **envolver**. As frestas já cobrem toda posição, inclusive o índice 0 do vazio (`widget_tree_panel.dart:105`, laço com `<=`) |
+| Widget arrastado é `SlotKind.none` | A affordance de envolver **não aparece**. Um `text` não pode envolver nada |
+| Arrastar um nó para dentro de si mesmo | **Recusa visível** (`DropRefusal.cycle`), com estado distinto durante o gesto |
+| Alvo sumiu no meio do gesto | **Recusa visível** (`DropRefusal.unknownTarget`) |
+| Envolver a **raiz** | Funciona e **troca a raiz** (`tree_ops.dart:136`). A árvore mostra o wrapper novo no topo |
+| Nó alvo abaixo da dobra da árvore | A árvore **rola sozinha** durante o arraste (**R-d**). Sem isso, alvo inalcançável |
+| Página vazia (sem `root`) | Inalterado: a faixa "Solte um widget aqui para começar" segue sendo o alvo, e o primeiro widget vira a raiz |
+| Preferência de layout corrompida | Cai no padrão **em silêncio** (D12). Vale para o formato novo |
+
+## Critérios de aceite por etapa
+
+Escritos como **o print que os prova**, seguindo a §11.0 e a **D25** do
+`plan.md`: aceite positivo e medido, nunca "não apareceu X".
+
+### E0 — Rede de teste
+
+- `flutter test` cobre `ResizableSplitView` (larguras iniciais, clamp, arraste do
+  divisor), `LeftPanel` (as duas abas montam), `CenterArea` e `InspectorArea`,
+  **na estrutura de hoje**, e passa **antes** de qualquer linha da E1.
+- _Régua:_ inverter as colunas com a rede no lugar precisa **falhar** os testes
+  que descrevem a ordem. Se a suíte passar depois da inversão, a rede não cobriu
+  o que precisava.
+
+### E1 — Troca de colunas
+
+1. **Print único, editor aberto a 1440:** a **paleta à esquerda** e a **árvore à
+   direita**, ambas com conteúdo visível, **no mesmo print**. _É a premissa
+   inteira do 5.3; se as duas não couberem num print, a etapa falhou._
+2. **A aba trocou:** o painel esquerdo mostra **Widgets \| Propriedades**;
+   selecionar um nó no canvas e a aba **Propriedades** mostra os campos daquele
+   nó.
+3. **R-a, a largura por slot:** arrastar a paleta para ~460, dar **F5**. O print
+   depois mostra a **paleta** em ~460 e a **árvore** na largura dela — não a
+   árvore com 460. _Reprova se as larguras trocarem de dono._
+4. **O piso não subiu:** print a **612**, **700** e **1024** com o canvas de
+   largura **não-zero** e a toolbar sem corte. _É o 17-A da F3, reexecutado após
+   a troca para provar que ela não o quebrou._
+
+### E2 — Kernel
+
+5. `wrapNode` com wrapper `SlotKind.single` devolve árvore com o alvo em `child`
+   (teste em `packages/sdui_core/test/ops/tree_ops_test.dart`).
+6. `wrapNode` com wrapper `SlotKind.none` continua devolvendo `null` — e o
+   **chamador do editor nunca o invoca**, porque a affordance não aparece.
+7. Envolver a raiz troca a raiz, e o `parsePageSpec` do resultado passa.
+
+### E3 — O gesto (a etapa que precisa dos quatro estados distintos)
+
+8. **Os quatro estados, em quatro prints visivelmente diferentes**, com o mesmo
+   widget sendo arrastado:
+   - **(i) envolver** — corpo de um `container` **com** conteúdo: nó inteiro
+     destacado + rótulo "Envolver container em Column";
+   - **(ii) inserir irmão** — fresta entre dois nós: **linha de inserção** na
+     posição, sem destaque do nó;
+   - **(iii) inserir filho** — corpo de um `container` **vazio**: destaque
+     **interno** ao nó + rótulo "Inserir dentro de container";
+   - **(iv) recusado** — arrastar um nó para dentro de si mesmo: estado de
+     recusa com **cor + ícone + cursor** (cor nunca sozinha).
+   _Um print de "o widget apareceu na árvore" **não** serve: os três primeiros
+   desfechos produzem "um nó novo na árvore". A prova é o estado **durante** o
+   arraste e a **forma** da árvore depois._
+9. **A árvore depois, três prints distintos:** (i) o `container` **recuado um
+   nível** sob a Column nova; (ii) o `text` **no mesmo nível**, no índice da
+   fresta; (iii) o `text` **dentro** do container antes vazio.
+10. **Desfazer é um passo:** `Ctrl+Z` depois do envolver devolve a árvore ao
+    print anterior. _Um envolver que custa dois desfazeres é bug de composição._
+11. **Mover nó existente vale o mesmo:** repetir 8-(i) e 8-(ii) arrastando um nó
+    **da própria árvore**, não da paleta. _H3 — as duas origens._
+12. **A affordance não mente (P8):** arrastar um **`container`** sobre um `text`
+    mostra "Envolver text em container", e **soltar funciona** — print da árvore
+    com o `text` dentro do `container`. _Antes da E2 isto era `null` silencioso._
+13. **A affordance não aparece onde não pode:** arrastar um **`text`** sobre
+    qualquer nó **não** oferece envolver — o print mostra só as zonas de
+    inserção. _Aceite negativo, e por isso vem com o mecanismo declarado: a
+    affordance é derivada de `descriptorFor(type).slot != SlotKind.none`, então
+    se ela aparecesse, apareceria por essa via._
+14. **Autoscroll (R-d):** com uma página de ~40 nós, arrastar até a borda
+    inferior da árvore **rola a lista** e permite soltar num nó que estava fora
+    da tela. _Par de prints: antes (alvo fora) e depois (alvo visível, destacado)._
+15. **A recusa é visível durante o gesto**, não só depois: print **com o ponteiro
+    ainda pressionado** no estado de recusa.
+
+### E4 — F5 ajustada
+
+16. **Paleta colapsada:** faixa fina com o botão de **expandir** visível **e o
+    percentual do canvas maior** que no print anterior. _O percentual é a metade
+    que prova que o espaço foi para o mock, não para o fundo._
+17. **Um botão, não dois:** a faixa esquerda mostra **só** o controle de
+    expandir. _O aceite 26 original da F5 ("clicar no ícone Árvore reabre na aba
+    Árvore") **foi reescrito**: a Árvore não mora mais ali._
+18. **Os dois painéis colapsados:** duas faixas, mock no maior tamanho, **os dois
+    controles de voltar visíveis**.
+
+## Testes que cada etapa vai pedir
+
+| Etapa | Unit | Widget | Golden |
+| --- | --- | --- | --- |
+| **E0** | — | `ResizableSplitView`, `LeftPanel`, `CenterArea`, `InspectorArea` na forma atual | — |
+| **E1** | — | ordem das colunas; aba `Propriedades` reage à seleção; largura por painel (R-a) | **regravar** `canvas_device_mock.png` (causa: troca de colunas); corrigir `editor_perf_test.dart` (`find.text('Árvore')` deixa de ser rótulo de aba) |
+| **E2** | `wrapNode` com `single`, com `none`, na raiz, e id duplicado | — | — |
+| **E3** | a regra da P7 como função pura sobre `SlotKind` (tabela inteira) | as quatro zonas emitindo o callback certo; **substituir** `'soltar sobre uma linha manda o alvo, não o índice'` pela semântica nova | — |
+| **E4** | — | faixa fina com um botão; painéis não reconstroem no toggle (D8) | — |
+
+**A bateria vem por último**, depois do E2E atestado (cap. 22). A **E0 é
+exceção declarada**: é rede de refatoração, não bateria da feature — sem ela a
+inversão de colunas passa na suíte inteira sem ser vista.
+
+## Analytics (acréscimo)
+
+| Evento | Quando | Por que importa |
+| --- | --- | --- |
+| `editor_tree_drop` | Drop concluído na árvore, com `semantics` (`wrap` \| `sibling` \| `child`), `origin` (`palette` \| `tree`) e `targetSlotKind` | Diz **qual das três** o dev usa de verdade. Se `wrap` for residual, a troca de contrato não valeu |
+| `editor_tree_drop_refused` | Drop recusado, com o motivo (`cycle` \| `unknownTarget` \| `wrapperIsNone`) | Recusa frequente é sintoma de affordance confusa, não de usuário errado |
+| `editor_drop_undone` | `Ctrl+Z` **até 5 s** depois de um drop, com a `semantics` daquele drop | **É a métrica de mira.** Desfazer imediato quer dizer "não era isso que eu queria" — o sinal mais honesto de que as três zonas em 40 px não estão dando conta |
+| `editor_wrap_via_button` | Uso do "Envolver em Column/Row" da F2 do item 38 | Compara a ergonomia antiga com a nova; se o botão continuar ganhando, o gesto não resolveu |
+
+## Erros monitorados (acréscimo)
+
+| Sinal | O que investigar |
+| --- | --- |
+| `wrapNode` devolvendo `null` num caminho de UI | **Não deveria acontecer** depois da E2 — a affordance só aparece para wrapper `multi`/`single`. Se acontecer, a UI e o kernel divergiram |
+| Spec que falha `parsePageSpec` após um drop | A árvore ficou inválida; **nenhuma operação desta entrega pode produzir isso** — o nó inválido residente é fase posterior (H7), e até ela existir um spec inválido é defeito, não estado previsto |
+| Pico de `editor_drop_undone` | O menu ofereceu um destino que o usuário não queria — entrada para revisar a cópia das quatro opções |
+| Preferência de layout no formato antigo | Esperado uma vez após a E1; cai no padrão em silêncio (D12) e não pode aparecer de novo |
+
+## Riscos desta rodada
+
+**R-a a R-f** estão no `specs.md` §"Riscos herdados" e cada um precisa de tarefa
+no `plan.md`. Os dois que mudam decisão:
+
+**R-c — a árvore permanente liga o caminho quente que a D8 protege.** Hoje o
+`TabBarView` desmonta a Árvore fora de foco. Como painel permanente, o
+`BlocSelector` com `_structureKey` — que **serializa a árvore inteira em string a
+cada `emit`** — passa a rodar sempre. **Mitigação exigida na E1:** trocar a chave
+de rebuild por algo que não serialize (contagem + ids de estrutura, ou
+comparação estrutural barata), e cobrir com o teste de rebuild da D8. Sem isso, a
+E1 entrega ergonomia e paga com o desempenho que o item 3b conquistou.
+
+**R-f — dois goldens, duas causas.** A F3 e a E1 regravam
+`goldens/canvas_device_mock.png`. **A ordem é F3 → E1**, e a descrição de cada PR
+**nomeia a sua causa** no diff visual. Regravação sem citação reprova (régua do
+item 39).
+
+## Decisões desta rodada
+
+**Do humano:** **H1** (o incômodo é ver as duas ao mesmo tempo), **H2**
+(semântica por zona, sem tecla), **H3** (as duas origens de arraste), **H4**
+(colapsar é só ganhar espaço — mantém a A3/D2), **H5** (Árvore à direita,
+Propriedades como aba).
+
+**Do PM:** **P8** (`wrapNode` para `single`; affordance escondida só para `none`)
+e **P10** (ordem de entrega, com F3 antes da E1) — **ambas aprovadas**. A **P7**
+(regra do corpo do nó) ficou **vazia** com o menu da H6, e a **P9** (nó inválido
+fora de escopo) foi **recusada** pela H7.
+
+**H8 — confirmada pelo humano:** fresta e menu **convivem**. Fresta insere direto;
+corpo do nó abre o menu.
+
+**Assumida pelo TM, pendente de veto:** **P12** — a opção impossível aparece
+desabilitada com o motivo visível, em vez de habilitada-e-erro-depois.

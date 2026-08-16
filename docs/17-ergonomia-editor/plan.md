@@ -27,18 +27,21 @@ o humano tomou **uma quinta decisão em 2026-08-16**: *"navegar no celular funci
 editar, não"* (D20). Ela **reabre parcialmente a A1** — de propósito, e com limite
 declarado (§4›D20).
 
-**Pré-condição dura, herdada da invariante I6 do `specs.md`:** as fases que tocam
-arquivos dos itens 38 e 39 (**F3** e **F5**) não abrem antes do E2E daqueles itens
-atestado — a F3 mexe em `canvas_panel.dart`, que está sendo instrumentado em
-`docs/16-image-url-e-props/`. **F1, F2 e F4 não tocam nada dos dois** e podem correr já.
+**Pré-condição dura, herdada da invariante I6 do `specs.md`: RESOLVIDA em 2026-08-16.** As
+fases que tocam arquivos dos itens 38 e 39 (**F3** e **F5**) estavam presas ao E2E daqueles
+itens — **o dev humano atestou os dois hoje**, e a F3 está liberada. O que era "F3
+bloqueada" agora é só ordem de PR.
 
 | Fase | O que entrega | Dono | PR | Estado |
 | --- | --- | --- | --- | --- |
 | F1 | **Navegar no celular funciona** — projeto, categorias, lista, busca, diálogos | especialista-apresentacao | — | `[-]` |
 | **F1b** | **O editor degrada com dignidade** — abaixo de `compact`, portão com dois caminhos | especialista-apresentacao | — | `[-]` |
 | F2 | Rota `/preview/:projectId/:id` — o conteúdo no celular | especialista-apresentacao + especialista-infra | **#135** | `[x]` |
-| F3 | Piso do editor: overflows do shell + "ajustar à janela" | especialista-apresentacao | — | `[ ]` |
+| **F2b** | **Puxar para atualizar no `/preview`** — o gesto no lugar do botão (4.1) | especialista-apresentacao | — | `[ ]` |
+| **F2c** | **O `/preview` abre sem barra de endereços** — PWA com alvo instalável próprio (4.3) | especialista-infra | — | `[ ]` |
+| F3 | Piso do editor: overflows do shell + "ajustar à janela" **+ a status bar do mock (5.1)** | especialista-apresentacao | — | `[ ]` |
 | F4 | Grupos da paleta colapsáveis | especialista-apresentacao | — | `[x]` |
+| **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | — | `[ ]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | — | `[ ]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | — | `[ ]` |
 | F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
@@ -63,6 +66,29 @@ de conteúdos (600 = "é telefone?", 795 = "este cabeçalho cabe?") e devolve a 
 o cabeçalho. O **caso 7** entrou na §11.0 com forma inédita: aceite que **não errou,
 envelheceu**. O §10 devolveu a geometria à máquina e ficou com o humano só o que exige
 hardware.
+
+**O que mudou na 4ª revisão (2026-08-17) — o feedback do uso real.** O
+[`feedback_rodada_01.md`](feedback_rodada_01.md) trouxe doze pontos em cinco frentes. O dev
+humano liberou **quatro** para andar sem discovery, e eles entram assim:
+
+| Frente | Como entra | Por quê assim |
+| --- | --- | --- |
+| **1.1** — o colapso da paleta morre ao trocar de aba | **F4b**, fase própria | Defeito, barato, 0-dep. A decisão de **onde** o estado passa a morar é a **D28**, e ela não é a óbvia |
+| **5.1** — o mock não desenha a status bar | **dentro da F3**, mesmo PR | **Decisão do dev humano**: as duas mexem no mock (F3 no ajuste, 5.1 no chrome desenhado) e agrupar economiza uma rodada de E2E. O preço é um golden com **duas causas** — pago pela **D32** |
+| **4.1** — pull-to-refresh no preview | **F2b**, fase própria | Muda o `PreviewCubit`, não só a tela (D30) |
+| **4.3** — PWA sem barra de endereços | **F2c**, fase própria | É `web/` e `index.html`, não Dart; e a promessa tem fronteira de plataforma (D31) |
+
+**Fora desta revisão, e de propósito:** **4.2** (a barra de navegação — o dev ainda não
+confirmou se é a barra de gestos do Android ou chrome nosso), **5.3** e **1.2** (em
+discovery), **2.1/2.2** (encaixam na F5/F6, ainda não decididas) e **3** (travar proporção,
+discovery próprio). Nenhuma delas virou tarefa aqui. O **R14** desta revisão, porém,
+**alimenta o discovery do 4.2** com uma hipótese medível.
+
+**Por que `F2b`, `F2c` e `F4b` e não `F10`, `F11`, `F12`.** Mesma razão que criou a F1b: a
+**F8 é o E2E** e a **F9 é a bateria** — as duas são terminais por construção, e pendurar
+fases novas depois delas diria que há trabalho depois do fechamento, o que é falso.
+Suficixar no ponto de inserção mantém a adjacência semântica (a F4b continua a F4; a F2b e
+a F2c continuam a F2) e **não renumera nada que já foi referido por número em PR**.
 
 > ⚠️ **Este `plan.md` não está em branch nenhum.** A versão viva (D20–D27, tarefas 6–11)
 > está **não commitada** na árvore principal; o worktree da F1 carrega uma versão anterior.
@@ -133,10 +159,9 @@ O que a foto mostra:
   vertical** — "Todos os conteúdos" e, abaixo, "2 conteúdos".
 - O campo de busca cortado, mostrando `Busc…`.
 
-> **Arquivar a foto em `docs/17-ergonomia-editor/evidencias/rodada_00/`, como
-> `00_evidencia_campo_android.jpg`.** É o "antes" dos itens 24 a 27 do DoD: sem ele, o
-> "depois" da F1 não tem contra o que ser comparado. A `rodada_00` é a evidência que
-> motivou o trabalho; as rodadas de E2E começam na `rodada_01`.
+> **A foto não foi arquivada a tempo e o estado não é mais reproduzível (D33).** O "antes"
+> passou a ser a tabela sintoma → causa do `evidencias/rodada_00/README.md`, com arquivo e
+> linha de cada defeito. O "depois" está em `evidencias/rodada_01/`.
 
 **Isso reordena o item.** O `specs.md` do PM afirma que o problema é do editor, e essa
 leitura estava certa sobre o *que* dói no editor — mas **a tela mais visitada quebra
@@ -160,9 +185,9 @@ existir**. A mecânica está na §2.2 — e **não** é o `SizedBox` hardcoded d
 Isso fecha uma hipótese antes que alguém a persiga: **as causas são de layout, não de
 tema.** Nenhuma correção deste item mexe em `EditorColors` nem nas paletas.
 
-> **Arquivar as três em `docs/17-ergonomia-editor/evidencias/rodada_00/`.** O
-> `README.md` da pasta já registra as duas primeiras com a causa de cada sintoma — é o
-> "antes" contra o qual os itens 28 e 35-A do DoD comparam.
+> **As três se perderam antes de serem arquivadas (D33).** O `README.md` da
+> `evidencias/rodada_00/` registra as três com a causa de cada sintoma no código — e é essa
+> causa, não a foto, que os itens 28 e 35-A do DoD passaram a exigir.
 
 ### 2.1 A causa raiz — e ela **não** é o `ResizableSplitView`
 
@@ -994,6 +1019,252 @@ lateral de larguras em que ela cabe bem, e estica a decisão do humano (D20/D21:
 ícone deste widget, o número muda?* Se muda, é `AppSizes` e pertence ao widget. Se não
 muda, é faixa, e aí a pergunta seguinte é se **o produto** decidiu algo para aquela faixa.
 
+### D28 — **[nova, 2026-08-17]** O colapso da paleta sobe para o `State` do `LeftPanel`. **`AutomaticKeepAliveClientMixin` está fora — e o motivo não é o que parecia**
+
+O defeito (1.1) está medido: `_collapsedCategories` é um `Set<String>` no
+`_WidgetPalettePanelState` (`widget_palette_panel.dart:19`), e o `WidgetPalettePanel` é o
+**primeiro filho do `TabBarView`** de `left_panel.dart:30`. `TabBarView` só constrói a
+página corrente: ir à Árvore desmonta a paleta e mata o set.
+
+Duas saídas, e a diferença entre elas **não** é a que se supôs no levantamento.
+
+**A hipótese que fui verificar: keepAlive ligaria a serialização da árvore no caminho
+quente.** A aba Árvore é o **segundo** filho do mesmo `TabBarView`, e ela carrega um
+`BlocSelector` (`left_panel.dart:33-39`) cuja `selector` chama `_structureKey(root)` — um
+percurso recursivo que escreve a árvore inteira num `StringBuffer` **a cada `emit` do
+`EditorCubit`**. Hoje esse custo só existe enquanto a aba Árvore está visível, porque fora
+dela o `BlocSelector` **não está montado**. É o caminho que a **D8** protege.
+
+**A hipótese está certa no mecanismo e errada na magnitude.** Medido — não estimado —
+replicando `_structureKey` byte a byte e rodando no **Dart VM (JIT)**, 20.000 repetições
+após aquecimento:
+
+| Nós na página | Tamanho da chave | Custo por `emit` | Fração de um frame de 60 fps (16.667 µs) |
+| --- | --- | --- | --- |
+| 40 | 754 B | **9,4 µs** | 0,06 % |
+| 120 | 2,2 KB | **28,0 µs** | 0,17 % |
+| 400 | 7,5 KB | **88,0 µs** | 0,53 % |
+| 1200 | 22,4 KB | **275 µs** | 1,6 % |
+
+A comparação de strings que o `BlocSelector` faz depois custa **0,01 µs** — irrelevante.
+_Ressalva honesta do método: é VM JIT nativa, não `dart2js` no Chrome. Vale como **ordem
+de grandeza**, e a ordem de grandeza é: para uma página realista (dezenas de nós), manter a
+árvore montada custaria **microssegundos e ~2 KB de lixo por tecla digitada**. É
+desperdício, não é catástrofe._
+
+**Então o desempate não é desempenho — e dizer isso é o ponto.** Um plano que
+justificasse a decisão com "seria lento" estaria fazendo exatamente o que a **D25** proíbe:
+afirmar sem medir. Medi. Não é lento. **A decisão se sustenta em duas razões estruturais,
+e as duas são verificáveis:**
+
+1. **keepAlive não sobrevive ao colapso da F5.** A F5 troca o painel esquerdo por uma faixa
+   fina de ícones — o subtree inteiro sai da árvore, `State` e mixin junto. O dev
+   reabriria o painel e encontraria **os quatro grupos abertos de novo**: a mesma queixa
+   do 1.1, uma fase depois, agora com uma correção instalada que parece cobri-la. Consertar
+   agora de um jeito que quebra na F5 é pior do que não consertar, porque a segunda vez
+   não é lida como defeito novo.
+2. **Estado em folha é estado que a F6 não alcança.** A F6 persiste **quatro** clientes, e
+   os grupos da paleta são um deles. Enquanto o set morar no `State` do painel, a F6 tem
+   de subi-lo de qualquer forma — ou seja, o trabalho da F4b é trabalho da F6 antecipado,
+   não trabalho jogado fora. Com keepAlive, é jogado fora.
+
+**A cerca que a decisão instala** (é grep, não print): `grep -rn
+"AutomaticKeepAliveClientMixin\|wantKeepAlive" apps/driva_editor/lib` = **zero**. Hoje já
+é zero; a cerca existe para que continue sendo, porque a linha que ligaria o custo da
+tabela acima é **uma linha** e ninguém a associaria ao `EditorCubit`.
+
+**Onde exatamente o estado passa a morar, e por que não mais acima.** No `State` de um
+`LeftPanel` que vira `StatefulWidget`, como um `ValueNotifier<Set<String>>` passado ao
+`WidgetPalettePanel` pelo construtor. **Não** mais acima, e a razão é a **R5**:
+`EditorWorkspace.build` roda a **cada `emit`** (é o braço `EditorReady()` do `switch` em
+`editor_page.dart:96`), e o que impede isso de reconstruir o painel esquerdo é o
+`const LeftPanel()` de `editor_workspace.dart:35` — instância idêntica, Flutter
+curto-circuita. Descer o notifier de cima **mata esse `const`** e passa a reconstruir
+`TabBar` + `TabBarView` + paleta a cada tecla digitada no Inspector. O `const` do
+`LeftPanel` é infraestrutura de desempenho, não estilo.
+
+Corolários:
+
+- O notifier **sempre recebe um `Set` novo** (`notifier.value = {...atual}` com a mudança).
+  `ValueNotifier` compara por `==`, e `Set` não tem igualdade de valor: mutar o mesmo
+  conjunto no lugar **não notifica**, e o sintoma seria "o chevron não vira".
+- O `ValueListenableBuilder` envolve **só a lista de grupos**, não o `build` do
+  `LeftPanel` — mesma disciplina da D8›R5, um andar abaixo.
+- **A busca (`_query`) fica onde está, e isso é decisão, não esquecimento.** Filtro é
+  efêmero: voltar da Árvore para uma paleta ainda filtrada, sem lembrar por quê, é pior do
+  que voltar para uma paleta limpa. Grupos são **hábito**; busca é **momento**. Quem
+  implementar não deve subir os dois "por simetria".
+- **A F5 move este notifier e a aba corrente juntos** para o `EditorLayoutController`, numa
+  mudança só — ela já precisa expor a aba corrente (§5›F5, aceite 26).
+
+### D29 — **[nova, 2026-08-17]** A status bar do mock é **overlay** e ocupa **exatamente** `safeAreaTop` — desenhar não pode mover o conteúdo
+
+O pedido (5.1) é pedagógico e o argumento do dev é o melhor da rodada: o
+`DevicePreset.safeAreaPadding` **já** injeta o recuo no `MediaQuery`
+(`device_frame.dart:92-100`), o `SafeArea` do conteúdo **já** o respeita, e o resultado é
+uma **faixa vazia sem causa visível**. Falta desenhar quem ocupa o espaço.
+
+**A armadilha, e ela é de uma linha.** A leitura natural — "põe uma barra no topo" — é
+`Column(children: [StatusBar(), Expanded(child: conteúdo)])`. Isso **conta o recuo duas
+vezes**: o `MediaQuery.padding` já reservou `safeAreaTop`, e a `Column` reserva de novo. O
+conteúdo desce o dobro, e o sintoma é "o `SafeArea` ficou exagerado" — que ninguém liga à
+causa.
+
+**Decisão: a status bar entra na mesma camada do `CameraCutout`** (`device_frame.dart:104-108`
+— `Positioned.fill` + `IgnorePointer`, dentro do `ClipRRect` da tela), com altura fixada em
+`device.safeAreaTop`. Ela **pinta sobre** o espaço já reservado; não participa do layout do
+conteúdo. Simétrico embaixo: o indicador de home ocupa `device.safeAreaBottom`, que é o que
+torna aquele recuo visível também.
+
+Corolários:
+
+- **O relógio é fixo, não `DateTime.now()`.** Um relógio vivo torna o golden do
+  `canvas_panel` não-determinístico e ele quebraria a cada minuto. Rótulo em token, valor
+  `9:41`. _Se o humano preferir hora real, o preço é tirar o relógio do recorte do golden —
+  veto barato, mas é veto, não ajuste._
+- **Um desenho só para os três presets.** O objetivo é explicar o `SafeArea`, não emular
+  iOS e Android fielmente. O `notch` (`pill` × `punchHole`) continua governando **só** o
+  recorte da câmera, que segue por cima.
+- **Gate 4 sem exceção:** cor, altura, tamanho de ícone e o rótulo do relógio vão para
+  `core/theme/device_mock_colors.dart` (que já existe) e `app_sizes.dart` — nada cru no
+  widget.
+- **Isto não tem relação com o 4.2.** Aquele é a barra do **aparelho real** na rota
+  `/preview`, e está pendente de confirmação do dev. Este é chrome desenhado dentro do
+  mock, no editor.
+
+### D30 — **[nova, 2026-08-17]** O gesto substitui o **botão**, não a **frase** — e recarregar não pode custar o que está na tela
+
+O pedido (4.1) é *"um botão pra atualizar que incomoda; talvez um simples pushtorefresh
+resolva"*. Duas coisas não podem sair junto com o botão.
+
+**Primeira: a frase da D4.** A D4 é decisão travada do humano — *"o preview mostra o último
+salvo, e diz isso na tela"*. Ela obriga a **dizer**, não a **ter um botão**. O carimbo
+continua visível e permanente; o que sai é a metade `· toque para atualizar`, que era a
+afordância. _Achado colateral, e o dev precisa saber: o **aceite 12 da F2** exige "Último
+salvo" legível na foto, e o código mergeado escreve `Verificado às HH:MM` — a frase que o
+aceite pedia **nunca existiu**. É um caso 7 da §11.0 do outro lado do espelho: o aceite não
+envelheceu, ele passou sem ser conferido. A F2b acerta a cópia como parte da fase._
+
+**Segunda: o conteúdo que está na tela.** `PreviewCubit.load()`
+(`preview_cubit.dart:20`) emite `PreviewLoading()` antes de buscar, e o `switch` da
+`preview_page.dart:61-70` troca a tela por um `CircularProgressIndicator` centralizado.
+Ligado a um `RefreshIndicator`, isso dá: o dev puxa, o conteúdo **some**, aparece um spinner
+de tela cheia por cima do spinner do gesto, e o conteúdo volta. É pior do que o botão.
+
+**Decisão:** nasce um `Future<void> refresh()` ao lado do `load()`. `load()` é a carga
+fria e continua passando por `PreviewLoading`. `refresh()` **não emite `Loading`** —
+mantém o `PreviewReady` corrente na tela e devolve o `Future` que o
+`RefreshIndicator.onRefresh` aguarda.
+
+**E o erro no `refresh()` não derruba o conteúdo.** Sem rede, `load()` levaria a tela para
+`PreviewFailure` — o gesto "atualizar" viraria "perder o que eu estava vendo", que é a pior
+troca possível num celular. No `refresh()`, a falha **reemite o `PreviewReady` anterior** e
+sinaliza o erro à parte, **sem** mexer no carimbo. Isso dá três estados **visualmente
+distintos**, que é o que a §11.0 cobra:
+
+| O que aconteceu | Conteúdo | Carimbo | Sinal de erro |
+| --- | --- | --- | --- |
+| Buscou e havia mudança | **muda** | **muda** | — |
+| Buscou e não havia mudança | igual | **muda** | — |
+| Falhou | igual | **não muda** | **aparece** |
+
+**O carimbo é o único sinal do caso do meio**, e é por isso que ele não pode sair da tela:
+sem ele, "puxei e nada aconteceu" e "puxei e falhou" são o mesmo print.
+
+### D31 — **[nova, 2026-08-17]** O `/preview` é um **segundo alvo instalável**, com `scope` próprio — e a promessa "o link abre limpo" é **Android**
+
+O pedido (4.3) é abrir o preview sem barra de endereços. O caminho é PWA, e a pergunta que
+o plano precisa fechar é: `start_url` própria, ou um alvo instalável separado?
+
+**São a mesma pergunta, e a resposta vem do `scope`, não do `start_url`.** Um documento tem
+**um** manifest. O `web/manifest.json` de hoje é o template intocado do Flutter
+(`name: "driva_editor"`, `start_url: "."`, `description: "A new Flutter project."`) e o
+`index.html` o referencia numa linha estática (`index.html:33`). Instalar a partir de
+`/preview/...` com esse manifest instala **o editor**.
+
+**Por que o `scope` decide.** Num app instalado no Android, um link **dentro do `scope`**
+aberto de qualquer outro aplicativo abre **no app instalado**, sem barra de endereços — que
+é literalmente o gesto do dev ("mando a URL para o meu celular e toco"). Se o `scope` fosse
+`/`, o app capturaria **todos** os links do editor, inclusive os de trabalho no desktop.
+Com `scope: "/preview"`, só as URLs de preview são capturadas.
+
+**Decisão: um segundo manifest** (`web/preview_manifest.json`) com `scope: "/preview"`,
+`display: "standalone"`, `id` próprio e nome próprio, **selecionado no parse do documento**
+por um script inline no `index.html` que troca o `href` do `<link rel="manifest">` quando
+`location.pathname` começa com `/preview`. O SPA serve o mesmo `index.html` para todas as
+rotas, e o navegador lê o manifest no parse — antes de o Flutter subir. Sem Dart, sem
+acoplamento com o `go_router`, sem backend.
+
+**O ponto fraco é o `start_url`, e ele é declarado, não escondido.** A URL de preview tem
+`:projectId/:id`; `start_url` é estática. Fica `"/preview"`, e a rota `/preview` **sem
+parâmetros** ganha uma tela curta — "abra um conteúdo pelo editor para pré-visualizar
+aqui", com um caminho para a lista de projetos. Tocar no ícone da tela inicial não é o
+caminho principal (o caminho principal é o link), mas **não pode dar em 404**, que é o que
+aconteceria se `start_url` apontasse para uma rota que exige ids. _A alternativa — lembrar
+o último preview aberto no aparelho — exige persistência e vira uma pilha de repositório
+por conforto. Fica registrada na §12, não aqui._
+
+**A fronteira de plataforma, e ela precisa estar no aceite:** **iOS não captura links.** No
+Safari, um link sempre abre no Safari, mesmo com o app na tela inicial. No iPhone o dev tem
+`display: standalone` **ao abrir pelo ícone**, e barra de endereços **ao abrir pelo link**.
+No Android tem os dois limpos. Um aceite que não nomeie a plataforma passa no aparelho
+errado e mente.
+
+### D32 — **[nova, 2026-08-16]** Golden regravado por **duas** causas = **dois commits**, e o discriminador é `git show --stat`
+
+A F3 e a 5.1 entram no mesmo PR por decisão do humano (economizar uma rodada de E2E). O
+preço é concreto: `goldens/canvas_device_mock.png` é **um único golden**
+(`canvas_panel_golden_test.dart:89`, um caso só) e as duas frentes o alteram — a F3 porque
+muda a escala do mock, a 5.1 porque desenha uma faixa que antes era vazia.
+
+**Por que isso quebra a régua do item 39.** Aquela régua pede **citar o diff visual** na
+regravação. Com duas causas num diff só, a citação vira "mudou por causa da F3 e da 5.1" —
+e aí, se a escala regredir, o revisor atribui o diff à status bar e **passa**. É o padrão
+da §11.0 na forma mais pura: o aceite deixa de discriminar.
+
+**Decisão: a regravação é feita em dois commits, nesta ordem, e cada um cita a sua causa.**
+
+| Commit | O que o diff contém | Citação exigida | Como o revisor confere |
+| --- | --- | --- | --- |
+| **A — ajuste** | os arquivos do fit (`fit_scale.dart`, `canvas_panel.dart`, `device_preset.dart`, `resizable_split_view.dart`) **+** o golden | a mudança de **geometria**: o preset e a janela, a escala antes e depois, e o que encolheu | `git show --stat` do commit **não** contém `device_frame.dart` nem tokens da status bar |
+| **B — status bar** | `device_frame.dart`, o widget novo da barra, tokens **+** o golden | a mudança da **faixa do topo**: o que passou a ser desenhado ali | `git show --stat` do commit **não** contém nenhum arquivo do fit |
+
+**O discriminador é de máquina, não de olho.** Ninguém precisa comparar PNG: `git show
+--stat` de cada commit prova que a causa citada é a única causa possível daquele diff.
+**Regravar as duas num commit só reprova, mesmo com as duas causas citadas** — e reprova
+porque o revisor perde a capacidade de atribuir, não porque a descrição ficou pobre.
+
+**Consequência na ordem das tarefas da F3:** o fit inteiro entra **antes** da status bar. A
+tarefa da 5.1 não pode ser feita primeiro nem em paralelo com a do fit, sob pena de os dois
+diffs se misturarem no golden.
+
+---
+
+### D33 — **[nova, 2026-08-16]** A `rodada_00` não terá fotos, e a causa no código substitui o "antes"
+
+As fotos de campo que motivaram este item nunca foram arquivadas: chegaram por mensagem, e
+quando o dev foi salvá-las a F1 e a F1b **já estavam mergeadas e no ar**. O estado que elas
+mostram não é mais reproduzível em homologação.
+
+**O que se perde, exatamente:** os itens 28 e 35-A pediam um **par** de fotos, e o par era a
+prova de melhora — um "depois" sozinho não mostra que algo mudou.
+
+**Decisão: o par é substituído pela causa no código, e o `evidencias/rodada_00/README.md`
+passa a ser a evidência do "antes".** Ele já traz a tabela sintoma → causa com arquivo e
+linha (`project_detail_page.dart:113` para o painel a 66% da largura,
+`content_panel_view.dart:140` para o `Expanded` resolvendo a zero). Os itens 28 e 35-A
+perdem a cláusula de pareamento e passam a apontar para a `rodada_01`.
+
+**Por que isto não é rebaixar a régua.** A foto prova **que** quebrou; a linha prova **por
+quê**. Um aceite ancorado em `Expanded` a largura zero é conferível por qualquer um a
+qualquer momento — a foto, não: ela envelhece junto com o build que a produziu. O que a
+D25 proíbe é aceite que não discrimina, e "o título ocupa uma linha horizontal" discrimina
+sozinho, sem precisar do contraste.
+
+**A regra que fica para as próximas rodadas:** evidência de campo é arquivada **no mesmo dia
+em que chega**, antes de qualquer PR que a torne irreproduzível. Uma foto no aplicativo de
+mensagens não é evidência arquivada.
+
 ---
 
 ## 5. Fases
@@ -1062,10 +1333,10 @@ deixa o texto vertical de pé (§2.1, o alerta em destaque).
 
 **Aceite (validável — escrito como o print que o prova):**
 
-1. **A foto refeita.** Mesmo aparelho, mesmo projeto, mesmo modo escuro da §2.0: **"Todos
-   os conteúdos" aparece em UMA linha horizontal**, com reticências se não couber. _É o
-   par direto com `evidencias/rodada_00/00_evidencia_campo_android.jpg`. Sem o "antes", o
-   "depois" não prova nada._
+1. **A foto refeita.** Mesmo aparelho, mesmo projeto: **"Todos os conteúdos" aparece em UMA
+   linha horizontal**, com reticências se não couber. _**Atendido** por
+   `evidencias/rodada_01/01_conteudos_android.jpg` (tema claro). O aceite não pede mais o
+   par: o "antes" é a causa no código, não a foto (D33)._
 2. **O painel de categorias não come a tela:** na mesma foto, **não há barra lateral** —
    há o botão da gaveta no cabeçalho. Tocá-lo abre a gaveta com as categorias legíveis
    (segunda foto).
@@ -1166,9 +1437,9 @@ rótulos do Inspector** — eles não têm defeito (§2.2, o alerta em destaque)
 **Aceite (validável — escrito como o print que o prova):**
 
 **7-A.** **A foto refeita do editor.** Mesmo aparelho da §2.0, mesmo conteúdo: aparece a
-tela de aviso, **com os dois botões visíveis e legíveis**. _Par direto com
-`evidencias/rodada_00/01_evidencia_campo_editor_android.jpg`. Reprova se aparecer qualquer
-pedaço do construtor — paleta, inspector ou faixa de canvas._
+tela de aviso, **com os dois botões visíveis e legíveis**. _**Atendido** por
+`evidencias/rodada_01/02_editor_portao_android.jpg`. Reprova se aparecer qualquer pedaço do
+construtor — paleta, inspector ou faixa de canvas._
 
 **7-B.** **"Ver conteúdo" leva ao preview do conteúdo que estava aberto.** Tocar no botão
 → foto da tela seguinte mostrando **o conteúdo renderizado**, e a URL do aparelho sendo
@@ -1273,10 +1544,140 @@ sem tranca, aceito (A8), dívida do item 26 no risco R3.
 
 ---
 
-### F3 — Piso do editor: overflows do shell + "ajustar à janela" · **[dep. E2E do 38/39]** · **[∥ com F1, F2, F4]** · **[sub-agente: especialista-apresentacao]**
+### F2b — Puxar para atualizar no `/preview` · **[0-dep; ∥ com tudo]** · **[sub-agente: especialista-apresentacao]**
 
-É a D1, verbatim. As duas metades entram no mesmo PR porque foi assim que o humano definiu
-o piso do editor, e porque nenhuma vale sozinha como "o editor parou de brigar comigo".
+É a frente **4.1** do feedback, governada pela **D30**. Fase pequena, mas **não é só trocar
+um `InkWell` por um `RefreshIndicator`**: o `PreviewCubit` de hoje só sabe recarregar
+passando por `PreviewLoading`, e o gesto exige um caminho que não apague a tela.
+
+**O cuidado que o dev levantou, resolvido nos três casos.** `RefreshIndicator` precisa de
+um `Scrollable`, e o conteúdo SDUI pode ter scroll próprio ou nenhum. Medido no código:
+
+| Caso | O que existe hoje | O que a fase faz | O gesto puxa? |
+| --- | --- | --- | --- |
+| **Conteúdo curto** (não enche a tela) | `PreviewContent` já envolve o `SduiView` num `SingleChildScrollView` (`preview_content.dart:31`), com física padrão → **extensão zero, não puxa** | `physics: AlwaysScrollableScrollPhysics` + `ConstrainedBox(minHeight: viewport)` sob `LayoutBuilder` | **sim** — é a física, não a altura, que destrava |
+| **Conteúdo mais alto que a tela** | rola normalmente | nada muda | **só no topo**; no meio da rolagem o gesto **rola** |
+| **Conteúdo com `listView`/`gridView` no próprio spec** | o catálogo tem os dois, e os builders usam `shrinkWrap: true` por padrão (`sdui_flutter/lib/src/builders/list_view.dart:13`, `grid_view.dart:15`) → extensão interna zero | nada — o `notificationPredicate` padrão do `RefreshIndicator` já aceita **só `depth == 0`**, e o scrollable interno chega com `depth ≥ 1` | **sim**, pelo externo |
+
+**A dívida que este levantamento expôs, e que a fase NÃO conserta:** um spec com
+`shrinkWrap: false` num `listView` de raiz dá **altura ilimitada** dentro do
+`SingleChildScrollView` e quebra o preview. Isso **já é verdade hoje**, desde a F2 — a F2b
+herda, não cria. Registrada no **R15**.
+
+**Arquivos:**
+
+| Arquivo | Papel |
+| --- | --- |
+| `.../preview/cubit/preview_cubit.dart` | **`Future<void> refresh()`** ao lado do `load()`: sem `PreviewLoading`, e falha reemite o `PreviewReady` anterior (D30) |
+| `.../preview/cubit/preview_state.dart` | o `PreviewReady` ganha como sinalizar a falha do refresh **sem** trocar de estado — campo, não subestado novo: trocar de estado apagaria o conteúdo, que é o que a D30 proíbe |
+| `.../preview/widgets/preview_content.dart` | `RefreshIndicator` em volta do `SingleChildScrollView`; física `AlwaysScrollable`; `LayoutBuilder` + `ConstrainedBox` |
+| `.../preview/widgets/last_saved_pill.dart` | perde a afordância e o `InkWell`; a cópia passa a dizer **"Último salvo"** (D30, e é o aceite 12 da F2 que nunca foi cumprido) |
+| `.../preview/widgets/preview_refresh_failure_banner.dart` | **novo** (Gate 1) — o sinal de falha que não derruba o conteúdo |
+| `core/theme/app_durations.dart` | se o banner tiver tempo de vida, o número é token |
+
+**Tarefas:**
+
+1. **[paralela: não — primeiro]** `refresh()` no cubit + o campo de falha no `PreviewReady`
+   (D30). _Entra primeiro porque a tela não tem como ser escrita contra um cubit que ainda
+   apaga o conteúdo._
+2. **[paralela: sim]** `RefreshIndicator` + física + `ConstrainedBox` no `PreviewContent`.
+3. **[paralela: sim]** A pílula perde a afordância e ganha a cópia certa.
+4. **[paralela: não — dep. 1 e 2]** O banner de falha, ligado ao campo do estado.
+
+**Aceite (validável — escrito como o print que o prova):**
+
+12-A. **Conteúdo curto (o caso que o dev levantou):** um conteúdo de **um `text`**, que não
+    enche a tela. Puxar de cima **mostra o indicador**. _Foto durante o gesto, com o
+    indicador visível. Reprova se o gesto não pegar — é exatamente o que acontece hoje com
+    a física padrão, e é o modo de falha silenciosa desta fase._
+12-B. **Conteúdo mais alto que a tela — o par que discrimina:** (a) no **topo**, puxar →
+    indicador; (b) **rolado até o meio**, puxar → **a tela rola**, sem indicador. _Dois
+    prints. Se forem iguais, o `RefreshIndicator` sequestrou a rolagem, e o conteúdo longo
+    ficou inalcançável._
+12-C. **O gesto de fato buscou, e o carimbo é a única prova disso:** puxar **sem mudar nada
+    no desktop** → o conteúdo é o mesmo e o **horário do carimbo muda**. _É o caso do meio
+    da tabela da D30. Sem esta linha, "puxei e nada aconteceu" e "puxei e falhou" são o
+    mesmo print._
+12-D. **A falha é visualmente distinta (D30):** aparelho em **modo avião**, puxar.
+    **Esperado:** o conteúdo **continua na tela**, o banner de falha aparece, e o carimbo
+    **não muda**. _Trio com o 12-C: os três estados da tabela da D30, três prints
+    diferentes. Reprova se o conteúdo sumir, se a tela virar erro, ou se o carimbo avançar
+    com a rede caída — carimbo que avança sem ter buscado é a mentira que este aceite existe
+    para pegar._
+12-E. **A D4 continua de pé, e agora a frase está certa:** o par do aceite 11 da F2 refeito
+    com o gesto — editar sem salvar → puxar → **não muda**; salvar → puxar → **muda** — e a
+    pílula, nas duas fotos, diz **"Último salvo"**. _O aceite 12 da F2 exigia essa palavra e
+    o código mergeado nunca a escreveu (D30). Aqui ela é conferida na foto, não no código._
+
+**O que este aceite NÃO prova:** que o preview aguenta um spec com `listView` de
+`shrinkWrap: false` (R15) — e não prova de propósito: essa quebra é anterior à fase.
+
+---
+
+### F2c — O `/preview` abre sem barra de endereços · **[0-dep; ∥ com tudo]** · **[sub-agente: especialista-infra]**
+
+É a frente **4.3**, governada pela **D31**. Quase nada de Dart: é `web/` e uma rota nova
+que existe só para o `start_url` não dar em 404.
+
+**Arquivos:**
+
+| Arquivo | Papel |
+| --- | --- |
+| `apps/driva_editor/web/manifest.json` | sai o template (`"driva_editor"`, `"A new Flutter project."`); entram nome, descrição e `id` do **editor**, com `scope: "/"` |
+| `apps/driva_editor/web/preview_manifest.json` | **novo** — `scope: "/preview"`, `start_url: "/preview"`, `display: "standalone"`, `id` próprio, nome próprio, os mesmos ícones |
+| `apps/driva_editor/web/index.html` | script inline que troca o `href` do `<link rel="manifest">` (linha 33) quando `location.pathname` começa com `/preview`; `<meta name="apple-mobile-web-app-capable">` na forma legada, ao lado da moderna que já existe (linha 24) |
+| `.../editor_routes.dart` | `previewHome = '/preview'` + `previewHomeRoute`, irmã da rota de preview no root (`app_router.dart:19`) |
+| `.../preview/preview_home_page.dart` | **nova** — a tela curta do `start_url`: o que é, e um caminho para a lista de projetos |
+
+**Decisões locais:** o `id` dos dois manifests é **explícito** — sem ele o navegador deriva
+a identidade do `start_url` e os dois alvos podem colidir na atualização. O script inline
+roda **no parse**, antes do `flutter_bootstrap.js` (`index.html:36`), porque é aí que o
+navegador lê o manifest. Nada de Dart tocando `document`: a rota não precisa saber que
+existe manifest.
+
+**Tarefas:**
+
+1. **[paralela: sim]** Os dois manifests + o script de troca no `index.html`.
+2. **[paralela: sim]** A rota `/preview` sem parâmetros + a página curta.
+3. **[paralela: não — por último]** Verificação de instalabilidade no **aparelho físico**,
+   nos dois sistemas (tarefa de verificação, não de código — vira o aceite abaixo).
+
+**Aceite (validável — escrito como o print que o prova):**
+
+12-F. **Android, o caminho que o dev pediu:** com o preview instalado pela tela inicial,
+    **tocar num link `https://hml…/preview/<projectId>/<id>`** vindo de outro aplicativo.
+    **Esperado:** abre **sem barra de endereços**. _Foto do aparelho. Reprova se abrir no
+    navegador com a barra — e é aí que se descobre que o `scope` ficou errado._
+12-G. **O ícone da tela inicial não dá em beco:** abrir pelo ícone (que vai para o
+    `start_url`, sem ids). **Esperado:** a tela curta, com o caminho para os projetos.
+    _Reprova com 404, tela branca, ou o editor inteiro._
+12-H. **A fronteira de plataforma está declarada, e a foto prova qual é (D31):** o **mesmo
+    link** no iPhone. **Esperado:** abre **com** barra de endereços (Safari não captura
+    links), e abrir **pelo ícone** dá standalone. _Duas fotos de iOS, distintas entre si.
+    Este aceite **não reprova o iOS** — ele reprova o **plano** se as duas fotos do iPhone
+    forem iguais, porque aí a limitação que a D31 declarou não é a limitação real._
+12-I. **O editor não foi capturado junto:** com o preview instalado, abrir um link do
+    **editor** (`https://hml…/contents/...`) no mesmo aparelho. **Esperado:** abre no
+    navegador, normal. _Reprova se abrir dentro do app de preview — seria `scope` grande
+    demais, e o sintoma é o dev perdendo a barra de endereços onde ele precisa dela._
+
+**O que este aceite NÃO prova:** que o conteúdo respeita a área segura do aparelho real
+quando roda em standalone (**R14**) — e essa observação **alimenta o discovery do 4.2**,
+que segue pendente.
+
+---
+
+### F3 — Piso do editor: overflows do shell, "ajustar à janela" **e a status bar do mock** · **[desbloqueada — E2E do 38/39 atestado em 2026-08-16]** · **[∥ com F1, F2b, F2c, F4, F4b]** · **[sub-agente: especialista-apresentacao]**
+
+É a D1, verbatim, **mais a frente 5.1** do feedback. As duas metades da D1 entram no mesmo
+PR porque foi assim que o humano definiu o piso do editor, e porque nenhuma vale sozinha
+como "o editor parou de brigar comigo".
+
+**A 5.1 entra aqui por decisão do dev humano**, não por afinidade técnica: as duas mexem no
+mock do device — a D1 no ajuste e na escala, a 5.1 no chrome desenhado — e agrupá-las
+economiza uma rodada de E2E. **O preço é o golden com duas causas, e ele é pago pela D32**:
+dois commits, um por causa, com `git show --stat` como discriminador. A ordem das tarefas
+abaixo não é preferência — é o que a D32 exige.
 
 **Precede a F5 e a F7, e não é só por ser o maior retorno isolado.** É **pré-requisito
 para elas serem prováveis num print**: com o zoom fixo no `Transform.scale`, colapsar a
@@ -1287,13 +1688,16 @@ entrega um par de prints em que nada de relevante muda.
 
 | Arquivo | Papel |
 | --- | --- |
-| `core/theme/app_sizes.dart` | **novo** — `canvasToolbarHeight`, `topBarHeight`, `breadcrumbBarHeight`, `minCenterWidth`, `panelRailWidth` (F5), `topBarActionsFitWidth` |
+| `core/theme/app_sizes.dart` | **já existe** (a F1 o criou, com 5 constantes) — **estender**, não criar: `canvasToolbarHeight`, `topBarHeight`, `breadcrumbBarHeight`, `minCenterWidth`, `panelRailWidth` (F5), `topBarActionsFitWidth` e **`workspaceMinimumWidth`** (público e **derivado**, D25›1 — é dele que o aceite 17-A tira as larguras) |
+| `core/theme/device_mock_colors.dart` | **já existe** — ganha os tokens da status bar do mock (Gate 4, D29) |
+| `.../editor/widgets/canvas/device_status_bar.dart` | **novo** (Gate 1, D29) — relógio, sinal, wifi e bateria; altura = `device.safeAreaTop` |
+| `.../editor/widgets/canvas/device_home_indicator.dart` | **novo** (Gate 1, D29) — altura = `device.safeAreaBottom` |
 | `core/widgets/app_shell/app_shell_breadcrumb_bar.dart` | `Flexible` em cada `CrumbLabel` — a elipse passa a disparar |
 | `core/widgets/app_shell/app_shell_top_bar.dart` | `LayoutBuilder`; abaixo de `topBarActionsFitWidth` as ações colapsam num menu |
 | `core/widgets/app_shell/app_shell_actions_overflow_menu.dart` | **novo** (Gate 1) |
 | `core/widgets/layout/resizable_split_view.dart` | `LayoutBuilder`, piso do centro, reclamp, rolagem horizontal (D14) |
 | `.../editor/device_preset.dart` | `Size get frameSize` (D10) |
-| `.../editor/widgets/canvas/device_frame.dart` | consome `frameSize` (D10) |
+| `.../editor/widgets/canvas/device_frame.dart` | consome `frameSize` (D10); e a status bar entra na **mesma camada do `CameraCutout`** (hoje `Positioned.fill` + `IgnorePointer`, linhas 104-108), **não** numa `Column` — D29 |
 | `.../editor/widgets/canvas/fit_scale.dart` | **novo** — `double fitScaleFor({required Size frame, required Size viewport})`, pura e testável |
 | `.../editor/widgets/canvas_panel.dart` | `LayoutBuilder` em volta da `Column` (D9) |
 | `.../editor/widgets/canvas/canvas_toolbar.dart` | botão "Ajustar à janela" + percentual efetivo; tokeniza `height: 44` e `iconSize: 18` |
@@ -1308,8 +1712,18 @@ entrega um par de prints em que nada de relevante muda.
 3. **[paralela: sim]** `DevicePreset.frameSize` + `DeviceFrame` consumindo (D10).
 4. **[paralela: não — dep. 3]** `fitScaleFor` + `LayoutBuilder` no `CanvasPanel` +
    `fitToWindow` + botão e percentual na toolbar.
-5. **[paralela: não — por último]** Regravar `goldens/canvas_panel*.png`. **A descrição do
-   PR cita o diff visual**; regravação sem citação reprova (régua do item 39).
+5. **[paralela: não — dep. 1-4, e é o COMMIT A da D32]** Regravar
+   `goldens/canvas_device_mock.png` (é **um** arquivo, não um glob:
+   `canvas_panel_golden_test.dart:89` tem um caso só). A citação nomeia **só a geometria**:
+   preset, janela, escala antes e depois. _O `git show --stat` deste commit **não pode
+   conter** `device_frame.dart` nem token de status bar._
+6. **[paralela: não — só depois da 5]** A **status bar do mock (5.1)**:
+   `DeviceStatusBar` + `DeviceHomeIndicator` + tokens, entrando na camada do `CameraCutout`
+   (D29). _Não pode começar antes da tarefa 5 estar commitada, senão os dois diffs se
+   misturam no golden._
+7. **[paralela: não — por último, e é o COMMIT B da D32]** Regravar
+   `goldens/canvas_device_mock.png` de novo. A citação nomeia **só a faixa do topo e a de
+   baixo**. _O `git show --stat` deste commit **não pode conter** nenhum arquivo do fit._
 
 **Aceite (validável — escrito como o print que o prova):**
 
@@ -1327,17 +1741,58 @@ entrega um par de prints em que nada de relevante muda.
     aberto**, mostrando "Salvar" e "Publish" dentro. _O `⋮` visível não basta: um menu que
     abre vazio passaria no aceite e reprovaria na prática._
 17-A. **A faixa 600–1280 deixa de ser terra de ninguém** — é a F3 que a herda (§2.5›4,
-    §5›F1b›7-E). Prints a **612**, **700** e **1024** com: o canvas **de largura não-zero**
-    (o mock aparece, ainda que ajustado bem pequeno) e a **toolbar do canvas sem nada
-    cortado** — hoje ela estoura **103 px a 1024**, medido. _É o aceite que o 7-E da F1b
-    não podia dar, e que só existe aqui. Sem ele, a faixa fica sem dono e o "não existe
-    largura em que o editor estoure" continua falso entre 600 e 1280._
+    §5›F1b›7-E). **O que se prova é uma invariante, não três números:** *acima de
+    `AppBreakpoints.compact` o canvas nunca tem largura zero* — ou porque sobra espaço, ou
+    porque, abaixo do piso do workspace, a **D14** lhe garante `AppSizes.minCenterWidth`
+    dentro da rolagem horizontal. **Três prints, e cada largura vem de onde o mecanismo
+    muda:**
+    - **(a) 600** — a fronteira do portão da F1b, o primeiro pixel em que há construtor.
+      Abaixo do piso: **rolagem horizontal da D14 visível** e o canvas em
+      `minCenterWidth`, **não-zero**, com o mock aparecendo.
+    - **(b) `AppSizes.workspaceMinimumWidth`** — o piso, **lido do token no momento do
+      print**, não digitado aqui. É a largura em que a rolagem some. _Hoje ele vale ~732;
+      **a descrição do PR registra o valor que ele tinha na rodada**._
+    - **(c) 1024** — canvas folgado, e a **toolbar do canvas sem nada cortado** (hoje ela
+      estoura **103 px a 1024**, medido).
+
+    > **Por que este aceite é escrito assim, e é a §11.0›caso 7 aplicada antes do dano.** A
+    > versão anterior dizia "prints a **612**, 700 e 1024". Os três eram literais, e o 612
+    > vinha de uma conta que assume **dois** painéis laterais. O **5.3** (trocar Árvore ↔
+    > Propriedades de lado) está em discovery e, se o dev escolher três painéis laterais, o
+    > piso sobe de ~732 para ~938 — e o aceite antigo viraria **inalcançável sem ninguém
+    > perceber**, porque o texto não denuncia de onde o 612 veio. Ancorando (b) no token e
+    > (a) na fronteira `compact`, **o 5.3 move os prints junto com o piso e a invariante
+    > continua verdadeira**: subir o piso só muda qual dos dois mecanismos responde em cada
+    > largura. Ver **R13**.
 18. **Workspace a 560:** a rolagem horizontal da D14 aparece e **nenhum conteúdo some na
     borda direita**. _Camada do sintoma, D22 — a faixa listrada é o passo 19 do roteiro,
     em build de debug._
 19. **Invariante I1 sobreviveu ao `canvas_panel.dart`:** a `image` sem ACAO do item 39
     **continua carregando** no mock, e a aba Network mostra `…/v1/media/proxy?url=…`.
     _Print, não grep._
+
+**Aceite da 5.1 — a status bar do mock:**
+
+19-A. **A faixa deixou de ser vazia:** print do preset **Smartphone** com relógio, sinal,
+    wifi e bateria desenhados **dentro** da moldura, no topo, e o recorte da câmera
+    continuando por cima. _Aceite positivo: o elemento **aparece**._
+19-B. **Desenhar não moveu o conteúdo (D29) — o par que pega a armadilha:** o mesmo
+    conteúdo, antes (commit A da D32) e depois (commit B), com o **topo do conteúdo no
+    mesmo y**. _É esta linha que separa "pintei sobre o espaço reservado" de "empurrei o
+    conteúdo para baixo". Se o conteúdo desceu, o recuo está sendo contado duas vezes — o
+    defeito de uma linha que a D29 existe para evitar, e que passaria como "ficou mais
+    espaçado"._
+19-C. **O `SafeArea` ganhou causa visível — e é o que o dev pediu:** par de prints com o
+    **mesmo conteúdo**, uma vez com a área segura respeitada e uma vez sem. **Esperado:**
+    sem, o conteúdo passa **por baixo do relógio**; com, ele começa **abaixo** da faixa.
+    _Os dois prints têm de ser visualmente distintos. **É o aceite da promessa da frente
+    5.1**, não do caminho feliz: se os dois forem iguais, a status bar virou enfeite e não
+    explica nada — que é exatamente o estado de hoje, só que com pixels bonitos._
+19-D. **Os três presets, sem colisão:** print de **Smartphone (pill)**, **Android
+    (punchHole)** e **Tablet**. **Esperado:** em nenhum deles o relógio ou os ícones ficam
+    **por baixo** do recorte da câmera, e a barra tem a altura do `safeAreaTop` **daquele**
+    preset. _O Smartphone é o mais estreito (393) e o Tablet não tem recorte — testar só um
+    passa e não prova nada._
 
 ---
 
@@ -1378,6 +1833,56 @@ painel (a persistência é a F6).
 
 ---
 
+### F4b — O colapso da paleta sobrevive à troca de aba · **[0-dep; ∥ com tudo]** · **[sub-agente: especialista-apresentacao]**
+
+É a frente **1.1** do feedback, governada pela **D28**. **Defeito, não funcionalidade
+ausente** — a F4 registrou "a persistência é a F6", e aquilo era sobre **sessões**; perder o
+colapso ao ir na Árvore e voltar é perda **dentro da mesma sessão**, e o dev lê como coisa
+quebrada.
+
+**A camada que esta fase entrega, e a que ela não entrega.** Sobreviver à **troca de aba**:
+aqui. Sobreviver à **sessão** (`shared_preferences`): continua sendo a **F6**, que absorve
+o notifier desta fase junto com a aba corrente da F5 (D28). Esta fase **não** grava nada em
+disco.
+
+**Arquivos:**
+
+| Arquivo | Papel |
+| --- | --- |
+| `.../editor/page/left_panel.dart` | vira `StatefulWidget` **de construtor `const`**; o `State` cria e descarta o `ValueNotifier<Set<String>>` (D28) |
+| `.../editor/widgets/widget_palette_panel.dart` | `_collapsedCategories` sai do `State` (linha 19) e passa a vir pelo construtor; `_toggleCategory` (26-30) troca `setState` por **`Set` novo** no notifier; `ValueListenableBuilder` envolve **só a lista de grupos** |
+
+**Decisões locais:** `const LeftPanel()` em `editor_workspace.dart:35` **continua `const`**
+— é o que impede o painel esquerdo de reconstruir a cada `emit` do `EditorCubit` (D28›R5), e
+por isso o notifier nasce **dentro** do `LeftPanel`, não é descido de cima. A busca
+(`_query`) **fica onde está**: filtro é momento, colapso é hábito (D28). **Nada de
+`AutomaticKeepAliveClientMixin`** — a razão está medida na D28, e não é a que parecia.
+
+**Tarefas:** 1. **[paralela: não — única]** `LeftPanel` stateful + notifier + o painel
+recebendo pelo construtor. _Uma tarefa só, dois arquivos: é uma fase de PR de relance._
+
+**Aceite (validável — escrito como o print que o prova):**
+
+23-A. **O trio que prova, e um par não provaria:** (1) aba **Widgets** com **3 dos 4 grupos
+    fechados**; (2) aba **Árvore**, com a árvore desenhada; (3) de volta em **Widgets**, os
+    **mesmos 3 fechados**. _O print (2) existe para que (1) e (3) não possam ser a mesma
+    foto tirada duas vezes. Hoje o print (3) mostra os quatro abertos._
+23-B. **A busca continua efêmera, e isso é decisão (D28):** digitar `col` → ir para
+    **Árvore** → voltar. **Esperado:** o campo de busca **vazio** e os 3 grupos fechados de
+    volta. _Reprova nas duas pontas: se a busca sobreviver (o dev volta para uma paleta
+    filtrada sem lembrar por quê) **ou** se os grupos voltarem abertos._
+23-C. **A cerca da D28 — prova de máquina, não print:** `grep -rn
+    "AutomaticKeepAliveClientMixin\|wantKeepAlive" apps/driva_editor/lib` = **zero**, e
+    `grep -n "const LeftPanel()" apps/driva_editor/lib/modules/editor_module/presentation/editor/page/editor_workspace.dart`
+    = **uma** ocorrência. _A primeira metade guarda o caminho quente da D8; a segunda guarda
+    o escopo de rebuild. Nenhuma das duas tem print — não invente um._
+
+**O que este aceite NÃO prova:** que o colapso sobrevive ao **fechamento do painel** (F5) ou
+à **sessão** (F6). Não sobrevive, e não deve fingir que sim — as duas linhas são das fases
+seguintes, que herdam este notifier em vez de reescrevê-lo.
+
+---
+
 ### F5 — Painel do editor colapsa numa faixa fina de ícones · **[dep. F3]** · **[∥ com F4]** · **[sub-agente: especialista-apresentacao]**
 
 **Arquivos:** `.../editor/page/editor_layout.dart` (**novo** — valor imutável,
@@ -1392,6 +1897,12 @@ D19).
 **Tarefas:** 1. **[paralela: não]** `EditorLayout` + controller + scope.
 2. **[paralela: sim]** `PanelRail` + `PanelRailButton` (Gates 1, 3 e 4).
 3. **[paralela: não — dep. 1 e 2]** `ResizableSplitView` controlado.
+4. **[paralela: não — dep. 1 e 3; só se a F4b tiver mergeado]** **Mudar o notifier dos
+   grupos da paleta e a aba corrente do `State` do `LeftPanel` para o
+   `EditorLayoutController`, na mesma mudança** (D28). _Sem isto, colapsar o painel
+   descarta o `State` do `LeftPanel` e o dev reencontra os quatro grupos abertos ao
+   reabrir — a queixa 1.1 de volta, uma fase depois, com a correção já instalada e
+   parecendo cobri-la._
 
 **Aceite (validável — escrito como o print que o prova):**
 
@@ -1402,6 +1913,10 @@ D19).
     controles de reabrir visíveis**.
 26. **A faixa é atalho, não só interruptor (D2):** com a paleta colapsada, clicar no ícone
     **Árvore** reabre o painel **na aba Árvore**.
+26-A. **O colapso da F4b sobreviveu ao colapso do painel:** fechar 3 grupos → **colapsar a
+    paleta na faixa fina** → reabrir. **Esperado:** os **mesmos 3 fechados**. _É a tarefa 4
+    desta fase provada em foto. Reprova com os quatro abertos — e reprovar aqui é a única
+    forma de descobrir que a tarefa 4 foi esquecida, porque nada mais na F5 a exercita._
 27. **A borda que a A3 decidiu:** o print do item 24 mostra o controle de reabrir **dentro
     da faixa**. _Reprova se o único caminho de volta for atalho ou menu escondido._
 
@@ -1410,7 +1925,7 @@ print para isso — é teste de widget na F9.
 
 ---
 
-### F6 — O layout do editor é lembrado entre sessões · **[dep. F4 + F5]** · **[sub-agente: especialista-dominio + especialista-dados + especialista-apresentacao]**
+### F6 — O layout do editor é lembrado entre sessões · **[dep. F4b + F5]** · **[sub-agente: especialista-dominio + especialista-dados + especialista-apresentacao]**
 
 Fase própria, depois da F4 e da F5, **de propósito**: uma pilha de persistência escrita uma
 vez, servindo quatro clientes que já existem (larguras, painéis, grupos da paleta, seções
@@ -1525,14 +2040,15 @@ Depois: `final_report.md`, `CHANGELOG` (`Unreleased`), `docs/roadmap.md` (item 4
 
 ```
  F2 (rota de preview) ── MERGEADA (#135) ───┐
-                                            │  destino do botão "Ver conteúdo"
+   ├─ F2b (pull-to-refresh) ─────────────┐  │  destino do botão "Ver conteúdo"
+   └─ F2c (PWA standalone) ──────────────┤  │
  ┌─ F1 (navegação no celular) ─ F1b (portão do editor) ◄┘
- │        └─────── um aceite só ───────┘                          │
- │                                                                ├─ F8 (E2E) ─ F9 (bateria)
- ├─ F4 (grupos da paleta) ────────────────────────┐               │
- │                                                ├─ F6 (memória) ┤
- └─ F3 (piso do editor) ─┬─ F5 (colapso) ─────────┘               │
-                         └─ F7 (tela cheia) ──────────────────────┘
+ │        └─────── um aceite só ───────┘     │                    │
+ │                                           │                    ├─ F8 (E2E) ─ F9 (bateria)
+ ├─ F4 (grupos) ─ F4b (sobrevive à aba) ─────┼──┐                 │
+ │                                           │  ├─ F6 (memória) ──┤
+ └─ F3 (piso do editor + status bar) ─┬─ F5 (colapso) ────────────┘
+                                      └─ F7 (tela cheia) ─────────┘
 ```
 
 | PR | Fase | Pode começar quando |
@@ -1540,21 +2056,30 @@ Depois: `final_report.md`, `CHANGELOG` (`Unreleased`), `docs/roadmap.md` (item 4
 | — | F2 | **mergeada, #135** |
 | 1 | **F1** | **em execução** |
 | **1b** | **F1b** | **Já** — `editor_module`, zero arquivo em comum com a F1 em voo; a F2 (seu destino) já está no ar |
-| 2 | F4 | **Já** — só a paleta |
-| 3 | F3 | **Depois do E2E dos itens 38 e 39 atestado** — mexe em `canvas_panel.dart` |
-| 4 | F5 | Depois do PR 3 |
+| 2 | F4 | **mergeada, #138** |
+| **2b** | **F4b** | **Já** — dois arquivos, nenhum em voo |
+| **2c** | **F2b** | **Já** — só `preview/` |
+| **2d** | **F2c** | **Já** — `web/` + uma rota nova |
+| 3 | F3 | **Já** — o E2E dos itens 38 e 39 foi **atestado em 2026-08-16**; a pré-condição I6 caiu |
+| 4 | F5 | Depois dos PRs 3 **e 2b** (a tarefa 4 da F5 move o notifier da F4b) |
 | 5 | F7 | Depois do PR 4 |
-| 6 | F6 | Depois dos PRs 2 e 4 |
+| 6 | F6 | Depois dos PRs 2b e 4 |
 | — | F8 | Depois de todos em homologação |
 | 7 | F9 | Depois do atestado humano da F8 |
 
-**Três frentes podem correr em paralelo hoje: F1, F1b e F4.** Nenhuma compartilha arquivo
-com outra — verificado, não presumido:
+**Seis frentes podem correr em paralelo hoje: F1, F1b, F4b, F2b, F2c e F3.** Nenhuma
+compartilha arquivo com outra — verificado, não presumido:
 
 - **F1** fica em `contents_module`, `projects_module` e `core/theme/app_breakpoints.dart`.
 - **F1b** fica em `editor_module/presentation/editor/page/` (dois arquivos novos +
   `editor_page.dart`).
-- **F4** fica em `widget_palette/`.
+- **F4** (entregue) ficou em `widget_palette/`.
+- **F4b** fica em `page/left_panel.dart` + `widgets/widget_palette_panel.dart`.
+- **F2b** fica em `presentation/preview/` (cubit, `preview_content.dart`,
+  `last_saved_pill.dart`, um widget novo).
+- **F2c** fica em `web/` + `editor_routes.dart` + uma página nova em `preview/`.
+- **F3** fica em `core/theme/`, `core/widgets/app_shell/`, `core/widgets/layout/` e
+  `editor/widgets/canvas*`.
 - **F2** (entregue) ficou em `preview/`, `editor_page.dart`, `editor_routes.dart`,
   `app_router.dart`, `core/network/` e `canvas_toolbar.dart`.
 
@@ -1564,6 +2089,17 @@ a branch da F1b sair de `develop` atualizada**.
 
 **Atrito 2 — `canvas_toolbar.dart`.** Tocado pela F2 (botão do preview, já lá), pela F3
 (botão de ajustar) e pela F7 (botão de tela cheia). **O PR 3 rebase antes de mergear.**
+
+**Atrito 3 — `left_panel.dart`.** Tocado pela **F4b** (vira `StatefulWidget` e passa a
+possuir o notifier dos grupos) e pela **F5** (expõe a aba corrente, e a tarefa 4 leva o
+notifier para o `EditorLayoutController`). **Não é conflito de merge, é ordem:** o PR 2b
+entra antes do 4, e o 4 **move** o que o 2b criou em vez de reescrever. Invertida a ordem,
+a F5 nasce sem o notifier e a F4b depois teria de instalá-lo num painel que já colapsa —
+duas mudanças no mesmo lugar, com a queixa 1.1 viva no meio.
+
+**Atrito 4 — `goldens/canvas_device_mock.png`.** Só a F3 o toca, e o toca **duas vezes**,
+de propósito (D32). Nenhuma outra fase pode regravá-lo no mesmo ciclo: um terceiro commit
+sobre o mesmo arquivo destrói a atribuição que a D32 construiu.
 
 **Interação D14 × D23 — a faixa em que cada uma manda.** As duas tratam de janela
 estreita, e é preciso dizer onde uma acaba:
@@ -1648,13 +2184,43 @@ a tarefa 5 (verificação da home e do cartão) revelar quebra estrutural no `Co
 **o tech-lead parte a F1 em duas no momento do PR** — projeto/categorias/busca numa, cartão
 e home noutra — e registra em `variance_report.md`. Está previsto, não é desvio.
 
+**R13 — O 5.3 sobe o piso do workspace, e o 17-A precisa sobreviver a isso.** Trocar Árvore
+↔ Propriedades de lado (frente 5.3, em discovery) pode virar **três** painéis laterais em
+vez de dois, e o piso do workspace sairia de ~732 para ~938 px. Um aceite ancorado em
+números literais (`612`, `700`) viraria **inalcançável sem ninguém perceber** — §11.0›caso
+7 na forma pura. Mitigado por construção: o **17-A** ancora a largura do meio em
+`AppSizes.workspaceMinimumWidth` **lido no momento do print**, e a invariante que ele prova
+(*acima de `compact` o canvas nunca tem largura zero*) é indiferente ao valor do piso — subir
+o piso só troca qual mecanismo responde, o espaço que sobra ou a rolagem da D14. **O que
+sobra de dever para o 5.3:** registrar o novo valor do piso na descrição do PR, e rodar o
+terceiro teste de bolso da §11.0 (`grep` por `workspaceMinimumWidth` nos aceites) antes de
+fechar. _Isto é dependência declarada, não bloqueio: a F3 **não** espera o 5.3._
+
+**R14 — O preview em standalone pode não ter área segura, e ninguém vai ligar as duas
+coisas.** A F3 desenha a status bar **no mock** e torna o `SafeArea` visível ali (D29). No
+aparelho real, sob a **F2c**, o preview roda em `display: standalone` — e se o `viewport`
+que o engine do Flutter injeta não trouxer `viewport-fit=cover`, o `MediaQuery.padding` do
+aparelho vem **zero** e o `SafeArea` do conteúdo previsto não faz nada. O resultado seria o
+pior dos dois mundos: o mock ensinando um comportamento que o aparelho não reproduz.
+**Não vira tarefa aqui** — vira **observação medida no E2E** (passo 17-c) e **entrada para o
+discovery do 4.2**, que segue pendente: *"a barra de navegação aparece"* pode ser exatamente
+isto, e não chrome nosso.
+
+**R15 — `shrinkWrap: false` num `listView` de raiz quebra o preview, e é anterior à F2b.**
+`PreviewContent` envolve o `SduiView` num `SingleChildScrollView` desde a F2
+(`preview_content.dart:31`); os builders do renderer usam `shrinkWrap: true` **por padrão**
+(`list_view.dart:13`, `grid_view.dart:15`), o que salva o caso comum. Um spec que ponha
+`shrinkWrap: false` dá altura ilimitada e quebra. **A F2b herda, não cria**, e o aceite dela
+declara isso em vez de fingir cobertura. _Dono natural: o item que revisar o catálogo de
+scrollables — não este._
+
 ---
 
 ## 8. Divergências em relação ao recorte do PRD
 
 | # | O PRD dizia | Este plano faz | Por quê |
 | --- | --- | --- | --- |
-| 1 | 4 fases: overflows+fit · colapso+persistência · paleta+tela cheia · bateria, mais o preview separado | **9 fases** | Ver as linhas abaixo |
+| 1 | 4 fases: overflows+fit · colapso+persistência · paleta+tela cheia · bateria, mais o preview separado | **12 fases** | Ver as linhas abaixo. As três últimas (F2b, F2c, F4b) e a ampliação da F3 nasceram do **uso real** (`feedback_rodada_01.md`), depois de o PRD estar fechado — não são divergência de recorte, são matéria-prima que o PRD não tinha |
 | 2 | **O problema é do editor** | **São dois problemas**, e a navegação quebra pior | Evidência de campo de 2026-08-16 (§2.0). A tela mais visitada renderiza texto **uma letra por linha** a 412 px. O `specs.md` não tinha essa informação |
 | 3 | Preview como "fatia 2", depois de tudo | **F2, em execução desde cedo** | É a única fase cujo E2E exige **hardware físico e homologação real**; descobrir tarde que o aparelho não abre a rota é o pior lugar para descobrir. E é 0-dep de verdade |
 | 4 | Colapso **e** persistência na mesma fase | **F5 e F6 separadas** | A pilha serve **quatro** clientes. Escrita antes de os quatro existirem, seria escrita duas vezes. E colapso sem memória já é fatia vertical utilizável |
@@ -1683,6 +2249,21 @@ tipo de nó?** Este plano adota **global por rótulo** (P3: layout é hábito de
 atributo do documento) — é o que faz o Inspector parar de reabrir tudo a cada troca de nó,
 que é o incômodo concreto. **Veto fácil na revisão da F6.**
 
+**Q3 — [nova, 2026-08-17] O relógio do mock é `9:41` fixo.** Hora real quebraria o golden a
+cada minuto (D29). Se o humano quiser hora real, o preço é recortar a faixa do topo do
+golden — o que enfraquece justamente o que o **36-B** prova. **Veto barato na revisão do
+PR 3, mas é veto, não ajuste.**
+
+**Q4 — [nova, 2026-08-17] A pílula do preview perde o `· toque para atualizar` e mantém o
+carimbo.** A **D4** é decisão travada dele e obriga a **dizer** que é o último salvo, não a
+ter um botão (D30). **Se ele quiser o botão de volta ao lado do gesto, é veto na revisão do
+PR 2c** — mas então o 52-C precisa de outro sinal, porque o carimbo deixa de ser a única
+prova de que o gesto buscou.
+
+**Q5 — [nova, 2026-08-17] O `start_url` do preview vai para uma tela curta**, não para o
+último conteúdo aberto (D31). Lembrar exigiria persistência por conforto (§12). **Veto na
+revisão do PR 2d.**
+
 ---
 
 ## 10. Roteiro de E2E manual
@@ -1697,6 +2278,15 @@ permanente do item 9g. **Exceção única e declarada: o passo 19** (D22). O que
 > sistema, e a comparação com as fotos de campo. **Não peça print para provar largura** —
 > é a atenção mais cara do time gasta no que a máquina faz melhor, e ainda por cima
 > procurando o sinal errado (D25).
+
+> ⚠️ **Defeito conhecido deste roteiro, achado em 2026-08-17 — leia antes de seguir as
+> tags.** As referências `(DoD NN)` dos passos **1 a 18** foram escritas contra uma
+> numeração anterior da §11.4 e **estão deslocadas** (o passo 1 diz `DoD 24, 25`, que hoje
+> são linhas da §11.3). É o **caso 7 da §11.0** aplicado ao próprio roteiro: o texto não
+> errou, envelheceu, e nada nele denuncia isso. **Enquanto não forem varridas, a autoridade
+> é a §11.4 e os aceites por fase da §5** — as tags são pista, não índice. As tags dos
+> passos **12a a 12c, 14a a 14c e 18a a 18i** foram escritas já contra a numeração atual e
+> estão corretas. _Varrer as antigas é tarefa do QA no fechamento (§11.5›63)._
 
 > ⚠️ **Três avisos antes de abrir a rodada.**
 > 1. **O modo fake mascara a rodada inteira.** Com `USE_FAKE_DATA=true` a fábrica do
@@ -1716,6 +2306,10 @@ permanente do item 9g. **Exceção única e declarada: o passo 19** (D22). O que
 | `CT_LONGO` | Um conteúdo com nome de ~80 caracteres | passo 8 |
 | `CT_IMG` | Um conteúdo com um `image` usando a **URL sem ACAO** do item 39 | passos 7, 12, 17 |
 | `ANONIMO` | Aba anônima ou aparelho que **nunca abriu o editor** | passo 16 |
+| `CT_CURTO` | Um conteúdo com **um `text` só**, que não enche a tela do celular | passo 18a |
+| `CT_LONGO_VERTICAL` | Um conteúdo **mais alto que a tela** do celular | passo 18b |
+| `ANDROID` | Um Android físico, com o preview **instalado pela tela inicial** | passos 18e a 18g, 18i |
+| `IPHONE` | Um iPhone físico, mesmo preparo | passo 18h |
 
 **Bloco A — navegação no celular (F1)**
 
@@ -1760,9 +2354,10 @@ permanente do item 9g. **Exceção única e declarada: o passo 19** (D22). O que
 **Bloco A3 — o que só o hardware prova.** Levantado pelo QA como exclusivo de aparelho
 físico: nenhum destes o CDP reproduz, e nenhum é sobre largura.
 
-7-h1. **[mãos]** **A foto de campo refeita**, no **mesmo Android da `rodada_00`**, mesma
-   tela, mesmo conteúdo. _É o par do item 28 do DoD. Emulador não serve: o "antes" é uma
-   foto, e comparar foto com screenshot compara duas coisas diferentes._
+7-h1. **[mãos]** **A foto de campo em aparelho físico**, mesma tela, mesmo conteúdo.
+   _**Atendido** pela `rodada_01` (itens 28, 29, 31, 33 e 35-A). Emulador não serve: o item
+   22 do DoD exige aparelho, e a régua da §11.0 vale para pixel de aparelho, não de
+   `--screenshot`._
 7-h2. **[mãos]** **Gaveta com toque real** — abrir tocando no botão, fechar selecionando
    uma categoria, e **abrir pelo _edge swipe_** da borda esquerda. _O edge swipe do
    `Drawer` é gesto de plataforma; o CDP não o reproduz, e é como metade dos usuários de
@@ -1808,8 +2403,23 @@ resultado seria um print que parece regressão da F1b e não é (§5›F1b›7-E
 12. **[olho]** Ainda em `CT_IMG`: a imagem carrega e a aba Network mostra
     `…/v1/media/proxy?url=…`. _Caixa "falhou" = a F3 perdeu o resolver; pare a rodada._
     _(DoD 36)_
+12a. **[olho]** **A status bar do mock (5.1)**, nos **três presets**. **Esperado:** relógio,
+    sinal, wifi e bateria desenhados no topo, dentro da moldura; o recorte da câmera por
+    cima, **sem sobrepor** relógio nem ícones; embaixo, o indicador de home. _(DoD 36-A,
+    36-D)_
+12b. **[olho]** **O par que prova o `SafeArea` — é o pedido da 5.1, e o caminho feliz não o
+    prova.** Mesmo conteúdo, uma foto com a área segura respeitada e outra sem.
+    **Esperado:** sem, o conteúdo passa **por baixo do relógio**; com, começa **abaixo** da
+    faixa. _Duas fotos visualmente distintas. Iguais = a status bar virou enfeite._
+    _(DoD 36-C)_
+12c. **[máquina]** **A disciplina da D32, conferida no histórico, não na imagem:**
+    `git log --stat` do PR 3 mostra **dois** commits tocando
+    `goldens/canvas_device_mock.png`; o primeiro **sem** `device_frame.dart`, o segundo
+    **sem** os arquivos do fit. _Não se confere PNG a olho: confere-se a atribuição._ E os
+    dois goldens, sobrepostos, têm o **topo do conteúdo no mesmo y** — é o par do 36-B.
+    _(DoD 5, 36-B)_
 
-**Bloco C — painéis, paleta, memória e tela cheia (F4 a F7)**
+**Bloco C — painéis, paleta, memória e tela cheia (F4, F4b, F5 a F7)**
 
 13. **[olho]** Colapsar a paleta; depois o Inspector. **Esperado:** faixas finas com os
     ícones, **o percentual do canvas sobe**, os dois controles de reabrir visíveis. Com a
@@ -1817,6 +2427,16 @@ resultado seria um print que parece regressão da F1b e não é (§5›F1b›7-E
 14. **[olho]** Fechar os 4 grupos da paleta; digitar `col`; limpar. **Esperado:** fechados
     sem rolagem → `Layout` abre com `Column` visível → **volta a fechar**. _Três prints; o
     terceiro é o que prova._ _(DoD 40, 41)_
+14a. **[olho]** **A troca de aba (F4b)** — trio: 3 grupos fechados → aba **Árvore**, com a
+    árvore desenhada → de volta em **Widgets**. **Esperado:** os **mesmos 3 fechados**. _O
+    print do meio existe para o primeiro e o terceiro não poderem ser a mesma foto._
+    _(DoD 45-A)_
+14b. **[olho]** Digitar `col`, ir para **Árvore**, voltar. **Esperado:** campo de busca
+    **vazio** e os 3 grupos fechados. _Busca é momento, colapso é hábito (D28) — este passo
+    reprova nas duas pontas._ _(DoD 45-B)_
+14c. **[olho]** Fechar 3 grupos → **colapsar a paleta na faixa fina** (F5) → reabrir.
+    **Esperado:** os mesmos 3 fechados. _É a única coisa que exercita a tarefa 4 da F5._
+    _(DoD 45-C)_
 15. **[olho]** Arrastar a paleta para ~460, colapsar o Inspector, fechar 3 grupos, dar
     **F5**. Depois: sair pelo breadcrumb e reentrar. **Esperado:** tudo como estava nas
     duas vezes. Depois: largura salva em 480, janela para 1024, recarregar → painel
@@ -1832,9 +2452,44 @@ resultado seria um print que parece regressão da F1b e não é (§5›F1b›7-E
 17. **[mãos]** Abrir o diálogo de preview e levar a URL ao `ANONIMO`. **Esperado:**
     conteúdo em tela cheia, sem faixa 1, sem breadcrumb, sem painéis, URL visível na barra
     do navegador. Na mesma foto, a `image` de `CT_IMG` **carregada**. _(DoD 50, 51, 52)_
-18. **[mãos]** Editar `CT_IMG` no desktop **sem salvar** → tocar na pílula. **Esperado:**
-    **nada muda**. Depois **Salvar** → tocar. **Esperado:** muda. E a pílula diz "Último
-    salvo". _(DoD 53, 54)_
+18. **[mãos]** Editar `CT_IMG` no desktop **sem salvar** → **puxar de cima** no aparelho.
+    **Esperado:** **nada muda**. Depois **Salvar** → puxar. **Esperado:** muda. E a pílula
+    diz **"Último salvo"** — na foto, não no código. _Depois da F2b o gesto substitui o
+    toque na pílula; a pílula continua na tela e deixa de ser botão (D30)._ _(DoD 53, 54)_
+
+**Bloco D2 — o gesto e o app instalado (F2b, F2c) · aparelho físico obrigatório**
+
+18a. **[mãos]** `CT_CURTO` (um `text` só, que não enche a tela): **puxar de cima**.
+    **Esperado:** o indicador aparece. _É o caso que a física padrão **não** atende, e o
+    modo de falha silenciosa desta fase: sem `AlwaysScrollableScrollPhysics` o gesto
+    simplesmente não pega, sem erro nenhum._ _(DoD 52-A)_
+18b. **[mãos]** `CT_LONGO_VERTICAL` (mais alto que a tela) — **par**: (a) no topo, puxar →
+    indicador; (b) rolado até o meio, puxar → **a tela rola**, sem indicador. _Prints
+    iguais = o `RefreshIndicator` sequestrou a rolagem e o fim do conteúdo ficou
+    inalcançável._ _(DoD 52-B)_
+18c. **[mãos]** Puxar **sem ter mudado nada no desktop**. **Esperado:** conteúdo igual, e o
+    **horário do carimbo muda**. _(DoD 52-C)_
+18d. **[mãos]** **Modo avião**, puxar. **Esperado:** o conteúdo **continua na tela**, o
+    banner de falha aparece, e o carimbo **não muda**. _Trio com o 18c: os três estados da
+    D30 em três prints distintos. Carimbo que avança com a rede caída reprova — é o gesto
+    mentindo que buscou._ _(DoD 52-D)_
+18e. **[mãos]** **Android:** instalar o preview pela tela inicial; depois **tocar num link
+    `/preview/<projectId>/<id>`** vindo de outro aplicativo. **Esperado:** abre **sem barra
+    de endereços**. _É o pedido literal da frente 4.3._ _(DoD 50-A)_
+18f. **[mãos]** Ainda no Android: abrir pelo **ícone** da tela inicial. **Esperado:** a tela
+    curta do `start_url`, com caminho para os projetos — **não** 404, não o editor.
+    _(DoD 50-B)_
+18g. **[mãos]** Ainda no Android: abrir um link do **editor** (`/contents/...`).
+    **Esperado:** abre no navegador, com barra. _Reprova se abrir dentro do app de preview:
+    `scope` grande demais (D31)._ _(DoD 50-C)_
+18h. **[mãos]** **iPhone, o mesmo link** — **par**: pelo link → **com** barra de endereços;
+    pelo ícone → standalone. _Este passo **não reprova o iOS**; ele reprova a **D31** se as
+    duas fotos forem iguais, porque aí a fronteira de plataforma declarada não é a real._
+    _(DoD 50-D)_
+18i. **[olho]** Na foto do 18e (standalone, aparelho com recorte): **o conteúdo respeita a
+    área segura do aparelho?** _**Observação, não aceite** — é o R14, e a resposta alimenta
+    o discovery da frente 4.2, que segue pendente. Anotar sim/não com foto; não reprova a
+    rodada._
 
 **Bloco E — a camada do indicador (D22), e a única exceção ao "nunca localhost"**
 
@@ -1939,7 +2594,7 @@ não errou — envelheceu.
 | 2 | Suíte existente passando (`flutter test -r compact`) em `sdui_core`, `sdui_flutter` e `driva_editor` | saída no PR |
 | 3 | **Zero linha em `packages/`** | `git diff --stat origin/develop -- packages/` = vazio, em **todos** os PRs |
 | 4 | **Zero linha em `backend/`** | `git diff --stat origin/develop -- backend/` = vazio |
-| 5 | Golden do `canvas_panel` regravado **com o diff visual citado na descrição do PR 4** | regravação sem citação **reprova** |
+| 5 | **`goldens/canvas_device_mock.png` regravado em DOIS commits no PR 3, um por causa (D32)** | `git log --stat` do PR: o commit do fit **não** contém `device_frame.dart` nem tokens de status bar; o commit da status bar **não** contém arquivo do fit. Cada um cita a sua causa. **Um commit só com as duas causas reprova, mesmo com as duas citadas** — o revisor perde a capacidade de atribuir o diff |
 | 6 | **Gate 1** — nenhuma função/método novo que retorna `Widget` fora do permitido | leitura do diff; nenhum `Widget _buildX(` novo |
 | 7 | **Gate 4** — nenhum tamanho, duração ou cor cru nos arquivos tocados | `grep` nos arquivos do diff: só tokens |
 | 8 | **Gate de rebuild (D8)** — colapsar **não** reconstrói `LeftPanel`, `CenterArea` nem `InspectorArea` | teste de widget com contador de builds (F9). **É de máquina: não existe print que prove isto, e nenhum foi inventado** |
@@ -1949,6 +2604,8 @@ não errou — envelheceu.
 | 10c | **`AppBreakpoints` não tem constante sem leitor** (D26) | para cada constante do arquivo, existe pelo menos um consumidor fora dele. `expanded`/1024 **saiu**; o número segue registrado na D5 |
 | 10d | **Geometria medida, não ausência de faixa** (D25) | todo widget de chrome interno fixo tocado por este item expõe `minimumWidth` **público** e **derivado dos tokens do próprio `build`** — nunca um literal —, e há teste `tester.getSize(...).width >= X.minimumWidth` nas larguras de borda **e nos pontos de transição**. _Sem isto, a régua de overflow do plano inteiro é cega à classe do `SlugBadge`_ |
 | 10e | **O mínimo é derivável, e a derivação fecha** (D25) | `minimumWidth` é uma **expressão de tokens**, e cada termo dela é token — não número solto. _Este item existe porque a primeira implementação entregou `_minWidth = 28` privado, contra os **39** que o plano mediu (`s10×2 + ícone 14 + s5`): **um dos dois está errado e ninguém consegue dizer qual sem derivar**. Ver a nota da Causa G_ |
+| 10f | **A cerca da D28** — o caminho quente da D8 não foi ligado, e o escopo de rebuild do painel esquerdo não regrediu | `grep -rn "AutomaticKeepAliveClientMixin\|wantKeepAlive" apps/driva_editor/lib` = **zero**; `const LeftPanel()` continua em `editor_workspace.dart`. _Medido na D28: manter a aba Árvore montada custa 9–28 µs e ~2 KB de lixo **por tecla** numa página de 40–120 nós. Não é catástrofe — é desperdício sem guarda, e a linha que o liga é uma só_ |
+| 10g | **O piso do workspace é público e derivado** (D25›1, e é dele que o 17-A tira as larguras) | `AppSizes.workspaceMinimumWidth` existe, é **expressão de tokens** (não literal), e a descrição do PR 3 **registra o valor** que ele tinha na rodada. _Sem o registro, o R13 volta: o 5.3 muda o piso e ninguém sabe contra que número os prints foram tirados_ |
 | 11 | CI verde em todos os PRs — a mesma régua do humano | checks do GitHub |
 
 ### 11.2 Aceite por fase
@@ -1957,12 +2614,15 @@ não errou — envelheceu.
 | --- | --- | --- |
 | 12 | Os **14 critérios da F1** (1 a 7, com `6-A` a `6-G`) atestados **e os 6 da F1b** (`7-A` a `7-F`) | `revisar-fase` do QA nos PRs 1 **e** 1b. **A F1 não fecha sem a F1b** (§5›F1b): "navegar no celular funciona" é falso enquanto tocar num conteúdo der num beco |
 | 13 | Os **5 critérios da F2** atestados | `revisar-fase` do QA — **PR #135, mergeado** |
-| 14 | Os **8 critérios da F3** atestados, incluindo o `17-A` (a faixa 600–1280) | `revisar-fase` do QA no PR 3 |
+| 13b | Os **5 critérios da F2b** (`12-A` a `12-E`) atestados | `revisar-fase` do QA no PR 2c |
+| 13c | Os **4 critérios da F2c** (`12-F` a `12-I`) atestados | `revisar-fase` do QA no PR 2d |
+| 14 | Os **12 critérios da F3** atestados — os 8 da D1 (incluindo o `17-A`) **e os 4 da 5.1** (`19-A` a `19-D`) | `revisar-fase` do QA no PR 3 |
 | 15 | Os **4 critérios da F4** atestados | `revisar-fase` do QA no PR 2 |
-| 16 | Os **4 critérios da F5** atestados | `revisar-fase` do QA no PR 4 |
+| 15b | Os **3 critérios da F4b** (`23-A` a `23-C`) atestados | `revisar-fase` do QA no PR 2b |
+| 16 | Os **5 critérios da F5** atestados, incluindo o `26-A` (o colapso da F4b sobrevive ao colapso do painel) | `revisar-fase` do QA no PR 4 |
 | 17 | Os **4 critérios da F6** atestados | `revisar-fase` do QA no PR 6 |
 | 18 | Os **4 critérios da F7** atestados | `revisar-fase` do QA no PR 5 |
-| 19 | Nenhum desvio das decisões **D1–D22** sem `variance_report.md` aprovado **pelo humano** | desvios numerados `VR-17-NN`, com "como estava / por que mudou / o que mudou" |
+| 19 | Nenhum desvio das decisões **D1–D32** sem `variance_report.md` aprovado **pelo humano** | desvios numerados `VR-17-NN`, com "como estava / por que mudou / o que mudou" |
 
 ### 11.3 E2E — **faz parte do DoD, não é apêndice**
 
@@ -1976,7 +2636,8 @@ pelo dev humano.**
 | 22 | Os passos de celular correram em **aparelho físico**, não em emulador | as fotos são de aparelho, como a da §2.0 |
 | 23 | **QA instrumenta** o que der (skill `instrumentar-e2e`); o que exige olho e mão fica para o humano | scripts em `docs/17-ergonomia-editor/`, copiados para dentro da rodada |
 | 24 | **O dev humano confere os prints e atesta.** Ninguém mais atesta E2E | atestado escrito no `final_report.md`, com data |
-| 25 | **As três fotos de campo** arquivadas em `evidencias/rodada_00/` — a lista em tema escuro (`00_…`), o **editor** (`01_…`) e a lista em tema claro — **antes** dos PRs 1 e 1b mergearem | os arquivos existem, com o `README.md` da pasta apontando a causa de cada sintoma. _São o "antes" dos itens 28 e 35-A; sem eles, o "depois" não tem contra o que ser comparado_ |
+| 25 | **O defeito de campo está documentado com causa rastreável** em `evidencias/rodada_00/README.md` — tabela sintoma → causa, cada linha apontando arquivo e linha do código que a produz | o README existe e nenhum sintoma fica sem causa nomeada no código. _As fotos do "antes" **não** foram arquivadas antes de a F1/F1b mergearem, e o estado não é mais reproduzível em homologação. A causa no código substitui a comparação visual — e é evidência mais forte, porque uma foto mostra **que** quebrou e a linha mostra **por quê** (D33)_ |
+| 25-A | **As fotos de campo do "depois"** arquivadas em `evidencias/rodada_01/` — projetos (`00_…`), conteúdos (`01_…`) e o portão do editor (`02_…`) | os arquivos existem, com o `README.md` da pasta dizendo qual aceite cada um prova |
 | 26 | Evidência da rodada em **`evidencias/rodada_MM/`**, prints nomeados `<NN>_<descricao>.png` pelo número deste DoD | a pasta existe e tem os prints |
 | 27 | E2E reprovado → o tech-lead conserta e o QA abre **`rodada_MM+1`**; a anterior **não é apagada** | histórico de rodadas |
 
@@ -1990,7 +2651,7 @@ distintos**.
 
 | # | O que a feature promete | Print exigido | Reprova se |
 | --- | --- | --- | --- |
-| 28 | O título não desce letra por letra | foto do aparelho: **uma linha horizontal**, com reticências se não couber — pareada com `rodada_00` | qualquer texto vertical, **ou** o "antes" não existir para comparar |
+| 28 | O título não desce letra por letra | foto do aparelho: **uma linha horizontal**, com reticências se não couber — `rodada_01/01_conteudos_android.jpg` | qualquer texto vertical. _**Atendido** (rodada 01): "Todos os conteúdos" em uma linha, e a busca com o hint inteiro — `Buscar por nome, slug ou ID...`, não `Busc…`_ |
 | 29 | As categorias não comem a tela | foto sem barra lateral + foto da gaveta aberta | a barra lateral aparecer em `compact` |
 | 30 | A gaveta fecha ao selecionar | par: toque em "Divulgar" → gaveta fechada **e** lista filtrada | a gaveta ficar aberta sobre a lista |
 | 31 | A busca é usável no celular | foto do campo com hint legível e texto digitado | `Busc…` |
@@ -2005,12 +2666,16 @@ distintos**.
 | **34-F** | **O `SlugBadge` aparece** (Causa G / D25) | prints a **320, 360, 375** com o badge **legível**, mais o teste de geometria (DoD 10d) | o badge sumir ou ficar ilegível. _**Aceite positivo de propósito.** "Não houve faixa amarela" **não serve aqui**: neste defeito não há faixa nem quando ele existe (§11.0›caso 6)_ |
 | **34-G** | O diálogo cabe com categoria de nome longo (Causa C′) | print a **1440** e no aparelho: dropdown sem estouro | estourar em qualquer largura. _216 px hoje, e **não é defeito de celular**_ |
 | 35 | **O construtor não foi "aproveitado" pela faixa** (D20, D23) | prova de máquina, DoD 10 e 10b | o limiar aparecer em mais de um arquivo do módulo, **ou** em qualquer arquivo sob `presentation/editor/widgets/` |
-| **35-A** | **O editor no celular não é mais uma tela quebrada** (D23) | foto do aparelho: tela de aviso **com os dois botões** — pareada com `rodada_00/01_…` | aparecer **qualquer** pedaço do construtor: paleta, inspector, faixa de canvas |
+| **35-A** | **O editor no celular não é mais uma tela quebrada** (D23) | foto do aparelho: tela de aviso **com os dois botões** — `rodada_01/02_editor_portao_android.jpg` | aparecer **qualquer** pedaço do construtor: paleta, inspector, faixa de canvas. _**Atendido** (rodada 01): o aviso, "Ver conteúdo" e "Voltar aos conteúdos", e nenhum pedaço do construtor na tela_ |
 | **35-B** | **"Ver conteúdo" leva ao conteúdo que estava aberto** | par de fotos: portão → preview, com **o mesmo `<id>` na URL** do conteúdo tocado | ir para "alguma" tela de preview, ou para outro conteúdo. _Um botão que existe não é um botão que funciona_ |
 | **35-C** | **A navegação no celular não termina em beco** | o passeio inteiro num aparelho só: lista → tocar → portão → preview (§10›Bloco A2) | qualquer etapa exigir voltar ao desktop. _É o item que amarra F1 e F1b_ |
 | **35-D** | **"Voltar aos conteúdos" volta ao projeto certo** | foto da lista com o nome do projeto no breadcrumb | outro projeto, ou 404 |
 | **35-E** | **O portão sai de cena acima do limiar, e o construtor volta intacto** | par: janela a **599** → portão; a **1280** → construtor **com o mock visível** | os dois estados forem iguais, **ou** o construtor a 1280 vir diferente de antes da F1b. _**Não** use 601: a 601 o canvas tem largura zero por um defeito que é da F3 (§5›F1b›7-E). Print nessa faixa não é prova contra a F1b_ |
 | 36 | O mock cabe na janela | Tablet a 1024×720, **quatro quinas visíveis**, barra **abaixo de 40%** | a moldura sair da área, **ou** a barra travar em 40% — a escala passou pelo clamp (D9) |
+| **36-A** | **A faixa do topo do mock deixou de ser vazia** (5.1) | Smartphone com relógio, sinal, wifi e bateria **desenhados** dentro da moldura | a faixa continuar vazia. _Aceite **positivo**: o elemento aparece_ |
+| **36-B** | **Desenhar não empurrou o conteúdo** (D29) | par antes/depois (commits A e B da D32) com o **topo do conteúdo no mesmo y** | o conteúdo descer. _É o recuo contado duas vezes — defeito de uma linha, que passa como "ficou mais espaçado"_ |
+| **36-C** | **O `SafeArea` ganhou causa visível — a promessa da 5.1, não o caminho feliz** | par com o **mesmo conteúdo**: sem área segura, ele passa **por baixo do relógio**; com, começa **abaixo** da faixa | os dois prints forem iguais. _Aí a status bar virou enfeite e não explica nada — que é o estado de hoje, só que com pixels bonitos_ |
+| **36-D** | **Os três presets, sem colisão** | Smartphone (pill), Android (punchHole) e Tablet: relógio e ícones **fora** do recorte da câmera, altura = `safeAreaTop` daquele preset | qualquer sobreposição. _393 px é o mais estreito; um preset só passa e não prova_ |
 | 37 | O ajuste é reativo | dois prints, 1440 → ~900, sem tocar em nada: percentuais diferentes | percentuais iguais |
 | 38 | Manual vence o ajuste (P5) | toggle **selecionado** × **não-selecionado**, percentuais diferentes | os dois estados forem visualmente iguais |
 | 39 | O breadcrumb trunca | `CT_LONGO` a 1280, uma linha com reticências | duas linhas, ou texto cortado na borda |
@@ -2020,18 +2685,34 @@ distintos**.
 | 43 | Painel do editor colapsado continua alcançável (D2) | faixa fina com o controle de reabrir **dentro dela** | o único caminho de volta for atalho ou menu escondido |
 | 44 | Colapsar dá espaço **ao mock** | par com o **percentual do canvas subindo** | o percentual não mudar — o espaço virou fundo cinza |
 | 45 | Buscar com grupos fechados acha | trio: fechados → `col` abre `Layout` → limpar **fecha de novo** | o terceiro print não voltar ao estado do primeiro |
+| **45-A** | **O colapso sobrevive à troca de aba** (1.1 / D28) | trio: 3 fechados → aba **Árvore com a árvore desenhada** → volta com **os mesmos 3 fechados** | o terceiro print vier com os quatro abertos. _O print do meio existe para o primeiro e o terceiro não poderem ser a mesma foto tirada duas vezes_ |
+| **45-B** | **A busca continua efêmera, e isso é decisão** (D28) | `col` → Árvore → voltar: campo **vazio** e os 3 grupos fechados | qualquer das duas pontas: busca sobrevivendo (paleta filtrada sem motivo à vista) **ou** grupos reabrindo |
+| **45-C** | **O colapso sobrevive ao colapso do painel** (F5›tarefa 4) | 3 fechados → colapsar a paleta na faixa fina → reabrir: os mesmos 3 | os quatro abertos. _É a **única** coisa que exercita a tarefa 4 da F5; sem esta linha, esquecê-la não produz sinal nenhum e a queixa 1.1 volta uma fase depois_ |
 | 46 | O layout sobrevive ao **refresh** | antes/depois de `F5` | qualquer diferença |
 | 47 | O layout sobrevive à **navegação** | antes/depois de sair pelo breadcrumb e voltar | qualquer diferença. _É o incômodo relatado; o refresh sozinho não cobre_ |
 | 48 | Largura salva é reclampada (D13) | 480 salvo, janela em 1024, após recarregar | painel maior que a janela |
 | 49 | Preferência corrompida **não bloqueia** (D12) | lixo em `flutter.editor.layout` + reload → editor abre em 280/320 | tela branca, erro, ou carregando eterno |
 | 50 | O preview abre **frio** no aparelho (D18) | foto de celular que **nunca abriu o editor**, URL visível | 404, ou só funcionar depois de passar pela tela do projeto |
+| **50-A** | **O link abre sem barra de endereços** (4.3 / D31) | **Android**, preview instalado: tocar num link `/preview/<projectId>/<id>` vindo de outro app → **sem barra** | abrir no navegador com a barra. _É o pedido literal da frente 4.3, e é onde se descobre que o `scope` ficou errado_ |
+| **50-B** | **O ícone da tela inicial não dá em beco** | abrir pelo ícone (`start_url`, sem ids) → a tela curta, com caminho para os projetos | 404, tela branca, ou o editor inteiro |
+| **50-C** | **O `scope` não capturou o editor junto** | link do **editor** (`/contents/...`) no mesmo aparelho → abre no navegador, normal | abrir dentro do app de preview. _`scope` grande demais: o dev perderia a barra de endereços justamente onde precisa dela_ |
+| **50-D** | **A fronteira de plataforma declarada é a real** (D31) | **iPhone**, par: pelo **link** → **com** barra; pelo **ícone** → standalone | as duas fotos do iPhone forem **iguais**. _Não reprova o iOS — reprova a **D31**, porque aí a limitação que o plano declarou não é a que existe_ |
 | 51 | O preview **não perde o resolver** (D6 / I1) | na mesma foto, a `image` sem ACAO **carregada** | caixa "falhou" — é a regressão exata do item 39 |
-| 52 | O preview mostra o **último salvo** (D4) | par: editar sem salvar → pílula → **não muda**; salvar → pílula → **muda** | o primeiro par mudar |
+| 52 | O preview mostra o **último salvo** (D4) | par: editar sem salvar → **puxar** → **não muda**; salvar → puxar → **muda**; e a pílula diz **"Último salvo"** nas duas fotos | o primeiro par mudar, **ou** a pílula não dizer "Último salvo". _O aceite 12 da F2 exigia essa palavra e o código mergeado escreve `Verificado às` — passou sem ser conferido (D30)_ |
+| **52-A** | **Conteúdo curto puxa** (4.1) | um conteúdo de **um `text`**, que não enche a tela: puxar → **indicador visível** | o gesto não pegar. _É o modo de falha silenciosa desta fase: com a física padrão o `SingleChildScrollView` tem extensão zero e o gesto **simplesmente não existe**, sem erro nenhum_ |
+| **52-B** | **Conteúdo longo rola e puxa, e não os dois ao mesmo tempo** | par: no **topo**, puxar → indicador; **rolado até o meio**, puxar → **rola**, sem indicador | os dois prints forem iguais. _`RefreshIndicator` sequestrando a rolagem deixa o fim do conteúdo inalcançável_ |
+| **52-C** | **O gesto de fato buscou** (D30) | puxar sem mudar nada: conteúdo igual, **horário do carimbo muda** | o carimbo não mudar. _É o caso do meio da tabela da D30: sem o carimbo, "puxei e nada mudou" e "puxei e falhou" são o mesmo print_ |
+| **52-D** | **A falha é visualmente distinta e não custa o conteúdo** (D30) | **modo avião**, puxar: conteúdo **na tela**, banner de falha **aparece**, carimbo **não muda** | o conteúdo sumir, a tela virar erro, **ou** o carimbo avançar com a rede caída. _Carimbo que avança sem ter buscado é o gesto mentindo, e é indistinguível de sucesso_ |
 | 53 | Tela cheia tem saída visível | print do modo ligado **com o controle de sair** | nenhum controle visível |
 | 54 | Tela cheia **não esconde erro** (P2) | par: com erro → rodapé fica; sem erro → some | o rodapé sumir com erro. _Reintroduziria o sintoma que o item 38 corrigiu_ |
 | 55 | O atalho, se houver, **chega ao app** (D16) | print do modo ligado logo após teclar, **no Chrome real** | o navegador capturar. _Lição do `Ctrl+Shift+W`: o `SingleActivator` no mapa não prova nada_ |
 
-**Os itens 28, 34-F, 35-A, 35-C, 42, 51 e 54 são a cancela.** O **34-F** entrou porque um
+**Os itens 28, 34-F, 35-A, 35-C, 36-C, 42, 51, 52-D e 54 são a cancela.** O **36-C** entrou
+porque é a única linha que separa "desenhei uma status bar" de "o `SafeArea` passou a ter
+causa visível" — que é a **promessa** da frente 5.1; sem ele, 5.1 entrega pixels e não
+entrega o argumento pedagógico que a justificou. O **52-D** entrou porque um gesto que
+carimba a hora sem ter buscado é **indistinguível de sucesso** no celular, e num aparelho
+offline o dev não tem console para descobrir. O **34-F** entrou porque um
 widget que some é o único defeito desta lista que **passa em todas as outras verificações**
 — e um item que a régua antiga não enxergava é exatamente o que uma cancela existe para
 pegar. Se o texto ainda desce letra por
@@ -2050,6 +2731,7 @@ silêncio, ou se a tela cheia esconde erro — nada mais no DoD importa.
 | 60 | Docs vivas: `final_report.md` ao fechar; `variance_report.md` no primeiro desvio (`VR-17-01`) | os arquivos existem |
 | 61 | `docs/roadmap.md` — o item **41** entra no Marco 4 e vira `[x]`; o débito do R3 entra na tabela de débitos vivos | as linhas marcadas |
 | 62 | `docs/plans/README.md` atualizado com a doc viva do 41 | o índice |
+| 63 | **As tags `(DoD NN)` dos passos 1 a 18 da §10 varridas contra a §11.4** | cada tag aponta para a linha que descreve aquele passo. _Existe porque elas estão deslocadas hoje (aviso no topo da §10): o roteiro é o mapa que o humano segue com o aparelho na mão, e um mapa com legenda trocada gasta a atenção mais cara do time_ |
 
 ---
 
@@ -2085,3 +2767,20 @@ silêncio, ou se a tela cheia esconde erro — nada mais no DoD importa.
 - **Analytics** — os cinco eventos do PRD não entram: **não existe pipeline de analytics no
   editor hoje**. Registrado para quando existir; o `editor_viewport_width_bucket` é o que
   diria em que larguras o editor é realmente usado.
+- **O ícone do preview lembrar o último conteúdo aberto** — `start_url` é estática e a URL
+  de preview tem `:projectId/:id`; lembrar exigiria persistência e uma pilha de repositório
+  por conforto. A **D31** fecha na tela curta. Quando houver razão, o dono natural é a
+  mesma pilha da F6.
+- **Fazer o link de preview abrir limpo no iPhone** — Safari não captura links para app
+  instalado, e isso é do sistema, não do manifest (D31). O que existe hoje é abrir pelo
+  ícone. Nada a fazer no nosso lado.
+- **Relógio real (em vez de `9:41`) no mock** — custa tirar a faixa do topo do recorte do
+  golden, senão ele quebra a cada minuto (D29). Veto barato do humano, mas é veto.
+- **As frentes do `feedback_rodada_01.md` que ficaram de fora desta revisão** — **4.2** (a
+  barra de navegação; pendente de o dev confirmar se é a barra de gestos do Android ou
+  chrome nosso, e o **R14** dá a hipótese medível), **5.3** (árvore como alvo de arraste;
+  discovery obrigatório, e é o que destrava o **1.2**), **1.2** (a paleta sumir de vez;
+  reabre a A3 e depende do 5.3), **2.1/2.2** (persistência e colapso total do Inspector;
+  encaixam na F5/F6) e **3** (travar proporção; discovery próprio pelas três perguntas da
+  §3 do feedback). **Nenhuma virou tarefa** — e o **17-A** foi escrito para que a decisão do
+  5.3 não o mate por acidente (R13).

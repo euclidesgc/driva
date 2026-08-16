@@ -22,6 +22,7 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="driva_editor">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -31,6 +32,22 @@
 
   <title>driva_editor</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    if (location.pathname.startsWith('/preview')) {
+      document
+        .querySelector('link[rel="manifest"]')
+        .setAttribute('href', 'preview_manifest.json');
+    }
+  </script>
+
+  <style>
+    /* Sem isto, puxar no Chrome Android dispara dois refreshes: o
+       RefreshIndicator do Flutter (F2b, item 41) e o reload nativo da aba,
+       que derruba o app e refaz a carga do zero. */
+    html, body {
+      overscroll-behavior-y: contain;
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

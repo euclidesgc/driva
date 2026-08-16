@@ -28,4 +28,21 @@ class PreviewCubit extends Cubit<PreviewState> {
       ),
     );
   }
+
+  /// Não reusa [load]: emitir `PreviewLoading` apagaria o conteúdo em tela
+  /// enquanto busca de novo, o que a D30 proíbe. Falha reemite o
+  /// [PreviewReady] anterior com o sinal de erro à parte, sem tocar no
+  /// carimbo.
+  Future<void> refresh() async {
+    final current = state;
+    if (current is! PreviewReady) return;
+    final result = await loadContentUseCase(contentId);
+    if (isClosed) return;
+    emit(
+      result.fold(
+        (failure) => current.copyWith(refreshFailure: failure),
+        (spec) => PreviewReady(spec: spec, fetchedAt: DateTime.now()),
+      ),
+    );
+  }
 }
