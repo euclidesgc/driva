@@ -144,6 +144,38 @@ void main() {
   );
 
   testWidgets(
+    'tocar o botão de recolher no cabeçalho do painel esquerdo chama '
+    'collapseLeftPanel',
+    (tester) async {
+      enlarge(tester);
+      await tester.pumpWidget(harness());
+      await tester.pump();
+      expect(layoutController.value.leftPanelCollapsed, isFalse);
+
+      await tester.tap(find.byTooltip('Recolher painel'));
+      await tester.pump();
+
+      expect(layoutController.value.leftPanelCollapsed, isTrue);
+    },
+  );
+
+  testWidgets(
+    'tocar o botão de recolher no cabeçalho do Inspector chama '
+    'collapseRightPanel',
+    (tester) async {
+      enlarge(tester);
+      await tester.pumpWidget(harness());
+      await tester.pump();
+      expect(layoutController.value.rightPanelCollapsed, isFalse);
+
+      await tester.tap(find.byTooltip('Recolher Inspector'));
+      await tester.pump();
+
+      expect(layoutController.value.rightPanelCollapsed, isTrue);
+    },
+  );
+
+  testWidgets(
     'o colapso da paleta (F4b) sobrevive ao colapso do painel em faixa '
     '(aceite 26-A)',
     (tester) async {

@@ -4,6 +4,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/edit
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/panel_collapse_button.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:flutter/material.dart';
@@ -62,11 +63,22 @@ class _LeftPanelState extends State<LeftPanel>
       color: colors.panel,
       child: Column(
         children: [
-          TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Widgets', height: 40),
-              Tab(text: 'Árvore', height: 40),
+          Row(
+            children: [
+              Expanded(
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'Widgets', height: 40),
+                    Tab(text: 'Árvore', height: 40),
+                  ],
+                ),
+              ),
+              PanelCollapseButton(
+                icon: Icons.chevron_left,
+                label: 'Recolher painel',
+                onCollapse: _layoutController.collapseLeftPanel,
+              ),
             ],
           ),
           Expanded(

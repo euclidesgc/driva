@@ -3,8 +3,10 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/panel_collapse_button.dart';
 import 'package:flutter/material.dart';
 
 class InspectorHeader extends StatelessWidget {
@@ -32,6 +34,7 @@ class InspectorHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
+    final layoutController = EditorLayoutScope.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s12),
       decoration: BoxDecoration(
@@ -71,6 +74,11 @@ class InspectorHeader extends StatelessWidget {
               icon: const Icon(Icons.delete_outline),
               onPressed: onRemove,
             ),
+          PanelCollapseButton(
+            icon: Icons.chevron_right,
+            label: 'Recolher Inspector',
+            onCollapse: layoutController?.collapseRightPanel,
+          ),
         ],
       ),
     );
