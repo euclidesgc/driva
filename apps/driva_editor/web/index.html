@@ -18,25 +18,32 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Driva Builder — monte as telas do seu aplicativo no navegador e veja o resultado no celular.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="driva_editor">
+  <meta name="apple-mobile-web-app-title" content="Driva Builder">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>driva_editor</title>
+  <title>Driva Builder</title>
   <link rel="manifest" href="manifest.json">
   <script>
     if (location.pathname.startsWith('/preview')) {
       document
         .querySelector('link[rel="manifest"]')
         .setAttribute('href', 'preview_manifest.json');
+      /* O iOS ignora o manifest ao adicionar à tela inicial e usa estes dois.
+         Sem trocá-los, o preview instalado no iPhone se chamaria como o app
+         inteiro, e os dois ícones ficariam indistinguíveis lado a lado. */
+      document.title = 'Driva Preview';
+      document
+        .querySelector('meta[name="apple-mobile-web-app-title"]')
+        .setAttribute('content', 'Driva Preview');
     }
   </script>
 
