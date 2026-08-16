@@ -5,9 +5,13 @@ import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class AppWordmark extends StatelessWidget {
-  const AppWordmark({super.key, this.onTap});
+  const AppWordmark({super.key, this.onTap, this.compact = false});
 
   final VoidCallback? onTap;
+
+  /// Faixa estreita da top bar (D35): devolve os ~90px de " Builder" sem
+  /// perder a marca — "Driva" sozinho continua legível.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -28,19 +32,23 @@ class AppWordmark extends StatelessWidget {
             text: 'Driva',
             style: TextStyle(color: AppTheme.primary),
           ),
-          TextSpan(
-            text: ' Builder',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          ),
+          if (!compact)
+            TextSpan(
+              text: ' Builder',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
         ],
       ),
     );
 
     if (onTap == null) return label;
 
+    final semanticLabel = compact
+        ? 'Driva, ir para a home'
+        : 'Driva Builder, ir para a home';
     return Semantics(
       button: true,
-      label: 'Driva Builder, ir para a home',
+      label: semanticLabel,
       child: Tooltip(
         message: 'Ir para a home',
         child: InkWell(
