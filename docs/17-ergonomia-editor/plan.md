@@ -1270,6 +1270,35 @@ sozinho, sem precisar do contraste.
 em que chega**, antes de qualquer PR que a torne irreproduzível. Uma foto no aplicativo de
 mensagens não é evidência arquivada.
 
+### D34 — **[nova, humano, 2026-08-16]** A pílula se apaga sozinha — e o que a traz de volta é o **sucesso**, não o gesto
+
+A F2b subiu e o dev viu a pílula no Chrome do desktop: *"não pedi pra remover isso?"*. O
+pedido 4.1 era o **botão**, e a D30 tinha guardado a **frase** de propósito — ela é o único
+sinal do caso do meio (puxou, buscou, não havia mudança). O incômodo, porém, é real: a
+frase fica permanente sobre um preview que existe para ser olhado.
+
+**Decisão do humano:** a pílula aparece, fica legível por `AppDurations.transientNotice` e
+desvanece. Volta a cada busca **bem-sucedida**.
+
+**O que faz a decisão ser segura é ela reagir a `fetchedAt`, não ao gesto.** O timer
+reinicia no `didUpdateWidget` quando o carimbo muda — e pela D30 o carimbo **não** muda
+quando o `refresh()` falha. A falha, portanto, não traz a pílula de volta: quem puxa sem
+rede vê o banner de erro e **nenhuma** pílula, e quem puxa com sucesso vê a pílula com a
+hora nova. Os dois prints continuam diferentes, que é o que a D30 protegia. Se o gatilho
+fosse "puxou", os dois voltariam a ser o mesmo print e a D30 estaria desfeita.
+
+**Consequência que veio junto, e não é opcional.** Com o botão fora (D30) e a pílula
+transitória, no **Chrome do desktop** não sobrava nada: o `MaterialScrollBehavior` não põe
+o mouse em `dragDevices`, então o `RefreshIndicator` **nunca** responde a arraste de mouse
+— o gesto que substituiu o botão não existe no PC, e a única saída era recarregar a página.
+Nasce a `PreviewScrollBehavior`, que soma `PointerDeviceKind.mouse` aos `dragDevices` só na
+árvore do preview. _Não é escopo novo: é o que faz a promessa da F2b valer no aparelho em
+que o dev estava quando reclamou._
+
+**A pílula também deixa de interceptar ponteiro** (`IgnorePointer`). Ela é rótulo desde a
+D30, e um `Material` opaco no rodapé do `Stack` engolia o arraste que começasse ali —
+justamente a borda de onde se puxa numa tela pequena.
+
 ---
 
 ## 5. Fases

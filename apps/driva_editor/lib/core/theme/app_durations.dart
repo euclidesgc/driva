@@ -10,4 +10,9 @@ abstract final class AppDurations {
   static const Duration normal = Duration(milliseconds: 300);
 
   static const Duration slow = Duration(milliseconds: 400);
+
+  /// Quanto um aviso que se apaga sozinho fica legível antes de sair. Longo o
+  /// bastante para ser lido sem pressa por quem só olhou de relance para a
+  /// tela do celular depois de puxar.
+  static const Duration transientNotice = Duration(seconds: 4);
 }
