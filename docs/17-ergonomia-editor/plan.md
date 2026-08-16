@@ -57,6 +57,18 @@ aceite do próprio DoD que era **improvável em homologação** (§4›D22, §8�
 `projectId`). A **cerca 2 da D5** foi desambiguada — ela tinha virado contraditória no
 instante em que a F1b nasceu (§4›D5).
 
+**O que mudou na 3ª revisão** (rodada 4 do QA): a **D27** separa os dois limiares da tela
+de conteúdos (600 = "é telefone?", 795 = "este cabeçalho cabe?") e devolve a gaveta ao
+600 — a tarefa 6 tinha uma frase ambígua minha, e a implementação moveu a gaveta junto com
+o cabeçalho. O **caso 7** entrou na §11.0 com forma inédita: aceite que **não errou,
+envelheceu**. O §10 devolveu a geometria à máquina e ficou com o humano só o que exige
+hardware.
+
+> ⚠️ **Este `plan.md` não está em branch nenhum.** A versão viva (D20–D27, tarefas 6–11)
+> está **não commitada** na árvore principal; o worktree da F1 carrega uma versão anterior.
+> **Não copie este arquivo para o worktree** — o coordenador o leva no PR. Quem editar o
+> plano edita **este** caminho.
+
 **Por que a F1b não renumera as fases.** A **F2 já mergeou como PR #135** e é referida
 pelo número em histórico de PR e em conversa; a F1 está em execução. Renumerar pela
 segunda vez no mesmo dia reescreveria a história de trabalho em voo por ganho cosmético.
@@ -236,11 +248,58 @@ então o dev chega lá com um toque. Não é caso de borda: é o outro dos dois 
 exibição da tela, e a `ContentRow` precisa do mesmo tratamento que o cartão — nome em
 `Flexible` com `maxLines` e `ellipsis`.
 
-**O que já se comporta bem** (não mexer): as grades usam
-`SliverGridDelegateWithMaxCrossAxisExtent` (`300` na lista de conteúdos, `340` na home de
-projetos), que **já adapta a contagem de colunas** sozinha. O risco remanescente não é a
-grade — é o **conteúdo do cartão** a 91 px de largura, com `mainAxisExtent: 182` fixo.
-Verificar, não presumir (tarefa 5 da F1).
+**Causa C′ — o `ContentFormDialog` estoura 216 px, e estoura até a 1440.**
+`DropdownButtonFormField` de categoria com nome longo, dentro de um dialog fixo em 380:
+falta `isExpanded: true`. **Não é defeito de celular** — é largura-independente, quebra em
+qualquer tela. **Pré-existente**, não é regressão da F1. Fica aqui mesmo assim: é o
+**mesmo arquivo** que a Causa C abre, é uma propriedade, e o passo 5 do E2E desta fase
+abre justamente esse diálogo — deixá-lo de fora seria mergear uma fase cujo próprio
+roteiro a reprova.
+
+**Causa E — a Grade nunca esteve limpa, e a verificação anterior errou por método.**
+A tarefa 5 da F1 concluiu "Grade adapta, nada a fazer". **Medido depois, está errado:**
+
+| Tela | 370 | 375 | 380 |
+| --- | --- | --- | --- |
+| Estouro do tile | **7,0 px** | **4,5** | **2,0** |
+
+**375 é iPhone SE e iPhone 8.** É onde o
+`SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 300)` passa de **1 para 2
+colunas** e o tile despenca para ~153 px. **Alargar a tela piora o defeito** — e é por
+isso que a verificação passou: ela olhou 360 e 412, e o buraco está entre os dois. Ver
+**D25›segundo achado**: a varredura precisa dos **pontos de transição**, não só das bordas.
+
+**Causa F — a Lista ainda estoura de 394 a 460**, mesmo depois da primeira correção:
+
+| Tela | 394 | 412 | 430 | 460 |
+| --- | --- | --- | --- | --- |
+| Estouro | **19 px** | **14** | **9,6** | **2,1** |
+
+Pega **Pixel (412)** e **Pro Max (430)** — dois dos aparelhos mais comuns. O aceite `6-B`
+**ainda não está cumprido**.
+
+**Causa G — o `SlugBadge` some em silêncio de 320 a ~392.** Precisa de ~39 px de chrome
+interno e recebe menos; abaixo disso **não trunca, desaparece** — sem faixa e sem erro
+(o mecanismo está na **D25**). É a causa que nenhuma ferramenta do projeto detectava.
+
+> **O número não fecha, e a divergência é o achado.** O plano mediu **39**
+> (`s10×2 + ícone 14 + s5`); a primeira implementação entregou **`_minWidth = 28`**,
+> privado. **Não decido aqui qual é o certo — decido que o número pare de ser digitado.**
+> `minimumWidth` vira **público e derivado dos tokens do próprio `build`** do widget; o
+> valor que a expressão produzir é a verdade, nos dois lugares, e o plano **para de
+> carregar o literal** (DoD 10d, 10e).
+>
+> **Por que a derivação não fechava sozinha:** o `14` do ícone **não é token**.
+> `AppIconSizes` só tem `s18`. Ou seja, a divergência 28 × 39 não é erro de conta — é
+> **sintoma de chrome não tokenizado** (Gate 4). Derivar o mínimo **força** a
+> tokenização, e é por isso que "derivado" é requisito e não preferência: um mínimo
+> derivado de tokens não pode divergir do widget; um mínimo digitado diverge no primeiro
+> `s10` que alguém trocar por `s8`.
+
+**O que de fato se comporta bem** (não mexer): a contagem de colunas do delegate, que
+adapta sozinha. **O que quebra é o conteúdo do tile depois que ele estreita** — que era a
+hipótese original da tarefa 5, e continua sendo a certa; o que faltou foi medir na largura
+em que o tile é mais estreito, que **não** é a tela mais estreita.
 
 ### 2.2 O editor no celular: o canvas não encolhe — ele **desaparece**
 
@@ -748,6 +807,12 @@ release o conteúdo simplesmente vaza ou é cortado, **em silêncio**. Ou seja: 
 localhost"** (item 9g) — porque o que ela mede **só existe em debug**. Ela é passo próprio
 no roteiro (§10›19), marcada como tal, e **não substitui** a camada do sintoma.
 
+> ⚠️ **Necessária, mas insuficiente — ver D25.** As três camadas acima foram construídas
+> sobre **um único sinal**: o report de overflow do `RenderFlex`. A D22 perguntou *onde*
+> esse sinal é visível. Não perguntou *se ele é emitido*. Existe uma classe de defeito —
+> o widget que **colapsa a zero e some** — em que **as três camadas ficam cegas ao mesmo
+> tempo**. A D25 corrige a régua.
+
 ### D23 — **[nova, humano, 2026-08-16]** Abaixo de `compact`, o editor **cede o lugar** — não se adapta
 
 Diante da segunda foto (§2.0, §2.2), o humano decidiu: o editor **não** vira mobile —
@@ -801,6 +866,134 @@ O caminho real — lista → tocar num conteúdo → portão — tem o `ProjectS
 **esse** o caminho que o aceite percorre (item 35-C do DoD). Um aceite que testasse o deep
 link frio estaria medindo o item 26, não esta fase.
 
+### D25 — **[nova, 2026-08-16]** "Sem faixa amarela" **não é** critério de ausência de overflow. A régua é **geometria medida**
+
+Achado do QA na rodada 2 da F1, e ele **derruba a premissa da D22**, escrita no dia
+anterior.
+
+**O mecanismo — sem ele a regra vira superstição.** `RenderFlex.paint`, no Flutter:
+
+```dart
+if (!_hasOverflow) { defaultPaint(context, offset); return; }
+if (size.isEmpty) { return; }            // ←  a saída antecipada
+assert(() { paintOverflowIndicator(...); return true; }());
+```
+
+A **mensagem** de overflow (`A RenderFlex overflowed by N pixels`) é emitida por
+`paintOverflowIndicator`, que é chamado **de dentro do `paint`**. Um `RenderFlex` que
+colapsa para tamanho zero cai no `return` da segunda linha: **não pinta a faixa e não
+emite o erro.**
+
+**A consequência é pior do que "a D22 tinha um furo": as três camadas da D22 ficam cegas
+ao mesmo tempo**, porque as três se apoiavam no mesmo sinal:
+
+| Camada da D22 | O que ela via | Neste defeito |
+| --- | --- | --- |
+| Sintoma (release) | nada cortado na borda | **cego** — não há nada cortado; há algo **ausente** |
+| Indicador (debug local) | a faixa listrada | **cego** — o `paint` retorna antes de desenhá-la |
+| Máquina (`FlutterError.onError`) | o erro de overflow | **cego** — o erro nunca é emitido |
+
+A D22 perguntou **onde** o sinal é visível. Não perguntou **se ele é emitido**. Era a
+pergunta certa pela metade.
+
+**O caso medido.** O `SlugBadge` precisa de **39 px** só de chrome interno
+(`padding 20 + ícone 14 + vão 5`). Abaixo disso ele **não trunca: ele some** — e em
+silêncio. Largura renderizada:
+
+| Tela | 320 | 360 | 375 | 412 | 480 | 700 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Badge | **3,9 px** | **13,9** | **17,6** | **26,9** | 43,9 | 91 (intrínseco) |
+
+**De 320 a ~392 o badge está na árvore, ocupa espaço e não mostra nada.** A faixa inteira
+vinha sendo dada como limpa.
+
+> **Por que isto é pior que overflow, e não apenas diferente:** overflow é feio e chama
+> atenção. **Um widget que some não deixa buraco — deixa a tela parecendo correta.** Passa
+> na revisão visual, passa na faixa listrada, passa no `FlutterError`. É o defeito perfeito:
+> invisível para todas as ferramentas que temos, inclusive para o olho.
+
+**A régua nova: o widget cabe no seu mínimo?** Em três níveis, e o do meio é o que pega:
+
+1. **O widget declara o mínimo.** Todo widget com chrome interno fixo (padding + ícone +
+   vão) expõe o próprio `minimumWidth`, derivado dos tokens — não um número solto no teste.
+2. **O teste mede a geometria renderizada.** `tester.getSize(find.byType(X)).width >=
+   X.minimumWidth`, nas larguras de borda. **É esta a camada que enxerga.**
+3. **O E2E observa presença, não ausência de banner.** O aceite é "**o elemento aparece no
+   print**", nunca "não apareceu faixa".
+
+**Escopo, para a regra não virar infinita.** Precisam declarar mínimo e ser medidos os
+widgets com **chrome interno fixo que podem ser espremidos**: badges, chips, pílulas,
+botões com ícone + texto, linhas com ícone + rótulo. **Não** todo widget da árvore.
+
+**Segundo achado de método, no mesmo pacote: o pior caso não é a tela mais estreita.**
+A Grade prova. `SliverGridDelegateWithMaxCrossAxisExtent(300)` vira de 1 para 2 colunas
+por volta de 375, e o tile **encolhe para ~153 px ao a tela alargar**:
+
+| Tela | 370 | 375 | 380 |
+| --- | --- | --- | --- |
+| Estouro do tile | **7,0 px** | **4,5** | **2,0** |
+
+**375 é iPhone SE e iPhone 8.** Alargar de 370 para 375 **piora** o defeito — o número não
+é monotônico na largura. Uma varredura que testasse só 360 e 412 passaria por cima dele,
+que é exatamente o que aconteceu quando a Grade foi dada como limpa (§2.1).
+
+**Regra derivada:** a varredura de larguras inclui **os pontos de transição** (onde uma
+grade muda de contagem de colunas, onde um `Wrap` muda de linha), não só o mínimo e o
+máximo. Ponto de transição se **calcula** a partir do delegate, não se adivinha.
+
+### D26 — **[nova, 2026-08-16]** `AppBreakpoints` só contém faixa que alguém consulta
+
+`AppBreakpoints.expanded = 1024` **nasceu morto**: ninguém o lê. A F3 tampouco vai lê-lo —
+o trabalho dela é mecânico (`Flexible` nos crumbs, piso do split view, escala calculada) e
+o único limiar que ela cria é o `topBarActionsFitWidth`, que **não é faixa** (D5›corolário).
+
+**Decisão: `expanded` sai do código.** O número 1024 continua registrado **aqui, na D5**,
+onde não apodrece e não vira dead code — e o item 30, quando precisar dele, o lê daqui com
+a cerca da D5 valendo (mesmos números, sem importar o enum do kernel).
+
+**O princípio é o mesmo que manteve o 795 fora**, e vale enunciá-lo uma vez para os dois
+casos: **`AppBreakpoints` não é um catálogo de números redondos.** Entra faixa que governa
+comportamento e que alguém consulta. `795` ficou de fora por não ser faixa; `1024` sai por
+não ter consumidor. Constante sem leitor é documentação disfarçada de código — e
+documentação disfarçada de código é a que ninguém atualiza.
+
+### D27 — **[nova, 2026-08-17]** São **dois** limiares na tela de conteúdos, e cada um responde a uma pergunta diferente
+
+O QA achou que a tela ficou com dois números vivos: **600** governando só a data
+(`content_row_body.dart:39`) e **795** governando gaveta **e** cabeçalho
+(`project_detail_page.dart:116`). Dois limiares sem explicação viram mistério em duas
+semanas, então esta decisão os separa e diz o que cada um significa.
+
+**Primeiro, o que aconteceu.** A tarefa 6 da F1 dizia que o cabeçalho ganha limiar próprio
+e *"substitui o gatilho `compact` da tarefa 3"* — **tarefa 3 era o cabeçalho; tarefa 2 era
+a gaveta.** A implementação leu a frase de forma mais larga e moveu **a gaveta também**
+para 795. **A ambiguidade é minha**, e o aceite 6 pegou o desvio — que é o sistema
+funcionando, não o aceite falhando.
+
+**Decisão: a gaveta volta para `AppBreakpoints.compact` (600); o cabeçalho fica com
+`AppSizes.contentPanelWideHeaderFitWidth` (795).** Não por simetria com o texto antigo —
+porque são perguntas distintas, e fundi-las apaga a distinção que a D5 existe para
+proteger:
+
+| | `AppBreakpoints.compact` = **600** | `AppSizes.*FitWidth` = **795** |
+| --- | --- | --- |
+| A pergunta que responde | **"isto é um telefone?"** | **"este widget cabe?"** |
+| Natureza | decisão de **produto**, por faixa | **geometria**, medida no próprio conteúdo |
+| Governa | o que a tela **escolhe mostrar**: barra lateral vira gaveta (D21), `UpdatedAt` some (`content_row_body.dart`) | como um widget **se arranja**: o cabeçalho empilha |
+| De onde vem o número | Material 3, alinhado ao item 30 (D5) | medição: a 794 faltam 0,66 px |
+| Quem mais pode consultar | qualquer tela de navegação | **só** o widget que o mediu |
+
+**Por que a gaveta não deve seguir o 795.** 795 não é largura de telefone — é janela de
+desktop pequena ou tablet deitado. A 700 com barra lateral o painel de conteúdos ainda
+recebe 427 px, que é uma tela de duas colunas perfeitamente usável **desde que o cabeçalho
+empilhe** — e ele empilha, pelo próprio limiar. Mandar a gaveta para 795 tira a barra
+lateral de larguras em que ela cabe bem, e estica a decisão do humano (D20/D21: *"em faixa
+`compact`"*, isto é, celular) para um território que ele não decidiu.
+
+**O teste para saber em qual dos dois um número novo entra:** *se eu trocar a fonte ou o
+ícone deste widget, o número muda?* Se muda, é `AppSizes` e pertence ao widget. Se não
+muda, é faixa, e aí a pergunta seguinte é se **o produto** decidiu algo para aquela faixa.
+
 ---
 
 ## 5. Fases
@@ -844,12 +1037,28 @@ deixa o texto vertical de pé (§2.1, o alerta em destaque).
    a 360 e 412. As grades usam `maxCrossAxisExtent` e **já adaptam a contagem de
    colunas**; o risco é o **conteúdo do cartão** numa coluna estreita, com `mainAxisExtent:
    182` fixo. Corrigir o que quebrar; se nada quebrar, registrar que foi verificado.
-6. **[paralela: não — dep. 3]** **Causa B′:** o cabeçalho ganha `LayoutBuilder` próprio e
-   `AppSizes.contentPanelHeaderFitWidth`, e passa a empilhar **por não caber**, não por
-   faixa. Fecha a lacuna 600–794 e substitui o gatilho `compact` da tarefa 3.
-   **`AppBreakpoints` não ganha um terceiro número.**
+6. **[paralela: não — dep. 3]** **Causa B′:** **só o cabeçalho** ganha `LayoutBuilder`
+   próprio e `AppSizes.contentPanelWideHeaderFitWidth` (795), e passa a empilhar **por não
+   caber**, não por faixa. Fecha a lacuna 600–794.
+   **⚠️ O gatilho substituído é o da tarefa 3 (o cabeçalho) — a gaveta da tarefa 2 continua
+   em `AppBreakpoints.compact` (600).** A redação anterior desta tarefa dizia só
+   "substitui o gatilho `compact` da tarefa 3" e foi lida como valendo para a página
+   inteira; a gaveta acabou movida para 795. **São dois limiares de propósito, e a D27 diz
+   o que cada um significa.** `AppBreakpoints` não ganha número novo.
 7. **[paralela: sim]** **Causa D:** `ContentRow` (modo "Lista") — nome em `Flexible` com
    `maxLines: 1` + `ellipsis`, mesmo tratamento do cartão.
+8. **[paralela: sim]** **Causa C′:** `isExpanded: true` no `DropdownButtonFormField` de
+   categoria do `ContentFormDialog`. Uma propriedade; 216 px de estouro, **inclusive a
+   1440**.
+9. **[paralela: sim]** **Causa E:** o conteúdo do tile da Grade na transição de 1→2
+   colunas (~375). **Medir o ponto de transição a partir do delegate**, não chutar
+   larguras (D25).
+10. **[paralela: sim]** **Causa F:** fechar a faixa 394–460 do modo Lista, que a primeira
+    correção não pegou.
+11. **[paralela: não — atravessa 9 e 10]** **Causa G / D25:** `SlugBadge` (e os demais
+    widgets de chrome interno fixo) expõem `minimumWidth` derivado dos tokens, e a
+    geometria renderizada passa a ser **medida**, não inferida da ausência de faixa.
+    _Esta tarefa é a que muda a régua; as outras consertam casos._
 
 **Aceite (validável — escrito como o print que o prova):**
 
@@ -867,11 +1076,16 @@ deixa o texto vertical de pé (§2.1, o alerta em destaque).
    filtra. _Foto do campo com texto digitado._
 5. **Criar conteúdo cabe (Causa C):** o diálogo "Novo conteúdo" aberto no aparelho, com
    os dois botões de ação visíveis **sem rolagem horizontal**.
-6. **A fronteira da faixa (D5):** a 599 px de largura de janela, gaveta; a 601, **barra
-   lateral de volta E o cabeçalho empilhado, sem nada cortado**. _Dois prints. A segunda
-   metade não é detalhe: a 601 a barra lateral volta e o cabeçalho **ainda não cabe**
-   (Causa B′) — um aceite que só olhasse "voltou a barra lateral" passaria com a tela
-   estourada._
+6. **Os dois limiares, cada um no seu lugar (D27) — três larguras, não duas:**
+   - **599** → **gaveta** (`AppBreakpoints.compact`), cabeçalho empilhado;
+   - **601** → **barra lateral de volta**, cabeçalho **ainda empilhado** (795 não foi
+     alcançado);
+   - **795** → barra lateral **e** cabeçalho em linha única.
+
+   _Três prints. É a terna que prova que os limiares são **dois e independentes**: se um
+   número só governasse tudo, o print de 601 seria idêntico ao de 599 (foi o desvio que a
+   rodada 4 pegou) ou ao de 795. A segunda metade de cada linha — o estado do cabeçalho —
+   é o que separa este aceite de um que passaria com a tela estourada._
 6-A. **A lacuna 600–794 fechada (Causa B′):** prints a **600**, **700** e **794** —
    nas três, o cabeçalho **empilhado**, título em uma linha, busca legível, **nada
    cortado na borda direita**. _Hoje faltam 195 px a 600 e 0,66 px a 794. O print a 794 é
@@ -881,10 +1095,22 @@ deixa o texto vertical de pé (§2.1, o alerta em destaque).
    nada cortado. _Hoje: 610 px de estouro a 360 — o pior número da tela, a um toque do
    caminho feliz. Se o E2E só percorrer o modo Grade, não prova nada sobre metade da
    tela._
-6-C. **`AppBreakpoints` não ganhou um terceiro número** — prova de máquina: o arquivo
-   define **`compact` e `medium` e mais nada**. _A correção da Causa B′ tinha 795 como
-   candidato óbvio a virar faixa; ele mora em `AppSizes`, porque não é faixa de nada
-   (D5›corolário)._
+6-C. **`AppBreakpoints` só tem faixa com consumidor (D26)** — prova de máquina: o
+   arquivo define **o limiar `compact` e nada mais**; `expanded = 1024` **saiu** por não
+   ter leitor, e `795` nunca entrou por não ser faixa. _Duas tentações opostas, um
+   princípio só._
+6-D. **A Grade cabe na transição de colunas (Causa E):** prints a **370, 375 e 380** —
+   nos três, o conteúdo do tile **inteiro**. _375 é iPhone SE e iPhone 8. Um aceite que só
+   olhasse 360 e 412 passaria: o pior caso está entre eles, porque alargar a tela
+   **encolhe** o tile (D25)._
+6-E. **A Lista cabe de 394 a 460 (Causa F):** prints a **394, 412 e 430**, nome longo
+   truncando. _Pixel e Pro Max. A primeira correção do modo Lista não pegou esta faixa._
+6-F. **O `SlugBadge` aparece, não some (Causa G / D25):** prints a **320, 360 e 375** com
+   o **badge legível**. _Aceite **positivo**: "o badge aparece". Não use "não houve faixa"
+   — neste defeito não há faixa nem quando ele existe (§11.0›caso 6)._
+6-G. **O diálogo de conteúdo cabe com categoria de nome longo (Causa C′):** print a
+   **1440** e no aparelho, com o dropdown mostrando o nome **sem estourar**. _216 px de
+   estouro hoje, e **em qualquer largura** — não é defeito de celular._
 7. **O construtor não foi afetado** — prova de máquina, os dois greps da D5›cerca 2
    (DoD 10 e 10b).
 
@@ -1265,7 +1491,22 @@ físicos (F1 e F2), acima de tudo**. Roteiro na §10. Evidências em
 | **`EditorViewportGate`** (F1b) | a 360 e 412: **o `EditorWorkspace` não é construído** (`find.byType(EditorWorkspace)` → `findsNothing`) e o aviso aparece com os dois botões; a 601: o inverso. **É o teste que trava o retorno do canvas de largura zero.** _Aqui 601 é a largura **certa**: este teste mede o contrato do **portão** (sair acima de 600), não a visibilidade do canvas. Que o canvas ainda não apareça a 601 é defeito da F3, e é por isso que o aceite visual usa 1280 (§11.0›caso 5)._ |
 | **Rotas dos botões do portão** | "Ver conteúdo" navega para `previewNamed` com o `projectId` **e** o `contentId` corretos; "Voltar aos conteúdos" para `projectDetailNamed` |
 | **Regressão de overflow** | widget test com `tester.view.physicalSize` em **360, 412, 560, 599, 600, 601, 612, 700, 794, 795, 1024, 1280, 1440**, capturando `FlutterError.onError` — **zero** overflow, **nas duas telas** (projeto e editor) **e nos dois modos de exibição** (Grade e Lista). _Roda em debug: é a única camada que enxerga o indicador (D22). `editor_perf_test.dart` já tem o helper `enlarge(tester)` como precedente. As larguras 601, 794 e 795 estão na lista porque foram **medidas**, não estimadas — são as bordas exatas dos defeitos que o QA achou._ |
-| Diálogos | a 360: largura do diálogo ≤ largura da tela |
+| **Geometria (D25) — a rede que não existe hoje** | para cada widget de chrome interno fixo (`SlugBadge` à frente): `tester.getSize(...).width >= X.minimumWidth` nas **11 larguras de borda**. **Árvore nova a cada largura** — ver a nota abaixo, que quase enganou o QA |
+| **Golden em faixa compacta** | **os goldens existentes estão todos a 1200×900 com `isCompact: false` — só existe o layout largo.** Entram goldens a **375** e **412**: gaveta fechada, **gaveta aberta**, cabeçalho empilhado, modo **Lista** com nome longo |
+| **Ponto de transição como _função_, não constante** | a largura em que o delegate vira de _n_ para _n+1_ colunas é **calculada e testada** (`chrome + n×316 + 1`), não escrita à mão. _Constante mentiria no dia em que o `maxCrossAxisExtent` ou o `crossAxisSpacing` mudassem — e ninguém saberia_ |
+| Os quatro diálogos | **320, 360, 375, 412 e 1440**, com categoria de **45 caracteres** (Causa C′). _O 1440 está na lista porque este defeito **não é de celular**_ |
+| `DialogContentWidth` | clampa contra o `MediaQuery` — largura pedida nunca excede a tela |
+| `ContentPanelHeader` | empilha por `contentPanelWideHeaderFitWidth` (795), **não** por faixa (D27) |
+| `ContentRowBody` | esconde `UpdatedAt` em `compact` (600) — o outro consumidor de `AppBreakpoints` (D27) |
+| `ProjectDetailPage` | gaveta por `AppBreakpoints.compact` (600), **não** por 795 (D27) — o teste que trava o desvio da rodada 4 |
+
+> ⚠️ **Árvore nova por largura, e não é detalhe de estilo.** Reusar a mesma árvore entre
+> larguras **suprime o segundo relato do mesmo `RenderFlex`** — o framework não reporta
+> duas vezes o mesmo overflow do mesmo objeto. O QA quase foi enganado por isso: a
+> varredura passava porque o **relato** sumia, não porque o defeito sumisse. É a **mesma
+> família do caso 6** (§11.0): ausência de sinal lida como ausência de defeito. Cada
+> largura monta a árvore do zero.
+| Diálogos | a 360: largura do diálogo ≤ largura da tela; e `ContentFormDialog` com categoria de nome longo **a 1440** (Causa C′) |
 | `fitScaleFor` | 3 presets × viewports de 612, 700, 1024, 1280, 1440; e o caso que exige escala < 0.4 (D9) |
 | Breadcrumb | crumb longo em largura restrita → trunca, sem overflow |
 | `EditorLayoutModel` (zard) | válido · ausente · corrompido · largura fora dos limites |
@@ -1375,6 +1616,20 @@ o 24 não começou, o atrito é futuro.
 **R8 — Golden do `canvas_panel` quebra na F3.** Esperado. Regravar é legítimo; **regravar
 sem citar o diff visual na descrição do PR reprova**.
 
+**R12 — A F1 está sem rede, e não é figura de linguagem.** O QA confirmou: **nenhum**
+teste referencia `ProjectDetailPage`, `ContentRowBody`, `SlugBadge`, `AppSizes`,
+`AppBreakpoints`, `DrawerToggleButton`, `CategoryTreePanel` ou `ContentPanelHeader`.
+Consequências medidas: **tirar o `Flexible` do badge não quebra nada; mudar o 795 para
+qualquer valor não quebra nada.** Os 4 goldens estão a 1200×900 com `isCompact: false` —
+**nenhum cobre a gaveta**. Ou seja, tudo o que a F1 conserta pode ser desfeito no próximo
+PR sem um sinal vermelho.
+
+Isso **não** antecipa a bateria (a regra do cap. 22 continua: testes depois do E2E
+atestado). O que ele muda é o **conteúdo** da F9, que passa a ter três alvos obrigatórios
+— geometria (D25), golden em faixa compacta, e pontos de transição —, e o **peso** do item
+43 do DoD: enquanto a F9 não entrar, cada PR posterior é revisão manual sem rede, e quem
+revisar precisa saber disso.
+
 **R10 — O portão da F1b virar corredor.** Um limiar dentro do `editor_module` é
 precedente: o próximo que quiser "só um ajustezinho por largura" no construtor vai apontar
 para ele. Mitigado pelos **dois greps** da D5›cerca 2 — o (a) mantém uma porta só, o (b)
@@ -1436,6 +1691,13 @@ que é o incômodo concreto. **Veto fácil na revisão da F6.**
 permanente do item 9g. **Exceção única e declarada: o passo 19** (D22). O que está marcado
 **[olho]** ou **[mãos]** é do humano.
 
+> **A divisão do trabalho, decidida na rodada 4:** **[máquina]** cobre tudo que é
+> **geometria** — largura, presença, tamanho renderizado, ponto de transição. **[olho]** e
+> **[mãos]** cobrem o que exige julgamento ou hardware: legibilidade, gesto, teclado do
+> sistema, e a comparação com as fotos de campo. **Não peça print para provar largura** —
+> é a atenção mais cara do time gasta no que a máquina faz melhor, e ainda por cima
+> procurando o sinal errado (D25).
+
 > ⚠️ **Três avisos antes de abrir a rodada.**
 > 1. **O modo fake mascara a rodada inteira.** Com `USE_FAKE_DATA=true` a fábrica do
 >    resolver devolve `null` de propósito (D6) e os passos 12 e 17 ficam sem sentido.
@@ -1478,10 +1740,37 @@ permanente do item 9g. **Exceção única e declarada: o passo 19** (D22). O que
    **barra lateral de volta E o cabeçalho empilhado, nada cortado**. _Dois prints. A
    segunda metade é o que separa este aceite de um que passaria com a tela estourada._
    _(DoD 30, 34)_
-7-bis. **[olho]** Janela a **600**, **700** e **794**. **Esperado:** nas três, cabeçalho
-   empilhado, título em uma linha, busca legível, **nada cortado**. _Faltam 195 px a 600 e
-   0,66 px a 794 hoje. O print a 794 prova que o limite superior foi medido, não chutado._
-   _(DoD 34-A)_
+7-bis. **[máquina]** Os três limiares da D27, em janela real: **599 → gaveta**;
+   **601 → barra lateral, cabeçalho empilhado**; **795 → barra lateral e cabeçalho em
+   linha**. _É a terna que prova que os limiares são dois e independentes._ _(DoD 34)_
+7-ter. **[máquina]** **Varredura de geometria (D25) — medida, não fotografada.**
+   As 11 larguras de borda, **com árvore nova em cada uma**, verificando **presença e
+   tamanho**: `SlugBadge` acima do próprio `minimumWidth` (320–375 é onde ele some hoje);
+   tile da Grade no ponto de transição **calculado** (~370/375/380); modo Lista truncando
+   (394/412/430); os quatro diálogos, inclusive a **1440** com categoria de 45 caracteres.
+   _(DoD 34-A, 34-D, 34-E, 34-F, 34-G)_
+
+   > **Por que isto saiu do humano.** A versão anterior deste roteiro mandava o dev olhar
+   > **nove a dezenove larguras de janela** e procurar faixa amarela. Errado duas vezes:
+   > **largura é geometria, e geometria se mede** — pedir print para provar largura é
+   > gastar a atenção mais cara do time no que a máquina faz melhor; e **procurar faixa é
+   > procurar o sinal errado** nestes defeitos (D25). O humano continua sendo insubstituível
+   > no que segue — e **só** no que segue.
+
+**Bloco A3 — o que só o hardware prova.** Levantado pelo QA como exclusivo de aparelho
+físico: nenhum destes o CDP reproduz, e nenhum é sobre largura.
+
+7-h1. **[mãos]** **A foto de campo refeita**, no **mesmo Android da `rodada_00`**, mesma
+   tela, mesmo conteúdo. _É o par do item 28 do DoD. Emulador não serve: o "antes" é uma
+   foto, e comparar foto com screenshot compara duas coisas diferentes._
+7-h2. **[mãos]** **Gaveta com toque real** — abrir tocando no botão, fechar selecionando
+   uma categoria, e **abrir pelo _edge swipe_** da borda esquerda. _O edge swipe do
+   `Drawer` é gesto de plataforma; o CDP não o reproduz, e é como metade dos usuários de
+   Android abre gaveta._
+7-h3. **[mãos]** **Teclado virtual sobre o campo de busca:** tocar na busca e digitar com
+   o teclado do sistema aberto. **Esperado:** o campo continua visível e o resultado
+   também. _O teclado virtual muda o `viewInsets` de um jeito que nenhum teste de widget
+   e nenhum navegador de desktop reproduz — e é onde uma tela "que cabia" deixa de caber._
 
 **Bloco A2 — o editor degrada com dignidade (F1b) · o passeio termina aqui, não no
 Bloco A**
@@ -1549,13 +1838,21 @@ resultado seria um print que parece regressão da F1b e não é (§5›F1b›7-E
 
 **Bloco E — a camada do indicador (D22), e a única exceção ao "nunca localhost"**
 
-19. **[olho]** **Em build de debug local** (`flutter run -d chrome --target
+19. **[máquina]** **Em build de debug local** (`flutter run -d chrome --target
     apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`),
-    repetir as larguras de borda: **360, 412, 560, 599, 600, 612, 700, 1024, 1280, 1440**,
-    na tela de projeto **e** no editor. **Esperado: nenhuma faixa listrada em nenhuma
-    delas.** _Este passo roda em localhost **porque o indicador de overflow só existe em
-    debug** (D22). Ele **não substitui** os passos 1 a 12: aqueles provam que o usuário não
-    vê o defeito; este prova que o defeito não está apenas escondido._
+    repetir as larguras de borda: **320, 360, 370, 375, 380, 394, 412, 430, 460, 560, 599,
+    600, 612, 700, 794, 795, 1024, 1280, 1440**, na tela de projeto **e** no editor.
+    **Esperado: nenhuma faixa listrada em nenhuma delas.** _Este passo roda em localhost
+    **porque o indicador de overflow só existe em debug** (D22). Ele **não substitui** os
+    passos 1 a 12: aqueles provam que o usuário não vê o defeito; este prova que o defeito
+    não está apenas escondido._
+
+    > ⚠️ **Este passo vale menos do que parecia, e é preciso saber quanto.** Ele **não
+    > detecta** widget que colapsa a zero e some: `RenderFlex.paint` retorna em
+    > `size.isEmpty` **antes** de desenhar a faixa (D25). Foi assim que a faixa 320–392
+    > passou por limpa com o `SlugBadge` invisível. **Quem cobre essa classe é o passo
+    > 7-ter (presença observada) e o DoD 10d (geometria medida).** O passo 19 continua
+    > útil para overflow *clássico* — o que corta e transborda —, e **só para isso**.
 
 ---
 
@@ -1577,6 +1874,8 @@ linha nova de aceite.
 | 3 | `width: 0` (item 39) | "a prop chega no widget" | "a imagem ocupa espaço na tela" | valor legítimo na API, invisível na tela |
 | 4 | Faixa listrada em release (este plano, D22) | "não há `RenderFlex overflow`" | "nada está cortado na borda" | o indicador é pintado dentro de `assert` — **em release não existe**, e o aceite passava sempre |
 | 5 | **601 px (este plano, F1b›7-E)** | "o portão dispara a 600, logo a 601 há construtor" | "o canvas aparece" | a 601 o `CenterArea` tem **largura zero**: o portão sai, e o defeito da foto volta |
+| 6 | **"Sem faixa amarela" (este plano, D22 → D25)** | "o `RenderFlex` não reportou overflow" | "**o elemento aparece na tela**" | `RenderFlex.paint` retorna em `size.isEmpty` **antes** de pintar o indicador: widget que colapsa a zero **some sem faixa e sem erro**. Derrubou as **três** camadas da D22 de uma vez |
+| 7 | **"a 601 há barra lateral" (este plano, F1›6 → D27)** | — _o aceite estava certo quando foi escrito_ | — _e continuou parecendo certo depois de deixar de ser_ | **forma nova**: uma decisão posterior moveu o limiar de 600 para 795 e **ninguém varreu os aceites que citavam 600**. O texto não errou; ele **envelheceu** |
 
 **A forma comum:** o aceite descreve o que o **código faz**, não o que a **tela mostra**.
 Todo aceite deste plano é escrito como *o print que o provaria* por causa desses cinco.
@@ -1593,9 +1892,44 @@ volta a ter largura acima de 612, e quanto acima é a **F3** que decide. Daí du
   um print que a F1b não tinha como produzir; pior, quem tentasse produzi-lo concluiria
   que a F1b quebrou o editor. Aceite assim não só falha: **acusa o inocente.**
 
+**O que o caso 6 ensina, e é o mais caro dos seis:** ele **quebrou a correção do caso 4**.
+A D22 nasceu para consertar o caso 4 e montou três camadas — todas sobre o mesmo sinal.
+Quando o sinal não é emitido, as três caem juntas. Daí a terceira regra:
+
+- **Aceite negativo ("não apareceu X") é frágil por natureza.** Ele confunde *ausência de
+  defeito* com *ausência de sinal*, e as duas coisas se parecem exatamente. Sempre que
+  possível, o aceite é **positivo e medido**: "o elemento aparece", "a largura renderizada
+  é ≥ o mínimo", "o percentual mudou". Quando um aceite negativo for inevitável, escreva
+  **por que o sinal seria emitido** se o defeito existisse — e se não souber responder, o
+  aceite não vale.
+
+**O caso 7 é o único de forma diferente, e por isso a defesa é outra.** Os seis primeiros
+nasceram errados: escolheram o sinal errado no momento em que foram escritos, e uma
+releitura atenta os pegaria. **O sétimo nasceu certo.** O aceite "a 601 há barra lateral"
+era verdade quando foi escrito; deixou de ser quando a Causa B′ moveu o limiar de 600 para
+795 — e **continuou parecendo verdade**, porque nada no texto denuncia que o número virou
+órfão. Releitura atenta não pega: só pega quem souber que o limiar mudou.
+
+- **Aceite que cita um número é acoplado à decisão que fixou aquele número.** Trocar o
+  limiar é uma **edição em dois lugares**, sempre: o código e os aceites que o mencionam.
+  Vale para larguras, durações, chaves de preferência, nomes de rota — qualquer constante
+  que apareça num aceite.
+- **É por isso que o caso 7 refina o caso 5.** O 5 dizia: o número vem de onde o
+  observável muda, não de onde o mecanismo dispara. O 7 acrescenta: **e quando o mecanismo
+  se muda de casa, o número que você escreveu fica para trás.**
+
 **Teste de bolso, antes de escrever qualquer aceite:** _consigo tirar esse print hoje, com
 o que está mergeado, e ele fica diferente se a fase falhar?_ Se a resposta a qualquer
 metade for "não", o aceite ainda está descrevendo o mecanismo.
+
+**Segundo teste de bolso, do caso 6:** _se o defeito existisse, o que exatamente
+produziria o sinal que eu estou esperando?_ Se a resposta for "o framework reporta", vá
+ler **onde** ele reporta.
+
+**Terceiro teste de bolso, do caso 7 — este é para quem _muda_ algo, não para quem
+escreve o aceite:** _que aceites mencionam o número que eu acabei de mudar?_ Faça o
+`grep` no `plan.md` **antes** de fechar a tarefa. É a única defesa contra um aceite que
+não errou — envelheceu.
 
 ### 11.1 Cancela de máquina
 
@@ -1612,13 +1946,16 @@ metade for "não", o aceite ainda está descrevendo o mecanismo.
 | 9 | **O editor não _usa_ o breakpoint do kernel** (D5›cerca 1) | `grep -rn "SduiBreakpoint" apps/driva_editor/lib \| grep -vE ':[0-9]+:\s*///?'` = **zero**. _A cerca mede uso, não menção: o doc do `app_breakpoints.dart` precisa nomear o enum para explicar por que ele não entra_ |
 | 10 | **O limiar entra no `editor_module` por UMA porta** (D5›cerca 2a) | `grep -rl "AppBreakpoints" apps/driva_editor/lib/modules/editor_module` = **exatamente** `.../presentation/editor/page/editor_viewport_gate.dart` |
 | 10b | **A UI do construtor é cega a faixa** (D5›cerca 2b, D20, D23) | `grep -rn "AppBreakpoints" apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/` = **zero**. _É este que carrega a promessa "o construtor não se adapta por faixa"; afrouxá-lo é desvio, não ajuste (R10)_ |
+| 10c | **`AppBreakpoints` não tem constante sem leitor** (D26) | para cada constante do arquivo, existe pelo menos um consumidor fora dele. `expanded`/1024 **saiu**; o número segue registrado na D5 |
+| 10d | **Geometria medida, não ausência de faixa** (D25) | todo widget de chrome interno fixo tocado por este item expõe `minimumWidth` **público** e **derivado dos tokens do próprio `build`** — nunca um literal —, e há teste `tester.getSize(...).width >= X.minimumWidth` nas larguras de borda **e nos pontos de transição**. _Sem isto, a régua de overflow do plano inteiro é cega à classe do `SlugBadge`_ |
+| 10e | **O mínimo é derivável, e a derivação fecha** (D25) | `minimumWidth` é uma **expressão de tokens**, e cada termo dela é token — não número solto. _Este item existe porque a primeira implementação entregou `_minWidth = 28` privado, contra os **39** que o plano mediu (`s10×2 + ícone 14 + s5`): **um dos dois está errado e ninguém consegue dizer qual sem derivar**. Ver a nota da Causa G_ |
 | 11 | CI verde em todos os PRs — a mesma régua do humano | checks do GitHub |
 
 ### 11.2 Aceite por fase
 
 | # | Item | Como se prova |
 | --- | --- | --- |
-| 12 | Os **10 critérios da F1** (1 a 7, com `6-A`, `6-B`, `6-C`) atestados **e os 6 da F1b** (`7-A` a `7-F`) | `revisar-fase` do QA nos PRs 1 **e** 1b. **A F1 não fecha sem a F1b** (§5›F1b): "navegar no celular funciona" é falso enquanto tocar num conteúdo der num beco |
+| 12 | Os **14 critérios da F1** (1 a 7, com `6-A` a `6-G`) atestados **e os 6 da F1b** (`7-A` a `7-F`) | `revisar-fase` do QA nos PRs 1 **e** 1b. **A F1 não fecha sem a F1b** (§5›F1b): "navegar no celular funciona" é falso enquanto tocar num conteúdo der num beco |
 | 13 | Os **5 critérios da F2** atestados | `revisar-fase` do QA — **PR #135, mergeado** |
 | 14 | Os **8 critérios da F3** atestados, incluindo o `17-A` (a faixa 600–1280) | `revisar-fase` do QA no PR 3 |
 | 15 | Os **4 critérios da F4** atestados | `revisar-fase` do QA no PR 2 |
@@ -1659,10 +1996,14 @@ distintos**.
 | 31 | A busca é usável no celular | foto do campo com hint legível e texto digitado | `Busc…` |
 | 32 | Criar conteúdo cabe (Causa C) | diálogo com os dois botões visíveis, sem rolagem horizontal | qualquer botão fora da tela |
 | 33 | A home de projetos funciona no celular | foto com cartões legíveis | conteúdo de cartão cortado |
-| 34 | A faixa existe e está em 600 (D5) | par: 599 → gaveta; 601 → **barra lateral E cabeçalho empilhado, nada cortado** | os dois estados forem iguais, **ou** a 601 a barra voltar com o cabeçalho estourando (Causa B′) |
+| 34 | **Os dois limiares são dois, e independentes** (D27) | **terna**: 599 → gaveta · 601 → **barra lateral, cabeçalho ainda empilhado** · 795 → barra lateral **e** cabeçalho em linha | o print de 601 for igual ao de 599 (um limiar só governando tudo — **o desvio que a rodada 4 pegou**) ou igual ao de 795. _Um par de larguras não distingue os casos; por isso são três_ |
 | **34-A** | A lacuna **600–794** foi fechada (Causa B′) | prints a **600**, **700** e **794**: cabeçalho empilhado, nada cortado | qualquer uma das três cortar. _Hoje: 195 px faltando a 600; 0,66 a 794_ |
 | **34-B** | O modo **"Lista"** também funciona (Causa D) | foto do aparelho no modo Lista, nome longo truncando com reticências | o nome cortar ou empurrar a linha. _610 px de estouro a 360 hoje, a **um toque** do modo Grade — E2E que só percorre Grade não cobre metade da tela_ |
-| **34-C** | O vocabulário de faixa não foi corrompido | `app_breakpoints.dart` define **`compact` e `medium`, e nada mais** | um terceiro número entrar. _795 é largura de um cabeçalho, não faixa do app: mora em `AppSizes` (D5›corolário)_ |
+| **34-C** | O vocabulário de faixa não foi corrompido (D26) | `app_breakpoints.dart` define **só o limiar `compact`**; toda constante tem leitor | um número sem consumidor ficar, **ou** um número que não é faixa entrar. _795 saiu por não ser faixa; 1024 saiu por não ter leitor_ |
+| **34-D** | A Grade cabe **na transição de colunas** (Causa E) | prints a **370, 375, 380**: conteúdo do tile inteiro | qualquer um cortar. _375 é iPhone SE/8. Testar só 360 e 412 **passa** e não prova nada: alargar a tela encolhe o tile_ |
+| **34-E** | A Lista cabe em **394–460** (Causa F) | prints a **394, 412, 430**: nome truncando com reticências | qualquer um estourar. _Pixel e Pro Max_ |
+| **34-F** | **O `SlugBadge` aparece** (Causa G / D25) | prints a **320, 360, 375** com o badge **legível**, mais o teste de geometria (DoD 10d) | o badge sumir ou ficar ilegível. _**Aceite positivo de propósito.** "Não houve faixa amarela" **não serve aqui**: neste defeito não há faixa nem quando ele existe (§11.0›caso 6)_ |
+| **34-G** | O diálogo cabe com categoria de nome longo (Causa C′) | print a **1440** e no aparelho: dropdown sem estouro | estourar em qualquer largura. _216 px hoje, e **não é defeito de celular**_ |
 | 35 | **O construtor não foi "aproveitado" pela faixa** (D20, D23) | prova de máquina, DoD 10 e 10b | o limiar aparecer em mais de um arquivo do módulo, **ou** em qualquer arquivo sob `presentation/editor/widgets/` |
 | **35-A** | **O editor no celular não é mais uma tela quebrada** (D23) | foto do aparelho: tela de aviso **com os dois botões** — pareada com `rodada_00/01_…` | aparecer **qualquer** pedaço do construtor: paleta, inspector, faixa de canvas |
 | **35-B** | **"Ver conteúdo" leva ao conteúdo que estava aberto** | par de fotos: portão → preview, com **o mesmo `<id>` na URL** do conteúdo tocado | ir para "alguma" tela de preview, ou para outro conteúdo. _Um botão que existe não é um botão que funciona_ |
@@ -1690,7 +2031,10 @@ distintos**.
 | 54 | Tela cheia **não esconde erro** (P2) | par: com erro → rodapé fica; sem erro → some | o rodapé sumir com erro. _Reintroduziria o sintoma que o item 38 corrigiu_ |
 | 55 | O atalho, se houver, **chega ao app** (D16) | print do modo ligado logo após teclar, **no Chrome real** | o navegador capturar. _Lição do `Ctrl+Shift+W`: o `SingleActivator` no mapa não prova nada_ |
 
-**Os itens 28, 35-A, 35-C, 42, 51 e 54 são a cancela.** Se o texto ainda desce letra por
+**Os itens 28, 34-F, 35-A, 35-C, 42, 51 e 54 são a cancela.** O **34-F** entrou porque um
+widget que some é o único defeito desta lista que **passa em todas as outras verificações**
+— e um item que a régua antiga não enxergava é exatamente o que uma cancela existe para
+pegar. Se o texto ainda desce letra por
 letra, se o editor no celular ainda é uma tela sem canvas, se abrir um conteúdo ainda dá
 num beco, se há overflow escondido atrás do release, se a imagem voltou a falhar em
 silêncio, ou se a tela cheia esconde erro — nada mais no DoD importa.

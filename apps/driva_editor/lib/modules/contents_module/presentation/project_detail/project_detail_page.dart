@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/network/project_scope.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/util/slug.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
 import 'package:driva_editor/injection.dart';
@@ -13,6 +13,7 @@ import 'package:driva_editor/modules/contents_module/presentation/category_tree/
 import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/invalid_project_screen.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/category_form_dialog.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/category_tree_panel.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_form_dialog.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel_view.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/move_content_dialog.dart';
@@ -106,49 +107,35 @@ class ProjectDetailPage extends StatelessWidget {
               onPressed: () => _openContentForm(context),
             ),
           ],
-          child: Scaffold(
-            body: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  width: 272,
-                  child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
-                    builder: (context, treeState) {
-                      final categories = treeState is CategoryTreeLoaded
-                          ? treeState.categories
-                          : const <Category>[];
-                      return CategoryTreeView(
-                        contentCountByCategory: {
-                          for (final category in categories)
-                            category.id: category.contentCount,
-                        },
-                        allContentsCount: treeState is CategoryTreeLoaded
-                            ? categories.fold<int>(
-                                0,
-                                (sum, category) => sum + category.contentCount,
-                              )
-                            : null,
-                        onNewCategory: () => _openCategoryForm(context),
-                        onEditCategory: (category) =>
-                            _openCategoryForm(context, editing: category),
-                        onDeleteCategory: (category) =>
-                            _confirmDeleteCategory(context, category),
-                        onMoveContent: (content, categoryId) => _moveContent(
-                          context,
-                          content,
-                          categoryId,
-                          offerUndo: true,
-                        ),
-                      );
-                    },
-                  ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Duas perguntas diferentes, dois limiares diferentes (D27).
+              // "Isto é um telefone?" — decisão de produto, por faixa — é
+              // quem decide gaveta vs. barra lateral. "O cabeçalho cabe numa
+              // linha?" — geometria medida no conteúdo — é dona só do
+              // empilhamento do cabeçalho, e continua empilhado até 795
+              // mesmo com a barra lateral já visível (601–794).
+              final showDrawer = AppBreakpoints.isCompact(
+                constraints.maxWidth,
+              );
+              final headerCompact =
+                  constraints.maxWidth <
+                  AppSizes.contentPanelWideHeaderFitWidth;
+              final categoryTreePanel = CategoryTreePanel(
+                onNewCategory: () => _openCategoryForm(context),
+                onEditCategory: (category) =>
+                    _openCategoryForm(context, editing: category),
+                onDeleteCategory: (category) =>
+                    _confirmDeleteCategory(context, category),
+                onMoveContent: (content, categoryId) => _moveContent(
+                  context,
+                  content,
+                  categoryId,
+                  offerUndo: true,
                 ),
-                VerticalDivider(
-                  width: 1,
-                  color: Theme.of(context).extension<EditorColors>()!.border,
-                ),
-                Expanded(
-                  child: BlocListener<CategoryTreeCubit, CategoryTreeState>(
+              );
+              final contentSection =
+                  BlocListener<CategoryTreeCubit, CategoryTreeState>(
                     listenWhen: (previous, current) =>
                         previous is CategoryTreeLoaded &&
                         current is CategoryTreeLoaded &&
@@ -162,11 +149,14 @@ class ProjectDetailPage extends StatelessWidget {
                           categoryId: () => selected,
                         ),
                       );
+                      Scaffold.maybeOf(context)?.closeDrawer();
                     },
                     child: BlocBuilder<CategoryTreeCubit, CategoryTreeState>(
                       builder: (context, treeState) {
                         return ContentPanelView(
                           categoryLabel: _selectedCategoryLabel(treeState),
+                          isCompact: headerCompact,
+                          showDrawerToggle: showDrawer,
                           isAllContents:
                               treeState is CategoryTreeLoaded &&
                               treeState.selectedCategoryId == null,
@@ -190,10 +180,30 @@ class ProjectDetailPage extends StatelessWidget {
                         );
                       },
                     ),
-                  ),
-                ),
-              ],
-            ),
+                  );
+
+              return Scaffold(
+                drawer: showDrawer ? Drawer(child: categoryTreePanel) : null,
+                body: showDrawer
+                    ? contentSection
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: AppSizes.categoryTreePanelWidth,
+                            child: categoryTreePanel,
+                          ),
+                          VerticalDivider(
+                            width: 1,
+                            color: Theme.of(
+                              context,
+                            ).extension<EditorColors>()!.border,
+                          ),
+                          Expanded(child: contentSection),
+                        ],
+                      ),
+              );
+            },
           ),
         );
       },

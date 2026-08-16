@@ -41,9 +41,9 @@ class ContentCardBody extends StatelessWidget {
           onTap: () => onOpen(content),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s15,
+              AppSpacing.s10,
               AppSpacing.s14,
-              AppSpacing.s15,
+              AppSpacing.s10,
               AppSpacing.s16,
             ),
             child: Column(

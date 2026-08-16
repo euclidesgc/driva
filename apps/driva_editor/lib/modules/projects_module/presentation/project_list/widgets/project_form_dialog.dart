@@ -1,7 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
-import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/core/widgets/layout/layout.dart';
 import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_drop_zone.dart';
 import 'package:driva_editor/modules/projects_module/presentation/project_list/widgets/image_picker.dart';
@@ -188,8 +188,8 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
       title: Text(widget.title),
       content: Form(
         key: _formKey,
-        child: SizedBox(
-          width: 460,
+        child: DialogContentWidth(
+          maxWidth: AppSizes.wideFormDialogWidth,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -265,7 +265,12 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
       // `actions` do AlertDialog vão para um OverflowBar (não é um Flex), então
       // Spacer/Expanded ali estoura ("ParentDataWidget"). Para empurrar
       // "Arquivar" à esquerda, usamos actionsAlignment e agrupamos
-      // Cancelar/Salvar num Row.
+      // Cancelar/Salvar num único item.
+      //
+      // Esse item é um Wrap, não um Row: o IntrinsicWidth interno do
+      // AlertDialog mede o grupo sem restrição de largura e só entrega a
+      // largura real na hora de desenhar — um Row já teria se comprometido
+      // com uma linha só e estouraria; o Wrap cai para duas linhas sem erro.
       actionsAlignment: widget.onArchive != null
           ? MainAxisAlignment.spaceBetween
           : MainAxisAlignment.end,
@@ -282,14 +287,16 @@ class _ProjectFormDialogState extends State<ProjectFormDialog> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: AppSpacing.s8,
+          runSpacing: AppSpacing.s8,
           children: [
             TextButton(
               onPressed: _submitting ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
-            const SizedBox(width: AppSpacing.s8),
             FilledButton(
               onPressed: _submitting ? null : _submit,
               child: _submitting
