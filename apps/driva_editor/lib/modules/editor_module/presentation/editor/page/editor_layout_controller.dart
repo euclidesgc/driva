@@ -6,6 +6,16 @@ import 'package:flutter/foundation.dart';
 class EditorLayoutController extends ValueNotifier<EditorLayout> {
   EditorLayoutController([super.initial = const EditorLayout()]);
 
+  /// Grupos colapsados da paleta (F4b), migrados aqui pela F5 (D28): um
+  /// notifier irmão, não um campo de [EditorLayout], para que o
+  /// `ValueListenableBuilder` que o lê continue escopado só à lista de
+  /// grupos — nunca ao painel inteiro (D8›R5, um andar abaixo) — e para não
+  /// herdar a igualdade por referência de `Set` dentro do `Equatable` de
+  /// [EditorLayout].
+  final ValueNotifier<Set<String>> collapsedPaletteCategories = ValueNotifier(
+    {},
+  );
+
   void collapseLeftPanel() => _update(leftPanelCollapsed: true);
 
   void expandLeftPanel() => _update(leftPanelCollapsed: false);
@@ -33,5 +43,11 @@ class EditorLayoutController extends ValueNotifier<EditorLayout> {
       rightPanelCollapsed: rightPanelCollapsed,
       leftPanelTab: leftPanelTab,
     );
+  }
+
+  @override
+  void dispose() {
+    collapsedPaletteCategories.dispose();
+    super.dispose();
   }
 }
