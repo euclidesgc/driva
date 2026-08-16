@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
@@ -91,8 +93,10 @@ void main() {
   });
 
   testWidgets(
-    'o botão da aba corrente marca isSelected, o resto não',
+    'o botão da aba corrente expõe Semantics(selected:) e o contorno, o '
+    'resto não',
     (tester) async {
+      final semantics = tester.ensureSemantics();
       await tester.pumpWidget(
         _harness(
           PanelRail(
@@ -113,14 +117,49 @@ void main() {
         ),
       );
 
-      final widgetsButton = tester.widget<PanelRailButton>(
-        find.widgetWithIcon(PanelRailButton, Icons.widgets_outlined),
+      final selectedFinder = find.widgetWithIcon(
+        PanelRailButton,
+        Icons.widgets_outlined,
       );
-      final treeButton = tester.widget<PanelRailButton>(
-        find.widgetWithIcon(PanelRailButton, Icons.account_tree_outlined),
+      final unselectedFinder = find.widgetWithIcon(
+        PanelRailButton,
+        Icons.account_tree_outlined,
       );
-      expect(widgetsButton.isSelected, isTrue);
-      expect(treeButton.isSelected, isFalse);
+
+      expect(
+        tester.getSemantics(selectedFinder).flagsCollection.isSelected,
+        Tristate.isTrue,
+      );
+      expect(
+        tester.getSemantics(unselectedFinder).flagsCollection.isSelected,
+        Tristate.isFalse,
+      );
+
+      final selectedDecoration =
+          tester
+                  .widget<Container>(
+                    find.descendant(
+                      of: selectedFinder,
+                      matching: find.byType(Container),
+                    ),
+                  )
+                  .decoration!
+              as BoxDecoration;
+      final unselectedDecoration =
+          tester
+                  .widget<Container>(
+                    find.descendant(
+                      of: unselectedFinder,
+                      matching: find.byType(Container),
+                    ),
+                  )
+                  .decoration!
+              as BoxDecoration;
+
+      expect(selectedDecoration.border, isNotNull);
+      expect(unselectedDecoration.border, isNull);
+
+      semantics.dispose();
     },
   );
 }
