@@ -26,3 +26,31 @@ categorias não resolve: mesmo com elas fora do caminho, o painel a 412 px tem 3
 
 Salve a foto original neste diretório com o nome `00_evidencia_campo_android.jpg`.
 **Antes de a F1 mergear** — é o item 25 do DoD.
+
+---
+
+## `01_evidencia_campo_editor_android.jpg` — **pendente de arquivamento**
+
+Segunda foto do dev humano (2026-08-16), do **editor** no mesmo aparelho — não da
+lista. É um defeito **diferente** do anterior, e mais grave.
+
+**O canvas desaparece por completo.** O painel de Widgets ocupa ~75% da largura e o
+Inspector fica espremido à direita com todos os rótulos truncados (`Págin…`,
+`Usar área se…`, `Respeitar o…`, `Respeitar a…`). O mock do dispositivo — o centro
+inteiro do trabalho no editor — **não aparece em lugar nenhum**.
+
+Não é "apertado": é o editor sem a peça que justifica ele existir.
+
+**A decisão do humano sobre isto (2026-08-16):** o editor **não** vira mobile — arrastar
+widget em 412 px é outro produto. Mas ele **degrada com dignidade**: abaixo do limiar
+`compact`, mostra uma tela explicando que o construtor pede janela maior, com dois
+caminhos — **"Ver conteúdo"** (a rota `/preview` da F2, que já está no ar) e **"Voltar aos
+conteúdos"**.
+
+O que transforma o beco em caminho é a F2 ter chegado antes: sem ela, o aviso seria só
+um "não dá". Com ela, o celular tem o que fazer.
+
+## Uma nota sobre o tema
+
+A foto `00` é do tema escuro; a `01` e a terceira (mesma tela de conteúdos em tema claro)
+mostram que **o defeito não é do tema**. As causas são de layout, não de cor.
