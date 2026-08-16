@@ -45,15 +45,26 @@ abstract final class AppSizes {
   /// de um pixel de sobra. É o `minCentro` da D14.
   static const double minCenterWidth = 320;
 
+  /// Largura mínima de um painel lateral (esquerdo/direito) do
+  /// `ResizableSplitView` — piso abaixo do qual o painel deixa de encolher
+  /// (default de `ResizableSplitView.minPanelWidth`, e um dos termos do
+  /// piso mecânico do workspace, [workspaceMinimumWidth]).
+  static const double workspacePanelMinWidth = 200;
+
+  /// Largura somada dos dois `ResizeHandle` (6px cada) entre os três
+  /// painéis do `ResizableSplitView` — o "12" da D14.
+  static const double workspaceDividersWidth = 12;
+
   /// Piso mecânico do workspace do editor (D14): abaixo desta largura, o
   /// `ResizableSplitView` deixa de encolher os painéis e passa a rolar na
   /// horizontal — nada desaparece, nada mente. Somatório dos mínimos:
-  /// painel esquerdo (200) + painel direito (200) + os dois `ResizeHandle`
-  /// (6px cada, 12 no total) + [minCenterWidth]. Derivado, não reescrito à
-  /// mão — se um dos mínimos mudar (ex.: 5.3 acrescenta um terceiro painel
-  /// lateral), este valor muda junto, e é dele que os aceites de outras
-  /// fases tiram a largura de teste (R13).
-  static const double workspaceMinimumWidth = 200 + 200 + 12 + minCenterWidth;
+  /// painel esquerdo + painel direito ([workspacePanelMinWidth] cada) + os
+  /// dois `ResizeHandle` ([workspaceDividersWidth]) + [minCenterWidth].
+  /// Derivado, não reescrito à mão — se um dos mínimos mudar (ex.: 5.3
+  /// acrescenta um terceiro painel lateral), este valor muda junto, e é
+  /// dele que os aceites de outras fases tiram a largura de teste (R13).
+  static const double workspaceMinimumWidth =
+      2 * workspacePanelMinWidth + workspaceDividersWidth + minCenterWidth;
 
   // F3 — piso do shell (D35).
   /// Altura fixa da faixa 1 do `AppShell` (wordmark + ações + status + tema).

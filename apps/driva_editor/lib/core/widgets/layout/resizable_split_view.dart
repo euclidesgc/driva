@@ -12,7 +12,7 @@ class ResizableSplitView extends StatefulWidget {
     super.key,
     this.initialLeftWidth = 280,
     this.initialRightWidth = 320,
-    this.minPanelWidth = 200,
+    this.minPanelWidth = AppSizes.workspacePanelMinWidth,
     this.maxPanelWidth = 480,
     this.minCenterWidth = AppSizes.minCenterWidth,
   });
@@ -25,11 +25,6 @@ class ResizableSplitView extends StatefulWidget {
   final double minPanelWidth;
   final double maxPanelWidth;
   final double minCenterWidth;
-
-  /// Largura somada dos dois `ResizeHandle` (6px cada) entre os três painéis
-  /// — o "12" da D14. Vive aqui, e não em `ResizeHandle`, porque só esta
-  /// classe soma os dois divisores para calcular o piso do workspace.
-  static const double dividersWidth = 12;
 
   @override
   State<ResizableSplitView> createState() => _ResizableSplitViewState();
@@ -48,12 +43,12 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
       builder: (context, constraints) {
         final floor =
             2 * widget.minPanelWidth +
-            ResizableSplitView.dividersWidth +
+            AppSizes.workspaceDividersWidth +
             widget.minCenterWidth;
         final storedRequirement =
             _leftWidth +
             _rightWidth +
-            ResizableSplitView.dividersWidth +
+            AppSizes.workspaceDividersWidth +
             widget.minCenterWidth;
         final storedWidthsFit = constraints.maxWidth >= storedRequirement;
 
