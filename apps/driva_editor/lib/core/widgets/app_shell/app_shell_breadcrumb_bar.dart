@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -30,7 +31,7 @@ class AppShellBreadcrumbBar extends StatelessWidget {
                     if (i > 0)
                       Icon(
                         Icons.chevron_right,
-                        size: 16,
+                        size: AppIconSizes.s16,
                         color: colors.inkMuted,
                       ),
                     Flexible(

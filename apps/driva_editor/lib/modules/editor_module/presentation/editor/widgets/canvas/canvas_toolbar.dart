@@ -61,7 +61,7 @@ class CanvasToolbar extends StatelessWidget {
                     DevicePreset.smartphone => Icons.smartphone,
                     DevicePreset.android => Icons.phone_android,
                     DevicePreset.tablet => Icons.tablet_mac,
-                  }, size: 16),
+                  }, size: AppIconSizes.s16),
                 ),
             ],
             selected: {device},
