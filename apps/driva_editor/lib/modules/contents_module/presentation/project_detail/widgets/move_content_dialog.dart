@@ -1,4 +1,5 @@
-import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/theme.dart';
+import 'package:driva_editor/core/widgets/layout/layout.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 
@@ -30,8 +31,8 @@ class _MoveContentDialogState extends State<MoveContentDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Mover "${widget.contentName}"'),
-      content: SizedBox(
-        width: 380,
+      content: DialogContentWidth(
+        maxWidth: AppSizes.formDialogWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,12 +44,17 @@ class _MoveContentDialogState extends State<MoveContentDialog> {
             const SizedBox(height: AppSpacing.s12),
             DropdownButtonFormField<String>(
               initialValue: _categoryId,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Categoria'),
               items: [
                 for (final category in widget.categories)
                   DropdownMenuItem<String>(
                     value: category.id,
-                    child: Text(category.name),
+                    child: Text(
+                      category.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
               ],
               onChanged: (value) {

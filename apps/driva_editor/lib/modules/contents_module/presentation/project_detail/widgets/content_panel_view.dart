@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:driva_editor/core/theme/app_durations.dart';
-import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/content_sort.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:driva_editor/modules/contents_module/presentation/content_list/cubit/content_list_cubit.dart';
@@ -13,6 +11,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ContentPanelView extends StatefulWidget {
   const ContentPanelView({
     required this.categoryLabel,
+    required this.isCompact,
+    required this.showDrawerToggle,
     required this.onOpenContent,
     required this.onNewContent,
     required this.onEditContent,
@@ -24,6 +24,15 @@ class ContentPanelView extends StatefulWidget {
   });
 
   final String categoryLabel;
+
+  /// Empilha o cabeçalho — geometria do próprio cabeçalho (D27), não faixa
+  /// de dispositivo.
+  final bool isCompact;
+
+  /// Mostra o botão da gaveta — só quando existe gaveta para abrir (D27):
+  /// pode ser `false` com [isCompact] `true` (601–794: cabeçalho já
+  /// empilhado, mas a barra lateral ainda está visível).
+  final bool showDrawerToggle;
   final bool isAllContents;
 
   final Map<String, String> categoryNameById;
@@ -90,83 +99,21 @@ class _ContentPanelViewState extends State<ContentPanelView> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s24,
-            AppSpacing.s20,
-            AppSpacing.s24,
-            AppSpacing.none,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.categoryLabel,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s2),
-                    BlocBuilder<ContentListCubit, ContentListState>(
-                      builder: (context, state) {
-                        final count = switch (state) {
-                          final ContentListLoaded s => s.contents.length,
-                          _ => null,
-                        };
-                        return Text(
-                          count == null
-                              ? ' '
-                              : '$count '
-                                    '${count == 1 ? 'conteúdo' : 'conteúdos'}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 220,
-                child: Semantics(
-                  textField: true,
-                  label: 'Buscar conteúdo',
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchChanged,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      prefixIcon: Icon(Icons.search, size: 18),
-                      hintText: 'Buscar por nome, slug ou ID...',
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.s10),
-              SortControl(
-                sort: _sort,
-                order: _order,
-                onSortChanged: _onSortFieldChanged,
-                onToggleOrder: _onToggleOrder,
-              ),
-              const SizedBox(width: AppSpacing.s10),
-              ViewModeToggle(
-                mode: _mode,
-                onChanged: (mode) => setState(() => _mode = mode),
-              ),
-            ],
-          ),
+        ContentPanelHeader(
+          categoryLabel: widget.categoryLabel,
+          isCompact: widget.isCompact,
+          showDrawerToggle: widget.showDrawerToggle,
+          searchController: _searchController,
+          onSearchChanged: _onSearchChanged,
+          sort: _sort,
+          order: _order,
+          onSortChanged: _onSortFieldChanged,
+          onToggleOrder: _onToggleOrder,
+          mode: _mode,
+          onModeChanged: (mode) => setState(() => _mode = mode),
         ),
         Expanded(
           child: BlocBuilder<ContentListCubit, ContentListState>(

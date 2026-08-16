@@ -48,6 +48,8 @@ void main() {
           value: cubit,
           child: ContentPanelView(
             categoryLabel: 'Geral',
+            isCompact: false,
+            showDrawerToggle: false,
             categoryNameById: categoryNameById,
             onOpenContent: (_) {},
             onNewContent: () {},

@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_breakpoints.dart';
 import 'package:driva_editor/core/theme/app_radii.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -32,6 +33,12 @@ class ContentRowBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
+    // Em compact, a data cede o lugar: mesmo com o slug já flexível, uma
+    // linha com badge + título + data + ações não sobra espaço para o slug
+    // não estourar (medido — sem isso, a lista quebra a 320-360px).
+    final isCompact = AppBreakpoints.isCompact(
+      MediaQuery.sizeOf(context).width,
+    );
     return Opacity(
       opacity: opacity,
       child: Material(
@@ -51,11 +58,15 @@ class ContentRowBody extends StatelessWidget {
             ),
             child: Row(
               children: [
-                SlugBadge(slug: content.slug),
+                // Flexible, não fixo: sem isso, um slug longo mede sem
+                // limite na primeira passada do Row e estoura a linha antes
+                // mesmo de o título entrar em jogo. Peso igual ao título: um
+                // peso maior para o título elidia um slug curto que cabia
+                // com folga, mesmo havendo espaço de sobra na linha.
+                Flexible(
+                  child: SlugBadge(slug: content.slug),
+                ),
                 const SizedBox(width: AppSpacing.s14),
-                // Título com espaço generoso: na lista ele não espreme (só
-                // trunca em telas realmente estreitas), diferente do card de
-                // grade que reserva espaço fixo para as ações.
                 Expanded(
                   child: Text(
                     content.name,
@@ -66,8 +77,10 @@ class ContentRowBody extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.s12),
-                UpdatedAt(updatedAt: content.updatedAt),
+                if (!isCompact) ...[
+                  const SizedBox(width: AppSpacing.s12),
+                  UpdatedAt(updatedAt: content.updatedAt),
+                ],
                 const SizedBox(width: AppSpacing.s6),
                 CardActions(
                   content: content,

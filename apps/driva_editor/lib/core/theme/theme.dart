@@ -1,8 +1,10 @@
 // Barrel do design system do editor: tema + tokens tipados. Trocar/criar um
 // tema, ou o ritmo de espaçamento/raio/tipografia, é mexer só em core/theme/.
+export 'app_breakpoints.dart';
 export 'app_durations.dart';
 export 'app_icon_sizes.dart';
 export 'app_radii.dart';
+export 'app_sizes.dart';
 export 'app_spacing.dart';
 export 'app_theme.dart';
 export 'app_typography.dart';
