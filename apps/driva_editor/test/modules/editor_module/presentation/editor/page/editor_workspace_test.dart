@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
+import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
@@ -121,6 +122,29 @@ void main() {
       expect(find.byTooltip('Árvore'), findsOneWidget);
       expect(find.byTooltip('Inspector'), findsOneWidget);
       expect(find.text('Página'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a faixa esquerda destaca a aba corrente com isSelected (Fix 3)',
+    (tester) async {
+      enlarge(tester);
+      await tester.pumpWidget(harness());
+      await tester.pump();
+
+      layoutController
+        ..setLeftPanelTab(LeftPanelTab.tree)
+        ..collapseLeftPanel();
+      await tester.pump();
+
+      final treeButton = tester.widget<PanelRailButton>(
+        find.widgetWithIcon(PanelRailButton, Icons.account_tree_outlined),
+      );
+      final widgetsButton = tester.widget<PanelRailButton>(
+        find.widgetWithIcon(PanelRailButton, Icons.widgets_outlined),
+      );
+      expect(treeButton.isSelected, isTrue);
+      expect(widgetsButton.isSelected, isFalse);
     },
   );
 

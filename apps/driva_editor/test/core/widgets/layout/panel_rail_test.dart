@@ -89,4 +89,38 @@ void main() {
     expect(find.byTooltip('Widgets'), findsOneWidget);
     expect(find.byTooltip('Árvore'), findsOneWidget);
   });
+
+  testWidgets(
+    'o botão da aba corrente marca isSelected, o resto não',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          PanelRail(
+            items: [
+              PanelRailButton(
+                icon: Icons.widgets_outlined,
+                label: 'Widgets',
+                isSelected: true,
+                onPressed: () {},
+              ),
+              PanelRailButton(
+                icon: Icons.account_tree_outlined,
+                label: 'Árvore',
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final widgetsButton = tester.widget<PanelRailButton>(
+        find.widgetWithIcon(PanelRailButton, Icons.widgets_outlined),
+      );
+      final treeButton = tester.widget<PanelRailButton>(
+        find.widgetWithIcon(PanelRailButton, Icons.account_tree_outlined),
+      );
+      expect(widgetsButton.isSelected, isTrue);
+      expect(treeButton.isSelected, isFalse);
+    },
+  );
 }

@@ -1,4 +1,7 @@
 import 'package:driva_editor/core/theme/app_icon_sizes.dart';
+import 'package:driva_editor/core/theme/app_radii.dart';
+import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
 class PanelRailButton extends StatelessWidget {
@@ -6,6 +9,7 @@ class PanelRailButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.isSelected = false,
     super.key,
   });
 
@@ -17,13 +21,31 @@ class PanelRailButton extends StatelessWidget {
 
   final VoidCallback onPressed;
 
+  /// A aba correspondente é a atualmente aberta antes do colapso. O
+  /// contorno abaixo, não só a cor do ícone, é o sinal — a mesma regra de
+  /// acessibilidade que rege `TreeRowContent`/`PageTreeRow`.
+  final bool isSelected;
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: label,
-      iconSize: AppIconSizes.s18,
-      icon: Icon(icon),
-      onPressed: onPressed,
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Semantics(
+      selected: isSelected,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? colors.primaryTint : null,
+          borderRadius: BorderRadius.circular(AppRadii.r8),
+          border: isSelected
+              ? Border.all(color: AppTheme.primary, width: 2)
+              : null,
+        ),
+        child: IconButton(
+          tooltip: label,
+          iconSize: AppIconSizes.s18,
+          icon: Icon(icon, color: isSelected ? AppTheme.primary : null),
+          onPressed: onPressed,
+        ),
+      ),
     );
   }
 }

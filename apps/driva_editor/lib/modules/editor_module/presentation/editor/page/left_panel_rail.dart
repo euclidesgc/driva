@@ -13,16 +13,19 @@ class LeftPanelRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = EditorLayoutScope.of(context)!;
+    final currentTab = controller.value.leftPanelTab;
     return PanelRail(
       items: [
         PanelRailButton(
           icon: Icons.widgets_outlined,
           label: 'Widgets',
+          isSelected: currentTab == LeftPanelTab.widgets,
           onPressed: () => controller.showLeftPanelTab(LeftPanelTab.widgets),
         ),
         PanelRailButton(
           icon: Icons.account_tree_outlined,
           label: 'Árvore',
+          isSelected: currentTab == LeftPanelTab.tree,
           onPressed: () => controller.showLeftPanelTab(LeftPanelTab.tree),
         ),
       ],
