@@ -69,4 +69,7 @@ abstract final class AppSizes {
   /// desfazer + refazer + Salvar + Publish, com status e o botão de tema)
   /// para de caber (mesmo papel de `contentPanelWideHeaderFitWidth`).
   static const double topBarActionsFitWidth = 760;
+
+  /// Altura da barra de ferramentas do canvas (presets de device + zoom).
+  static const double canvasToolbarHeight = 44;
 }

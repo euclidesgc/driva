@@ -23,14 +23,15 @@ class DeviceFrame extends StatelessWidget {
     final bezel = device.bezel;
     final bodyRadius = device.cornerRadius + bezel;
     final buttonWidth = bezel * 0.55;
+    final frameSize = device.frameSize;
 
     return Semantics(
       label:
           'Moldura ${device.label} (${device.width.toInt()}'
           '×${device.height.toInt()})',
-      child: Padding(
-        // Espaço para os botões laterais transbordarem o corpo.
-        padding: EdgeInsets.symmetric(horizontal: buttonWidth),
+      child: SizedBox(
+        width: frameSize.width,
+        height: frameSize.height,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.center,

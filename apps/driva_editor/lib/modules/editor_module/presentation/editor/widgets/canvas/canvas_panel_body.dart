@@ -1,4 +1,3 @@
-import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
@@ -6,24 +5,10 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/d
 import 'package:flutter/material.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
-/// Canvas central: toolbar (dispositivo + zoom) e a moldura de celular
-/// renderizando o documento com o renderer REAL (`SduiView`) — preview fiel
-/// por construção. O `nodeWrapper` injeta seleção por clique, contorno e o
-/// arraste que reorganiza a árvore direto no mock.
-///
-/// Recebe só `device`/`zoom`/`fitToWindow`; o preview do documento é assinado
-/// e **throttled** dentro de [PreviewSurface], para digitação rápida não
-/// re-executar o renderer a cada tecla.
-///
-/// O [LayoutBuilder] mede o espaço inteiro do painel — toolbar incluída
-/// (D9) — porque a barra precisa mostrar a mesma escala efetiva aplicada
-/// ao `Transform.scale`. Fica fora do `InteractiveViewer` (`constrained:
-/// false` adiante devolveria restrição infinita a um `LayoutBuilder` ali
-/// dentro).
-class CanvasPanel extends StatelessWidget {
-  const CanvasPanel({
+class CanvasPanelBody extends StatelessWidget {
+  const CanvasPanelBody({
     required this.device,
-    required this.zoom,
+    required this.effectiveScale,
     required this.fitToWindow,
     required this.onSelect,
     required this.onChangeDevice,
@@ -37,8 +22,13 @@ class CanvasPanel extends StatelessWidget {
   });
 
   final DevicePreset device;
-  final double zoom;
+
+  /// Escala de fato aplicada ao `Transform.scale` — o resultado de
+  /// [fitScaleFor] quando [fitToWindow] está ligado, ou o `zoom` manual do
+  /// cubit quando não (calculado por quem monta este widget).
+  final double effectiveScale;
   final bool fitToWindow;
+
   final ValueChanged<String?> onSelect;
   final ValueChanged<DevicePreset> onChangeDevice;
   final ValueChanged<double> onChangeZoom;
@@ -55,31 +45,47 @@ class CanvasPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final viewport = Size(
-          constraints.maxWidth - AppSpacing.s32 * 2,
-          constraints.maxHeight -
-              AppSizes.canvasToolbarHeight -
-              AppSpacing.s32 * 2,
-        );
-        final effectiveScale = fitToWindow
-            ? fitScaleFor(frame: device.frameSize, viewport: viewport)
-            : zoom;
-        return CanvasPanelBody(
+    return Column(
+      children: [
+        CanvasToolbar(
           device: device,
           effectiveScale: effectiveScale,
           fitToWindow: fitToWindow,
-          onSelect: onSelect,
           onChangeDevice: onChangeDevice,
           onChangeZoom: onChangeZoom,
           onToggleFitToWindow: onToggleFitToWindow,
-          onDropOnDevice: onDropOnDevice,
-          onDropOnNode: onDropOnNode,
-          imageUrlResolver: imageUrlResolver,
           onOpenPreview: onOpenPreview,
-        );
-      },
+        ),
+        Expanded(
+          child: DragTarget<DragPayload>(
+            onAcceptWithDetails: (details) => onDropOnDevice(details.data),
+            builder: (context, candidates, _) => InteractiveViewer(
+              constrained: false,
+              boundaryMargin: const EdgeInsets.all(AppSpacing.s64),
+              minScale: 1,
+              maxScale: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.s32),
+                child: Transform.scale(
+                  scale: effectiveScale,
+                  alignment: Alignment.topCenter,
+                  child: RepaintBoundary(
+                    child: DeviceFrame(
+                      device: device,
+                      highlighted: candidates.isNotEmpty,
+                      child: PreviewSurface(
+                        onSelect: onSelect,
+                        onDropOn: onDropOnNode,
+                        imageUrlResolver: imageUrlResolver,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

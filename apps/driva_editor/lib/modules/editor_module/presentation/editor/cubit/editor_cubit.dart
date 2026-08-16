@@ -460,10 +460,20 @@ class EditorCubit extends Cubit<EditorState> {
     emit(current.copyWith(device: device));
   }
 
+  /// Zoom manual vence o ajuste automático (P5): desliga
+  /// [EditorReady.fitToWindow].
   void changeZoom(double zoom) {
     final current = state;
     if (current is! EditorReady) return;
-    emit(current.copyWith(zoom: zoom.clamp(0.4, 1.5)));
+    emit(
+      current.copyWith(zoom: zoom.clamp(0.4, 1.5), fitToWindow: false),
+    );
+  }
+
+  void toggleFitToWindow() {
+    final current = state;
+    if (current is! EditorReady) return;
+    emit(current.copyWith(fitToWindow: !current.fitToWindow));
   }
 
   Future<void> save() async {
