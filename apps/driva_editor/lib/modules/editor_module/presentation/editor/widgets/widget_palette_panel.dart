@@ -1,13 +1,12 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/input/search_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette/widget_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 /// Paleta de widgets: itens **arrastáveis** para a árvore/canvas, agrupados
-/// por categoria, com busca. Adicionar é só por drag-and-drop (o clique não
-/// adiciona — o usuário controla onde solta).
+/// por categoria colapsável, com busca. Adicionar é só por drag-and-drop (o
+/// clique não adiciona — o usuário controla onde solta).
 class WidgetPalettePanel extends StatefulWidget {
   const WidgetPalettePanel({super.key});
 
@@ -17,11 +16,18 @@ class WidgetPalettePanel extends StatefulWidget {
 
 class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
   String _query = '';
+  final Set<String> _collapsedCategories = {};
 
   bool _matches(WidgetDescriptor descriptor) =>
       _query.isEmpty ||
       descriptor.label.toLowerCase().contains(_query) ||
       descriptor.type.toLowerCase().contains(_query);
+
+  void _toggleCategory(String category) => setState(() {
+    if (!_collapsedCategories.remove(category)) {
+      _collapsedCategories.add(category);
+    }
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +42,8 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
       ];
       if (matching.isNotEmpty) byCategory[category] = matching;
     }
+
+    final hasQuery = _query.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,38 +62,17 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
               : ListView(
                   padding: const EdgeInsets.only(bottom: AppSpacing.s12),
                   children: [
-                    for (final entry in byCategory.entries) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.s12,
-                          AppSpacing.s8,
-                          AppSpacing.s12,
-                          AppSpacing.s4,
-                        ),
-                        child: Text(
-                          entry.key,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<EditorColors>()!.inkMuted,
-                              ),
-                        ),
+                    for (final entry in byCategory.entries)
+                      PaletteCategorySection(
+                        category: entry.key,
+                        descriptors: entry.value,
+                        isExpanded:
+                            hasQuery ||
+                            !_collapsedCategories.contains(entry.key),
+                        onToggle: hasQuery
+                            ? null
+                            : () => _toggleCategory(entry.key),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s12,
-                        ),
-                        child: Wrap(
-                          spacing: AppSpacing.s8,
-                          runSpacing: AppSpacing.s8,
-                          children: [
-                            for (final descriptor in entry.value)
-                              PaletteItem(descriptor: descriptor),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
         ),
