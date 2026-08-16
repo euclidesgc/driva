@@ -135,5 +135,19 @@ void main() {
 
       expect(changes, isEmpty);
     });
+
+    testWidgets('sem cor prévia, escolher branco e confirmar emite branco', (
+      tester,
+    ) async {
+      final changes = await _pumpEditor(tester);
+
+      await tester.tap(find.byTooltip('Abrir seletor de cores'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Selecionar'));
+      await tester.pumpAndSettle();
+
+      expect(changes, ['#FFFFFF']);
+    });
   });
 }
