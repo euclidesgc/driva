@@ -210,6 +210,14 @@ void main() {
         await tester.pumpAndSettle();
         expect(collapsedSections.value, {'Estilo'});
 
+        // Desmonta a árvore inteira antes do segundo pump: sem isto, o
+        // `PropSection` da nova lista reaproveitaria o `State` do antigo via
+        // `ValueKey(group)` (ambos têm uma seção "Estilo"), e o teste
+        // passaria mesmo que `initiallyExpanded` não consultasse
+        // `collapsedSections` — provando preservação de widget, não
+        // compartilhamento de estado.
+        await tester.pumpWidget(const SizedBox.shrink());
+
         await _pumpList(
           tester,
           descriptor: _otherDescriptor,
