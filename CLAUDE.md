@@ -58,12 +58,14 @@ O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-ma
 
 Comando não-óbvio: `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
 
-## Economia de tokens (obrigatório)
+## Economia de tokens e tempo (obrigatório)
 
-Custo de token é regra, não preferência. rtk (reescreve `git`/`grep`/`ls`/… via hook) e o grafo do CRG (`.code-review-graph/`, auto-atualizado por hook a cada edição) já estão ativos — **use-os**:
+Custo de token é regra, não preferência — e tempo de parede também: numa fase orquestrada pelo `/tech-manager`, o gargalo não é `flutter analyze`/`flutter test` (segundos), é o raciocínio dos agentes. rtk (reescreve `git`/`grep`/`ls`/… via hook) e o grafo do CRG (`.code-review-graph/`, auto-atualizado por hook a cada edição) já estão ativos — **use-os**:
 
 - **Grafo antes de grep/read cru.** Para explorar/entender código, consulte primeiro os tools do MCP `code-review-graph` (`query_graph`, `get_review_context`, `detect_changes`, `semantic_search_nodes`, `get_impact_radius`). Só caia em `Grep`/`Read` quando o grafo não cobrir. (Vale para subagentes — inclua isso no prompt deles.)
 - **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
+- **Teste escopado durante iteração; suíte completa só na consolidação.** Corrigindo um achado pontual (fix de QA, ajuste pequeno)? Rode só o(s) arquivo(s) de teste afetado(s) (`flutter test -r compact <caminho>`). A suíte inteira roda nos pontos de consolidação: fim de um conjunto de tarefas paralelas, antes do gate QA/CISO, antes de abrir PR. Rodar tudo a cada ajuste pequeno não pega bug antes — só soma tempo de parede.
+- **Paralelize tarefas de implementação genuinamente independentes.** Quando o `plan.md` de uma fase marca tarefas `[paralela: sim]` tocando arquivos majoritariamente disjuntos, dispare um `especialista-*` por frente (`Agent` com `isolation: worktree`, já que vão escrever ao mesmo tempo), não um agente único fazendo tudo em sequência. Consolide (merge das branches) e só então rode a suíte completa na branch integrada. Tarefas `[paralela: não — dep. X]` continuam sequenciais de propósito — não force paralelismo onde há dependência real (ex.: a regra de separar causas em commits distintos, como a D32 do item 41).
 - **`rtk proxy <cmd>` quando o filtro atrapalha.** O hook do rtk reescreve `grep`/`ls`/`git`… e embaralha saídas com números soltos (linhas de `grep -n`, contagens). Precisa da saída crua? `rtk proxy grep -n …`. O filtro é o padrão; o proxy é a exceção consciente.
 - **Não reler** arquivo recém-editado (o harness rastreia o estado) nem redescrever o que já foi estabelecido.
 - **Respostas diretas**: sem tabela decorativa nem recapitulação longa; o que muda a decisão do humano, e só.
