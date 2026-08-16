@@ -4,9 +4,12 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/c
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 class CanvasArea extends StatelessWidget {
-  const CanvasArea({super.key});
+  const CanvasArea({this.imageUrlResolver, super.key});
+
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,7 @@ class CanvasArea extends StatelessWidget {
         onSelect: cubit.selectNode,
         onChangeDevice: cubit.changeDevice,
         onChangeZoom: cubit.changeZoom,
+        imageUrlResolver: imageUrlResolver,
         onDropOnDevice: (payload) {
           final state = cubit.state;
           if (state is! EditorReady) return;

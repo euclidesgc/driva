@@ -15,6 +15,7 @@ class SduiView extends StatelessWidget {
     this.nodeWrapper,
     this.safeArea,
     this.showDiagnostics = false,
+    this.imageUrlResolver,
   });
 
   SduiView.content(
@@ -24,6 +25,7 @@ class SduiView extends StatelessWidget {
     SduiActionHandler? onAction,
     SduiNodeWrapper? nodeWrapper,
     bool showDiagnostics = false,
+    SduiImageUrlResolver? imageUrlResolver,
   }) : this(
          key: key,
          node: spec.root,
@@ -32,6 +34,7 @@ class SduiView extends StatelessWidget {
          nodeWrapper: nodeWrapper,
          safeArea: spec.safeArea,
          showDiagnostics: showDiagnostics,
+         imageUrlResolver: imageUrlResolver,
        );
 
   final SduiNode? node;
@@ -46,6 +49,9 @@ class SduiView extends StatelessWidget {
   /// Repassado ao [SduiRenderer] — só o editor liga.
   final bool showDiagnostics;
 
+  /// Repassado ao [SduiRenderer] — só o editor injeta (proxy de mídia).
+  final SduiImageUrlResolver? imageUrlResolver;
+
   @override
   Widget build(BuildContext context) {
     final root = node;
@@ -55,6 +61,7 @@ class SduiView extends StatelessWidget {
       onAction: onAction,
       nodeWrapper: nodeWrapper,
       showDiagnostics: showDiagnostics,
+      imageUrlResolver: imageUrlResolver,
     );
     final rendered = renderer.render(context, root);
     final pageChrome = safeArea;

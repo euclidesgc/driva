@@ -18,8 +18,10 @@ Widget buildImage(BuildContext context, SduiNode node, SduiRenderer r) {
     return ImageEmptyBox(width: width, height: height);
   }
 
+  final resolvedSrc = _resolve(src, r.imageUrlResolver);
+
   return Image.network(
-    src,
+    resolvedSrc,
     width: width,
     height: height,
     fit: boxFitFrom(p['fit']),
@@ -38,6 +40,19 @@ Widget buildImage(BuildContext context, SduiNode node, SduiRenderer r) {
       height: height,
     ),
   );
+}
+
+/// `src` vazio já retornou antes de chegar aqui; o que resta filtrar é um
+/// binding não resolvido (`{{...}}`, sem `scheme`) ou qualquer string que não
+/// seja uma URL de rede de verdade — proxyar essas trocaria o estado "vazio"
+/// por um "falhou" mentiroso.
+String _resolve(String src, SduiImageUrlResolver? resolver) {
+  if (resolver == null) return src;
+  final uri = Uri.tryParse(src);
+  if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+    return src;
+  }
+  return resolver(src);
 }
 
 /// Fora do editor (`showDiagnostics: false`) o app publicado nunca mostra

@@ -16,6 +16,7 @@ class PreviewSurface extends StatefulWidget {
   const PreviewSurface({
     required this.onSelect,
     required this.onDropOn,
+    this.imageUrlResolver,
     super.key,
   });
 
@@ -24,6 +25,11 @@ class PreviewSurface extends StatefulWidget {
   /// Payload solto sobre o nó de id `targetId`; quem decide onde ele encaixa
   /// de fato é o kernel, pelo cubit.
   final void Function(DragPayload payload, String targetId) onDropOn;
+
+  /// Vem de `EditorPage.pageBuilder`, montado a partir de `AppConfig` — é o
+  /// único ponto do módulo que toca o `get_it` (regra do projeto). `null`
+  /// fora dele (ex.: testes de widget) preserva o caminho de rede direto.
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   State<PreviewSurface> createState() => _PreviewSurfaceState();
@@ -102,6 +108,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
               child: SduiView.content(
                 document,
                 showDiagnostics: true,
+                imageUrlResolver: widget.imageUrlResolver,
                 onAction: (action) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

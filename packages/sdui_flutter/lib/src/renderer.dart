@@ -9,12 +9,19 @@ typedef SduiNodeWrapper = Widget Function(SduiNode node, Widget built);
 
 typedef SduiActionHandler = void Function(SduiAction action);
 
+/// Reescreve a URL de uma imagem antes do builder buscá-la. `null` = usa a
+/// URL do spec como está — é o default, e é o que vale para o app cliente.
+/// Só o editor liga um resolver (mesma fronteira de `showDiagnostics`): o
+/// caminho é chrome de autoria, não contrato do renderer.
+typedef SduiImageUrlResolver = String Function(String src);
+
 class SduiRenderer {
   const SduiRenderer(
     this.registry, {
     this.onAction,
     this.nodeWrapper,
     this.showDiagnostics = false,
+    this.imageUrlResolver,
   });
 
   final SduiRegistry registry;
@@ -26,6 +33,8 @@ class SduiRenderer {
   /// desenha o app publicado, onde esse detalhe não pode vazar ao usuário
   /// final (ex.: URL assinada com token na query).
   final bool showDiagnostics;
+
+  final SduiImageUrlResolver? imageUrlResolver;
 
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);

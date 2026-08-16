@@ -41,6 +41,12 @@ documentada** à regra "testes por último" e nasce na F2 (o bullet duplicado sa
 **D18** registra que a suíte roda contra **servidor local efêmero** — ela prova o guarda,
 **não** que a URL do relato carrega; e a lista de arquivos da F2 foi completada.
 
+**F3 — CISO liberado e código aprovado pelo QA (2026-08-15); ainda `[-]`**, porque a mutação
+do QA achou **três buracos de prova** (listados na §5›F5, e são a prioridade dela). O ponto de
+injeção virou **`VR-16-02`**: o plano previa **1** arquivo do editor e foram **8** — ele
+nomeou o ponto de **consumo** e foi omisso quanto ao de **construção**, que só pode ser a
+página (regra do `get_it`). A **D19** registra a guarda do `apiBaseUrl` vazio / `useFakeData`.
+
 **Leitura obrigatória para quem escrever aceite daqui em diante: §8, item 13.** Três aceites
 seguidos passaram no papel e eram falsos na tela — é padrão, não acidente.
 
@@ -48,7 +54,7 @@ seguidos passaram no papel e eram falsos na tela — é padrão, não acidente.
 | --- | --- | --- | --- | --- |
 | F1 | Os três estados ficam distintos + tokens + clamp | especialista-infra | 1 (`bugfix/*`) | `[-]` |
 | F2 | **Backend: proxy de mídia + gate CISO** | especialista-infra + **ciso** | 2 (`feature/*`) | `[-]` |
-| F3 | Renderer ganha o resolver; o editor injeta o proxy | especialista-infra | 3 (`feature/*`) | `[ ]` |
+| F3 | Renderer ganha o resolver; o editor injeta o proxy | especialista-infra | 3 (`feature/*`) | `[-]` |
 | F4 | Catálogo: `image` abrangente (Incremento 4 do item 9) | especialista-dominio + especialista-infra | 4 (`feature/*`) | `[ ]` |
 | F5 | Bateria automatizada (por último) | qa | 5 | `[ ]` |
 
@@ -199,7 +205,7 @@ Qualquer que tenha sido o caso, sai explicado na tela na F1 e resolvido na F3.
 | `buildImage` + registro | `sdui_flutter/lib/src/builders/image.dart:8`, `default_registry.dart:36` | Alvo de F1, F3 e F4 |
 | `SduiRenderer` — hooks opcionais: `onAction`, `nodeWrapper` e **`showDiagnostics`** (`:17,28`, entregue na F1) | `sdui_flutter/lib/src/renderer.dart` | **Onde o resolver da F3 entra.** ⚠️ **São dois hooks, não um:** o `showDiagnostics` já existe e é o precedente mais próximo do resolver (mesma fronteira editor × app cliente — D13). **Não reinventar o mecanismo** |
 | `SduiView` + `SduiView.content` repassando **os três** hooks, `showDiagnostics` com default `false` (`:17,26,34,47,57`) | `sdui_flutter/lib/src/sdui_view.dart` | Os dois construtores já repassam; o resolver da F3 entra **no mesmo lugar e no mesmo formato** |
-| `preview_surface.dart:104` liga `showDiagnostics: true` — o **único** ponto do repo que o liga | `apps/driva_editor/.../canvas/preview_surface.dart` | **É aqui que o editor injeta o resolver da F3.** Um ponto, um arquivo |
+| `preview_surface.dart:104` liga `showDiagnostics: true` — o **único** ponto do repo que o liga | `apps/driva_editor/.../canvas/preview_surface.dart` | É onde o resolver da F3 é **consumido**. ⚠️ **Não é onde ele é construído:** `preview_surface` é widget-folha e **não pode tocar o `get_it`** — quem monta é o `EditorPage.pageBuilder`, e o valor desce por construtor (VR-16-02). Ponto de consumo ≠ ponto de construção |
 | `SduiDimensionBox` (px / % / "preenche") | `sdui_flutter/lib/src/layout/sdui_dimension_box.dart:13` | O que `image` passa a usar na F4 (D3) |
 | `buildContainer` já usa `SduiDimensionBox` | `sdui_flutter/lib/src/builders/container.dart:29-35` | **O gabarito literal da F4** |
 | `parseDouble` (**só `num`**), `parseColor`, `parseBorderRadius` | `sdui_flutter/lib/src/parsing/parsers.dart:45,9,79` | `parseDouble:45` é o que **não** entende `"100%"` |
@@ -558,8 +564,10 @@ mesmo arquivo** — são duas oportunidades de quebrar sem rede.
 **Mitigação sem desvio:** o aceite da **F3** e o da **F4** repetem o print do estado
 "carregando" (a regressão apareceria no E2E de cada fase, não só no final). Se o humano
 preferir a rede automática mais cedo, a saída é aprovar **um** teste de widget descendo para a
-F1 como **`VR-16-02`** (o `VR-16-01` já é o `trust proxy` da F2) — está identificado e é
-barato, mas **é decisão dele**, não nossa.
+F1 como um desvio novo no `variance_report.md`, **pegando o próximo número livre** — está
+identificado e é barato, mas **é decisão dele**, não nossa. _(Este plano chegou a reservar o
+rótulo `VR-16-02` para essa hipótese; a reserva foi desfeita. Número de desvio se atribui
+quando o desvio acontece, nunca antecipado.)_
 
 ### D17 — **[nova]** A matriz de segurança é a **exceção documentada** à regra "testes por último". Ela nasce **na F2**.
 
@@ -601,6 +609,37 @@ DoD §11.3**, no E2E manual em homologação.
 **Que ninguém leia "linha 44 verde" como "a URL do relato carrega".** São afirmações
 diferentes: a 44 diz que o proxy repassa uma imagem servida por um servidor de teste; a 19 diz
 que a URL que o dev reclamou aparece na tela dele. A segunda é a que fecha o item.
+
+### D19 — **[nova]** Sem backend alcançável, o resolver é `null` — e a busca volta a ser direta.
+
+> **Decidida na revisão da F3 (2026-08-15).** Guarda em `EditorPage.pageBuilder`:
+> `if (config.apiBaseUrl.isEmpty || config.useFakeData) return null;`
+
+**As duas armadilhas que ela desarma são a mesma no fundo: proxy configurado apontando para
+lugar nenhum.**
+
+1. **`apiBaseUrl` vazio.** `AppConfig` lê `const String.fromEnvironment('API_BASE_URL')`
+   (`app_config.dart:16`), que **cai em `''`** quando alguém roda sem
+   `--dart-define-from-file`. O resolver produziria `'/v1/media/proxy?url=…'` — **URL
+   relativa à origem do editor**, que não serve esse caminho. **Todas** as imagens quebram de
+   uma vez, e o sintoma aponta para o widget, não para a configuração ausente.
+2. **`useFakeData: true`.** O `dev.json` liga isso de propósito, para o QA instrumentar E2E
+   **sem servidor**. Nesse modo o proxy apontaria para um backend que não existe.
+
+**O que torna isto grave, e não uma checagem defensiva qualquer:** no modo fake, o **caso A**
+(host com ACAO) **carregava** antes da F3 — busca direta, sem CORS envolvido. Com o resolver
+ligado às cegas, ele passaria a exibir "falhou". Ou seja: **a correção do item 39
+reintroduziria o sintoma do item 39**, pela porta do ambiente local, e o primeiro a tropeçar
+seria justamente quem estivesse validando a correção.
+
+**Por que `null` e não uma mensagem de erro:** sem resolver, `buildImage` busca a imagem
+**direto do host** — exatamente o comportamento pré-F3. Casos A funcionam, caso B falha com o
+estado "falhou" da D1. É **degradação correta**: perde-se a melhoria, não a função.
+
+**Consequência para o E2E, e ela é obrigatória:** a rodada tem de correr **contra o backend
+real**. Com `dev.json` em modo fake esta guarda desliga o proxy e **mascara a fase inteira** —
+os passos 4 e 5 do §10 passariam sem que uma linha do código novo tivesse executado. Está
+escrito no §10 e no DoD.
 
 ## 5. Fases
 
@@ -774,9 +813,19 @@ encosta na realidade.
   (`SduiView` e `SduiView.content`, `:9-31`).
 - **`packages/sdui_flutter/lib/src/builders/image.dart`** — aplicar o resolver ao `src`,
   **só** para URL absoluta `http`/`https` (D11).
-- **`apps/driva_editor/lib/…`** — o resolver do editor, montado de `AppConfig.apiBaseUrl`
-  (`app_config.dart:32`), injetado onde o canvas monta o `SduiView.content`
-  (`.../canvas/preview_surface.dart`). **Arquivo próprio**, não uma lambda inline.
+- **`apps/driva_editor/` — 8 arquivos, não 1** (⚠️ corrigido pelo **VR-16-02**; a versão
+  anterior deste plano dizia "um ponto, um arquivo" e estava errada):
+  - **`core/network/media_proxy_image_url_resolver.dart`** (novo) + o barrel
+    `core/network/network.dart`. **Arquivo próprio**, não lambda inline.
+  - **`…/editor/editor_page.dart`** — **constrói** o resolver no `pageBuilder`, com a guarda
+    da **D19**. É o **único** lugar autorizado a tocar o `get_it` (CLAUDE.md), e por isso o
+    ponto de **construção** não pode ser o mesmo que o de **consumo**.
+  - **5 repasses por construtor** — `editor_workspace.dart`, `center_area.dart`,
+    `canvas_area.dart`, `canvas_panel.dart`, até `widgets/canvas/preview_surface.dart`, que
+    **consome** passando ao `SduiView.content`. Nenhum intermediário usa o valor.
+  - ⚠️ **Teto de 5 níveis de threading** (ressalva do QA, VR-16-02): um sexto vira sinal de
+    trocar por `InheritedWidget` escopado no `EditorPage.build`, padrão `Theme`. **Não é para
+    esta fase** — é para o próximo que precisar passar algo por esse caminho.
 
 **Aceite (validável):**
 
@@ -844,6 +893,25 @@ print e um gate CISO sem prova executável não é gate._
   a `http`/`https`** e **não** aplicado quando ausente (D11).
 - `sdui_flutter/test/renderer_golden_test.dart` — golden `node_image` regravado (R1).
 - `apps/driva_editor/test/.../prop_field/number_editor_test.dart` — clamp e sinalização.
+- **⚠️ Os três buracos de prova da F3, medidos por mutação pelo QA (2026-08-15). Nenhuma
+  mutação morreu — são a prioridade da F5, acima do resto desta lista:**
+
+  | # | Mutação aplicada | Resultado | O que está desprotegido |
+  | --- | --- | --- | --- |
+  | 1 | Apagar **o guard inteiro** de `_resolve` (passa a proxyar tudo, inclusive binding e `src` vazio) | **357/357 verdes** | O **aceite 5 da F3** — a regra que impede reintroduzir o bug — não tem **nenhuma** rede automática |
+  | 2 | Cortar o repasse de `imageUrlResolver` no **`SduiView.content`** | **342/342 verdes** | **O fio exato que entrega a correção.** Do lado do renderer, a F3 inteira é invisível para a suíte |
+  | 3 | — | — | O **aceite 6** não é provado por nada: o golden usa `const SduiNode(id: 'n', type: 'image')` **sem `src`**, captura o `ImageEmptyBox` e **nunca chama** `Image.network` nem o resolver |
+
+  **O que a F5 tem de escrever, e por quê:**
+  - teste do `_resolve` cobrindo `http`/`https` (reescreve), binding `{{...}}`, `src` vazio e
+    URL relativa (**não** reescreve) — mata a mutação 1;
+  - teste de que `SduiView.content` **repassa** o resolver até o builder — mata a mutação 2.
+    Sem ele, qualquer refactor que solte o fio passa verde;
+  - **fixture de golden com `src`** (servido por fixture local, nunca URL de rede — R3), para
+    o aceite 6 deixar de ser promessa. É o teste que prova o **ganho colateral da D2**: a
+    imagem é capturável porque não virou platform view.
+
+  _Mutação verde não é sinal de suíte boa; é sinal de que a suíte não olha para ali._
 - Widget test do `helpText` na `PropFieldShell`, **pelos dois caminhos** (D8).
 
 **Aceite:** os testes acima passam e a suíte existente continua verde.
@@ -1064,6 +1132,21 @@ não corrige o plano por conta própria.
 _Ponto de partida do QA. **Em homologação** (não localhost — lição do item 9g), editor web no
 Chrome. O QA instrumenta o que der em script idempotente; o resto é olho humano._
 
+> **⚠️ Dois avisos, para ler ANTES de abrir a rodada.**
+>
+> **1. Contra o backend real — nunca com `dev.json` em modo fake.** A guarda da **D19**
+> desliga o resolver quando `apiBaseUrl` está vazio **ou** `useFakeData` é `true`. Numa
+> rodada em modo fake o proxy **não é exercitado**: os passos 4 e 5 passariam sem que uma
+> linha do código novo tivesse executado, e a rodada inteira ficaria mascarada. **Conferir o
+> ambiente é o passo zero.**
+>
+> **2. No print do caso C, o motivo vai exibir `…/v1/media/proxy?url=…` — isso é esperado, não
+> é bug.** O `ImageErrorBox` mostra o `src` **original** no campo próprio, mas a `reason` vem
+> de `error.toString()`, e a `NetworkImageLoadException` embute na mensagem a URL que ela
+> tentou buscar — que, com o resolver ligado, é **a do proxy**. Aparece **só no editor**
+> (`showDiagnostics: true`, D13) e **não vaza no app cliente**. Sem este aviso escrito, alguém
+> abre bug contra comportamento correto.
+
 **Preparar** — três URLs à mão, uma de cada natureza:
 
 | Rótulo | URL | Natureza |
@@ -1147,6 +1230,7 @@ inteiro._
 | # | Item | Como se prova |
 | --- | --- | --- |
 | 13 | O roteiro da **§10** executado **em homologação** — não em localhost (lição do item 9g) | a URL do ambiente aparece nos prints |
+| 13b | **A rodada correu contra o backend real, não em modo fake** (D19) | a aba Network mostra a chamada a `…/v1/media/proxy?url=…`. Em modo fake a guarda desliga o resolver e **a rodada inteira fica mascarada** — sem esta prova, os itens 18/19 não valem |
 | 14 | **QA instrumenta** o que der em script idempotente e auto-limpante (skill `instrumentar-e2e`); o que exige olho fica para o humano | script em `docs/16-image-url-e-props/evidencias/rodada_MM/` |
 | 15 | **O dev humano confere os prints e atesta.** Ninguém mais atesta E2E | atestado escrito no `final_report.md`, com data |
 | 16 | Evidência arquivada em **`docs/16-image-url-e-props/evidencias/rodada_MM/`** (`rodada_01`, `rodada_02`…) | a pasta existe e tem os prints |
@@ -1161,7 +1245,7 @@ DoD exige a **matriz inteira**, cada caso com print próprio:
 | --- | --- | --- | --- |
 | 18 | **URL com ACAO** (`URL_A`) | imagem carregada | não carrega — regressão |
 | 19 | **URL sem ACAO** (`URL_B`) — **o caso do relato** | imagem carregada **e** a aba Network mostrando `…/v1/media/proxy?url=…` | não carrega — a D2 não entregou e o relato do dev continua de pé |
-| 20 | **URL 404/inexistente** (`URL_C`) | estado "falhou" **com o motivo legível em texto** | mostra quadrado cinza mudo, ou é igual ao print 21 |
+| 20 | **URL 404/inexistente** (`URL_C`) | estado "falhou" **com o motivo legível em texto**. _O motivo vai citar `…/v1/media/proxy?url=…` — **esperado**, é a URL que a `NetworkImageLoadException` tentou buscar; o `src` original aparece no campo próprio. Só no editor (D13)_ | mostra quadrado cinza mudo, ou é igual ao print 21. **Não** falha por citar o proxy no texto |
 | 21 | **Campo vazio** | estado "vazio" | é igual ao 20 ou ao 22 |
 | 22 | **Carregando** — **obrigatoriamente com throttling de rede ligado no DevTools** (sem ele o estado não pisca em cache hit, e isso é correto: D12) | estado "carregando" **no editor web**, mais o teste de widget de `frame == null` (F1 aceite 3) | é igual ao 20 ou ao 21 — **ou** se só existir no mobile, que era o bloqueio B1 |
 | 23 | **`width` = `0`** (D15) | print do **campo**, mostrando "Ajustado para o mínimo (1)" como `helperText` — e um segundo print com `abc`, mostrando o `errorText`, para provar que os dois sinais **se distinguem** | o valor é engolido sem sinal nenhum, ou os dois casos produzem a mesma mensagem. **Não** falha por a imagem ficar invisível em 1px: isso é esperado (D15) |
