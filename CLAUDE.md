@@ -64,6 +64,7 @@ Custo de token é regra, não preferência. rtk (reescreve `git`/`grep`/`ls`/…
 
 - **Grafo antes de grep/read cru.** Para explorar/entender código, consulte primeiro os tools do MCP `code-review-graph` (`query_graph`, `get_review_context`, `detect_changes`, `semantic_search_nodes`, `get_impact_radius`). Só caia em `Grep`/`Read` quando o grafo não cobrir. (Vale para subagentes — inclua isso no prompt deles.)
 - **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
+- **`rtk proxy <cmd>` quando o filtro atrapalha.** O hook do rtk reescreve `grep`/`ls`/`git`… e embaralha saídas com números soltos (linhas de `grep -n`, contagens). Precisa da saída crua? `rtk proxy grep -n …`. O filtro é o padrão; o proxy é a exceção consciente.
 - **Não reler** arquivo recém-editado (o harness rastreia o estado) nem redescrever o que já foi estabelecido.
 - **Respostas diretas**: sem tabela decorativa nem recapitulação longa; o que muda a decisão do humano, e só.
 - **Sessão nova a cada entrega.** Ao fechar um item do roadmap (mesmo checkpoint da faxina de branches + marcação `[x]`), **recomende ao humano iniciar uma sessão nova** para continuar — o `docs/roadmap.md` e as docs vivas dão a continuidade, e o histórico acumulado (caro por reenvio) zera. Não iniciar sessão nova no meio de uma tarefa. Junto da recomendação, **entregue um "prompt de retomada" pronto para colar** na sessão nova, em bloco de código e *self-contained* (independe do histórico que está sendo fechado): o que acabou de ser entregue (PR/itens), o **próximo item do `docs/roadmap.md`**, os ponteiros vivos (`docs/NN-<nome>/` e docs relevantes) e a **primeira ação concreta** (ou o `/tech-manager <pedido>` se for feature nova).
@@ -76,7 +77,8 @@ Fonte da verdade: **`docs/GITFLOW.md`** (na dúvida, ele manda). Resumo operacio
 - Nome de branch: **`feature/<issue>-<slug>`** (default), **`bugfix/<issue>-<slug>`**, **`hotfix/<issue>-<slug>`**, **`release/<vX.Y.Z>`**.
 - **Regra de ouro:** `release/*` e `hotfix/*` voltam para **duas** branches (`main` **e** `develop`), com **tag SemVer** no merge em `main`. Merges de volta usam `--no-ff`.
 - **CHANGELOG** (Keep a Changelog): a seção `Unreleased` é atualizada **no mesmo PR** da mudança; o `release/*` a promove para a versão.
-- Por situação, use a skill: `iniciar-feature`, `iniciar-bugfix`, `iniciar-hotfix`, `publicar-release`.
+- **Mais de um PR aberto ao mesmo tempo vai em PILHA** (stacked PRs do GitHub), nunca vários PRs independentes contra `develop`: cada PR solto dispara um build próprio, e a pilha mergeia o escolhido **e todos os não-mergeados abaixo dele** numa operação só. Detalhes e a armadilha do filtro do `ci.yml`: `docs/GITFLOW.md` § 6.
+- Por situação, use a skill: `iniciar-feature`, `iniciar-bugfix`, `iniciar-hotfix`, `empilhar-prs`, `publicar-release`.
 
 ## CI/CD e deploy (Coolify)
 
