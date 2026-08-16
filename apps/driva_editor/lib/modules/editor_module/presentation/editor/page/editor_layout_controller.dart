@@ -98,10 +98,17 @@ class EditorLayoutController extends ValueNotifier<EditorLayout> {
 
   Future<void> _boot() async {
     _isBooting = true;
-    final result = await getLayoutUseCase!();
-    if (_disposed) return;
-    result.fold((_) {}, _applySnapshot);
-    _isBooting = false;
+    // `finally` é o que garante que um boot que lança (ex.: `TypeError` de
+    // cast num JSON salvo com tipo errado, que escapa do `on Exception
+    // catch` do repositório) não deixe `_isBooting` travado em `true` para
+    // sempre — sem isto, `_scheduleSave` nunca mais gravaria nada na sessão.
+    try {
+      final result = await getLayoutUseCase!();
+      if (_disposed) return;
+      result.fold((_) {}, _applySnapshot);
+    } finally {
+      _isBooting = false;
+    }
   }
 
   void _applySnapshot(domain.EditorLayoutSnapshot snapshot) {

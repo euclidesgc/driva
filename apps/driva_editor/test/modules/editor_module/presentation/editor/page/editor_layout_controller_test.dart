@@ -27,6 +27,26 @@ class _FakeEditorLayoutRepository implements EditorLayoutRepository {
   }
 }
 
+/// Simula o `TypeError` de cast que escapa do `on Exception catch` do
+/// repositório (é `Error`, não `Exception`) — o cenário real que travava
+/// `_isBooting` antes do `try/finally`.
+class _ThrowingEditorLayoutRepository implements EditorLayoutRepository {
+  EditorLayoutSnapshot? stored;
+  int saveCount = 0;
+
+  @override
+  Future<Either<Failure, EditorLayoutSnapshot>> getLayout() async {
+    throw TypeError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> saveLayout(EditorLayoutSnapshot layout) async {
+    stored = layout;
+    saveCount++;
+    return const Right(unit);
+  }
+}
+
 void main() {
   group('EditorLayoutController', () {
     test('nasce com o padrão quando nenhum layout inicial é informado', () {
@@ -314,6 +334,31 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(repository.saveCount, savesBeforeDispose);
+      },
+    );
+
+    test(
+      'boot que lança um Error (não um Left) não trava _isBooting para '
+      'sempre — a gravação seguinte funciona normalmente',
+      () async {
+        final throwingRepository = _ThrowingEditorLayoutRepository();
+        final controller = EditorLayoutController(
+          getLayoutUseCase: GetEditorLayoutUseCase(
+            repository: throwingRepository,
+          ),
+          saveLayoutUseCase: SaveEditorLayoutUseCase(
+            repository: throwingRepository,
+          ),
+        );
+        addTearDown(controller.dispose);
+
+        await expectLater(controller.ready, throwsA(isA<TypeError>()));
+
+        controller.setLeftPanelWidth(333);
+        await Future<void>.delayed(const Duration(milliseconds: 450));
+
+        expect(throwingRepository.saveCount, 1);
+        expect(throwingRepository.stored?.leftPanelWidth, 333);
       },
     );
 
