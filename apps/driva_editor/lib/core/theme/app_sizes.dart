@@ -58,6 +58,10 @@ abstract final class AppSizes {
   /// piso mecânico do workspace, [workspaceMinimumWidth]).
   static const double workspacePanelMinWidth = 200;
 
+  /// Largura máxima de um painel lateral do `ResizableSplitView` — teto do
+  /// arraste e do reclamp na restauração da persistência de layout (D13).
+  static const double workspacePanelMaxWidth = 480;
+
   /// Largura somada dos dois `ResizeHandle` (6px cada) entre os três
   /// painéis do `ResizableSplitView` — o "12" da D14.
   static const double workspaceDividersWidth = 12;

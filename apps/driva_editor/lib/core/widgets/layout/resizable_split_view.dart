@@ -18,8 +18,10 @@ class ResizableSplitView extends StatefulWidget {
     this.initialLeftWidth = 280,
     this.initialRightWidth = 320,
     this.minPanelWidth = AppSizes.workspacePanelMinWidth,
-    this.maxPanelWidth = 480,
+    this.maxPanelWidth = AppSizes.workspacePanelMaxWidth,
     this.minCenterWidth = AppSizes.minCenterWidth,
+    this.onLeftWidthChanged,
+    this.onRightWidthChanged,
   });
 
   final Widget left;
@@ -54,6 +56,11 @@ class ResizableSplitView extends StatefulWidget {
   final double minPanelWidth;
   final double maxPanelWidth;
   final double minCenterWidth;
+
+  /// Chamados a cada arraste (já clampado) — só para quem quiser persistir a
+  /// largura (F6); este widget não guarda nada além do próprio frame.
+  final ValueChanged<double>? onLeftWidthChanged;
+  final ValueChanged<double>? onRightWidthChanged;
 
   @override
   State<ResizableSplitView> createState() => _ResizableSplitViewState();
@@ -140,14 +147,18 @@ class _ResizableSplitViewState extends State<ResizableSplitView> {
                   SizedBox(width: leftWidth, child: widget.left),
                 if (!leftCollapsed)
                   ResizeHandle(
-                    onDrag: (dx) =>
-                        setState(() => _leftWidth = _clamp(leftWidth + dx)),
+                    onDrag: (dx) {
+                      setState(() => _leftWidth = _clamp(leftWidth + dx));
+                      widget.onLeftWidthChanged?.call(_leftWidth);
+                    },
                   ),
                 Expanded(child: widget.center),
                 if (!rightCollapsed)
                   ResizeHandle(
-                    onDrag: (dx) =>
-                        setState(() => _rightWidth = _clamp(rightWidth - dx)),
+                    onDrag: (dx) {
+                      setState(() => _rightWidth = _clamp(rightWidth - dx));
+                      widget.onRightWidthChanged?.call(_rightWidth);
+                    },
                   ),
                 if (rightCollapsed)
                   widget.rightPanelRail!

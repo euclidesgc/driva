@@ -3,6 +3,7 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
 import 'package:driva_editor/core/widgets/layout/resizable_split_view.dart';
+import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,8 @@ Widget _controlledHarness({
   required Widget left,
   required Widget center,
   required Widget right,
+  ValueChanged<double>? onLeftWidthChanged,
+  ValueChanged<double>? onRightWidthChanged,
 }) => MaterialApp(
   theme: AppTheme.light,
   home: ResizableSplitView(
@@ -57,6 +60,8 @@ Widget _controlledHarness({
     layoutListenable: controller,
     isLeftCollapsed: () => controller.value.leftPanelCollapsed,
     isRightCollapsed: () => controller.value.rightPanelCollapsed,
+    onLeftWidthChanged: onLeftWidthChanged,
+    onRightWidthChanged: onRightWidthChanged,
   ),
 );
 
@@ -289,6 +294,56 @@ void main() {
 
         expect(leftBuilds, 1);
         expect(centerBuilds, 1);
+      },
+    );
+
+    testWidgets(
+      'arrastar o handle esquerdo chama onLeftWidthChanged com a largura '
+      'já clampada (F6)',
+      (tester) async {
+        final reported = <double>[];
+        await tester.pumpWidget(
+          _controlledHarness(
+            controller: controller,
+            left: const ColoredBox(color: Colors.red),
+            center: const ColoredBox(color: Colors.green),
+            right: const ColoredBox(color: Colors.blue),
+            onLeftWidthChanged: reported.add,
+          ),
+        );
+        await tester.pump();
+
+        await tester.drag(find.byType(ResizeHandle).first, const Offset(40, 0));
+        await tester.pump();
+
+        expect(reported, isNotEmpty);
+        expect(reported.last, inInclusiveRange(200, 480));
+      },
+    );
+
+    testWidgets(
+      'arrastar o handle direito chama onRightWidthChanged, e não o '
+      'esquerdo',
+      (tester) async {
+        final leftReports = <double>[];
+        final rightReports = <double>[];
+        await tester.pumpWidget(
+          _controlledHarness(
+            controller: controller,
+            left: const ColoredBox(color: Colors.red),
+            center: const ColoredBox(color: Colors.green),
+            right: const ColoredBox(color: Colors.blue),
+            onLeftWidthChanged: leftReports.add,
+            onRightWidthChanged: rightReports.add,
+          ),
+        );
+        await tester.pump();
+
+        await tester.drag(find.byType(ResizeHandle).last, const Offset(-40, 0));
+        await tester.pump();
+
+        expect(rightReports, isNotEmpty);
+        expect(leftReports, isEmpty);
       },
     );
   });

@@ -10,6 +10,7 @@ class PropSection extends StatefulWidget {
     required this.summary,
     required this.children,
     this.initiallyExpanded = true,
+    this.onExpandedChanged,
     super.key,
   });
 
@@ -18,12 +19,21 @@ class PropSection extends StatefulWidget {
   final List<Widget> children;
   final bool initiallyExpanded;
 
+  /// Chamado a cada abre-e-fecha, para quem quiser persistir o estado
+  /// (F6) — este widget continua sem saber onde/se isso é lembrado.
+  final ValueChanged<bool>? onExpandedChanged;
+
   @override
   State<PropSection> createState() => _PropSectionState();
 }
 
 class _PropSectionState extends State<PropSection> {
   late bool _isExpanded = widget.initiallyExpanded;
+
+  void _toggle() {
+    setState(() => _isExpanded = !_isExpanded);
+    widget.onExpandedChanged?.call(_isExpanded);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +46,7 @@ class _PropSectionState extends State<PropSection> {
           label: widget.label,
           summary: widget.summary,
           isExpanded: _isExpanded,
-          onToggle: () => setState(() => _isExpanded = !_isExpanded),
+          onToggle: _toggle,
         ),
         if (_isExpanded) ...widget.children,
       ],

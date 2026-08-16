@@ -17,12 +17,18 @@ import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
+const _editorBootScaffold = Scaffold(
+  body: Center(child: CircularProgressIndicator()),
+);
+
 class EditorPage extends StatefulWidget {
   const EditorPage({
     required this.projectFuture,
     this.imageUrlResolver,
     this.contentId = '',
     this.layoutController,
+    this.getEditorLayoutUseCase,
+    this.saveEditorLayoutUseCase,
     super.key,
   });
 
@@ -43,6 +49,14 @@ class EditorPage extends StatefulWidget {
   /// memória com os padrões — o mesmo motivo do [contentId] opcional, para
   /// que os dois testes acima continuem montando `EditorPage` sem DI.
   final EditorLayoutController? layoutController;
+
+  /// Repassados ao controller que `_EditorPageState` cria quando
+  /// [layoutController] está ausente (F6). `pageBuilder` os resolve do
+  /// `get_it` — continua sendo o único lugar que toca o container — e esta
+  /// página só os encaminha, como já faz com [imageUrlResolver]. `null`
+  /// mantém o controller só em memória, sem persistência (D19).
+  final GetEditorLayoutUseCase? getEditorLayoutUseCase;
+  final SaveEditorLayoutUseCase? saveEditorLayoutUseCase;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
@@ -65,6 +79,8 @@ class EditorPage extends StatefulWidget {
         projectFuture: getIt<GetProjectUseCase>()(projectId),
         imageUrlResolver: imageUrlResolverFor(getIt<AppConfig>()),
         contentId: id,
+        getEditorLayoutUseCase: getIt<GetEditorLayoutUseCase>(),
+        saveEditorLayoutUseCase: getIt<SaveEditorLayoutUseCase>(),
       ),
     );
   }
@@ -79,7 +95,11 @@ class _EditorPageState extends State<EditorPage> {
   // de opcionalidade do `contentId`, para que `editor_perf_test.dart` e
   // `canvas_panel_golden_test.dart` continuem montando `EditorPage` sem DI.
   late final EditorLayoutController _layoutController =
-      widget.layoutController ?? EditorLayoutController();
+      widget.layoutController ??
+      EditorLayoutController(
+        getLayoutUseCase: widget.getEditorLayoutUseCase,
+        saveLayoutUseCase: widget.saveEditorLayoutUseCase,
+      );
 
   bool get _ownsLayoutController => widget.layoutController == null;
 
@@ -97,9 +117,7 @@ class _EditorPageState extends State<EditorPage> {
         buildWhen: (previous, current) =>
             previous.runtimeType != current.runtimeType,
         builder: (context, state) => switch (state) {
-          EditorLoading() => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
+          EditorLoading() => _editorBootScaffold,
           final EditorLoadFailure s => Scaffold(
             body: Center(
               child: Column(
@@ -120,10 +138,20 @@ class _EditorPageState extends State<EditorPage> {
               ),
             ),
           ),
-          EditorReady() => EditorWorkspace(
-            projectFuture: widget.projectFuture,
-            imageUrlResolver: widget.imageUrlResolver,
-            layoutController: _layoutController,
+          // D13: só monta o workspace depois que a largura restaurada já
+          // chegou reclampada — sem isto, o `ResizableSplitView` nasceria
+          // com o padrão e nunca reagiria a um boot que termina depois do
+          // primeiro frame.
+          EditorReady() => FutureBuilder<void>(
+            future: _layoutController.ready,
+            builder: (context, snapshot) =>
+                snapshot.connectionState == ConnectionState.done
+                ? EditorWorkspace(
+                    projectFuture: widget.projectFuture,
+                    imageUrlResolver: widget.imageUrlResolver,
+                    layoutController: _layoutController,
+                  )
+                : _editorBootScaffold,
           ),
         },
       ),

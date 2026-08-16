@@ -51,6 +51,13 @@ class EditorWorkspace extends StatelessWidget {
                   child: const InspectorArea(),
                 ),
                 rightPanelRail: const RightPanelRail(),
+                // Lido só aqui, na montagem (D13): `EditorPage` só monta este
+                // widget depois que `EditorLayoutController.ready` resolve, e
+                // já vem reclampado — não precisa reagir a mudança pós-boot.
+                initialLeftWidth: layoutController.value.leftPanelWidth,
+                initialRightWidth: layoutController.value.rightPanelWidth,
+                onLeftWidthChanged: layoutController.setLeftPanelWidth,
+                onRightWidthChanged: layoutController.setRightPanelWidth,
                 layoutListenable: layoutController,
                 isLeftCollapsed: () =>
                     layoutController.value.leftPanelCollapsed,

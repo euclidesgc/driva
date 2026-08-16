@@ -16,6 +16,7 @@ class InspectorPropList extends StatefulWidget {
     required this.properties,
     required this.descriptor,
     required this.onUpdateProps,
+    this.collapsedSections,
     super.key,
   });
 
@@ -27,12 +28,41 @@ class InspectorPropList extends StatefulWidget {
   final WidgetDescriptor descriptor;
   final ValueChanged<Map<String, dynamic>> onUpdateProps;
 
+  /// Chave é o rótulo do grupo (Q2/P3), lembrado globalmente entre nós — não
+  /// por [descriptor]. `null` fora do `EditorLayoutScope` (ex. este widget
+  /// testado isolado): mesma degradação do `LeftPanel`, a expansão fica só
+  /// local, sem sobreviver a um remount.
+  final ValueNotifier<Set<String>>? collapsedSections;
+
   @override
   State<InspectorPropList> createState() => _InspectorPropListState();
 }
 
 class _InspectorPropListState extends State<InspectorPropList> {
   String _query = '';
+
+  final ValueNotifier<Set<String>> _fallbackCollapsedSections = ValueNotifier(
+    {},
+  );
+
+  ValueNotifier<Set<String>> get _collapsedSections =>
+      widget.collapsedSections ?? _fallbackCollapsedSections;
+
+  void _toggleSection(String group, {required bool expanded}) {
+    final collapsed = {..._collapsedSections.value};
+    if (expanded) {
+      collapsed.remove(group);
+    } else {
+      collapsed.add(group);
+    }
+    _collapsedSections.value = collapsed;
+  }
+
+  @override
+  void dispose() {
+    _fallbackCollapsedSections.dispose();
+    super.dispose();
+  }
 
   List<String> get _groupsInOrder {
     final groups = <String>[];
@@ -92,14 +122,22 @@ class _InspectorPropListState extends State<InspectorPropList> {
                   children: [
                     for (final group in groups)
                       PropSection(
-                        // Sem key por grupo, fechar uma seção "moveria" o
-                        // estado para a seção que assumir o índice ao filtrar.
-                        key: ValueKey('${widget.descriptor.type}_$group'),
+                        // Chave só do grupo (Q2/P3, não `descriptor.type`):
+                        // sem ela, fechar uma seção "moveria" o estado para a
+                        // que assumir o índice ao filtrar; com ela, dois nós
+                        // diferentes com uma seção "Aparência" compartilham o
+                        // colapso — intencional, não bug.
+                        key: ValueKey(group),
                         label: group,
                         summary: PropGroupSummary.of(
                           _fieldsOf(group),
                           widget.properties,
                         ),
+                        initiallyExpanded: !_collapsedSections.value.contains(
+                          group,
+                        ),
+                        onExpandedChanged: (expanded) =>
+                            _toggleSection(group, expanded: expanded),
                         children: [
                           for (final field in _fieldsOf(group))
                             PropFieldEditor(
