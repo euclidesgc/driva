@@ -34,3 +34,7 @@ docs/**/.e2e-backend.*
 .DS_Store
 .claude/settings.local.json
 .vscode/backend.pid
+
+# Saída transitória do MCP do Playwright (console logs + snapshots de página
+# de sessões de automação de browser) — não é evidência de feature.
+.playwright-mcp/
