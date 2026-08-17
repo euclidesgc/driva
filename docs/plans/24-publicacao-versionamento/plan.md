@@ -118,6 +118,11 @@ Risco residual registrado: um cliente HTTP fora do editor pode publicar spec inv
 - **`backend/src/contents/contents.controller.ts`** — rotas novas, todas com `@Headers('x-project-id')` → `projectOf`, no padrão exato das existentes:
   `@Post(':id/publish')`, `@Post(':id/unpublish')` (`@HttpCode(200)`), `@Get(':id/versions')`, `@Get(':id/versions/:version')`, `@Post(':id/versions/:version/restore')`.
   > **Ordem de rota importa no Nest:** `@Get(':id/versions')` precisa estar declarada **antes** de qualquer rota curinga que possa capturá-la. Hoje só existe `@Get(':id')`, que não conflita (segmento a mais), mas manter as específicas acima é a prática segura.
+- **`backend/src/public/public.service.ts`** e **`backend/src/public/public.controller.ts`** — **adicionado em 2026-08-16, gap do plano original.** É a API `GET /public/contents[/:slug]` (chave publicável, `x-driva-key`) que a fatia 1 do item 25 já entrega em produção servindo o **rascunho** — débito registrado como **VR-13-01** em `docs/13-loop-sdui/variance_report.md` e no `docs/roadmap.md` ("não abrir para cliente real antes do 24"). É o P1 quem fecha esse débito, então os dois arquivos entram na lista de arquivos da fase, não só o `ContentsService`:
+  - `list()` e `findBySlug()` passam a filtrar `publishedVersionId: { not: null }` — conteúdo nunca publicado ou despublicado some da API pública.
+  - `findBySlug()` busca o `spec` na `ContentVersion` referenciada por `publishedVersionId`, não mais em `draftSpec`.
+  - `etagOf`/`updatedAt` do envelope público passam a refletir `publishedAt`, não o `updatedAt` da linha — autosave do rascunho não pode invalidar o cache/ETag de quem consome a versão publicada.
+  - Nenhuma mudança de contrato de campo (nomes da resposta continuam os mesmos); só a fonte dos dados muda.
 
 **Critério de aceite (E2E de contrato, no padrão do `docs/09.../e2e_hml.sh`):**
 - Criar conteúdo → `GET :id` devolve `publishedVersion: null`, `hasUnpublishedChanges: true`.
@@ -128,6 +133,9 @@ Risco residual registrado: um cliente HTTP fora do editor pode publicar spec inv
 - `unpublish` → `publishedVersion: null`; `GET :id/versions` continua com 2.
 - Cross-tenant: publicar com `x-project-id` de outro projeto → **404** (não 403 — não revela existência), consistente com o resto do service.
 - `DELETE` do conteúdo apaga as versões (cascade) e não trava a exclusão de projeto do item 9e.
+- Conteúdo nunca publicado → `GET /public/contents/:slug` (chave publicável) devolve **404**, e não aparece em `GET /public/contents`.
+- Publicar → `GET /public/contents/:slug` passa a devolver o `spec` da versão publicada (não o rascunho, mesmo que o rascunho tenha mudado depois).
+- `unpublish` → `GET /public/contents/:slug` volta a **404**; conteúdo some de `GET /public/contents`.
 
 **Riscos:**
 - **R1 — o rename `spec`→`draft_spec` é destrutivo se errado.** Mitigação: `RENAME COLUMN` (não drop), rodar `prisma migrate diff` contra o hml antes, e o `docs/deploy/coolify.md` já prevê `migrate status` no start (blindagem do PR #47).
