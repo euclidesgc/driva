@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/layout/layout.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
@@ -21,10 +22,13 @@ class EditorWorkspace extends StatelessWidget {
     required this.projectFuture,
     required this.layoutController,
     this.imageUrlResolver,
+    this.getContentVersionsUseCase,
     super.key,
   });
 
   final Future<Either<Failure, Project>> projectFuture;
+
+  final GetContentVersionsUseCase? getContentVersionsUseCase;
 
   /// O soquete da D7: montado aqui, acima de tudo o que hoje monta o
   /// `ResizableSplitView`, para que a F7 (tela cheia) o alcance sem um sexto
@@ -89,6 +93,7 @@ class EditorWorkspace extends StatelessWidget {
       controller: layoutController,
       child: EditorTopRegistrar(
         projectFuture: projectFuture,
+        getContentVersionsUseCase: getContentVersionsUseCase,
         child: workspace,
       ),
     );

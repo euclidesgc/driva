@@ -40,6 +40,16 @@ abstract final class AppSizes {
   /// longa, por isso é mais largo que [formDialogWidth].
   static const double wideFormDialogWidth = 460;
 
+  /// Altura da lista rolável do diálogo de histórico de versões (item 24) —
+  /// sem teto, o `AlertDialog` cresceria com a paginação e estouraria a
+  /// tela em conteúdos com muitas versões.
+  static const double versionHistoryListHeight = 360;
+
+  /// Folga que a lista reserva no rodapé enquanto o `LoadingMoreFooter`
+  /// flutua sobre ela: sem isso o último item fica encoberto e o usuário não
+  /// consegue rolar até ele.
+  static const double loadingMoreFooterInset = 56;
+
   /// O orçamento horizontal que `DialogContentWidth` precisa descontar da
   /// tela: o `insetPadding` padrão do Material (`AlertDialog`) é 40px de
   /// cada lado — 80 no total. Só isso; o `contentPadding` interno do diálogo

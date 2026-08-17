@@ -32,6 +32,20 @@ abstract final class EditorNoticeMessage {
       EditorNoticeKind.clipboardEmpty =>
         'Nada para colar: copie um widget antes, com Ctrl+C.',
       EditorNoticeKind.nodeWrapped => 'Envolvido numa ${label ?? 'Column'}.',
+      EditorNoticeKind.publishFailed => 'Falha ao publicar. Tente novamente.',
+      EditorNoticeKind.unpublishFailed =>
+        'Falha ao despublicar. Tente novamente.',
+      EditorNoticeKind.restoreFailed =>
+        'Falha ao restaurar essa versão. Tente novamente.',
     };
   }
+
+  /// Só as falhas de publicar/despublicar/restaurar ganham ícone de erro na
+  /// barra de status — as demais são dicas neutras sobre o arraste.
+  static bool isFailure(EditorNoticeKind kind) => switch (kind) {
+    EditorNoticeKind.publishFailed ||
+    EditorNoticeKind.unpublishFailed ||
+    EditorNoticeKind.restoreFailed => true,
+    _ => false,
+  };
 }

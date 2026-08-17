@@ -1,22 +1,38 @@
+import 'dart:async';
+
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
 import 'package:driva_editor/modules/contents_module/contents_module.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/editor_more_menu_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/publish_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/unpublish_confirm_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
+import 'package:sdui_core/sdui_core.dart' show DiagnosticSeverity;
 
 class EditorTopRegistrar extends StatelessWidget {
   const EditorTopRegistrar({
     required this.projectFuture,
     required this.child,
+    this.getContentVersionsUseCase,
     super.key,
   });
 
   final Future<Either<Failure, Project>> projectFuture;
   final Widget child;
+
+  /// `null` só em teste sem DI (mesmo motivo de `EditorPage`, D19) — nesse
+  /// caso o item "Ver histórico" do menu some, o resto do topo continua
+  /// funcionando.
+  final GetContentVersionsUseCase? getContentVersionsUseCase;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +50,14 @@ class EditorTopRegistrar extends StatelessWidget {
         return BlocSelector<
           EditorCubit,
           EditorState,
-          (String, SaveStatus, bool, bool)
+          (
+            String,
+            SaveStatus,
+            bool,
+            bool,
+            PublishBlockReason?,
+            PublicationState,
+          )
         >(
           selector: (state) => state is EditorReady
               ? (
@@ -42,10 +65,27 @@ class EditorTopRegistrar extends StatelessWidget {
                   state.saveStatus,
                   state.canUndo,
                   state.canRedo,
+                  state.publishBlockReason,
+                  state.publication,
                 )
-              : ('', SaveStatus.saved, false, false),
+              : (
+                  '',
+                  SaveStatus.saved,
+                  false,
+                  false,
+                  PublishBlockReason.documentErrors,
+                  const PublicationState(hasUnpublishedChanges: true),
+                ),
           builder: (context, vm) {
-            final (contentName, status, canUndo, canRedo) = vm;
+            final (
+              contentName,
+              status,
+              canUndo,
+              canRedo,
+              publishBlockReason,
+              publication,
+            ) = vm;
+            final canPublish = publishBlockReason == null;
             return ValueListenableBuilder<bool>(
               valueListenable: layoutController.isFullscreen,
               builder: (context, isFullscreen, staticChild) => AppShellSlot(
@@ -61,7 +101,7 @@ class EditorTopRegistrar extends StatelessWidget {
                   ),
                   Crumb(label: contentName),
                 ],
-                status: _statusFor(status),
+                status: _statusFor(status, publication),
                 immersive: isFullscreen,
                 actions: [
                   AppBarAction.icon(
@@ -79,9 +119,22 @@ class EditorTopRegistrar extends StatelessWidget {
                     icon: Icons.save_outlined,
                     onPressed: status == SaveStatus.saving ? null : cubit.save,
                   ),
-                  const AppBarAction.outlined(
+                  AppBarAction.outlined(
                     label: 'Publish',
-                    tooltip: 'Publicação chega no incremento I4',
+                    tooltip: _publishTooltip(publishBlockReason),
+                    onPressed: canPublish
+                        ? () => _confirmPublish(context, cubit, publication)
+                        : null,
+                  ),
+                  AppBarAction.icon(
+                    icon: Icons.more_vert,
+                    tooltip: 'Mais opções',
+                    onPressed: () => _openMoreMenu(
+                      context,
+                      cubit,
+                      publication,
+                      getContentVersionsUseCase,
+                    ),
                   ),
                 ],
                 child: staticChild!,
@@ -95,25 +148,129 @@ class EditorTopRegistrar extends StatelessWidget {
   }
 }
 
-AppBarStatus _statusFor(SaveStatus status) => switch (status) {
-  SaveStatus.saved => const AppBarStatus(
-    icon: Icons.check_circle,
-    label: 'Salvo',
-    tone: AppBarStatusTone.success,
-  ),
-  SaveStatus.dirty => const AppBarStatus(
-    icon: Icons.edit_outlined,
-    label: 'Não salvo',
-    tone: AppBarStatusTone.neutral,
-  ),
-  SaveStatus.saving => const AppBarStatus(
-    icon: Icons.sync,
-    label: 'Salvando…',
-    tone: AppBarStatusTone.neutral,
-  ),
-  SaveStatus.saveFailed => const AppBarStatus(
-    icon: Icons.error_outline,
-    label: 'Falha ao salvar',
-    tone: AppBarStatusTone.danger,
-  ),
+Future<void> _confirmPublish(
+  BuildContext context,
+  EditorCubit cubit,
+  PublicationState publication,
+) async {
+  final state = cubit.state;
+  final warningsCount = state is EditorReady
+      ? state.diagnostics
+            .where((d) => d.severity == DiagnosticSeverity.warning)
+            .length
+      : 0;
+
+  final result = await showDialog<PublishDialogResult>(
+    context: context,
+    builder: (_) =>
+        PublishDialog(publication: publication, warningsCount: warningsCount),
+  );
+  if (result == null) return;
+  await cubit.publish(note: result.note);
+}
+
+Future<void> _openMoreMenu(
+  BuildContext context,
+  EditorCubit cubit,
+  PublicationState publication,
+  GetContentVersionsUseCase? getContentVersionsUseCase,
+) async {
+  final choice = await showDialog<EditorMoreMenuChoice>(
+    context: context,
+    builder: (_) => EditorMoreMenuDialog(isPublished: publication.isPublished),
+  );
+  if (!context.mounted) return;
+  switch (choice) {
+    case EditorMoreMenuChoice.versionHistory:
+      await _openVersionHistory(context, cubit, getContentVersionsUseCase);
+    case EditorMoreMenuChoice.unpublish:
+      await _confirmUnpublish(context, cubit);
+    case null:
+      break;
+  }
+}
+
+Future<void> _confirmUnpublish(BuildContext context, EditorCubit cubit) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (_) => const UnpublishConfirmDialog(),
+  );
+  if (confirmed != true) return;
+  await cubit.unpublish();
+}
+
+Future<void> _openVersionHistory(
+  BuildContext context,
+  EditorCubit cubit,
+  GetContentVersionsUseCase? getContentVersionsUseCase,
+) async {
+  if (getContentVersionsUseCase == null) return;
+  final state = cubit.state;
+  if (state is! EditorReady) return;
+
+  final historyCubit = VersionHistoryCubit(
+    getContentVersionsUseCase: getContentVersionsUseCase,
+    contentId: state.document.id,
+    publishedVersion: state.publication.publishedVersion,
+  );
+  unawaited(historyCubit.load());
+
+  await showDialog<void>(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: historyCubit,
+      child: VersionHistoryDialog(editorCubit: cubit),
+    ),
+  );
+  await historyCubit.close();
+}
+
+/// O motivo do botão desabilitado tem que ser verdadeiro (acessibilidade):
+/// "corrija os erros" só quando o bloqueio é mesmo por erro no documento.
+String _publishTooltip(PublishBlockReason? reason) => switch (reason) {
+  null => 'Publicar as alterações',
+  PublishBlockReason.saving => 'Salvando…',
+  PublishBlockReason.publishing => 'Publicando…',
+  PublishBlockReason.documentErrors =>
+    'Corrija os erros do documento antes de publicar '
+        '(veja a barra de status)',
 };
+
+/// Estado da linha inteira do save é urgente e transiente — cobre a barra
+/// enquanto dura. Quando não há nada em andamento, o status conta o que
+/// importa depois de fechar a aba: o que está no ar.
+AppBarStatus _statusFor(SaveStatus status, PublicationState publication) {
+  if (status == SaveStatus.saving) {
+    return const AppBarStatus(
+      icon: Icons.sync,
+      label: 'Salvando…',
+      tone: AppBarStatusTone.neutral,
+    );
+  }
+  if (status == SaveStatus.saveFailed) {
+    return const AppBarStatus(
+      icon: Icons.error_outline,
+      label: 'Falha ao salvar',
+      tone: AppBarStatusTone.danger,
+    );
+  }
+  if (!publication.isPublished) {
+    return const AppBarStatus(
+      icon: Icons.visibility_off_outlined,
+      label: 'Nunca publicado',
+      tone: AppBarStatusTone.neutral,
+    );
+  }
+  if (publication.hasUnpublishedChanges) {
+    return const AppBarStatus(
+      icon: Icons.edit_outlined,
+      label: 'Alterações não publicadas',
+      tone: AppBarStatusTone.neutral,
+    );
+  }
+  return AppBarStatus(
+    icon: Icons.check_circle,
+    label: 'No ar (v${publication.publishedVersion})',
+    tone: AppBarStatusTone.success,
+  );
+}

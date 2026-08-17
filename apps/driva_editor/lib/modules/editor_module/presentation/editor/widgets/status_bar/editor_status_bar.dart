@@ -1,9 +1,8 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/diagnostic_row.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_notice_message.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/status_bar_notice.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/status_bar_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -88,20 +87,7 @@ class _EditorStatusBarState extends State<EditorStatusBar> {
                       : () => setState(() => _isExpanded = !_isExpanded),
                 ),
                 if (notice != null)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.s12),
-                      child: Text(
-                        EditorNoticeMessage.of(notice),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: AppTypography.sm,
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: StatusBarNotice(notice: notice)),
               ],
             ),
           ),

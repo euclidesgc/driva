@@ -29,6 +29,7 @@ class EditorPage extends StatefulWidget {
     this.layoutController,
     this.getEditorLayoutUseCase,
     this.saveEditorLayoutUseCase,
+    this.getContentVersionsUseCase,
     super.key,
   });
 
@@ -58,6 +59,11 @@ class EditorPage extends StatefulWidget {
   final GetEditorLayoutUseCase? getEditorLayoutUseCase;
   final SaveEditorLayoutUseCase? saveEditorLayoutUseCase;
 
+  /// Repassado até `EditorTopRegistrar`, que constrói o
+  /// `VersionHistoryCubit` só quando o diálogo de histórico abre (P4) — o
+  /// mesmo motivo de opcionalidade dos dois use cases acima.
+  final GetContentVersionsUseCase? getContentVersionsUseCase;
+
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final id = state.pathParameters['id'];
 
@@ -70,6 +76,9 @@ class EditorPage extends StatefulWidget {
         final cubit = EditorCubit(
           loadContentUseCase: getIt<LoadContentUseCase>(),
           saveDraftUseCase: getIt<SaveDraftUseCase>(),
+          publishContentUseCase: getIt<PublishContentUseCase>(),
+          unpublishContentUseCase: getIt<UnpublishContentUseCase>(),
+          restoreContentVersionUseCase: getIt<RestoreContentVersionUseCase>(),
           projectId: projectId,
         );
         unawaited(cubit.loadContent(id));
@@ -81,6 +90,7 @@ class EditorPage extends StatefulWidget {
         contentId: id,
         getEditorLayoutUseCase: getIt<GetEditorLayoutUseCase>(),
         saveEditorLayoutUseCase: getIt<SaveEditorLayoutUseCase>(),
+        getContentVersionsUseCase: getIt<GetContentVersionsUseCase>(),
       ),
     );
   }
@@ -150,6 +160,7 @@ class _EditorPageState extends State<EditorPage> {
                     projectFuture: widget.projectFuture,
                     imageUrlResolver: widget.imageUrlResolver,
                     layoutController: _layoutController,
+                    getContentVersionsUseCase: widget.getContentVersionsUseCase,
                   )
                 : _editorBootScaffold,
           ),
