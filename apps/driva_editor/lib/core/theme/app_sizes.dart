@@ -113,6 +113,27 @@ abstract final class AppSizes {
   /// Altura da barra de ferramentas do canvas (presets de device + zoom).
   static const double canvasToolbarHeight = 44;
 
+  /// Abaixo desta largura **disponível para a barra do canvas** (não a da
+  /// janela — o painel central encolhe sozinho quando os laterais abrem), o
+  /// texto de dimensão do preset sai: ele é o único item redundante da barra,
+  /// porque o tooltip de cada preset já diz `393×852`. Mesmo papel de
+  /// [topBarActionsFitWidth].
+  static const double canvasToolbarDimensionsFitWidth = 650;
+
+  /// Abaixo desta largura, as ações secundárias da barra do canvas (ver no
+  /// celular, tela cheia) colapsam no `AppShellActionsOverflowMenu`. Ficam
+  /// sempre visíveis os presets de device, o ajuste à janela e o grupo de
+  /// zoom — os controles sem os quais um canvas estreito não é utilizável.
+  static const double canvasToolbarActionsFitWidth = 580;
+
+  /// O piso da barra: abaixo desta largura sobram só os presets de device e
+  /// os botões +/- de zoom, com o ajuste à janela indo para o menu, o
+  /// percentual saindo (o mock já mostra a escala) e os respiros caindo para
+  /// [AppSpacing.s8]. Existe porque o painel central encolhe até
+  /// [minCenterWidth] antes de o workspace passar a rolar — e a barra tem de
+  /// caber **lá**, não só em janela confortável.
+  static const double canvasToolbarDenseFitWidth = 460;
+
   // F3 — status bar do mock (D29).
   /// Largura da cápsula do indicador de home do mock — cabe sem colidir com
   /// as bordas no menor preset (Smartphone, 393 de largura).

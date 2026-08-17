@@ -34,96 +34,105 @@ class PreviewShareDialog extends StatelessWidget {
     final colors = Theme.of(context).extension<EditorColors>()!;
     return AlertDialog(
       title: const Text('Ver no celular'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Aponte a câmera do celular para o QR code, ou copie o link.',
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          Center(
-            child: QrImageView(
-              data: url,
-              size: AppSpacing.s180,
-              backgroundColor: colors.panel,
-              semanticsLabel: 'QR code para abrir o preview no celular',
-              eyeStyle: QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: colors.inkPrimary,
+      // Largura fixa porque o `AlertDialog` mede a largura intrínseca do
+      // conteúdo, e o `QrImageView` usa `LayoutBuilder` — que não responde a
+      // intrínsecas e derruba o layout do diálogo inteiro.
+      content: SizedBox(
+        width: AppSpacing.s320,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Aponte a câmera do celular para o QR code, ou copie o link.',
               ),
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: colors.inkPrimary,
-              ),
-              // Sem isto o `qr_flutter` degrada para um `Container()` vazio —
-              // um quadrado em branco sem sinal nenhum de que algo falhou. O
-              // link logo abaixo continua funcionando; só falta dizer isso.
-              errorStateBuilder: (context, error) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  child: Text(
-                    'Não foi possível gerar o QR — use o link abaixo.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: AppTypography.sm,
-                      color: colors.inkSecondary,
-                    ),
+              const SizedBox(height: AppSpacing.s16),
+              Center(
+                child: QrImageView(
+                  data: url,
+                  size: AppSpacing.s180,
+                  backgroundColor: colors.panel,
+                  semanticsLabel: 'QR code para abrir o preview no celular',
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: colors.inkPrimary,
                   ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s12,
-              vertical: AppSpacing.s10,
-            ),
-            decoration: BoxDecoration(
-              color: colors.panelAlt,
-              borderRadius: BorderRadius.circular(AppRadii.r8),
-              border: Border.all(color: colors.border),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    url,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: AppTypography.sm,
-                      color: colors.inkSecondary,
-                    ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: colors.inkPrimary,
                   ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                Tooltip(
-                  message: 'Copiar link',
-                  child: Semantics(
-                    button: true,
-                    label: 'Copiar link do preview',
-                    child: InkWell(
-                      onTap: () => _copy(context),
-                      borderRadius: BorderRadius.circular(AppRadii.r6),
-                      child: const Padding(
-                        padding: EdgeInsets.all(AppSpacing.s4),
-                        child: Icon(
-                          Icons.copy_rounded,
-                          size: AppIconSizes.s18,
+                  //Sem isto o `qr_flutter` degrada para um `Container()` vazio,
+                  //um quadrado em branco sem sinal nenhum de que algo falhou.
+                  //O link logo abaixo continua funcionando;
+                  //só falta dizer isso.
+                  errorStateBuilder: (context, error) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.s16),
+                      child: Text(
+                        'Não foi possível gerar o QR — use o link abaixo.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: AppTypography.sm,
+                          color: colors.inkSecondary,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.s16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s12,
+                  vertical: AppSpacing.s10,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.panelAlt,
+                  borderRadius: BorderRadius.circular(AppRadii.r8),
+                  border: Border.all(color: colors.border),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: AppTypography.sm,
+                          color: colors.inkSecondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+                    Tooltip(
+                      message: 'Copiar link',
+                      child: Semantics(
+                        button: true,
+                        label: 'Copiar link do preview',
+                        child: InkWell(
+                          onTap: () => _copy(context),
+                          borderRadius: BorderRadius.circular(AppRadii.r6),
+                          child: const Padding(
+                            padding: EdgeInsets.all(AppSpacing.s4),
+                            child: Icon(
+                              Icons.copy_rounded,
+                              size: AppIconSizes.s18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.s16),
+              const PreviewInstallHint(),
+            ],
           ),
-          const SizedBox(height: AppSpacing.s16),
-          const PreviewInstallHint(),
-        ],
+        ),
       ),
       actions: [
         TextButton(

@@ -1,10 +1,8 @@
-import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
-import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_toolbar_row.dart';
 import 'package:flutter/material.dart';
 
 class CanvasToolbar extends StatelessWidget {
@@ -48,94 +46,38 @@ class CanvasToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
-    final canZoomOut = !(fitToWindow && effectiveScale <= EditorCubit.minZoom);
-    return Container(
-      height: AppSizes.canvasToolbarHeight,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
-      decoration: BoxDecoration(
-        color: colors.panel,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          SegmentedButton<DevicePreset>(
-            segments: [
-              for (final preset in DevicePreset.values)
-                ButtonSegment(
-                  value: preset,
-                  tooltip:
-                      '${preset.label} '
-                      '(${preset.width.toInt()}×${preset.height.toInt()})',
-                  icon: Icon(switch (preset) {
-                    DevicePreset.smartphone => Icons.smartphone,
-                    DevicePreset.android => Icons.phone_android,
-                    DevicePreset.tablet => Icons.tablet_mac,
-                  }, size: AppIconSizes.s16),
-                ),
-            ],
-            selected: {device},
-            onSelectionChanged: (selection) => onChangeDevice(selection.single),
-            showSelectedIcon: false,
-            style: const ButtonStyle(visualDensity: VisualDensity.compact),
+    // A barra mede a largura que sobrou para ela, não a da janela: o painel
+    // central encolhe quando os laterais abrem, então janela larga não
+    // garante barra larga.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final dense = width < AppSizes.canvasToolbarDenseFitWidth;
+        return Container(
+          height: AppSizes.canvasToolbarHeight,
+          padding: EdgeInsets.symmetric(
+            horizontal: dense ? AppSpacing.s8 : AppSpacing.s12,
           ),
-          const Spacer(),
-          Text(
-            '${device.width.toInt()} × ${device.height.toInt()}',
-            style: TextStyle(
-              fontSize: AppTypography.md,
-              color: colors.inkMuted,
-            ),
+          decoration: BoxDecoration(
+            color: colors.panel,
+            border: Border(bottom: BorderSide(color: colors.border)),
           ),
-          if (onOpenPreview != null) ...[
-            const SizedBox(width: AppSpacing.s16),
-            IconButton(
-              tooltip: 'Ver no celular',
-              iconSize: AppIconSizes.s18,
-              icon: const Icon(Icons.smartphone),
-              onPressed: onOpenPreview,
-            ),
-          ],
-          const SizedBox(width: AppSpacing.s16),
-          IconButton(
-            tooltip: 'Ajustar à janela',
-            iconSize: AppIconSizes.s18,
-            isSelected: fitToWindow,
-            icon: const Icon(Icons.fit_screen_outlined),
-            selectedIcon: const Icon(Icons.fit_screen),
-            onPressed: onToggleFitToWindow,
+          child: CanvasToolbarRow(
+            device: device,
+            effectiveScale: effectiveScale,
+            fitToWindow: fitToWindow,
+            showDimensions: width >= AppSizes.canvasToolbarDimensionsFitWidth,
+            collapseSecondary: width < AppSizes.canvasToolbarActionsFitWidth,
+            dense: dense,
+            onChangeDevice: onChangeDevice,
+            onChangeZoom: onChangeZoom,
+            onToggleFitToWindow: onToggleFitToWindow,
+            onOpenPreview: onOpenPreview,
+            isFullscreen: isFullscreen,
+            onToggleFullscreen: onToggleFullscreen,
           ),
-          const SizedBox(width: AppSpacing.s16),
-          IconButton(
-            tooltip: canZoomOut
-                ? 'Diminuir zoom'
-                : 'Diminuir zoom (já no piso do ajuste automático)',
-            iconSize: AppIconSizes.s18,
-            icon: const Icon(Icons.zoom_out),
-            onPressed: canZoomOut
-                ? () => onChangeZoom(effectiveScale - 0.1)
-                : null,
-          ),
-          Text(
-            '${(effectiveScale * 100).round()}%',
-            style: const TextStyle(fontSize: AppTypography.md),
-          ),
-          IconButton(
-            tooltip: 'Aumentar zoom',
-            iconSize: AppIconSizes.s18,
-            icon: const Icon(Icons.zoom_in),
-            onPressed: () => onChangeZoom(effectiveScale + 0.1),
-          ),
-          const SizedBox(width: AppSpacing.s16),
-          IconButton(
-            tooltip: isFullscreen ? 'Sair da tela cheia (Esc)' : 'Tela cheia',
-            iconSize: AppIconSizes.s18,
-            isSelected: isFullscreen,
-            icon: const Icon(Icons.fullscreen),
-            selectedIcon: const Icon(Icons.fullscreen_exit),
-            onPressed: onToggleFullscreen,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

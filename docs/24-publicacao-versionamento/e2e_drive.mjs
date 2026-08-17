@@ -14,7 +14,7 @@
 // 1. **Diálogos e o corpo da página** expõem árvore semântica: o alvo sai do
 //    rótulo (`Publicar conteúdo`, `Versão 2`, `Restaurar`…), não de pixel.
 // 2. **O topo do shell NÃO expõe semântica nenhuma** — nem os botões
-//    (Salvar/Publish/⋮), nem o indicador de status ("No ar (v3)"), nem os
+//    (Salvar/Publicar/⋮), nem o indicador de status ("No ar (v3)"), nem os
 //    breadcrumbs. Idem a **barra de status do editor** (o rodapé com
 //    "Nenhum problema" e os avisos de falha). É o achado A1 do `test_plan.md`
 //    (o `BlockSemantics` da barreira de rota derruba a casca do shell). Até
@@ -348,7 +348,7 @@ try {
   const topNuncaPublicado = await stripHash(TOP_STATUS_STRIP);
   await shot('02_editor_nunca_publicado.png', 'Editor: "Nunca publicado"',
     'o editor abriu no conteúdo de teste, que a API reporta como publishedVersion == null',
-    'o topo diz "Nunca publicado" com o ícone de olho fechado, e o botão Publish está clicável (contorno, não apagado)');
+    'o topo diz "Nunca publicado" com o ícone de olho fechado, e o botão Publicar está clicável (contorno, não apagado)');
   check('a API confirma que nada está no ar', null, await publishedVersion());
 
   step('3', 'confirmar a publicação — o diálogo anuncia a versão que nasce');
