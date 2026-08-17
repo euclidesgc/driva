@@ -12,11 +12,14 @@
 
 | Fase | O que entrega | Situação |
 | --- | --- | --- |
-| **F1** | A URL do editor passa a bastar (rota + escopo + navegação + tela de falha) | `[ ]` não iniciada — **1 PR** |
-| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[ ]` bloqueada por F1 |
+| **F1** | A URL do editor passa a bastar (rota + escopo + navegação + tela de falha) | `[x]` implementada — gates de QA e CISO passados, **falta o PR** |
+| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[ ]` bloqueada pelo PR da F1 |
 | **F3** | Bateria automatizada + docs vivas | `[ ]` bloqueada por F2 |
 
-**Última atualização:** 2026-08-17 (nascimento do plano).
+**Última atualização:** 2026-08-17 — F1 consolidada na `bugfix/46-projectid-na-rota-do-editor`
+(frente A `ab5f304`, frente B `3e1b7e6`, docs `33e7f0d`), `analyze` limpo e 706 testes verdes;
+CISO liberou sem bloqueante (`ciso_review.md`), QA aprovou com os achados já corrigidos e o
+desvio do `e2e_shots.sh` registrado como `VR-46-03`.
 
 ---
 
@@ -576,9 +579,9 @@ pelo dev humano.** As três subseções abaixo são cumulativas: máquina, fase,
 | 4 | **Zero linha em `backend/`** | `git diff --stat origin/develop -- backend/` = vazio. _O 404 indistinguível é controle de segurança; nada aqui pede que ele mude_ |
 | 5 | **Zero linha em `app_router.dart`** (D1) | `git diff --stat origin/develop -- apps/driva_editor/lib/app_router.dart` = vazio |
 | 6 | **Nenhum call site da rota do editor ficou para trás** (R1) | `grep -rn "editorName\|'/contents/" apps/driva_editor/lib` — todo hit passa os dois `pathParameters` ou é a própria constante. Saída colada no PR |
-| 7 | **A string da rota antiga não sobrevive em `lib/`** | `grep -rn "/contents/:id/edit" apps/driva_editor/lib` = **zero** |
+| 7 | **A string da rota antiga não sobrevive em `lib/`** | `grep -rn "/contents/:id/edit" apps/driva_editor/lib` — **não dá zero, e não é resquício**: a rota nova (`/projects/:projectId/contents/:id/edit`) contém esse sufixo como substring por construção da D1. A prova é que **todo hit é precedido de `/projects/:projectId`** — hit sem esse prefixo é desvio |
 | 8 | **Um `projectFuture` só** (D9) | `grep -rn "GetProjectUseCase" apps/driva_editor/lib/modules/editor_module` — exatamente **uma** invocação, no `pageBuilder` |
-| 9 | **Só quatro escritores do `ProjectScope`** (D10) | `grep -rn "ProjectScope>().projectId =" apps/driva_editor/lib` → `injection.dart` + os `pageBuilder` de `project_detail`, `preview` e `editor`. Um quinto é desvio |
+| 9 | **Só três escritores do `ProjectScope`** (D10) | `grep -rn "ProjectScope>().projectId =" apps/driva_editor/lib` → os `pageBuilder` de `project_detail`, `preview` e `editor`. Um quarto é desvio. _O `injection.dart:18` não aparece porque semeia por construtor (`ProjectScope(initialProjectId: …)`), não por atribuição_ |
 | 10 | **`EditorPage` não ganhou `projectId`** (D3) | leitura do diff: o construtor não mudou; e os quatro testes da §2.5 passam **sem DI** |
 | 11 | **Os cinco leitores da §2.3 não aparecem no diff** | `git diff --stat` do PR: `editor_top_registrar.dart`, `editor_viewport_gate.dart`, `small_viewport_notice.dart` e `canvas_area.dart` ausentes |
 | 12 | **Gate 1** — nenhuma função/método novo que retorna `Widget` | leitura do diff: a tela de falha é um `StatelessWidget` em arquivo próprio, não um `Widget _buildFailure(...)` |

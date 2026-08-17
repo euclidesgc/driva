@@ -33,6 +33,32 @@ tela que mente sobre a causa.
 
 ---
 
+## VR-46-03 — O `e2e_shots.sh` do item 02 ganhou cerca estrutural, não só a troca de URL
+
+**A D11 travava:** uma linha de montagem de URL em cada arquivo de E2E. Sete dos oito
+cumpriram.
+
+**O que foi feito:** `docs/02-conteudos/e2e_shots.sh` saiu **+94/−22**. Entrou um
+`shot_route <nome> <path>` que abre a URL num Chrome com CDP e **só fotografa se o
+roteamento do app tiver parado no path pedido**; o `04_notfound` passou a exigir que a API
+confirme **404** antes do print; o `03_editor_carregado` ganhou a mesma cerca; e PNG vazio,
+driver falhando ou `node` ausente passaram a contar como falha, com `exit 1`, onde antes
+saía `✗` cosmético ou nota cinza.
+
+**Por quê:** o `shot()` só verificava `[ -s "$OUT/$1.png" ]` — qualquer tela que
+renderizasse produzia `✓`. Com a rota antiga removida, `/contents/nao-existe/edit` cai na
+home e o script **continuaria "passando"**, fotografando a home com legenda de tela de erro.
+É o próprio defeito que este item corrige, reproduzido na ferramenta que deveria prová-lo.
+A troca de URL sozinha consertaria este caso; a cerca conserta a classe.
+
+**O que custa:** é ferramenta viva de **outro item**, e o contrato dela mudou — quem rodar
+sem Chrome/CDP ou sem `node` agora recebe `exit 1` onde antes levava evidência parcial.
+
+**Aprovado pelo dev humano** em 2026-08-17, sobre o achado do gate de QA, que recomendou
+registrar em vez de reverter.
+
+---
+
 ## Correções do plano ao discovery (não são desvios de escopo)
 
 Registradas aqui porque mudam instruções que o `prd.md` deu por certas.

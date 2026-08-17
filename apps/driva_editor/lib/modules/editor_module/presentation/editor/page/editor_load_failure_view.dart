@@ -2,6 +2,7 @@ import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/modules/contents_module/contents_module.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_load_failure_content.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,44 +35,46 @@ class EditorLoadFailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
-    return Scaffold(
-      body: Center(
-        // Espera o Future resolver (D6): sem isto a tela pisca "projeto não
-        // existe" e volta atrás assim que a resposta chega.
-        child: FutureBuilder<Either<Failure, Project>>(
-          future: projectFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const CircularProgressIndicator();
-            }
+    final projectId = context.read<EditorCubit>().projectId;
 
-            final projectId = context.read<EditorCubit>().projectId;
-            final display = _displayFor(snapshot.data, projectId);
-            final tone = display.tone == _FailureTone.danger
+    final Widget body;
+    if (failure is NotFoundFailure) {
+      // Só o 404 cruza com o projeto (D6): esperar o Future nas outras falhas
+      // prenderia no spinner até o timeout do Dio uma tela que nem lê o
+      // resultado.
+      body = FutureBuilder<Either<Failure, Project>>(
+        future: projectFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const CircularProgressIndicator();
+          }
+
+          final display = _notFoundDisplayFor(snapshot.data, projectId);
+          return EditorLoadFailureContent(
+            message: display.message,
+            icon: display.icon,
+            color: display.tone == _FailureTone.danger
                 ? colors.danger
-                : colors.warning;
+                : colors.warning,
+            actionLabel: display.actionLabel,
+            onAction: () => display.onAction(context),
+          );
+        },
+      );
+    } else {
+      final display = _displayFor(null, projectId);
+      body = EditorLoadFailureContent(
+        message: display.message,
+        icon: display.icon,
+        color: display.tone == _FailureTone.danger
+            ? colors.danger
+            : colors.warning,
+        actionLabel: display.actionLabel,
+        onAction: () => display.onAction(context),
+      );
+    }
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(display.icon, size: AppIconSizes.s40, color: tone),
-                const SizedBox(height: AppSpacing.s12),
-                Text(display.message, textAlign: TextAlign.center),
-                const SizedBox(height: AppSpacing.s12),
-                Semantics(
-                  button: true,
-                  label: display.actionLabel,
-                  child: OutlinedButton(
-                    onPressed: () => display.onAction(context),
-                    child: Text(display.actionLabel),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
+    return Scaffold(body: Center(child: body));
   }
 
   _FailureDisplay _displayFor(
