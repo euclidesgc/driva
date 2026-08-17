@@ -25,6 +25,23 @@ on:
   push:
     branches: [develop, main]
 
+# Nenhum job usa `secrets.*` nem escreve no repositório, e o job de Android baixa
+# e executa código de plugin de terceiros (AGP, Kotlin, o loader do Flutter) —
+# sem isto, esse código roda com o `GITHUB_TOKEN` no default do repositório, que
+# pode ser read/write.
+permissions:
+  contents: read
+
+# Versão fixa (não `channel: stable` solto): o formatter do Dart muda de release
+# e `channel: stable` flutuaria para o Flutter mais novo, quebrando o gate de
+# format a cada release. Casa com o `.puro.json` do repo — os dois precisam andar
+# juntos, senão o dev formata numa versão e a CI cobra outra. Aqui em cima porque
+# mais de um job a consome, e uma CI que builda o app numa versão e analisa noutra
+# não prova nada. Entre aspas porque uma versão de dois componentes (`3.50`) seria
+# lida como float e instalaria `3.5` sem dizer nada.
+env:
+  FLUTTER_VERSION: "3.44.9"
+
 jobs:
   flutter:
     name: Flutter — format + analyze + testes
@@ -32,13 +49,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Versão fixa (não `channel: stable` solto): o formatter do Dart muda de
-      # release e `channel: stable` flutuaria para o Flutter mais novo, quebrando
-      # o gate de format a cada release. Casa com o `.puro.json` do repo — os dois
-      # precisam andar juntos, senão o dev formata numa versão e a CI cobra outra.
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.44.9
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -69,6 +82,68 @@ jobs:
 
       - name: Testes — driva_demo_app (app de consumo)
         run: flutter test
+        working-directory: apps/driva_demo_app
+
+  android:
+    # `flutter analyze` e `flutter test` nunca saem do Dart: a configuração do
+    # Gradle, o merge de manifests e o template Android inteiro passavam por fora
+    # da cancela. Dois defeitos reais viveram nesse ponto cego (item 25 e o AGP
+    # 9.0.1 que exige o tooling do Flutter 3.44.9) — nenhum dos dois é visível
+    # sem chamar o Gradle de verdade.
+    #
+    # `--debug` e não `--release`: a regressão de toolchain morre na fase de
+    # configuração do Gradle, antes de compilar qualquer coisa, e ali os dois
+    # modos são idênticos — o release só somaria AOT por ABI para reprovar no
+    # mesmo ponto (tarefa do Gradle medida na mesma máquina, as duas a quente:
+    # 41,7s de `assembleDebug` contra 86,8s de `assembleRelease`). Assinatura não
+    # entra na conta: o buildType de release usa a chave de debug de propósito
+    # (`app/build.gradle.kts`), não há keystore nem segredo em nenhum dos dois.
+    #
+    # O que este job NÃO cobre: (a) a permissão de internet — o template injeta
+    # `INTERNET` no manifest de debug, então nenhum build de debug reprovaria por
+    # falta dela; quem guarda é o `test/android_manifest_test.dart`, no job acima;
+    # (b) o que só o release exercita — AOT (`gen_snapshot`) e o tree-shake de
+    # ícones, o mesmo que já produziu "tofu" em produção no bundle web do editor
+    # (por isso o `apps/driva_editor/Dockerfile` builda com
+    # `--no-tree-shake-icons`). Hoje nada no app, no renderer ou no kernel
+    # constrói `IconData` dinamicamente, então (b) é buraco teórico — mas é buraco.
+    #
+    # Sem filtro de path de propósito: o app está no pub workspace e é o primeiro
+    # consumidor externo do renderer, então mudança em `packages/sdui_flutter`,
+    # no `pubspec.yaml` da raiz ou na versão do Flutter aqui do workflow também
+    # quebra este build. Um filtro correto acabaria disparando em quase todo PR;
+    # o `needs` abaixo é que evita gastar os minutos do Android quando o Dart já
+    # está vermelho.
+    name: Android — build do app de demonstração
+    needs: flutter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+          cache-dependency-path: |
+            apps/driva_demo_app/android/**/*.gradle*
+            apps/driva_demo_app/android/**/gradle.properties
+            apps/driva_demo_app/android/gradle/wrapper/gradle-wrapper.properties
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Dependências (pub workspace)
+        run: dart pub get
+
+      # `main.dart` não existe: o app é por flavor. `main_dev.dart` compila a
+      # mesma árvore que `main_hml.dart` e não pede nenhum dart-define — os
+      # valores têm default e só importam em runtime.
+      - name: Build APK debug
+        run: flutter build apk --debug --target lib/main_dev.dart
         working-directory: apps/driva_demo_app
 
   backend:
