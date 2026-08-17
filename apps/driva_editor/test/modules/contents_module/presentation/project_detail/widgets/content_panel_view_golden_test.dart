@@ -27,6 +27,8 @@ void main() {
       categoryId: 'cat_1',
       description: 'Página inicial do app do cliente.',
       updatedAt: DateTime(2026, 7, 1, 9, 30),
+      publishedAt: DateTime(2026, 6, 30, 18),
+      hasUnpublishedChanges: false,
     ),
     ContentSummary(
       id: 'ct_2',
@@ -34,6 +36,8 @@ void main() {
       slug: 'offer-detail',
       categoryId: 'cat_2',
       updatedAt: DateTime(2026, 6, 28, 14, 5),
+      publishedAt: null,
+      hasUnpublishedChanges: true,
     ),
     ContentSummary(
       id: 'ct_3',
@@ -41,6 +45,8 @@ void main() {
       slug: 'cart',
       categoryId: 'cat_1',
       updatedAt: DateTime(2026, 6, 20, 8),
+      publishedAt: null,
+      hasUnpublishedChanges: true,
     ),
   ];
 

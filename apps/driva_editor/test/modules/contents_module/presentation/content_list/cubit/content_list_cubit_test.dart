@@ -25,6 +25,8 @@ void main() {
     categoryId: 'cat_1',
     description: 'Vitrine',
     updatedAt: DateTime(2026, 7),
+    publishedAt: null,
+    hasUnpublishedChanges: true,
   );
 
   final other = ContentSummary(
@@ -33,6 +35,8 @@ void main() {
     slug: 'sobre',
     categoryId: 'cat_1',
     updatedAt: DateTime(2026, 7, 2),
+    publishedAt: null,
+    hasUnpublishedChanges: true,
   );
 
   setUp(() {
