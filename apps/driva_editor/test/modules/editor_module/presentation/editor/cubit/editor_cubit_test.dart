@@ -49,6 +49,14 @@ void main() {
     publication: PublicationState(hasUnpublishedChanges: true),
   );
 
+  const leafRootContent = ContentSpec(
+    specVersion: kSpecVersion,
+    id: 'ct_leaf',
+    name: 'Leaf',
+    slug: 'leaf',
+    root: SduiNode(id: 'nd_root_text', type: 'text'),
+  );
+
   setUpAll(() => registerFallbackValue(content));
 
   setUp(() {
@@ -68,10 +76,12 @@ void main() {
     projectId: 'p1',
   );
 
-  EditorCubit buildLoaded() {
-    final cubit = build()..emit(const EditorReady(document: content));
+  EditorCubit buildWith(ContentSpec document) {
+    final cubit = build()..emit(EditorReady(document: document));
     return cubit;
   }
+
+  EditorCubit buildLoaded() => buildWith(content);
 
   group('loadContent', () {
     blocTest<EditorCubit, EditorState>(
@@ -422,14 +432,6 @@ void main() {
   });
 
   group('raiz livre sem slot multi', () {
-    const leafRootContent = ContentSpec(
-      specVersion: kSpecVersion,
-      id: 'ct_leaf',
-      name: 'Leaf',
-      slug: 'leaf',
-      root: SduiNode(id: 'nd_root_text', type: 'text'),
-    );
-
     const occupiedSingleRootContent = ContentSpec(
       specVersion: kSpecVersion,
       id: 'ct_single',
@@ -441,11 +443,6 @@ void main() {
         child: SduiNode(id: 'nd_text', type: 'text'),
       ),
     );
-
-    EditorCubit buildWith(ContentSpec document) {
-      final cubit = build()..emit(EditorReady(document: document));
-      return cubit;
-    }
 
     blocTest<EditorCubit, EditorState>(
       'addNode em raiz folha agrupa numa Column em vez de recusar',
@@ -490,6 +487,121 @@ void main() {
         final state = cubit.state as EditorReady;
         expect(state.document, leafRootContent);
         expect(state.canRedo, isTrue);
+      },
+    );
+  });
+
+  group('envolver o nó selecionado (comando explícito)', () {
+    blocTest<EditorCubit, EditorState>(
+      'wrapSelected troca o nó pelo contêiner no lugar dele e o seleciona',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..wrapSelected('column');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final root = state.document.root!;
+        expect(root.id, 'nd_root');
+        expect(root.children.map((n) => n.id).first, 'nd_banner');
+        final wrapper = root.children.last;
+        expect(wrapper.type, 'column');
+        expect(wrapper.children.single, findNode(content.root!, 'nd_text'));
+        expect(state.selectedNodeId, wrapper.id);
+        expect(state.saveStatus, SaveStatus.dirty);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'wrapSelected avisa o agrupamento nomeando o contêiner criado',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..wrapSelected('row');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.notice?.kind, EditorNoticeKind.nodeWrapped);
+        expect(state.notice?.subjectType, 'row');
+        expect(state.document.root!.children.last.type, 'row');
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'wrapSelected na raiz troca a raiz e preserva a subárvore inteira',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_root')
+          ..wrapSelected('column');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final root = state.document.root!;
+        expect(root.type, 'column');
+        expect(root.id, isNot('nd_root'));
+        expect(root.children.single, content.root);
+        expect(state.selectedNodeId, root.id);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'envolver a raiz folha devolve o destino ao drop, sem novo agrupamento',
+      build: () => buildWith(leafRootContent),
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_root_text')
+          ..wrapSelected('column')
+          ..addNode('button');
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        final root = state.document.root!;
+        expect(root.type, 'column');
+        expect(root.children.map((n) => n.type), ['text', 'button']);
+        expect(state.notice, isNull);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'wrapSelected sem nó selecionado não emite nada',
+      build: buildLoaded,
+      act: (cubit) => cubit.wrapSelected('column'),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'wrapSelected em conteúdo vazio não emite nada',
+      build: () => buildWith(
+        const ContentSpec(
+          specVersion: kSpecVersion,
+          id: 'ct_vazio',
+          name: 'Vazio',
+          slug: 'vazio',
+        ),
+      ),
+      act: (cubit) => cubit.wrapSelected('column'),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'um único Ctrl+Z desfaz o envolver e devolve a seleção de antes (D4)',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..wrapSelected('column')
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.selectedNodeId, 'nd_text');
+        expect(state.canUndo, isFalse);
+        expect(state.canRedo, isTrue);
+        expect(state.notice, isNull);
       },
     );
   });

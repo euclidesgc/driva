@@ -113,6 +113,80 @@ void main() {
     expect(find.textContaining('Text não recebe esse widget'), findsOneWidget);
   });
 
+  testWidgets('o recado de envolver widget aparece ao lado do resumo', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      notice: const EditorNotice(
+        kind: EditorNoticeKind.nodeWrapped,
+        sequence: 1,
+        subjectType: 'column',
+      ),
+    );
+
+    expect(find.text('Envolvido numa Column.'), findsOneWidget);
+  });
+
+  testWidgets(
+    'sem o tipo do wrapper, o recado de envolver cai no padrão Column',
+    (tester) async {
+      await _pump(
+        tester,
+        notice: const EditorNotice(
+          kind: EditorNoticeKind.nodeWrapped,
+          sequence: 1,
+        ),
+      );
+
+      expect(find.text('Envolvido numa Column.'), findsOneWidget);
+    },
+  );
+
+  testWidgets('o recado de agrupamento do drop aparece ao lado do resumo', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      notice: const EditorNotice(
+        kind: EditorNoticeKind.dropWrapped,
+        sequence: 1,
+        subjectType: 'text',
+        wrapperType: 'column',
+      ),
+    );
+
+    expect(
+      find.text(
+        'Text não recebia esse widget — os dois foram agrupados numa Column.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'o rótulo do wrapper cai no tipo bruto quando o catálogo não o conhece',
+    (tester) async {
+      await _pump(
+        tester,
+        notice: const EditorNotice(
+          kind: EditorNoticeKind.dropWrapped,
+          sequence: 1,
+          subjectType: 'text',
+          wrapperType: 'no_such_widget',
+        ),
+      );
+
+      expect(
+        find.text(
+          'Text não recebia esse widget — os dois foram agrupados numa '
+          'no_such_widget.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('a lista aberta se fecha sozinha quando o problema some', (
     tester,
   ) async {
