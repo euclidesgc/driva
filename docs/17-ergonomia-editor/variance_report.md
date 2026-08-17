@@ -78,3 +78,26 @@ consequência do schema atual, não uma escolha registrada em nenhum D do plano.
 Registrado aqui para quem tocar o schema depois decidir se quer migração
 versionada, campos opcionais com default, ou aceitar o dobro-ao-padrão como
 comportamento pretendido também para esse caso.
+
+## VR-17-05 — o rodapé de diagnóstico nunca some, e isso trava metade do aceite 34 (F7)
+
+**O que existe:** `EditorStatusBar` (`status_bar_area.dart`) sempre renderiza
+quando `EditorReady` — mostra "Nenhum problema" com um ícone de check em vez
+de sumir (`SizedBox.shrink()`). O `prd.md:136` diz que deveria sumir quando
+não há diagnóstico; ninguém implementou essa metade.
+
+**Confirmado pré-existente à F7:** `git diff --name-only` da fase não toca
+`status_bar_area.dart` nem nada da lógica de visibilidade — a F7 (modo tela
+cheia) herdou o comportamento, não o criou.
+
+**Efeito no plano:** o aceite 34 pedia um **par** de prints — com erro, o
+rodapé fica; sem erro, some. A segunda metade é hoje **inatingível** (os dois
+prints sairiam idênticos). O texto do aceite 34 foi reescrito no `plan.md`
+para cobrir só a metade provável ("com erro → continua visível").
+
+**Decisão pendente do humano:** reescrever a regra de visibilidade do rodapé
+(3 linhas de guarda no `BlocSelector`, mas mexe numa tela que o `prd.md`
+descreve e que a F3 acabou de tocar — merece revisão própria, não emenda numa
+PR de tela cheia) **ou** aceitar o comportamento atual e formalizar o texto
+do PRD. Enquanto não decidir, a F8 (E2E manual) não instrumenta esse par de
+prints — só a metade que já é provável.

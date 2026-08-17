@@ -49,7 +49,7 @@ bloqueada" agora é só ordem de PR.
 | **F4b** | **O colapso da paleta sobrevive à troca de aba** (1.1) | especialista-apresentacao | **#141** | `[x]` |
 | F5 | Painel do editor colapsa numa faixa fina de ícones | especialista-apresentacao | **#155** | `[-]` |
 | F6 | O layout do editor é lembrado entre sessões | especialista-dominio + especialista-dados + especialista-apresentacao | **#159** | `[-]` |
-| F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | — | `[ ]` |
+| F7 | Modo tela cheia | especialista-apresentacao + especialista-infra | **#160** | `[-]` |
 | F8 | E2E manual em homologação, executado e **atestado pelo humano** | qa instrumenta · dev humano atesta | — | `[ ]` |
 | F9 | Bateria automatizada + docs vivas | qa | — | `[ ]` |
 
@@ -2064,7 +2064,7 @@ por tipo de nó (P3 — §9›Q2).
 
 ---
 
-### F7 — Modo tela cheia · **[dep. F5]** · **[sub-agente: especialista-apresentacao + especialista-infra]**
+### F7 — Modo tela cheia · **[PR #160, aberto]** · **[sub-agente: especialista-apresentacao + especialista-infra]**
 
 **Arquivos:** `core/widgets/app_shell/app_shell_scope.dart` (o sinal imersivo, com dono por
 token) · `app_shell_slot.dart` · `app_shell.dart` (esconde as duas faixas — **o shell
@@ -2080,9 +2080,16 @@ continua sem ler cubit**, regra do item 16c) · `editor_layout_controller.dart`
     não feature._
 33. **`Esc` devolve o layout intacto:** o print depois do `Esc` bate com o imediatamente
     anterior à entrada — mesmas larguras, mesmos colapsos.
-34. **A borda P2 — par de prints, senão não prova nada:** entrar em tela cheia **com um
-    erro de diagnóstico no rodapé** → o rodapé **continua visível**; entrar **sem erro** →
-    some. _Esconder erro num modo novo reintroduziria o sintoma que o item 38 corrigiu._
+34. **A borda P2 — metade provável hoje:** entrar em tela cheia **com um erro de
+    diagnóstico no rodapé** → o rodapé **continua visível**. _Esconder erro num modo novo
+    reintroduziria o sintoma que o item 38 corrigiu._ **[Correção editorial, F7, 2026-08-16
+    — QA]:** a segunda metade do aceite original ("sem erro → some") é **inatingível hoje**
+    — `EditorStatusBar` sempre renderiza quando `EditorReady` (mostra "Nenhum problema" em
+    vez de sumir), gap **pré-existente** à F7 (não regressão: `status_bar_area.dart` não foi
+    tocado nesta fase). O `prd.md:136` já dizia que deveria sumir; ninguém implementou.
+    **Decisão pendente do humano**, registrada em `variance_report.md` VR-17-05 e no
+    `roadmap.md`: reescrever a regra do rodapé (item próprio) ou aceitar o texto como está.
+    Enquanto não decidir, a F8 não instrumenta esse par de prints.
 35. **O atalho, se houver (D16):** print do modo ligado **logo após teclar, no Chrome real
     em homologação**. _Se o navegador capturar, reprova e o atalho muda._
 
