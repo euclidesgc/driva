@@ -1,0 +1,89 @@
+Alvo: https://hml.driva.duckdns.org  API: https://api-hml.driva.duckdns.org/v1  projeto: default  slug: e2e-24-publicacao
+Conteúdo de teste: yj2zgi4wj8sfl87ee1eg3d3l
+
+=== 1 — lista de conteúdos — conteúdo nunca publicado traz o selo "Rascunho"
+  [32mPASS[0m o selo do card é "Rascunho" (ícone + texto, nunca só cor)
+  [2m·[0m 01_lista_selo_rascunho.png
+
+=== 2 — editor abre em "Nunca publicado"
+  [2m·[0m 02_editor_nunca_publicado.png
+  [32mPASS[0m a API confirma que nada está no ar
+
+=== 3 — confirmar a publicação — o diálogo anuncia a versão que nasce
+  [32mPASS[0m o diálogo anuncia a versão 1
+  [2m·[0m 03_dialogo_publicar_v1.png
+
+=== 4 — publicado — versão 1 no ar e o topo muda de estado
+  [32mPASS[0m a API confirma a versão 1 no ar
+  [32mPASS[0m existe exatamente uma versão
+  [32mPASS[0m a nota digitada no diálogo chegou na versão
+  [32mPASS[0m o indicador do topo mudou ao publicar
+  [2m·[0m 04_topo_no_ar_v1.png
+
+=== 5 — a lista de conteúdos passa a mostrar "No ar" sem request extra
+  [32mPASS[0m o selo do card virou "No ar"
+  [2m·[0m 05_lista_selo_no_ar.png
+
+=== 6 — rascunho alterado por fora — o editor reabre em "Alterações não publicadas"
+  [32mPASS[0m o indicador do topo distingue "alterações não publicadas" de "no ar"
+  [2m·[0m 06_alteracoes_nao_publicadas.png
+
+=== 7 — publicar de novo — versão 2
+  [32mPASS[0m o diálogo anuncia a versão 2
+  [32mPASS[0m a API confirma a versão 2 no ar
+  [32mPASS[0m agora são duas versões
+  [32mPASS[0m o indicador do topo mudou de novo ao publicar
+  [2m·[0m 07_topo_no_ar_v2.png
+
+=== 8 — histórico de versões — as duas, mais nova primeiro, com o selo "No ar"
+  [32mPASS[0m o menu oferece despublicar (o conteúdo está no ar)
+  [2m·[0m 08_menu_mais_opcoes.png
+  [32mPASS[0m o histórico lista a versão 2
+  [32mPASS[0m o histórico lista a versão 1
+  [2m·[0m 09_historico_de_versoes.png
+
+=== 9 — restaurar a v1 — confirmação própria, porque descarta o rascunho
+  [32mPASS[0m a confirmação nomeia a versão
+  [2m·[0m 10_confirmar_restauro.png
+
+=== 10 — restaurado — o rascunho virou a v1 e o que está no ar continua a v2 (D4)
+  [32mPASS[0m o histórico fechou sozinho no sucesso
+  [32mPASS[0m o rascunho no servidor é o spec da v1
+  [32mPASS[0m o que está no ar continua a v2
+  [32mPASS[0m restaurar não criou versão nova
+  [2m·[0m 11_restaurado_no_canvas.png
+
+=== 11 — republicar o rollback — publish salva o rascunho sujo antes (P3)
+  [32mPASS[0m a API confirma a versão 3 no ar
+  [32mPASS[0m a v3 publicou o conteúdo restaurado da v1
+  [2m·[0m 12_republicado_v3.png
+
+=== 12 — MODO DE FALHA 1 — publish que falha tem de ser visível
+  [32mPASS[0m a barra de status mudou — a falha aparece na tela
+  [32mPASS[0m o indicador do topo NÃO mudou — a falha não mentiu que publicou
+  [32mPASS[0m nenhuma versão foi criada
+  [32mPASS[0m a API continua com a v3 no ar
+  [2m·[0m 13_publish_falhou.png
+
+=== 13 — MODO DE FALHA 2 — restore que falha mantém o histórico aberto
+  [32mPASS[0m o histórico CONTINUA aberto na falha
+  [32mPASS[0m o rascunho não foi tocado
+  [2m·[0m 14_restore_falhou_dialogo_aberto.png
+  [32mPASS[0m o rodapé mostra a falha do restauro (e não o rodapé limpo do sucesso)
+  [2m·[0m 15_restore_falhou_barra.png
+
+=== 14 — despublicar — sai do ar sem perder o histórico
+  [32mPASS[0m a confirmação de despublicar aparece
+  [2m·[0m 16_confirmar_despublicar.png
+  [32mPASS[0m a API não tem mais versão no ar
+  [32mPASS[0m as três versões continuam guardadas
+  [32mPASS[0m o indicador do topo voltou a um estado diferente de "No ar"
+  [2m·[0m 17_despublicado.png
+
+=== 15 — a lista volta ao selo "Rascunho"
+  [32mPASS[0m o selo do card voltou a "Rascunho"
+  [2m·[0m 18_lista_volta_rascunho.png
+
+Limpando o rastro…
+
+[32mPASS=35[0m  [31mFAIL=0[0m
