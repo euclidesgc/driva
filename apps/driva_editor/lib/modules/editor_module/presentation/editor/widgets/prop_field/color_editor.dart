@@ -70,7 +70,7 @@ class _ColorEditorState extends State<ColorEditor> {
         dialogOkButtonLabel: 'Selecionar',
         dialogCancelButtonLabel: 'Cancelar',
       ),
-    ).showPickerDialog(context, title: const Text('Selecionar cor'));
+    ).showPickerDialog(context);
     if (!mounted || !confirmed) return;
     final hex = '#${picked.hex}';
     _controller.text = hex;
