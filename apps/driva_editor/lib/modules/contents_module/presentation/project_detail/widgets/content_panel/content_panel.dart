@@ -11,7 +11,6 @@ export 'contents_collection.dart';
 export 'draggable_content.dart';
 export 'drawer_toggle_button.dart';
 export 'empty_contents.dart';
-export 'loading_more_footer.dart';
 export 'panel_error.dart';
 export 'slug_badge.dart';
 export 'sort_control.dart';
