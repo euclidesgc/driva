@@ -4,6 +4,7 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/card_actions.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/publication_badge.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/slug_badge.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/updated_at.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +79,11 @@ class ContentRowBody extends StatelessWidget {
                   ),
                 ),
                 if (!isCompact) ...[
+                  const SizedBox(width: AppSpacing.s12),
+                  PublicationBadge(
+                    publishedAt: content.publishedAt,
+                    hasUnpublishedChanges: content.hasUnpublishedChanges,
+                  ),
                   const SizedBox(width: AppSpacing.s12),
                   UpdatedAt(updatedAt: content.updatedAt),
                 ],

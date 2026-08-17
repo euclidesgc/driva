@@ -2,6 +2,7 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/card_actions.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/category_label.dart';
+import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/publication_badge.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/slug_badge.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/support_id.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/updated_at.dart';
@@ -69,7 +70,15 @@ class ContentCardBody extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                CategoryLabel(name: categoryName),
+                Row(
+                  children: [
+                    Expanded(child: CategoryLabel(name: categoryName)),
+                    PublicationBadge(
+                      publishedAt: content.publishedAt,
+                      hasUnpublishedChanges: content.hasUnpublishedChanges,
+                    ),
+                  ],
+                ),
                 const Spacer(),
                 UpdatedAt(updatedAt: content.updatedAt),
                 const SizedBox(height: AppSpacing.s3),

@@ -11,10 +11,16 @@ class ContentSummaryModel extends ContentSummary {
     required super.categoryId,
     required super.updatedAt,
     super.description,
+    super.publishedAt,
+    super.hasUnpublishedChanges = true,
   });
 
   // A forma esperada do item de `GET /v1/contents` (dentro do envelope
   // `{ data, nextCursor }`) e do detalhe (`POST`/`PUT`), declarada uma vez.
+  // `publishedAt`/`hasUnpublishedChanges` são opcionais no schema (item 24):
+  // uma lista cacheada em disco de antes desta feature (offline-first, item
+  // 17) não os manda — sem default aqui, o `tryParse` falharia e a home
+  // inteira sumiria na primeira abertura pós-deploy.
   static final ZMap _schema = z.map({
     'id': z.string().min(1),
     'name': z.string().min(1),
@@ -22,6 +28,8 @@ class ContentSummaryModel extends ContentSummary {
     'categoryId': z.string().min(1),
     'description': z.string().optional(),
     'updatedAt': z.date(),
+    'publishedAt': z.date().nullable().optional(),
+    'hasUnpublishedChanges': z.bool().optional(),
   });
 
   static Either<Failure, ContentSummaryModel> tryParse(
@@ -40,6 +48,8 @@ class ContentSummaryModel extends ContentSummary {
         categoryId: data['categoryId'] as String,
         description: data['description'] as String?,
         updatedAt: data['updatedAt'] as DateTime,
+        publishedAt: data['publishedAt'] as DateTime?,
+        hasUnpublishedChanges: data['hasUnpublishedChanges'] as bool? ?? true,
       ),
     );
   }

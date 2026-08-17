@@ -38,6 +38,8 @@ class ContentsRepositoryFake implements ContentsRepository {
           categoryId: store.categoryIdOf(content.id),
           description: content.description,
           updatedAt: store.updatedAtOf(content.id),
+          publishedAt: store.publishedAtOf(content.id),
+          hasUnpublishedChanges: store.hasUnpublishedChanges(content.id),
         ),
     ];
 
@@ -100,6 +102,8 @@ class ContentsRepositoryFake implements ContentsRepository {
         categoryId: store.categoryIdOf(content.id),
         description: content.description,
         updatedAt: store.updatedAtOf(content.id),
+        publishedAt: store.publishedAtOf(content.id),
+        hasUnpublishedChanges: store.hasUnpublishedChanges(content.id),
       ),
     );
   }
@@ -135,6 +139,8 @@ class ContentsRepositoryFake implements ContentsRepository {
         categoryId: store.categoryIdOf(updated.id),
         description: updated.description,
         updatedAt: store.updatedAtOf(updated.id),
+        publishedAt: store.publishedAtOf(updated.id),
+        hasUnpublishedChanges: store.hasUnpublishedChanges(updated.id),
       ),
     );
   }

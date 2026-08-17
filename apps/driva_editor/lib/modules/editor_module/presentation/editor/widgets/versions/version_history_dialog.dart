@@ -1,0 +1,105 @@
+import 'dart:async';
+
+import 'package:driva_editor/core/theme/theme.dart';
+import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/restore_version_confirm_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// A lista paginada de versões (padrão de scroll infinito do item 16:
+/// `NotificationListener` + rodapé "Carregando mais…"). `editorCubit` é quem
+/// de fato troca o documento ao restaurar — este diálogo só lista.
+class VersionHistoryDialog extends StatelessWidget {
+  const VersionHistoryDialog({required this.editorCubit, super.key});
+
+  final EditorCubit editorCubit;
+
+  static const _prefetchExtent = 200.0;
+
+  Future<void> _restore(BuildContext context, int version) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => RestoreVersionConfirmDialog(version: version),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    final restored = await editorCubit.restoreVersion(version);
+    if (!context.mounted || !restored) return;
+    Navigator.of(context).pop();
+  }
+
+  bool _onScroll(BuildContext context, ScrollNotification notification) {
+    if (notification.metrics.axis == Axis.vertical &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - _prefetchExtent) {
+      unawaited(context.read<VersionHistoryCubit>().loadMore());
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Histórico de versões'),
+      content: SizedBox(
+        width: AppSizes.formDialogWidth,
+        height: AppSizes.versionHistoryListHeight,
+        child: BlocBuilder<VersionHistoryCubit, VersionHistoryState>(
+          builder: (context, state) => switch (state) {
+            VersionHistoryLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            VersionHistoryLoadFailure() => const Center(
+              child: Text('Não foi possível carregar o histórico.'),
+            ),
+            final VersionHistoryLoaded s when s.versions.isEmpty =>
+              const Center(child: Text('Nenhuma versão publicada ainda.')),
+            final VersionHistoryLoaded s =>
+              NotificationListener<ScrollNotification>(
+                onNotification: (notification) =>
+                    _onScroll(context, notification),
+                child: Stack(
+                  children: [
+                    ListView.builder(
+                      padding: EdgeInsets.only(
+                        bottom: s.isLoadingMore
+                            ? AppSizes.loadingMoreFooterInset
+                            : 0,
+                      ),
+                      itemCount: s.versions.length,
+                      itemBuilder: (context, index) {
+                        final version = s.versions[index];
+                        return VersionRow(
+                          version: version,
+                          isPublished: version.version == s.publishedVersion,
+                          onRestore: (v) => _restore(context, v),
+                        );
+                      },
+                    ),
+                    if (s.isLoadingMore)
+                      const Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: AppSpacing.s8,
+                        child: LoadingMoreFooter(
+                          semanticsLabel: 'Carregando mais versões',
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Fechar'),
+        ),
+      ],
+    );
+  }
+}
