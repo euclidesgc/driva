@@ -2,6 +2,7 @@ export 'canvas_area.dart';
 export 'center_area.dart';
 export 'center_tab_label.dart';
 export 'editor_intents.dart';
+export 'editor_load_failure_view.dart';
 export 'editor_top_registrar.dart';
 export 'editor_viewport_gate.dart';
 export 'editor_workspace.dart';

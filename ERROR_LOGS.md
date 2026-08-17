@@ -16,7 +16,7 @@
 | Failure | Quem dispara | Situação | UX |
 |---|---|---|---|
 | `NetworkFailure` | Repositórios (Dio) | Timeout/sem conexão/5xx | Mensagem + "tentar de novo"; no save, `saveFailed` sem perder o documento |
-| `NotFoundFailure` | Repositórios | 404 (conteúdo inexistente ou de outro tenant) | Tela tratada com volta à lista |
+| `NotFoundFailure` | Repositórios | 404 (conteúdo inexistente ou de outro tenant — o backend não distingue, de propósito) | Tela tratada com volta à lista. No editor (item 46), a UX passa a citar o projeto em que procurou (via `GetProjectUseCase`, já buscado para o breadcrumb): "não encontramos este conteúdo no projeto _\<Nome\>_" quando o projeto da URL resolve, "este link aponta para um projeto que não existe" quando não resolve — a semântica da falha não muda |
 | `ConflictFailure` | Repositório de conteúdos (traduz o `409`) | `slug` já em uso no projeto ao criar | Mostra o `suggestedSlug` e "slug já em uso neste projeto"; o cliente auto-resolve para o slug sugerido |
 | `ValidationFailure` | `parseContentSpec` (kernel), models zard, 400 do backend | Spec/payload fora do schema (inclui `slug` fora de `^[a-z][a-z0-9-]*$`) | Mensagem descritiva; save barrado pela trava do `SaveDraftUseCase` |
 | `UnexpectedFailure` | Repositórios | O resto | "Algo deu errado." |

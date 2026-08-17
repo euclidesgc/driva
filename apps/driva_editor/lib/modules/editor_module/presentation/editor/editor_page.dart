@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:driva_editor/core/config/app_config.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/network/network.dart';
-import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/injection.dart';
-import 'package:driva_editor/modules/contents_module/contents_module.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
@@ -39,7 +37,8 @@ class EditorPage extends StatefulWidget {
   /// aqui ele só é repassado adiante.
   final SduiImageUrlResolver? imageUrlResolver;
 
-  /// `id` da rota (`/contents/:id/edit`), repassado ao [EditorViewportGate]
+  /// `id` da rota (`/projects/:projectId/contents/:id/edit`), repassado ao
+  /// [EditorViewportGate]
   /// para o botão "Ver conteúdo" (D24) — o mesmo `id`, não o do documento já
   /// carregado, porque o portão decide antes de o `EditorCubit` ter estado.
   /// Opcional (D19): `editor_perf_test.dart` e `canvas_panel_golden_test.dart`
@@ -65,11 +64,20 @@ class EditorPage extends StatefulWidget {
   final GetContentVersionsUseCase? getContentVersionsUseCase;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
+    final projectId = state.pathParameters['projectId'];
     final id = state.pathParameters['id'];
 
-    if (id == null || id.trim().isEmpty) return const InvalidContentScreen();
+    if (projectId == null ||
+        projectId.trim().isEmpty ||
+        id == null ||
+        id.trim().isEmpty) {
+      return const InvalidContentScreen();
+    }
 
-    final projectId = getIt<ProjectScope>().projectId;
+    // Escrito antes de montar o cubit, para que a primeira requisição já
+    // saia com o `x-project-id` certo (D2, item 46) — o mesmo padrão do
+    // `/preview` (D18, item 41).
+    getIt<ProjectScope>().projectId = projectId;
 
     return BlocProvider(
       create: (_) {
@@ -128,25 +136,9 @@ class _EditorPageState extends State<EditorPage> {
             previous.runtimeType != current.runtimeType,
         builder: (context, state) => switch (state) {
           EditorLoading() => _editorBootScaffold,
-          final EditorLoadFailure s => Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_messageFor(s.failure)),
-                  const SizedBox(height: AppSpacing.s12),
-                  OutlinedButton(
-                    onPressed: () => context.goNamed(
-                      ContentsRoutes.projectDetailName,
-                      pathParameters: {
-                        'id': context.read<EditorCubit>().projectId,
-                      },
-                    ),
-                    child: const Text('Voltar para o projeto'),
-                  ),
-                ],
-              ),
-            ),
+          final EditorLoadFailure s => EditorLoadFailureView(
+            failure: s.failure,
+            projectFuture: widget.projectFuture,
           ),
           // D13: só monta o workspace depois que a largura restaurada já
           // chegou reclampada — sem isto, o `ResizableSplitView` nasceria
@@ -169,11 +161,3 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 }
-
-String _messageFor(Failure failure) => switch (failure) {
-  NetworkFailure() => 'Sem conexão com o servidor. Tente de novo.',
-  NotFoundFailure() => 'Conteúdo não encontrado.',
-  ConflictFailure(message: final m) => m,
-  ValidationFailure(message: final m) => 'Spec inválido: $m',
-  UnexpectedFailure() => 'Algo deu errado ao abrir o editor.',
-};

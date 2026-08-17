@@ -104,7 +104,7 @@ class ProjectDetailPage extends StatelessWidget {
             AppBarAction.filled(
               label: 'Novo conteúdo',
               icon: Icons.add,
-              onPressed: () => _openContentForm(context),
+              onPressed: () => _openContentForm(context, projectId: projectId),
             ),
           ],
           child: LayoutBuilder(
@@ -168,11 +168,18 @@ class ProjectDetailPage extends StatelessWidget {
                               : const {},
                           onOpenContent: (content) => context.goNamed(
                             EditorRoutes.editorName,
-                            pathParameters: {'id': content.id},
+                            pathParameters: {
+                              'projectId': projectId,
+                              'id': content.id,
+                            },
                           ),
-                          onNewContent: () => _openContentForm(context),
-                          onEditContent: (content) =>
-                              _openContentForm(context, editing: content),
+                          onNewContent: () =>
+                              _openContentForm(context, projectId: projectId),
+                          onEditContent: (content) => _openContentForm(
+                            context,
+                            projectId: projectId,
+                            editing: content,
+                          ),
                           onMoveContent: (content) =>
                               _openMoveContentDialog(context, content),
                           onDeleteContent: (content) =>
@@ -307,6 +314,7 @@ class ProjectDetailPage extends StatelessWidget {
 
   static Future<void> _openContentForm(
     BuildContext context, {
+    required String projectId,
     ContentSummary? editing,
     String? initialName,
     String? initialSlug,
@@ -367,6 +375,7 @@ class ProjectDetailPage extends StatelessWidget {
           unawaited(
             _openContentForm(
               context,
+              projectId: projectId,
               editing: editing,
               initialName: result.name,
               initialSlug: suggestion,
@@ -386,7 +395,7 @@ class ProjectDetailPage extends StatelessWidget {
         if (editing == null) {
           context.goNamed(
             EditorRoutes.editorName,
-            pathParameters: {'id': content.id},
+            pathParameters: {'projectId': projectId, 'id': content.id},
           );
         } else {
           unawaited(contentCubit.load());
