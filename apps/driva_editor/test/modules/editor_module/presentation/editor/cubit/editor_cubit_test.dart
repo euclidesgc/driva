@@ -1,5 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice_kind.dart';
@@ -13,9 +14,20 @@ class MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
 class MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
 
+class MockPublishContentUseCase extends Mock implements PublishContentUseCase {}
+
+class MockUnpublishContentUseCase extends Mock
+    implements UnpublishContentUseCase {}
+
+class MockRestoreContentVersionUseCase extends Mock
+    implements RestoreContentVersionUseCase {}
+
 void main() {
   late MockLoadContentUseCase loadContent;
   late MockSaveDraftUseCase saveDraft;
+  late MockPublishContentUseCase publishContent;
+  late MockUnpublishContentUseCase unpublishContent;
+  late MockRestoreContentVersionUseCase restoreContentVersion;
 
   const content = ContentSpec(
     specVersion: kSpecVersion,
@@ -32,16 +44,27 @@ void main() {
     ),
   );
 
+  const loadedContent = LoadedContent(
+    spec: content,
+    publication: PublicationState(hasUnpublishedChanges: true),
+  );
+
   setUpAll(() => registerFallbackValue(content));
 
   setUp(() {
     loadContent = MockLoadContentUseCase();
     saveDraft = MockSaveDraftUseCase();
+    publishContent = MockPublishContentUseCase();
+    unpublishContent = MockUnpublishContentUseCase();
+    restoreContentVersion = MockRestoreContentVersionUseCase();
   });
 
   EditorCubit build() => EditorCubit(
     loadContentUseCase: loadContent,
     saveDraftUseCase: saveDraft,
+    publishContentUseCase: publishContent,
+    unpublishContentUseCase: unpublishContent,
+    restoreContentVersionUseCase: restoreContentVersion,
     projectId: 'p1',
   );
 
@@ -56,7 +79,7 @@ void main() {
       build: build,
       setUp: () => when(
         () => loadContent('ct_1'),
-      ).thenAnswer((_) async => const Right(content)),
+      ).thenAnswer((_) async => const Right(loadedContent)),
       act: (cubit) => cubit.loadContent('ct_1'),
       expect: () => [
         const EditorLoading(),
@@ -628,7 +651,7 @@ void main() {
       build: build,
       setUp: () => when(
         () => loadContent('ct_1'),
-      ).thenAnswer((_) async => const Right(content)),
+      ).thenAnswer((_) async => const Right(loadedContent)),
       act: (cubit) async {
         await cubit.loadContent('ct_1');
         cubit
@@ -647,7 +670,7 @@ void main() {
       build: build,
       setUp: () => when(
         () => loadContent('ct_1'),
-      ).thenAnswer((_) async => const Right(content)),
+      ).thenAnswer((_) async => const Right(loadedContent)),
       act: (cubit) async {
         await cubit.loadContent('ct_1');
         cubit.addNode('divider');
@@ -937,6 +960,334 @@ void main() {
           isTrue,
         ),
       ],
+    );
+  });
+
+  group('publicar', () {
+    final published = PublicationState(
+      publishedVersion: 3,
+      publishedAt: DateTime.utc(2026, 8, 16, 12),
+      hasUnpublishedChanges: false,
+    );
+
+    EditorCubit buildDirty() => build()
+      ..emit(
+        const EditorReady(document: content, saveStatus: SaveStatus.dirty),
+      );
+
+    blocTest<EditorCubit, EditorState>(
+      'sucesso: publishing → published com a publicação do servidor',
+      build: buildLoaded,
+      setUp: () => when(
+        () => publishContent('ct_1', note: any(named: 'note')),
+      ).thenAnswer((_) async => Right(published)),
+      act: (cubit) => cubit.publish(note: 'primeira subida'),
+      expect: () => [
+        const EditorReady(
+          document: content,
+          publishStatus: PublishStatus.publishing,
+        ),
+        EditorReady(
+          document: content,
+          publication: published,
+          publishStatus: PublishStatus.published,
+        ),
+      ],
+      verify: (_) {
+        verify(() => publishContent('ct_1', note: 'primeira subida')).called(1);
+        verifyNever(() => saveDraft(any()));
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'rascunho sujo: salva antes de publicar, nessa ordem',
+      build: buildDirty,
+      setUp: () {
+        when(() => saveDraft(any())).thenAnswer((_) async => const Right(unit));
+        when(
+          () => publishContent('ct_1', note: any(named: 'note')),
+        ).thenAnswer((_) async => Right(published));
+      },
+      act: (cubit) => cubit.publish(),
+      expect: () => [
+        const EditorReady(
+          document: content,
+          saveStatus: SaveStatus.dirty,
+          publishStatus: PublishStatus.publishing,
+        ),
+        const EditorReady(
+          document: content,
+          saveStatus: SaveStatus.saving,
+          publishStatus: PublishStatus.publishing,
+        ),
+        const EditorReady(
+          document: content,
+          publishStatus: PublishStatus.publishing,
+        ),
+        EditorReady(
+          document: content,
+          publication: published,
+          publishStatus: PublishStatus.published,
+        ),
+      ],
+      verify: (_) => verifyInOrder([
+        () => saveDraft(content),
+        () => publishContent('ct_1', note: any(named: 'note')),
+      ]),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'falha do salvamento aborta antes do publish e avisa o usuário',
+      build: buildDirty,
+      setUp: () => when(
+        () => saveDraft(any()),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.publish(),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.saveStatus, SaveStatus.saveFailed);
+        expect(state.publishStatus, PublishStatus.publishFailed);
+        expect(state.notice?.kind, EditorNoticeKind.publishFailed);
+        verifyNever(() => publishContent(any(), note: any(named: 'note')));
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'falha do publish: publishFailed com aviso visível e publicação intacta',
+      build: buildLoaded,
+      setUp: () => when(
+        () => publishContent('ct_1', note: any(named: 'note')),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.publish(),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.publishStatus, PublishStatus.publishFailed);
+        expect(state.notice?.kind, EditorNoticeKind.publishFailed);
+        expect(
+          state.publication,
+          const PublicationState(hasUnpublishedChanges: true),
+        );
+        expect(state.document, content);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'documento com erro de diagnóstico não chega a chamar o publish',
+      build: buildLoaded,
+      act: (cubit) async {
+        cubit.addNode('spacer', targetId: 'nd_banner');
+        await cubit.publish();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.canPublish, isFalse);
+        expect(state.publishBlockReason, PublishBlockReason.documentErrors);
+        expect(state.publishStatus, PublishStatus.idle);
+        verifyNever(() => publishContent(any(), note: any(named: 'note')));
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'editar um documento publicado e sem pendência marca a top bar como '
+      'suja na hora, sem esperar reload (A2)',
+      build: () =>
+          build()..emit(EditorReady(document: content, publication: published)),
+      act: (cubit) => cubit.addNode('divider'),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.publication.hasUnpublishedChanges, isTrue);
+        expect(state.publication.publishedVersion, published.publishedVersion);
+        expect(state.publication.publishedAt, published.publishedAt);
+      },
+    );
+  });
+
+  group('publishBlockReason', () {
+    const contentWithError = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_erro',
+      name: 'Erro',
+      slug: 'erro',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'container',
+        child: SduiNode(id: 'nd_spacer', type: 'spacer'),
+      ),
+    );
+
+    test('documento saudável e ocioso pode publicar', () {
+      const state = EditorReady(document: content);
+      expect(state.publishBlockReason, isNull);
+      expect(state.canPublish, isTrue);
+    });
+
+    test('diagnóstico de severidade erro bloqueia', () {
+      const state = EditorReady(document: contentWithError);
+      expect(state.diagnostics.single.severity, DiagnosticSeverity.error);
+      expect(state.publishBlockReason, PublishBlockReason.documentErrors);
+      expect(state.canPublish, isFalse);
+    });
+
+    test('salvando prevalece sobre o erro do documento', () {
+      const state = EditorReady(
+        document: contentWithError,
+        saveStatus: SaveStatus.saving,
+      );
+      expect(state.publishBlockReason, PublishBlockReason.saving);
+    });
+
+    test('publicando prevalece sobre salvando', () {
+      const state = EditorReady(
+        document: content,
+        saveStatus: SaveStatus.saving,
+        publishStatus: PublishStatus.publishing,
+      );
+      expect(state.publishBlockReason, PublishBlockReason.publishing);
+    });
+  });
+
+  group('despublicar', () {
+    final published = PublicationState(
+      publishedVersion: 3,
+      publishedAt: DateTime.utc(2026, 8, 16, 12),
+      hasUnpublishedChanges: false,
+    );
+
+    EditorCubit buildPublished() =>
+        build()..emit(EditorReady(document: content, publication: published));
+
+    blocTest<EditorCubit, EditorState>(
+      'sucesso: sai do ar e o rascunho volta a ter mudanças não publicadas',
+      build: buildPublished,
+      setUp: () => when(
+        () => unpublishContent('ct_1'),
+      ).thenAnswer((_) async => const Right(unit)),
+      act: (cubit) => cubit.unpublish(),
+      expect: () => [
+        EditorReady(
+          document: content,
+          publication: published,
+          publishStatus: PublishStatus.publishing,
+        ),
+        const EditorReady(document: content),
+      ],
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.publication.isPublished, isFalse);
+        expect(state.publication.hasUnpublishedChanges, isTrue);
+        expect(state.publishStatus, PublishStatus.idle);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'falha: publishFailed com aviso visível e a publicação continua intacta',
+      build: buildPublished,
+      setUp: () => when(
+        () => unpublishContent('ct_1'),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) => cubit.unpublish(),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.publishStatus, PublishStatus.publishFailed);
+        expect(state.notice?.kind, EditorNoticeKind.unpublishFailed);
+        expect(state.publication, published);
+        expect(state.publication.isPublished, isTrue);
+      },
+    );
+  });
+
+  group('restaurar versão', () {
+    const restored = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_1',
+      name: 'Home',
+      slug: 'home',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(id: 'nd_antigo', type: 'text', properties: {'data': 'v2'}),
+        ],
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'sucesso: documento restaurado como rascunho sujo e desfazível',
+      build: buildLoaded,
+      setUp: () => when(
+        () => restoreContentVersion('ct_1', 2),
+      ).thenAnswer((_) async => const Right(restored)),
+      act: (cubit) async {
+        expect(await cubit.restoreVersion(2), isTrue);
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, restored);
+        expect(state.saveStatus, SaveStatus.dirty);
+        expect(state.canUndo, isTrue);
+        verify(() => restoreContentVersion('ct_1', 2)).called(1);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'um Ctrl+Z depois de restaurar volta ao rascunho anterior',
+      build: buildLoaded,
+      setUp: () => when(
+        () => restoreContentVersion('ct_1', 2),
+      ).thenAnswer((_) async => const Right(restored)),
+      act: (cubit) async {
+        await cubit.restoreVersion(2);
+        cubit.undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.canRedo, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'falha: devolve false, avisa e não mexe no documento',
+      build: buildLoaded,
+      setUp: () => when(
+        () => restoreContentVersion('ct_1', 2),
+      ).thenAnswer((_) async => const Left(NetworkFailure())),
+      act: (cubit) async {
+        expect(await cubit.restoreVersion(2), isFalse);
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.notice?.kind, EditorNoticeKind.restoreFailed);
+        expect(state.document, content);
+        expect(state.saveStatus, SaveStatus.saved);
+        expect(state.canUndo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'restaurar a versão que já está publicada não gera falsa pendência',
+      build: () => build()
+        ..emit(
+          EditorReady(
+            document: content,
+            publication: PublicationState(
+              publishedVersion: 2,
+              publishedAt: DateTime.utc(2026, 8, 16, 12),
+              hasUnpublishedChanges: false,
+            ),
+          ),
+        ),
+      setUp: () => when(
+        () => restoreContentVersion('ct_1', 2),
+      ).thenAnswer((_) async => const Right(restored)),
+      act: (cubit) async {
+        expect(await cubit.restoreVersion(2), isTrue);
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, restored);
+        expect(state.publication.hasUnpublishedChanges, isFalse);
+      },
     );
   });
 }

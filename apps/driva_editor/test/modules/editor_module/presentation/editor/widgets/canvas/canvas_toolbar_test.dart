@@ -8,6 +8,8 @@ Widget _harness({
   required double effectiveScale,
   required bool fitToWindow,
   required ValueChanged<double> onChangeZoom,
+  bool isFullscreen = false,
+  VoidCallback? onToggleFullscreen,
 }) => MaterialApp(
   theme: AppTheme.light,
   home: Scaffold(
@@ -19,6 +21,8 @@ Widget _harness({
       onChangeZoom: onChangeZoom,
       onToggleFitToWindow: () {},
       onOpenPreview: () {},
+      isFullscreen: isFullscreen,
+      onToggleFullscreen: onToggleFullscreen ?? () {},
     ),
   ),
 );
@@ -96,4 +100,58 @@ void main() {
       expect(calls, 1);
     },
   );
+
+  group('tela cheia (F7/D16)', () {
+    testWidgets(
+      'o botão está sempre visível e mostra o ícone de entrar quando fora '
+      'do modo',
+      (tester) async {
+        await tester.pumpWidget(
+          _harness(
+            effectiveScale: 0.9,
+            fitToWindow: true,
+            onChangeZoom: (_) {},
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byTooltip('Tela cheia'), findsOneWidget);
+        expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      },
+    );
+
+    testWidgets('ligado, mostra o ícone de sair e o tooltip menciona o Esc', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          effectiveScale: 0.9,
+          fitToWindow: true,
+          onChangeZoom: (_) {},
+          isFullscreen: true,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byTooltip('Sair da tela cheia (Esc)'), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_exit), findsOneWidget);
+    });
+
+    testWidgets('tocar o botão dispara onToggleFullscreen', (tester) async {
+      var calls = 0;
+      await tester.pumpWidget(
+        _harness(
+          effectiveScale: 0.9,
+          fitToWindow: true,
+          onChangeZoom: (_) {},
+          onToggleFullscreen: () => calls++,
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Tela cheia'));
+
+      expect(calls, 1);
+    });
+  });
 }

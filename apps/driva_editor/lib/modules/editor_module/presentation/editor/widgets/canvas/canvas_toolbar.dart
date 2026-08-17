@@ -16,6 +16,8 @@ class CanvasToolbar extends StatelessWidget {
     required this.onChangeZoom,
     required this.onToggleFitToWindow,
     required this.onOpenPreview,
+    required this.isFullscreen,
+    required this.onToggleFullscreen,
     super.key,
   });
 
@@ -37,6 +39,11 @@ class CanvasToolbar extends StatelessWidget {
   /// antes disso — o botão some em vez de aparecer desabilitado sem explicar
   /// por quê, e nunca chega a existir um toque para ignorar em silêncio.
   final VoidCallback? onOpenPreview;
+
+  /// Controle primário do modo tela cheia (F7/D16): botão sempre visível na
+  /// barra do canvas — o `Esc` é só o atalho secundário.
+  final bool isFullscreen;
+  final VoidCallback onToggleFullscreen;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +124,15 @@ class CanvasToolbar extends StatelessWidget {
             iconSize: AppIconSizes.s18,
             icon: const Icon(Icons.zoom_in),
             onPressed: () => onChangeZoom(effectiveScale + 0.1),
+          ),
+          const SizedBox(width: AppSpacing.s16),
+          IconButton(
+            tooltip: isFullscreen ? 'Sair da tela cheia (Esc)' : 'Tela cheia',
+            iconSize: AppIconSizes.s18,
+            isSelected: isFullscreen,
+            icon: const Icon(Icons.fullscreen),
+            selectedIcon: const Icon(Icons.fullscreen_exit),
+            onPressed: onToggleFullscreen,
           ),
         ],
       ),

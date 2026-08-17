@@ -5,12 +5,17 @@ import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
+import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/right_panel_rail.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_status_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
@@ -24,6 +29,15 @@ import 'package:sdui_core/sdui_core.dart';
 class _MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
 class _MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
+
+class _MockPublishContentUseCase extends Mock
+    implements PublishContentUseCase {}
+
+class _MockUnpublishContentUseCase extends Mock
+    implements UnpublishContentUseCase {}
+
+class _MockRestoreContentVersionUseCase extends Mock
+    implements RestoreContentVersionUseCase {}
 
 class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
@@ -41,6 +55,17 @@ ContentSpec _docWithText(String text) => ContentSpec(
   ),
 );
 
+/// `spacer` como raiz (fora de `row`/`column`) dispara
+/// `DiagnosticCode.flexOnlyOutsideFlex` — o mesmo diagnóstico que
+/// `EditorStatusBar` mostra no rodapé (P2, aceite 34).
+const ContentSpec _docWithError = ContentSpec(
+  specVersion: kSpecVersion,
+  id: 'ct_1',
+  name: 'Home',
+  slug: 'home',
+  root: SduiNode(id: 'nd_root', type: 'spacer'),
+);
+
 void main() {
   late EditorCubit cubit;
   late _MockThemeCubit themeCubit;
@@ -50,6 +75,9 @@ void main() {
     cubit = EditorCubit(
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
+      publishContentUseCase: _MockPublishContentUseCase(),
+      unpublishContentUseCase: _MockUnpublishContentUseCase(),
+      restoreContentVersionUseCase: _MockRestoreContentVersionUseCase(),
       projectId: 'p1',
     )..emit(EditorReady(document: _docWithText('A')));
     themeCubit = _MockThemeCubit();
@@ -266,4 +294,100 @@ void main() {
       expect(find.byTooltip('Recolher Listas'), findsOneWidget);
     },
   );
+
+  group('tela cheia (F7)', () {
+    testWidgets(
+      'modo ligado esconde a paleta e o Inspector, sem faixa colapsada '
+      'sobrando, e o botão de sair fica visível (aceite 32)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        layoutController
+          ..collapseLeftPanel()
+          ..collapseRightPanel();
+        await tester.pump();
+        expect(find.byType(PanelRail), findsNWidgets(2));
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+
+        expect(find.byType(LeftPanel), findsNothing);
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(PanelRail), findsNothing);
+        expect(find.byTooltip('Sair da tela cheia (Esc)'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'sair do modo devolve exatamente a mesma largura e o mesmo colapso '
+      'renderizados de antes (aceite 33)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+
+        // Único caminho real de mudar a largura: arrastar o `ResizeHandle`
+        // (como `resizable_split_view_test.dart` já testa), não escrever
+        // direto no controller — é o que mantém `_leftWidth` do
+        // `ResizableSplitView` e `layoutController.value.leftPanelWidth`
+        // sincronizados em produção.
+        await tester.drag(
+          find.byType(ResizeHandle).first,
+          const Offset(60, 0),
+        );
+        await tester.pump();
+        layoutController.collapseRightPanel();
+        await tester.pump();
+
+        final widthBefore = tester.getSize(find.byType(LeftPanel)).width;
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(RightPanelRail), findsOneWidget);
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+        layoutController.exitFullscreen();
+        await tester.pump();
+
+        expect(find.byType(LeftPanel), findsOneWidget);
+        expect(tester.getSize(find.byType(LeftPanel)).width, widthBefore);
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(RightPanelRail), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'com erro de diagnóstico no rodapé, o modo tela cheia não o esconde '
+      '(aceite 34/P2)',
+      (tester) async {
+        cubit.emit(const EditorReady(document: _docWithError));
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        expect(find.byType(EditorStatusBar), findsOneWidget);
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+
+        expect(find.byType(EditorStatusBar), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a visibilidade do rodapé não muda ao entrar em tela cheia — a '
+      'F7 não toca a regra de exibição do `StatusBarArea` (P2)',
+      (tester) async {
+        enlarge(tester);
+        await tester.pumpWidget(harness());
+        await tester.pump();
+        final before = find.byType(EditorStatusBar).evaluate().length;
+
+        layoutController.enterFullscreen();
+        await tester.pump();
+        final after = find.byType(EditorStatusBar).evaluate().length;
+
+        expect(after, before);
+      },
+    );
+  });
 }

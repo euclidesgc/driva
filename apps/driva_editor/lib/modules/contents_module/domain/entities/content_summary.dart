@@ -7,6 +7,8 @@ class ContentSummary extends Equatable {
     required this.slug,
     required this.categoryId,
     required this.updatedAt,
+    required this.publishedAt,
+    required this.hasUnpublishedChanges,
     this.description,
   });
 
@@ -19,6 +21,10 @@ class ContentSummary extends Equatable {
   final String? description;
   final DateTime updatedAt;
 
+  /// `null` = nunca publicado. Item 24 (publicação e versionamento).
+  final DateTime? publishedAt;
+  final bool hasUnpublishedChanges;
+
   @override
   List<Object?> get props => [
     id,
@@ -27,5 +33,7 @@ class ContentSummary extends Equatable {
     categoryId,
     description,
     updatedAt,
+    publishedAt,
+    hasUnpublishedChanges,
   ];
 }

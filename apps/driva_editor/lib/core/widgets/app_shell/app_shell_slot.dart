@@ -14,11 +14,18 @@ class AppShellSlot extends StatefulWidget {
     this.crumbs = const [],
     this.actions = const [],
     this.status,
+    this.immersive = false,
   });
 
   final List<Crumb> crumbs;
   final List<AppBarAction> actions;
   final AppBarStatus? status;
+
+  /// Repassado a [AppShellController.setImmersive] com o mesmo `_token` do
+  /// `publish` (F7/D15) — é o único jeito de uma página pedir o modo tela
+  /// cheia do shell sem inventar um segundo dono.
+  final bool immersive;
+
   final Widget child;
 
   @override
@@ -61,13 +68,15 @@ class _AppShellSlotState extends State<AppShellSlot> {
         listEquals(controller.crumbs, widget.crumbs) &&
         listEquals(controller.actions, widget.actions) &&
         controller.status == widget.status;
-    if (unchanged) return;
-    controller.publish(
-      _token,
-      crumbs: widget.crumbs,
-      actions: widget.actions,
-      status: widget.status,
-    );
+    if (!unchanged) {
+      controller.publish(
+        _token,
+        crumbs: widget.crumbs,
+        actions: widget.actions,
+        status: widget.status,
+      );
+    }
+    controller.setImmersive(_token, value: widget.immersive);
   }
 
   @override

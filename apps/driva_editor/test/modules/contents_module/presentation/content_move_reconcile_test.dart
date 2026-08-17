@@ -42,6 +42,8 @@ void main() {
     slug: 'c$id',
     categoryId: categoryId,
     updatedAt: DateTime.utc(2026, 7, 12),
+    publishedAt: null,
+    hasUnpublishedChanges: true,
   );
 
   group('CategoryTreeCubit.applyContentMove', () {

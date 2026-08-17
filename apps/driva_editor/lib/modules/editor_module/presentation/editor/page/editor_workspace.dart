@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/layout/layout.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
@@ -21,10 +22,13 @@ class EditorWorkspace extends StatelessWidget {
     required this.projectFuture,
     required this.layoutController,
     this.imageUrlResolver,
+    this.getContentVersionsUseCase,
     super.key,
   });
 
   final Future<Either<Failure, Project>> projectFuture;
+
+  final GetContentVersionsUseCase? getContentVersionsUseCase;
 
   /// O soquete da D7: montado aqui, acima de tudo o que hoje monta o
   /// `ResizableSplitView`, para que a F7 (tela cheia) o alcance sem um sexto
@@ -42,20 +46,41 @@ class EditorWorkspace extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: ResizableSplitView(
-                left: const LeftPanel(),
-                leftPanelRail: const LeftPanelRail(),
-                center: CenterArea(imageUrlResolver: imageUrlResolver),
-                right: ColoredBox(
-                  color: colors.panel,
-                  child: const InspectorArea(),
-                ),
-                rightPanelRail: const RightPanelRail(),
-                layoutListenable: layoutController,
-                isLeftCollapsed: () =>
-                    layoutController.value.leftPanelCollapsed,
-                isRightCollapsed: () =>
-                    layoutController.value.rightPanelCollapsed,
+              // F7/D15: fullscreen só esconde a paleta e o Inspector (nem a
+              // faixa colapsada, que ainda mostraria ~40px de cada lado) — o
+              // `EditorLayout` por trás do `ResizableSplitView` nunca é
+              // tocado, então sair do modo remonta as mesmas larguras e os
+              // mesmos colapsos de antes (aceite 33).
+              child: ValueListenableBuilder<bool>(
+                valueListenable: layoutController.isFullscreen,
+                builder: (context, isFullscreen, _) => isFullscreen
+                    ? CenterArea(imageUrlResolver: imageUrlResolver)
+                    : ResizableSplitView(
+                        left: const LeftPanel(),
+                        leftPanelRail: const LeftPanelRail(),
+                        center: CenterArea(imageUrlResolver: imageUrlResolver),
+                        right: ColoredBox(
+                          color: colors.panel,
+                          child: const InspectorArea(),
+                        ),
+                        rightPanelRail: const RightPanelRail(),
+                        // Lido só aqui, na montagem (D13): `EditorPage` só
+                        // monta este widget depois que
+                        // `EditorLayoutController.ready` resolve, e já vem
+                        // reclampado — não precisa reagir a mudança
+                        // pós-boot.
+                        initialLeftWidth: layoutController.value.leftPanelWidth,
+                        initialRightWidth:
+                            layoutController.value.rightPanelWidth,
+                        onLeftWidthChanged: layoutController.setLeftPanelWidth,
+                        onRightWidthChanged:
+                            layoutController.setRightPanelWidth,
+                        layoutListenable: layoutController,
+                        isLeftCollapsed: () =>
+                            layoutController.value.leftPanelCollapsed,
+                        isRightCollapsed: () =>
+                            layoutController.value.rightPanelCollapsed,
+                      ),
               ),
             ),
             const StatusBarArea(),
@@ -68,6 +93,7 @@ class EditorWorkspace extends StatelessWidget {
       controller: layoutController,
       child: EditorTopRegistrar(
         projectFuture: projectFuture,
+        getContentVersionsUseCase: getContentVersionsUseCase,
         child: workspace,
       ),
     );

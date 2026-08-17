@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_radii.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -57,7 +58,7 @@ class SupportId extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadii.r6),
               child: const Padding(
                 padding: EdgeInsets.all(AppSpacing.s3),
-                child: Icon(Icons.copy_rounded, size: 13),
+                child: Icon(Icons.copy_rounded, size: AppIconSizes.s13),
               ),
             ),
           ),

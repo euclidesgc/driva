@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -30,7 +31,11 @@ class CategoryLabel extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.folder_outlined, size: 13, color: colors.inkMuted),
+                Icon(
+                  Icons.folder_outlined,
+                  size: AppIconSizes.s13,
+                  color: colors.inkMuted,
+                ),
                 const SizedBox(width: AppSpacing.s4),
                 Flexible(
                   child: Text(

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_history_entry.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice.dart';
@@ -9,6 +10,7 @@ import 'package:equatable/equatable.dart';
 import 'package:sdui_core/sdui_core.dart'
     show
         ContentSpec,
+        DiagnosticSeverity,
         DropAccepted,
         DropRefusal,
         DropRefused,
@@ -24,10 +26,16 @@ class EditorCubit extends Cubit<EditorState> {
   EditorCubit({
     required this.loadContentUseCase,
     required this.saveDraftUseCase,
+    required this.publishContentUseCase,
+    required this.unpublishContentUseCase,
+    required this.restoreContentVersionUseCase,
     required this.projectId,
   }) : super(const EditorLoading());
   final LoadContentUseCase loadContentUseCase;
   final SaveDraftUseCase saveDraftUseCase;
+  final PublishContentUseCase publishContentUseCase;
+  final UnpublishContentUseCase unpublishContentUseCase;
+  final RestoreContentVersionUseCase restoreContentVersionUseCase;
 
   /// Projeto ao qual o conteúdo aberto pertence (do `ProjectScope`, injetado
   /// no `pageBuilder`). É o destino do "voltar" do editor — Builder → tela do
@@ -64,7 +72,8 @@ class EditorCubit extends Cubit<EditorState> {
     _future.clear();
     final next = result.fold<EditorState>(
       (failure) => EditorLoadFailure(failure: failure),
-      (content) => EditorReady(document: content),
+      (loaded) =>
+          EditorReady(document: loaded.spec, publication: loaded.publication),
     );
     if (next is EditorReady) _lastSavedDocument = next.document;
     emit(next);
@@ -502,6 +511,118 @@ class EditorCubit extends Cubit<EditorState> {
     emit(latest.copyWith(saveStatus: _statusFor(latest.document)));
   }
 
+  /// Guarda [EditorReady.canPublish]; se o rascunho estiver sujo, salva
+  /// primeiro — publicar o que está na tela e não no servidor seria mentira.
+  /// Falha do salvamento aborta sem chamar o publish.
+  Future<void> publish({String? note}) async {
+    final current = state;
+    if (current is! EditorReady || !current.canPublish) return;
+    emit(current.copyWith(publishStatus: PublishStatus.publishing));
+
+    if (current.saveStatus == SaveStatus.dirty) {
+      await save();
+      if (isClosed) return;
+    }
+
+    final beforePublish = state;
+    if (beforePublish is! EditorReady ||
+        beforePublish.saveStatus != SaveStatus.saved) {
+      if (beforePublish is EditorReady) {
+        emit(
+          beforePublish.copyWith(
+            publishStatus: PublishStatus.publishFailed,
+            notice: () => _nextNotice(EditorNoticeKind.publishFailed, null),
+          ),
+        );
+      }
+      return;
+    }
+
+    final result = await publishContentUseCase(
+      beforePublish.document.id,
+      note: note,
+    );
+    if (isClosed) return;
+    final latest = state;
+    if (latest is! EditorReady) return;
+
+    result.fold(
+      (failure) => emit(
+        latest.copyWith(
+          publishStatus: PublishStatus.publishFailed,
+          notice: () => _nextNotice(EditorNoticeKind.publishFailed, null),
+        ),
+      ),
+      (publication) => emit(
+        latest.copyWith(
+          publication: publication,
+          publishStatus: PublishStatus.published,
+        ),
+      ),
+    );
+  }
+
+  Future<void> unpublish() async {
+    final current = state;
+    if (current is! EditorReady) return;
+    emit(current.copyWith(publishStatus: PublishStatus.publishing));
+
+    final result = await unpublishContentUseCase(current.document.id);
+    if (isClosed) return;
+    final latest = state;
+    if (latest is! EditorReady) return;
+
+    result.fold(
+      (failure) => emit(
+        latest.copyWith(
+          publishStatus: PublishStatus.publishFailed,
+          notice: () => _nextNotice(EditorNoticeKind.unpublishFailed, null),
+        ),
+      ),
+      (_) => emit(
+        latest.copyWith(
+          publication: const PublicationState(hasUnpublishedChanges: true),
+          publishStatus: PublishStatus.idle,
+        ),
+      ),
+    );
+  }
+
+  /// Restaura o spec da versão para o **rascunho** (D4 do plano do item 24)
+  /// — o que está no ar não muda até um publish explícito. Passa por
+  /// [_emitDocument] para virar uma entrada de histórico desfazível (item 23).
+  /// Devolve se restaurou: o diálogo de histórico só fecha em sucesso — em
+  /// falha, o aviso aparece na barra de status e a lista continua aberta.
+  Future<bool> restoreVersion(int version) async {
+    final current = state;
+    if (current is! EditorReady) return false;
+
+    final result = await restoreContentVersionUseCase(
+      current.document.id,
+      version,
+    );
+    if (isClosed) return false;
+    final latest = state;
+    if (latest is! EditorReady) return false;
+
+    return result.fold(
+      (failure) {
+        _emitNotice(latest, EditorNoticeKind.restoreFailed);
+        return false;
+      },
+      (spec) {
+        final restoresPublishedVersion =
+            version == latest.publication.publishedVersion;
+        _emitDocument(
+          latest,
+          spec,
+          markUnpublished: !restoresPublishedVersion,
+        );
+        return true;
+      },
+    );
+  }
+
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
     DropRefusal.cycle => EditorNoticeKind.dropCycle,
     DropRefusal.unknownTarget => EditorNoticeKind.dropUnknownTarget,
@@ -567,14 +688,27 @@ class EditorCubit extends Cubit<EditorState> {
   /// Funil único de toda mutação do documento — é aqui que o passo entra no
   /// histórico. Um `emit` que troque `document` por fora abre buraco silencioso
   /// no desfazer.
+  ///
+  /// Também é aqui que a top bar deixa de mentir "No ar (vN)" depois de uma
+  /// edição: se [EditorReady.publication] ainda estava "publicado e sem
+  /// pendência", a mutação marca `hasUnpublishedChanges`. O valor definitivo
+  /// (versão/data) só volta do servidor no próximo [publish]/[loadContent];
+  /// aqui é só o booleano local. [markUnpublished] existe para o único
+  /// chamador que restaura a versão já publicada — aí a mutação não deixa o
+  /// rascunho realmente pendente.
   void _emitDocument(
     EditorReady current,
     ContentSpec document, {
     Object? selectedNodeId = _keepSelection,
     EditorNotice? notice,
     String? coalesceKey,
+    bool markUnpublished = true,
   }) {
     _pushHistory(current, coalesceKey: coalesceKey);
+    final publication =
+        markUnpublished && !current.publication.hasUnpublishedChanges
+        ? current.publication.copyWith(hasUnpublishedChanges: true)
+        : current.publication;
     emit(
       current.copyWith(
         document: document,
@@ -585,6 +719,7 @@ class EditorCubit extends Cubit<EditorState> {
         notice: () => notice,
         canUndo: _past.isNotEmpty,
         canRedo: _future.isNotEmpty,
+        publication: publication,
       ),
     );
   }

@@ -4,6 +4,15 @@ part of 'editor_cubit.dart';
 /// perder alteração ao fechar é aceito, desde que o "não salvo" esteja claro).
 enum SaveStatus { saved, dirty, saving, saveFailed }
 
+/// Estado da ação de publicar/despublicar em si (transiente) — distinto de
+/// [PublicationState], que é o retrato persistente do que está no ar.
+enum PublishStatus { idle, publishing, published, publishFailed }
+
+/// Motivo de [EditorReady.canPublish] estar falso — guia o tooltip do botão
+/// Publish: o motivo mostrado tem que ser verdadeiro (acessibilidade), não
+/// sempre "corrija os erros" mesmo quando só está ocupado salvando/publicando.
+enum PublishBlockReason { saving, publishing, documentErrors }
+
 sealed class EditorState extends Equatable {
   const EditorState();
   @override
@@ -32,6 +41,8 @@ final class EditorReady extends EditorState {
     this.notice,
     this.canUndo = false,
     this.canRedo = false,
+    this.publication = const PublicationState(hasUnpublishedChanges: true),
+    this.publishStatus = PublishStatus.idle,
   });
 
   /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
@@ -55,6 +66,30 @@ final class EditorReady extends EditorState {
   /// cada emit.
   final bool canUndo;
   final bool canRedo;
+
+  /// Retrato persistente do que está no ar — vem do servidor, não do cubit.
+  final PublicationState publication;
+
+  /// Estado transiente da ação de publicar/despublicar em si.
+  final PublishStatus publishStatus;
+
+  /// Bloqueia publicar enquanto salva, enquanto publica, ou com diagnóstico
+  /// de severidade erro no documento — hoje só `expanded`/`spacer` fora de
+  /// flex (`sdui.diagnoseTree`); aviso não bloqueia. `null` quando pode
+  /// publicar; a ordem decide qual motivo prevalece se mais de um for
+  /// verdade.
+  PublishBlockReason? get publishBlockReason {
+    if (publishStatus == PublishStatus.publishing) {
+      return PublishBlockReason.publishing;
+    }
+    if (saveStatus == SaveStatus.saving) return PublishBlockReason.saving;
+    if (diagnostics.any((d) => d.severity == DiagnosticSeverity.error)) {
+      return PublishBlockReason.documentErrors;
+    }
+    return null;
+  }
+
+  bool get canPublish => publishBlockReason == null;
 
   /// Nó selecionado (ou `null`). Derivado — nunca guardado à parte, para não
   /// dessincronizar com o documento.
@@ -80,6 +115,8 @@ final class EditorReady extends EditorState {
     EditorNotice? Function()? notice,
     bool? canUndo,
     bool? canRedo,
+    PublicationState? publication,
+    PublishStatus? publishStatus,
   }) {
     return EditorReady(
       document: document ?? this.document,
@@ -93,6 +130,8 @@ final class EditorReady extends EditorState {
       notice: notice != null ? notice() : this.notice,
       canUndo: canUndo ?? this.canUndo,
       canRedo: canRedo ?? this.canRedo,
+      publication: publication ?? this.publication,
+      publishStatus: publishStatus ?? this.publishStatus,
     );
   }
 
@@ -107,5 +146,7 @@ final class EditorReady extends EditorState {
     notice,
     canUndo,
     canRedo,
+    publication,
+    publishStatus,
   ];
 }

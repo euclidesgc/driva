@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 /// Rodapé de "carregando mais" do scroll infinito (pílula com spinner + texto;
 /// o texto garante que a informação não dependa só do movimento).
 class LoadingMoreFooter extends StatelessWidget {
-  const LoadingMoreFooter({super.key});
+  const LoadingMoreFooter({
+    super.key,
+    this.semanticsLabel = 'Carregando mais conteúdos',
+  });
+
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +20,7 @@ class LoadingMoreFooter extends StatelessWidget {
     return Center(
       child: Semantics(
         liveRegion: true,
-        label: 'Carregando mais conteúdos',
+        label: semanticsLabel,
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s14,

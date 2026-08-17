@@ -1,9 +1,9 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/widgets/feedback/feedback.dart';
 import 'package:driva_editor/modules/contents_module/domain/entities/content_summary.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_card.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_row.dart';
 import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/content_view_mode.dart';
-import 'package:driva_editor/modules/contents_module/presentation/project_detail/widgets/content_panel/loading_more_footer.dart';
 import 'package:flutter/material.dart';
 
 class ContentsCollection extends StatelessWidget {

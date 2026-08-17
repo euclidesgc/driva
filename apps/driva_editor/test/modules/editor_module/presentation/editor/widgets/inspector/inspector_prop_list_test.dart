@@ -34,9 +34,27 @@ const _descriptor = WidgetDescriptor(
   ],
 );
 
+const _otherDescriptor = WidgetDescriptor(
+  type: 'button',
+  label: 'Button',
+  iconName: 'button',
+  category: WidgetCategories.basics,
+  slot: SlotKind.none,
+  fields: [
+    PropField(
+      key: 'fontSize',
+      kind: FieldKind.doubleNum,
+      label: 'Tamanho da fonte',
+      group: FieldGroups.style,
+    ),
+  ],
+);
+
 Future<void> _pumpList(
   WidgetTester tester, {
   Map<String, dynamic> properties = const {},
+  WidgetDescriptor descriptor = _descriptor,
+  ValueNotifier<Set<String>>? collapsedSections,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -48,8 +66,9 @@ Future<void> _pumpList(
           child: InspectorPropList(
             ownerKey: 'n1',
             properties: properties,
-            descriptor: _descriptor,
+            descriptor: descriptor,
             onUpdateProps: (_) {},
+            collapsedSections: collapsedSections,
           ),
         ),
       ),
@@ -139,5 +158,74 @@ void main() {
 
       expect(find.byType(PropSection), findsNWidgets(2));
     });
+  });
+
+  group('colapso persistido por grupo (F6, Q2/P3)', () {
+    testWidgets(
+      'um grupo presente em collapsedSections nasce fechado',
+      (tester) async {
+        await _pumpList(
+          tester,
+          collapsedSections: ValueNotifier({'Estilo'}),
+        );
+
+        expect(find.text('Tamanho da fonte'), findsNothing);
+        expect(find.text('Texto'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'fechar uma seção grava o rótulo do grupo em collapsedSections',
+      (tester) async {
+        final collapsedSections = ValueNotifier<Set<String>>({});
+        await _pumpList(tester, collapsedSections: collapsedSections);
+
+        await tester.tap(find.text('ESTILO'));
+        await tester.pumpAndSettle();
+
+        expect(collapsedSections.value, {'Estilo'});
+      },
+    );
+
+    testWidgets(
+      'reabrir uma seção remove o rótulo do grupo de collapsedSections',
+      (tester) async {
+        final collapsedSections = ValueNotifier<Set<String>>({'Estilo'});
+        await _pumpList(tester, collapsedSections: collapsedSections);
+
+        await tester.tap(find.text('ESTILO'));
+        await tester.pumpAndSettle();
+
+        expect(collapsedSections.value, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'a chave é o rótulo do grupo, não o tipo de nó: dois descriptors '
+      'diferentes com o mesmo grupo compartilham o colapso',
+      (tester) async {
+        final collapsedSections = ValueNotifier<Set<String>>({});
+        await _pumpList(tester, collapsedSections: collapsedSections);
+        await tester.tap(find.text('ESTILO'));
+        await tester.pumpAndSettle();
+        expect(collapsedSections.value, {'Estilo'});
+
+        // Desmonta a árvore inteira antes do segundo pump: sem isto, o
+        // `PropSection` da nova lista reaproveitaria o `State` do antigo via
+        // `ValueKey(group)` (ambos têm uma seção "Estilo"), e o teste
+        // passaria mesmo que `initiallyExpanded` não consultasse
+        // `collapsedSections` — provando preservação de widget, não
+        // compartilhamento de estado.
+        await tester.pumpWidget(const SizedBox.shrink());
+
+        await _pumpList(
+          tester,
+          descriptor: _otherDescriptor,
+          collapsedSections: collapsedSections,
+        );
+
+        expect(find.text('Tamanho da fonte'), findsNothing);
+      },
+    );
   });
 }

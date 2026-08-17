@@ -22,6 +22,8 @@ void main() {
     slug: 'home',
     categoryId: 'cat_1',
     updatedAt: DateTime(2026, 7),
+    publishedAt: null,
+    hasUnpublishedChanges: true,
   );
 
   late MockContentListCubit cubit;

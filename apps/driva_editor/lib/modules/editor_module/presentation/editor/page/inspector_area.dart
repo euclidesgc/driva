@@ -1,4 +1,5 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_vm.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,9 @@ class InspectorArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<EditorCubit>();
+    final collapsedSections = EditorLayoutScope.of(
+      context,
+    )?.collapsedInspectorSections;
     return BlocSelector<EditorCubit, EditorState, InspectorVm?>(
       selector: (state) {
         if (state is! EditorReady) return null;
@@ -36,6 +40,7 @@ class InspectorArea extends StatelessWidget {
               onUpdateSafeAreaProps: cubit.updateSafeAreaProps,
               onRemove: cubit.removeNode,
               onWrap: cubit.wrapSelected,
+              collapsedSections: collapsedSections,
             ),
     );
   }

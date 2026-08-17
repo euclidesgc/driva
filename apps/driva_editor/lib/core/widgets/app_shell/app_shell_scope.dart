@@ -12,12 +12,17 @@ class AppShellController extends ChangeNotifier {
   List<Crumb> _crumbs = const [];
   List<AppBarAction> _actions = const [];
   AppBarStatus? _status;
+  bool _immersive = false;
   Object? _ownerToken;
   bool _disposed = false;
 
   List<Crumb> get crumbs => _crumbs;
   List<AppBarAction> get actions => _actions;
   AppBarStatus? get status => _status;
+
+  /// Canal do modo tela cheia (F7/D15): não persiste — vive só neste
+  /// `ChangeNotifier`, junto de crumbs/actions/status.
+  bool get immersive => _immersive;
 
   bool isOwner(Object token) => identical(_ownerToken, token);
 
@@ -34,10 +39,26 @@ class AppShellController extends ChangeNotifier {
     AppBarStatus? status,
   }) {
     if (_disposed) return;
+    // Dono novo nunca herda o `immersive` do dono anterior — D15: tela cheia
+    // é um momento da página que estava lá, não um estado do shell.
+    if (!identical(_ownerToken, token)) {
+      _immersive = false;
+    }
     _ownerToken = token;
     _crumbs = crumbs;
     _actions = actions;
     _status = status;
+    notifyListeners();
+  }
+
+  /// Independente de `publish`: a página já dona (crumbs/actions publicados)
+  /// alterna tela cheia sem recriar essas listas a cada entrada/saída — só o
+  /// dono atual muda o sinal.
+  void setImmersive(Object token, {required bool value}) {
+    if (_disposed || !identical(_ownerToken, token) || _immersive == value) {
+      return;
+    }
+    _immersive = value;
     notifyListeners();
   }
 
@@ -50,6 +71,7 @@ class AppShellController extends ChangeNotifier {
     _crumbs = const [];
     _actions = const [];
     _status = null;
+    _immersive = false;
     notifyListeners();
   }
 }

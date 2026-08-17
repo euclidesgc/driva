@@ -18,6 +18,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onUpdateSafeAreaProps,
     required this.onRemove,
     required this.onWrap,
+    this.collapsedSections,
     super.key,
   });
 
@@ -30,6 +31,9 @@ class InspectorPanel extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>> onUpdateSafeAreaProps;
   final ValueChanged<String> onRemove;
   final ValueChanged<String> onWrap;
+
+  /// Repassado a `InspectorPropList` — ver o doc lá para a decisão (Q2/P3).
+  final ValueNotifier<Set<String>>? collapsedSections;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +57,7 @@ class InspectorPanel extends StatelessWidget {
               properties: safeArea,
               descriptor: safeAreaDescriptor,
               onUpdateProps: onUpdateSafeAreaProps,
+              collapsedSections: collapsedSections,
             ),
           ),
         ],
@@ -88,6 +93,7 @@ class InspectorPanel extends StatelessWidget {
                   properties: node.properties,
                   descriptor: descriptor,
                   onUpdateProps: (patch) => onUpdateProps(node.id, patch),
+                  collapsedSections: collapsedSections,
                 ),
         ),
       ],

@@ -31,6 +31,8 @@ class CanvasPanel extends StatelessWidget {
     required this.onToggleFitToWindow,
     required this.onDropOnDevice,
     required this.onDropOnNode,
+    required this.isFullscreen,
+    required this.onToggleFullscreen,
     this.imageUrlResolver,
     this.onOpenPreview,
     super.key,
@@ -45,6 +47,9 @@ class CanvasPanel extends StatelessWidget {
   final VoidCallback onToggleFitToWindow;
 
   final VoidCallback? onOpenPreview;
+
+  final bool isFullscreen;
+  final VoidCallback onToggleFullscreen;
 
   /// Soltar fora de qualquer nó mira o conteúdo inteiro (raiz).
   final ValueChanged<DragPayload> onDropOnDevice;
@@ -78,6 +83,8 @@ class CanvasPanel extends StatelessWidget {
           onDropOnNode: onDropOnNode,
           imageUrlResolver: imageUrlResolver,
           onOpenPreview: onOpenPreview,
+          isFullscreen: isFullscreen,
+          onToggleFullscreen: onToggleFullscreen,
         );
       },
     );

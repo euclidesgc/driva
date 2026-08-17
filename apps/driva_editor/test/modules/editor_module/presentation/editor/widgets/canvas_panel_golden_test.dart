@@ -20,6 +20,15 @@ class _MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
 class _MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
 
+class _MockPublishContentUseCase extends Mock
+    implements PublishContentUseCase {}
+
+class _MockUnpublishContentUseCase extends Mock
+    implements UnpublishContentUseCase {}
+
+class _MockRestoreContentVersionUseCase extends Mock
+    implements RestoreContentVersionUseCase {}
+
 class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
 void main() {
@@ -58,6 +67,9 @@ void main() {
     cubit = EditorCubit(
       loadContentUseCase: _MockLoadContentUseCase(),
       saveDraftUseCase: _MockSaveDraftUseCase(),
+      publishContentUseCase: _MockPublishContentUseCase(),
+      unpublishContentUseCase: _MockUnpublishContentUseCase(),
+      restoreContentVersionUseCase: _MockRestoreContentVersionUseCase(),
       projectId: 'p1',
     )..emit(const EditorReady(document: document));
     themeCubit = _MockThemeCubit();

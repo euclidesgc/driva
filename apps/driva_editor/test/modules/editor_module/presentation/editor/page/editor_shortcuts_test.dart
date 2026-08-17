@@ -1,5 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +24,7 @@ void main() {
   const fieldKey = Key('campo');
 
   late MockEditorCubit cubit;
+  late EditorLayoutController layoutController;
 
   setUp(() {
     cubit = MockEditorCubit();
@@ -33,14 +36,20 @@ void main() {
         selectedNodeId: 'nd_root',
       ),
     );
+    layoutController = EditorLayoutController();
   });
+
+  tearDown(() => layoutController.dispose());
 
   Future<void> pumpEditor(WidgetTester tester) => tester.pumpWidget(
     MaterialApp(
       home: BlocProvider<EditorCubit>.value(
         value: cubit,
-        child: const EditorShortcuts(
-          child: Scaffold(body: TextField(key: fieldKey)),
+        child: EditorLayoutScope(
+          controller: layoutController,
+          child: const EditorShortcuts(
+            child: Scaffold(body: TextField(key: fieldKey)),
+          ),
         ),
       ),
     ),
@@ -193,5 +202,33 @@ void main() {
 
       verify(cubit.save).called(1);
     });
+  });
+
+  group('tela cheia (F7/D16)', () {
+    testWidgets(
+      'Escape sai do fullscreen em vez de limpar a seleção, quando ativo',
+      (tester) async {
+        layoutController.enterFullscreen();
+        await pumpEditor(tester);
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pump();
+
+        expect(layoutController.isFullscreen.value, isFalse);
+        verifyNever(() => cubit.selectNode(null));
+      },
+    );
+
+    testWidgets(
+      'fora do fullscreen, Escape continua livre para limpar a seleção',
+      (tester) async {
+        await pumpEditor(tester);
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pump();
+
+        verify(() => cubit.selectNode(null)).called(1);
+      },
+    );
   });
 }
