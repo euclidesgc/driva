@@ -2,7 +2,10 @@ import 'package:driva_editor/modules/editor_module/presentation/presentation.dar
 import 'package:go_router/go_router.dart';
 
 class EditorRoutes {
-  static const String editor = '/contents/:id/edit';
+  /// Plana e com o `projectId` no path (D1, item 46) — não aninhada sob
+  /// `/projects/:id`, para não montar o `ProjectDetailPage` (e os dois
+  /// cubits dele) por baixo do editor a cada abertura.
+  static const String editor = '/projects/:projectId/contents/:id/edit';
   static const String editorName = 'editor';
 
   static GoRoute get route =>

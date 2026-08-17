@@ -92,7 +92,7 @@ kill "$(cat "$CDPPID" 2>/dev/null)" 2>/dev/null || true; rm -f "$CDPPID"
   echo "> propriedade perdia o foco a cada tecla (só o 1º dígito colava)."
   echo
   for row in \
-    "01_editor_inspector|Editor aberto|/contents/:id/edit; Inspector do root column à direita, com 'Espaço entre filhos'." \
+    "01_editor_inspector|Editor aberto|/projects/:projectId/contents/:id/edit; Inspector do root column à direita, com 'Espaço entre filhos'." \
     "02_campo_focado|Campo focado|Clique no campo numérico 'Espaço entre filhos' — cursor ativo." \
     "03_valor_10|Digitou '10'|Após digitar 1 e 0 char-a-char, o campo mostra '10' (foco NÃO caiu — antes só '1' colava)." \
     "04_valor_105|Digitou '105'|Terceiro dígito acumula: '105'. Prova definitiva de foco contínuo."; do

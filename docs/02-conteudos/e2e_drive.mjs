@@ -86,7 +86,7 @@ await shot('06_colisao_home2.png');
 
 // C — drag-drop da paleta → preview renderiza; Salvar → "Salvo"
 const id = await homeId();
-await goto(`${WEB}/contents/${id}/edit`, 7000);
+await goto(`${WEB}/projects/${PROJECT}/contents/${id}/edit`, 7000);
 await drag(49, 539, 525, 450, 25); await sleep(1200);   // tile "Text" → canvas
 await shot('07_drag_preview.png');
 await click(1190, 27); await sleep(1800);               // botão "Salvar"

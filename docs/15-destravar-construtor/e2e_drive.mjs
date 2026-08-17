@@ -228,7 +228,7 @@ async function putRoot(root) {
   const r = await fetch(`${API}/contents/${contentId}`, { method: 'PUT', headers: JSON_H, body: JSON.stringify({ spec }) });
   if (!r.ok) throw new Error(`PUT do spec falhou: ${r.status}`);
 }
-const editorUrl = () => `${WEB}/contents/${contentId}/edit`;
+const editorUrl = () => `${WEB}/projects/${PROJECT}/contents/${contentId}/edit`;
 
 /// Forma legível da árvore: `column[text,image]`, `padding(expanded(text))`.
 const shape = (n) => !n ? 'vazio' :

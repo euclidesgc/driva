@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Corrigido
+
+- **A URL do editor passa a carregar o projeto (item 46)**: a rota virou `/projects/:projectId/contents/:id/edit` (antes, `/contents/:id/edit` lia o tenant de um singleton em memória que morria a cada reload). F5, aba nova ou link colado agora carregam o conteúdo certo em qualquer projeto, não só no `default` — e o link "ver no celular" gerado depois de um reload deixa de apontar silenciosamente para `/preview/default/<id>`. O link antigo (`/contents/:id/edit`) deixou de existir: não há mais tela nesse formato, e abri-lo cai na home de projetos sem aviso dedicado. A tela de falha do editor para de dizer sempre "Conteúdo não encontrado." — agora nomeia o projeto em que procurou, ou avisa que o link aponta para um projeto que não existe, sem afirmar nada sobre conteúdo em outro tenant.
+
 ### Adicionado
 
 - **API pública de consumo (`/v1/public`) com chave publicável**: o primeiro caminho por onde um **app de cliente** lê o que o editor produziu. `GET /v1/public/contents` lista os conteúdos do projeto e `GET /v1/public/contents/:slug` devolve o spec pronto para renderizar. Quem identifica o projeto é a **`publishableKey`** nova do `Project` (`pk_` + 32 bytes aleatórios), enviada no header `x-driva-key` — ela é pública por natureza (vai embarcada no binário distribuído) e por isso só lê conteúdo: nunca escreve, nunca lista projetos. Chave ausente, inválida ou de projeto arquivado devolve **404, não 401**, para não distinguir "chave errada" de "conteúdo inexistente" para quem sonda de fora. Responde `ETag` + `Cache-Control` e devolve `304` a `If-None-Match` que casa, então o spec só viaja quando muda. O CORS é liberado (`*`) **só** neste prefixo: a lista de `CORS_ORIGINS` existe para o editor. Controller e service próprios, fora do CRUD do editor — misturar a rota pública com o controller escopado por `x-project-id` é o caminho curto para vazar rascunho num refactor futuro. **Serve o spec salvo**, porque a separação rascunho × publicado é o item 24 do roadmap e ainda não existe (ver `docs/13-loop-sdui/variance_report.md`).
