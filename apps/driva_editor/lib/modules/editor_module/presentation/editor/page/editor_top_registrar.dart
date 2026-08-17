@@ -120,7 +120,7 @@ class EditorTopRegistrar extends StatelessWidget {
                     onPressed: status == SaveStatus.saving ? null : cubit.save,
                   ),
                   AppBarAction.outlined(
-                    label: 'Publish',
+                    label: 'Publicar',
                     tooltip: _publishTooltip(publishBlockReason),
                     onPressed: canPublish
                         ? () => _confirmPublish(context, cubit, publication)
