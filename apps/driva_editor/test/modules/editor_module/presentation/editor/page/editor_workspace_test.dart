@@ -5,6 +5,7 @@ import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
+import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
@@ -13,6 +14,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/edit
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/right_panel_rail.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_status_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
@@ -307,29 +309,38 @@ void main() {
 
     testWidgets(
       'sair do modo devolve exatamente a mesma largura e o mesmo colapso '
-      'de antes (aceite 33)',
+      'renderizados de antes (aceite 33)',
       (tester) async {
         enlarge(tester);
         await tester.pumpWidget(harness());
         await tester.pump();
-        layoutController
-          ..setLeftPanelWidth(340)
-          ..collapseRightPanel();
+
+        // Único caminho real de mudar a largura: arrastar o `ResizeHandle`
+        // (como `resizable_split_view_test.dart` já testa), não escrever
+        // direto no controller — é o que mantém `_leftWidth` do
+        // `ResizableSplitView` e `layoutController.value.leftPanelWidth`
+        // sincronizados em produção.
+        await tester.drag(
+          find.byType(ResizeHandle).first,
+          const Offset(60, 0),
+        );
         await tester.pump();
-        final widthBefore = layoutController.value.leftPanelWidth;
-        final rightCollapsedBefore = layoutController.value.rightPanelCollapsed;
+        layoutController.collapseRightPanel();
+        await tester.pump();
+
+        final widthBefore = tester.getSize(find.byType(LeftPanel)).width;
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(RightPanelRail), findsOneWidget);
 
         layoutController.enterFullscreen();
         await tester.pump();
         layoutController.exitFullscreen();
         await tester.pump();
 
-        expect(layoutController.value.leftPanelWidth, widthBefore);
-        expect(
-          layoutController.value.rightPanelCollapsed,
-          rightCollapsedBefore,
-        );
         expect(find.byType(LeftPanel), findsOneWidget);
+        expect(tester.getSize(find.byType(LeftPanel)).width, widthBefore);
+        expect(find.byType(InspectorArea), findsNothing);
+        expect(find.byType(RightPanelRail), findsOneWidget);
       },
     );
 
