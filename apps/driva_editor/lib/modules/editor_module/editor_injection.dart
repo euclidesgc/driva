@@ -21,6 +21,18 @@ void registerEditorModule(GetIt getIt) {
     ..registerFactory(
       () => SaveDraftUseCase(repository: getIt<EditorRepository>()),
     )
+    ..registerFactory(
+      () => PublishContentUseCase(repository: getIt<EditorRepository>()),
+    )
+    ..registerFactory(
+      () => UnpublishContentUseCase(repository: getIt<EditorRepository>()),
+    )
+    ..registerFactory(
+      () => GetContentVersionsUseCase(repository: getIt<EditorRepository>()),
+    )
+    ..registerFactory(
+      () => RestoreContentVersionUseCase(repository: getIt<EditorRepository>()),
+    )
     ..registerLazySingleton<EditorLayoutRepository>(
       () => EditorLayoutRepositoryImpl(getIt<SharedPreferences>()),
     )

@@ -24,7 +24,7 @@ class PreviewCubit extends Cubit<PreviewState> {
     emit(
       result.fold(
         (failure) => PreviewFailure(failure: failure),
-        (spec) => PreviewReady(spec: spec, fetchedAt: DateTime.now()),
+        (loaded) => PreviewReady(spec: loaded.spec, fetchedAt: DateTime.now()),
       ),
     );
   }
@@ -41,7 +41,7 @@ class PreviewCubit extends Cubit<PreviewState> {
     emit(
       result.fold(
         (failure) => current.copyWith(refreshFailure: failure),
-        (spec) => PreviewReady(spec: spec, fetchedAt: DateTime.now()),
+        (loaded) => PreviewReady(spec: loaded.spec, fetchedAt: DateTime.now()),
       ),
     );
   }

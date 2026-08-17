@@ -1,5 +1,15 @@
 import 'package:sdui_core/sdui_core.dart';
 
+/// Metadados de uma versão publicada em memória — sem depender de nenhum
+/// tipo de módulo (`core` fica agnóstico; quem converte para `ContentVersion`
+/// é o `EditorRepositoryFake`).
+typedef FakeVersionMeta = ({
+  int version,
+  DateTime createdAt,
+  String? note,
+  String? createdBy,
+});
+
 /// Vive no core porque é compartilhado entre `contents_module` e
 /// `editor_module` — os dois fakes precisam ver os mesmos conteúdos para o
 /// fluxo "criar na lista → abrir no editor" funcionar sem backend.
@@ -20,6 +30,10 @@ class FakeContentsStore {
   final Map<String, ContentSpec> _contents = {};
   final Map<String, DateTime> _updatedAt = {};
   final Map<String, String> _categoryOf = {};
+  final Map<String, List<ContentSpec>> _versionSpecs = {};
+  final Map<String, List<FakeVersionMeta>> _versionMeta = {};
+  final Map<String, int?> _publishedVersion = {};
+  final Map<String, DateTime?> _publishedAt = {};
   int _sequence = 1;
 
   List<ContentSpec> get contents => _contents.values.toList(growable: false);
@@ -78,6 +92,57 @@ class FakeContentsStore {
     _categoryOf[id] = categoryId;
     _updatedAt[id] = DateTime.now();
     return true;
+  }
+
+  int? publishedVersionOf(String id) => _publishedVersion[id];
+
+  DateTime? publishedAtOf(String id) => _publishedAt[id];
+
+  bool hasUnpublishedChanges(String id) {
+    final publishedAt = _publishedAt[id];
+    if (publishedAt == null) return true;
+    return updatedAtOf(id).isAfter(publishedAt);
+  }
+
+  /// Publica o rascunho atual. Idempotente (D3 do plano do item 24): sem
+  /// mudança desde a última publicação, devolve a versão já publicada em vez
+  /// de criar um registro novo.
+  FakeVersionMeta? publish(String id, {String? note}) {
+    final content = _contents[id];
+    if (content == null) return null;
+    if (!hasUnpublishedChanges(id)) {
+      final version = _publishedVersion[id]!;
+      return _versionMeta[id]!.firstWhere((meta) => meta.version == version);
+    }
+    final specs = _versionSpecs.putIfAbsent(id, () => []);
+    final metas = _versionMeta.putIfAbsent(id, () => []);
+    final now = DateTime.now();
+    final meta = (
+      version: specs.length + 1,
+      createdAt: now,
+      note: note,
+      createdBy: null,
+    );
+    specs.add(content);
+    metas.add(meta);
+    _publishedVersion[id] = meta.version;
+    _publishedAt[id] = now;
+    return meta;
+  }
+
+  /// Tira do ar sem apagar o histórico de versões.
+  void unpublish(String id) {
+    _publishedVersion[id] = null;
+    _publishedAt[id] = null;
+  }
+
+  List<FakeVersionMeta> versionsOf(String id) =>
+      (_versionMeta[id] ?? const []).reversed.toList(growable: false);
+
+  ContentSpec? specAtVersion(String id, int version) {
+    final specs = _versionSpecs[id];
+    if (specs == null || version < 1 || version > specs.length) return null;
+    return specs[version - 1];
   }
 
   /// Um conteúdo de exemplo para o editor nunca abrir vazio em dev.
