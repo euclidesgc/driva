@@ -225,7 +225,7 @@ modules/auth_module/
 - `core/network/project_scope.dart` — `projectId` deixa de ter default `'default'` quando há sessão: passa a ser setado ao entrar num projeto. Manter o default só em `useFakeData`.
 
 **Critério de aceite:**
-- Sem sessão, qualquer URL do editor cai em `/login` (inclusive deep link para `/contents/:id/edit`), e **volta para a URL pedida** depois do login.
+- Sem sessão, qualquer URL do editor cai em `/login` (inclusive deep link para `/projects/:projectId/contents/:id/edit`), e **volta para a URL pedida** depois do login.
 - F5 com sessão válida **não** pede login de novo.
 - Token expirado no meio do uso: a próxima ação renova sozinha, sem o usuário perceber.
 - Refresh inválido → volta ao login com mensagem, sem loop.

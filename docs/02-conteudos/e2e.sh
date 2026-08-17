@@ -160,7 +160,7 @@ echo "  2. Em 'Novo conteúdo', digitar o Nome ${b}deriva o Slug ao vivo${x} no 
 echo "  3. O card mostra o ${b}slug em destaque${x} + o ${b}\"ID de suporte\"${x}."
 echo "  4. Criar dois 'Home': o 2º ${b}reabre o diálogo com 'home-2'${x} e a msg de slug em uso."
 echo "  5. Arrastar um widget → preview renderiza; ${b}Ctrl+S${x} → 'Salvo'; ${b}F5${x} mantém."
-echo "  6. Acessar /contents/nao-existe/edit → ${b}tela de NotFound tratada${x} (sem crash)."
+echo "  6. Acessar /projects/default/contents/nao-existe/edit → ${b}tela de NotFound tratada${x} (sem crash)."
 echo ""
 echo "${d}Ao terminar o visual: docs/02-conteudos/e2e.sh down  (para o backend e destrói o Postgres de teste).${x}"
 

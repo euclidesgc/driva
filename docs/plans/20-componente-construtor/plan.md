@@ -35,7 +35,7 @@ O que torna um componente reutilizável de verdade é receber dados de quem o in
 | O que | Onde | Uso |
 | --- | --- | --- |
 | `ContentKind` no kernel, coluna `kind`, filtro na API, aba na tela do projeto | item 19 | Base. |
-| `EditorRoutes.editor = '/contents/:id/edit'` (`GoRoute` com `EditorPage.pageBuilder`) | `editor_module/editor_routes.dart` | A rota **não muda** (é o mesmo id, na mesma tabela). O modo vem do spec carregado. |
+| `EditorRoutes.editor = '/projects/:projectId/contents/:id/edit'` (`GoRoute` com `EditorPage.pageBuilder`) | `editor_module/editor_routes.dart` | A rota **não muda por causa deste item** (é o mesmo id, na mesma tabela). O modo vem do spec carregado. O `:projectId` entrou no path pelo item 46, não por aqui. |
 | `EditorCubit` + `EditorReady.document` como fonte única | `.../cubit/editor_cubit.dart` | `document.kind` já diz o modo — **nenhum parâmetro novo de rota é preciso**. |
 | `CanvasToolbar(device, zoom, onChangeDevice, onChangeZoom)` e `DeviceFrame` | `.../widgets/canvas/` | Ganham o modo peça. |
 | `InspectorPanel` no modo Página (edita `safeArea`) | `.../widgets/inspector_panel.dart:34` | No modo componente, mostra parâmetros (ou nada). |
