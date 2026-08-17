@@ -297,7 +297,7 @@ const versionSpecMarker = async (version) => {
   return body.spec?.root?.props?.data ?? 'sem spec';
 };
 
-const editorUrl = () => `${WEB}/contents/${contentId}/edit`;
+const editorUrl = () => `${WEB}/projects/${PROJECT}/contents/${contentId}/edit`;
 const projectUrl = () => `${WEB}/projects/${PROJECT}`;
 
 // ------------------------------- resultado -------------------------------

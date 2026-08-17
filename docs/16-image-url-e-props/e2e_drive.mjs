@@ -226,7 +226,7 @@ async function semear(props) {
   const r = await fetch(`${API}/contents/${contentId}`, { method: 'PUT', headers: JSON_H, body: JSON.stringify({ spec }) });
   if (!r.ok) throw new Error(`PUT do spec falhou: ${r.status}`);
 }
-const editorUrl = () => `${WEB}/contents/${contentId}/edit`;
+const editorUrl = () => `${WEB}/projects/${PROJECT}/contents/${contentId}/edit`;
 
 async function abrirEditor({ selecionar = false } = {}) {
   await send('Page.navigate', { url: editorUrl() });

@@ -68,7 +68,7 @@ await send('Page.enable'); await send('Runtime.enable');
 // cujo campo "Espaço entre filhos" (spacing, numérico) é o alvo.
 await clean();
 const id = await seed('Foco Inspector', 'foco-inspector');
-await goto(`${WEB}/contents/${id}/edit`, 9000);
+await goto(`${WEB}/projects/${PROJECT}/contents/${id}/edit`, 9000);
 await shot('01_editor_inspector.png');   // estado inicial (descoberta de coords)
 
 // Coordenadas do campo "Espaço entre filhos" no Inspector (painel direito).
