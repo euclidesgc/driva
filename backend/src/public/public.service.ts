@@ -26,12 +26,17 @@ export class PublicService {
   async list(publishableKey: string): Promise<PublishedSummary[]> {
     const projectId = await this.projectIdFor(publishableKey);
 
-    return this.prisma.content.findMany({
-      where: { projectId },
-      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+    const rows = await this.prisma.content.findMany({
+      where: { projectId, publishedVersionId: { not: null } },
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
       take: LIST_LIMIT,
-      select: { id: true, name: true, slug: true, updatedAt: true },
+      select: { id: true, name: true, slug: true, publishedAt: true },
     });
+    return rows.flatMap((row) =>
+      row.publishedAt
+        ? [{ id: row.id, name: row.name, slug: row.slug, updatedAt: row.publishedAt }]
+        : [],
+    );
   }
 
   async findBySlug(
@@ -41,19 +46,37 @@ export class PublicService {
     const projectId = await this.projectIdFor(publishableKey);
 
     const content = await this.prisma.content.findFirst({
-      where: { projectId, slug },
+      where: { projectId, slug, publishedVersionId: { not: null } },
       select: {
         id: true,
         name: true,
         slug: true,
         projectId: true,
-        updatedAt: true,
-        spec: true,
+        publishedAt: true,
+        publishedVersionId: true,
       },
     });
-    if (!content) throw new NotFoundException();
+    if (!content || !content.publishedVersionId || !content.publishedAt) {
+      throw new NotFoundException();
+    }
 
-    return content;
+    const version = await this.prisma.contentVersion.findUnique({
+      where: { id: content.publishedVersionId },
+      select: { spec: true },
+    });
+    if (!version) throw new NotFoundException();
+
+    return {
+      id: content.id,
+      name: content.name,
+      slug: content.slug,
+      projectId: content.projectId,
+      // publishedAt, não o updatedAt da linha: o rascunho é tocado por
+      // autosave sem que o publicado mude, e o ETag não pode invalidar o
+      // cache público por uma edição que ninguém publicou.
+      updatedAt: content.publishedAt,
+      spec: version.spec,
+    };
   }
 
   etagOf(content: PublishedContent): string {

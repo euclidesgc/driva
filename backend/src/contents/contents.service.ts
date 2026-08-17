@@ -13,6 +13,8 @@ import {
   SortField,
   SortOrder,
 } from './dto/list-contents.query.dto';
+import { ListVersionsQueryDto } from './dto/list-versions.query.dto';
+import { PublishContentDto } from './dto/publish-content.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 import { normalizeName } from './name-normalize';
 
@@ -26,9 +28,24 @@ type ContentRow = {
   description: string | null;
   categoryId: string;
   updatedAt: Date;
+  draftUpdatedAt: Date;
+  publishedAt: Date | null;
 };
 
 type SortableRow = ContentRow & { createdAt: Date };
+
+type PublishState = { version: number; publishedAt: Date } | null;
+
+const CONTENT_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  categoryId: true,
+  updatedAt: true,
+  draftUpdatedAt: true,
+  publishedAt: true,
+} as const;
 
 @Injectable()
 export class ContentsService {
@@ -85,15 +102,7 @@ export class ContentsService {
       where,
       orderBy: [{ [sort]: order }, { id: order }],
       take: limit + 1,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        categoryId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { ...CONTENT_SUMMARY_SELECT, createdAt: true },
     });
 
     const hasMore = rows.length > limit;
@@ -114,6 +123,7 @@ export class ContentsService {
     const categoryId = await this.resolveCategoryId(projectId, dto.categoryId);
     try {
       const row = await this.prisma.$transaction(async (tx) => {
+        const now = new Date();
         const created = await tx.content.create({
           data: {
             projectId,
@@ -122,7 +132,8 @@ export class ContentsService {
             nameNormalized: normalizeName(dto.name),
             slug: dto.slug,
             description: dto.description,
-            spec: {},
+            draftSpec: {},
+            draftUpdatedAt: now,
           },
           select: { id: true },
         });
@@ -138,15 +149,8 @@ export class ContentsService {
         };
         return tx.content.update({
           where: { id: created.id },
-          data: { spec },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            categoryId: true,
-            updatedAt: true,
-          },
+          data: { draftSpec: spec, draftUpdatedAt: now },
+          select: CONTENT_SUMMARY_SELECT,
         });
       });
       return this.toSummary(row);
@@ -159,10 +163,7 @@ export class ContentsService {
   }
 
   async find(projectId: string, id: string) {
-    const content = await this.prisma.content.findFirst({
-      where: { id, projectId },
-    });
-    if (!content) throw new NotFoundException();
+    const content = await this.findContentOrThrow(projectId, id);
     return {
       id: content.id,
       name: content.name,
@@ -171,7 +172,9 @@ export class ContentsService {
         ? { description: content.description }
         : {}),
       categoryId: content.categoryId,
-      spec: content.spec,
+      spec: content.draftSpec,
+      publishedVersion: await this.toPublishState(content),
+      hasUnpublishedChanges: this.hasUnpublishedChanges(content),
       updatedAt: content.updatedAt,
     };
   }
@@ -199,7 +202,10 @@ export class ContentsService {
             : {}),
           ...(categoryId !== undefined ? { categoryId } : {}),
           ...(dto.spec !== undefined
-            ? { spec: dto.spec as Prisma.InputJsonValue }
+            ? {
+                draftSpec: dto.spec as Prisma.InputJsonValue,
+                draftUpdatedAt: new Date(),
+              }
             : {}),
         },
       });
@@ -213,14 +219,7 @@ export class ContentsService {
 
     const updated = await this.prisma.content.findFirst({
       where: { id, projectId },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        categoryId: true,
-        updatedAt: true,
-      },
+      select: CONTENT_SUMMARY_SELECT,
     });
     if (!updated) throw new NotFoundException();
     return this.toSummary(updated);
@@ -231,6 +230,167 @@ export class ContentsService {
       where: { id, projectId },
     });
     if (result.count === 0) throw new NotFoundException();
+  }
+
+  async publish(projectId: string, id: string, dto: PublishContentDto) {
+    const row = await this.findContentOrThrow(projectId, id);
+    if (!this.hasUnpublishedChanges(row)) {
+      return {
+        publishedVersion: await this.toPublishState(row),
+        hasUnpublishedChanges: false,
+      };
+    }
+    try {
+      const now = new Date();
+      const created = await this.prisma.$transaction(async (tx) => {
+        const latest = await tx.contentVersion.aggregate({
+          where: { contentId: id },
+          _max: { version: true },
+        });
+        const version = await tx.contentVersion.create({
+          data: {
+            contentId: id,
+            version: (latest._max.version ?? 0) + 1,
+            spec: row.draftSpec as Prisma.InputJsonValue,
+            note: dto.note,
+            createdAt: now,
+          },
+        });
+        await tx.content.update({
+          where: { id },
+          data: {
+            publishedVersionId: version.id,
+            publishedAt: now,
+          },
+        });
+        return version;
+      });
+      return {
+        publishedVersion: {
+          version: created.version,
+          publishedAt: created.createdAt,
+        },
+        hasUnpublishedChanges: false,
+      };
+    } catch (error) {
+      if (this.isP2002(error)) {
+        throw new ConflictException('publicação concorrente, tente de novo');
+      }
+      throw error;
+    }
+  }
+
+  async unpublish(projectId: string, id: string) {
+    const result = await this.prisma.content.updateMany({
+      where: { id, projectId },
+      data: { publishedVersionId: null, publishedAt: null },
+    });
+    if (result.count === 0) throw new NotFoundException();
+    return { publishedVersion: null, hasUnpublishedChanges: true };
+  }
+
+  async listVersions(projectId: string, id: string, query: ListVersionsQueryDto) {
+    await this.findContentOrThrow(projectId, id);
+    const limit = query.limit ?? 20;
+    const where: Prisma.ContentVersionWhereInput = { contentId: id };
+
+    if (query.cursor) {
+      const { value } = decodeCursor(query.cursor);
+      where.version = { lt: Number(value) };
+    }
+
+    const rows = await this.prisma.contentVersion.findMany({
+      where,
+      orderBy: { version: 'desc' },
+      take: limit + 1,
+      select: {
+        id: true,
+        version: true,
+        note: true,
+        createdAt: true,
+        createdBy: true,
+      },
+    });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+    const nextCursor =
+      hasMore && last ? encodeCursor(String(last.version), last.id) : null;
+
+    return {
+      data: page.map((row) => ({
+        version: row.version,
+        ...(row.note !== null ? { note: row.note } : {}),
+        createdAt: row.createdAt,
+        ...(row.createdBy !== null ? { createdBy: row.createdBy } : {}),
+      })),
+      nextCursor,
+    };
+  }
+
+  async findVersion(projectId: string, id: string, version: number) {
+    await this.findContentOrThrow(projectId, id);
+    const row = await this.prisma.contentVersion.findUnique({
+      where: { contentId_version: { contentId: id, version } },
+    });
+    if (!row) throw new NotFoundException();
+    return {
+      version: row.version,
+      spec: row.spec,
+      ...(row.note !== null ? { note: row.note } : {}),
+      createdAt: row.createdAt,
+      ...(row.createdBy !== null ? { createdBy: row.createdBy } : {}),
+    };
+  }
+
+  async restoreVersion(projectId: string, id: string, version: number) {
+    await this.findContentOrThrow(projectId, id);
+    const target = await this.prisma.contentVersion.findUnique({
+      where: { contentId_version: { contentId: id, version } },
+      select: { spec: true },
+    });
+    if (!target) throw new NotFoundException();
+    await this.prisma.content.update({
+      where: { id },
+      data: {
+        draftSpec: target.spec as Prisma.InputJsonValue,
+        draftUpdatedAt: new Date(),
+      },
+    });
+    return this.find(projectId, id);
+  }
+
+  // ContentVersion não carrega project_id próprio (D1: FK solta, join
+  // explícito). Todo acesso a contentVersion precisa passar por aqui
+  // primeiro para resolver posse — nunca consultar contentVersion direto a
+  // partir de um id de content sem confirmar antes que ele é deste projeto.
+  private async findContentOrThrow(projectId: string, id: string) {
+    const content = await this.prisma.content.findFirst({
+      where: { id, projectId },
+    });
+    if (!content) throw new NotFoundException();
+    return content;
+  }
+
+  private hasUnpublishedChanges(row: {
+    draftUpdatedAt: Date;
+    publishedAt: Date | null;
+  }): boolean {
+    return row.publishedAt === null || row.draftUpdatedAt > row.publishedAt;
+  }
+
+  private async toPublishState(row: {
+    publishedVersionId: string | null;
+    publishedAt: Date | null;
+  }): Promise<PublishState> {
+    if (!row.publishedVersionId || !row.publishedAt) return null;
+    const version = await this.prisma.contentVersion.findUnique({
+      where: { id: row.publishedVersionId },
+      select: { version: true },
+    });
+    if (!version) return null;
+    return { version: version.version, publishedAt: row.publishedAt };
   }
 
   private async resolveCategoryId(
@@ -286,14 +446,20 @@ export class ContentsService {
       ...(row.description !== null ? { description: row.description } : {}),
       categoryId: row.categoryId,
       updatedAt: row.updatedAt,
+      publishedAt: row.publishedAt,
+      hasUnpublishedChanges: this.hasUnpublishedChanges(row),
     };
   }
 
-  private isSlugConflict(error: unknown): boolean {
+  private isP2002(error: unknown): boolean {
     return (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'
     );
+  }
+
+  private isSlugConflict(error: unknown): boolean {
+    return this.isP2002(error);
   }
 
   private async throwSlugConflict(
