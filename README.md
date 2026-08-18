@@ -27,7 +27,7 @@ cd backend
 cp .env.example .env
 pnpm install
 docker compose up -d
-pnpm prisma:push
+pnpm prisma:migrate:dev
 pnpm start:dev
 
 # 3. Editor (em outro terminal, a partir de apps/driva_editor)
