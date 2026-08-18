@@ -16,7 +16,7 @@ Passos:
 6. Registre no `injection.dart` e no `app_router.dart` da raiz (que só importam o barrel público).
 7. Rode `flutter analyze` **e** `bash scripts/gates_guard.sh` (o guard-script dos Gates 1 e 4 que a CI roda; `exit 1` na primeira violação). Não dê por pronto com nenhum dos dois vermelho.
 
-Regras inegociáveis (o CLAUDE.md e o lint cobram):
+Regras inegociáveis. **O lint não cobra nenhuma delas** — o `analysis_options.yaml` é só `very_good_analysis`, sem `custom_lint`/`import_lint`. Na máquina existe rede para as duas últimas apenas (Gates 1 e 4, via `scripts/gates_guard.sh` na CI); o resto vive de revisão (`revisar-fase`):
 - presentation NUNCA importa data.
 - nenhuma classe de lógica chama o service locator por dentro (só o `pageBuilder`).
 - estado imutável; cor não carrega informação sozinha (acessibilidade).

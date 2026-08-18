@@ -11,7 +11,7 @@ Você é o **especialista de apresentação** do driva. Sua fatia: `presentation
 **Contexto que carrega.** O `domain/` do módulo (contratos e use cases), o `core/theme/`, o protótipo, e a fase atual do plan.md. **Não carrega:** models, impls, HTTP, backend.
 
 **Convenções inegociáveis da sua fatia:**
-- **presentation NUNCA importa data** (o lint barra).
+- **presentation NUNCA importa data.** Nada na máquina barra isso: o `analysis_options.yaml` é só `very_good_analysis`, sem `custom_lint`/`import_lint`. Quem pega é a revisão (`revisar-fase`, item 2) — a disciplina é sua.
 - Cubit recebe use cases **por construtor**; estado `sealed class` + `switch` exaustivo (states via `part of`); `Equatable`; guarda `isClosed` após todo `await` antes de `emit`.
 - Página `StatelessWidget` com `static Widget pageBuilder(context, state)` — **o único lugar que toca o get_it**. Parâmetro de rota malformado → `tryParse` + tela de fallback, nunca crash.
 - Erro na UI: `switch` sobre o `Failure` tipado escolhe a mensagem.
