@@ -14,7 +14,6 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num edito
 | `docs/02-conteudos/` | Docs vivas da feature Conteúdos (rename página→conteúdo: slug, CUID2, migração) |
 | `docs/09-crud-projeto/` | Docs vivas do CRUD de Projeto (upload seguro, StorageService, `Content.projectId` FK) |
 | `docs/08-api-conteudos-filtro-busca/` | Docs vivas da API de conteúdos (envelope/cursor/busca) + Categorias + tela do projeto |
-| `docs/livro-flutter/` | O livro que define a arquitetura e o método de trabalho (gabarito) |
 
 ## Rodando em dev
 

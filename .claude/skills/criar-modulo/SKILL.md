@@ -1,11 +1,11 @@
 ---
 name: criar-modulo
-description: Cria um módulo novo no driva_editor seguindo o gabarito (pages_module e cap. 8 do livro). Use ao iniciar qualquer módulo/feature nova no editor.
+description: Cria um módulo novo no driva_editor seguindo o gabarito (contents_module). Use ao iniciar qualquer módulo/feature nova no editor.
 ---
 
 # Skill: criar um módulo novo
 
-Objetivo: criar um módulo seguindo o gabarito do `pages_module` (e o capítulo 8 de `docs/livro-flutter/`).
+Objetivo: criar um módulo seguindo o gabarito do `contents_module`. Os arquivos a abrir como exemplar — um por camada, em vez do módulo de 72 arquivos — estão na seção "O gabarito" do `CLAUDE.md`.
 
 Passos:
 1. Crie `apps/driva_editor/lib/modules/<nome>_module/` com `domain/`, `data/`, `presentation/`.

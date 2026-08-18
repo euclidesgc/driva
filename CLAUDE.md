@@ -12,7 +12,23 @@ Plataforma de **Server-Driven UI** para apps Flutter: o editor web (`apps/driva_
 
 ## O gabarito
 
-A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módulo de referência é `apps/driva_editor/lib/modules/pages_module/` — na dúvida, imite-o. Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.**
+A arquitetura vem de um livro que **não está neste repositório** (é material do dono, fora do versionamento) — as referências a "cap. N do livro" espalhadas pelo harness são procedência, não ponteiro: ninguém consegue abri-las, e nada depende de abri-las. O que se imita é código.
+
+O módulo de referência é `apps/driva_editor/lib/modules/contents_module/` — na dúvida, imite-o. São 72 arquivos, então **abra o exemplar da camada**, não o módulo inteiro (caminhos relativos a `apps/driva_editor/lib/modules/contents_module/`):
+
+| Camada | Exemplar |
+|---|---|
+| Entidade | `domain/entities/content_summary.dart` |
+| Contrato de repositório | `domain/repositories/contents_repository.dart` |
+| Use case | `domain/use_cases/get_contents_use_case.dart` |
+| Model com validação zard | `data/models/content_summary_model.dart` |
+| Impl do repositório (o try/catch) | `data/repositories/contents_repository_impl.dart` |
+| Cubit + estado `sealed` | `presentation/content_list/cubit/content_list_cubit.dart` + `content_list_state.dart` |
+| Página com `pageBuilder` | `presentation/project_detail/project_detail_page.dart` |
+| Widget de UI (token + `Semantics`) | `presentation/project_detail/widgets/content_panel/publication_badge.dart` |
+| Fiação do módulo | `contents_routes.dart`, `contents_injection.dart`, `contents_module.dart` |
+
+Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.**
 
 ## Regras inegociáveis (Flutter/Dart)
 
@@ -28,7 +44,7 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 - **Zero build_runner** (nada de freezed, json_serializable, injectable, mockito, go_router_builder).
 - Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`; a bateria automatizada é escrita **por último** (após o E2E manual — cap. 22 do livro).
 - Acessibilidade: cor nunca é o único sinal de informação; controles com `Semantics`/tooltip.
-- Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora no mesmo arquivo do cubit via `part of`.
+- Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora na mesma **biblioteca** do cubit, num `<x>_state.dart` ligado por `part`/`part of` (ver o exemplar de cubit em "O gabarito").
 - **Zero comentário — o código se explica por nomes.** Vale para todo código do repo (Dart e TypeScript), em `//` e em dartdoc `///`. **Não escreva** comentário que diga o que a linha faz, que repita o nome do identificador logo abaixo, cabeçalho decorativo de seção, nem nota de autoria/histórico ("antes era X", "adicionado na F12") — para isso existe o git. Legibilidade se conquista **extraindo** variável/função/widget com nome descritivo, não com prosa ao lado. **Única exceção:** o **porquê** que o código não tem como mostrar — decisão de arquitetura, workaround de bug externo, restrição de plataforma ou invariante não óbvia; e aí o comentário explica a **razão**, nunca a mecânica. Ao editar um arquivo já comentado, limpe o que não passa nesse teste.
 - Cancela de máquina: **"pronto" = `flutter analyze` verde + testes existentes passando.** Nunca opinião.
 
