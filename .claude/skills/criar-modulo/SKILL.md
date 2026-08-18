@@ -14,7 +14,7 @@ Passos:
 4. **Presentation**: cubit com estado `sealed` (via `part of`) + `switch` exaustivo, guarda `isClosed` após `await`; página `StatelessWidget` com `static Widget pageBuilder` (o único lugar que toca o get_it). **Widgets da UI**: cada pedaço é um widget próprio (dados pelo construtor — **nunca** `Widget _buildX()`), uma classe por arquivo; widget específico da feature em `presentation/<feature>/widgets/`, widget usado por várias features do módulo em `presentation/widgets/`, widget genérico da app em `core/widgets/` (não deixe genérico preso na feature). **Estilo** vem de `core/theme/` (token/`Theme.of`) — zero cor/fonte/espaçamento hardcoded.
 5. Fiação: `<nome>_routes.dart` (classe `XRoutes`, rotas nomeadas), `<nome>_injection.dart` (`registerXModule(GetIt)`: repositório lazySingleton, use cases factory), e o barrel público `<nome>_module.dart` que exporta **só** esses dois. Cada pasta termina com seu barrel; os de `data/` são internos.
 6. Registre no `injection.dart` e no `app_router.dart` da raiz (que só importam o barrel público).
-7. Rode `flutter analyze`. Não dê por pronto com lint vermelho.
+7. Rode `flutter analyze` **e** `bash scripts/gates_guard.sh` (o guard-script dos Gates 1 e 4 que a CI roda; `exit 1` na primeira violação). Não dê por pronto com nenhum dos dois vermelho.
 
 Regras inegociáveis (o CLAUDE.md e o lint cobram):
 - presentation NUNCA importa data.
