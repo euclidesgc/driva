@@ -72,7 +72,7 @@ O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-ma
 
 **Roadmap vivo (`docs/roadmap.md`).** Fonte única de rastreabilidade do produto — o que foi feito, o que está em andamento, o que falta. Lista **ordenada por dependência** (o que destrava o quê), com status `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída. **É mantido atualizado pela IA** como parte do fechamento de cada trabalho (mesmo checkpoint da faxina de branches): marca o item entregue `[x]`, o item da vez `[-]`. Ao surgir feature nova, a IA tem permissão de **reescrever o texto** do item para dar clareza e **reordená-lo** para o ponto de precedência correto (analisando o código para inferir dependências). Rever/ajustar o roadmap é atividade recorrente, não pontual.
 
-Comando não-óbvio: `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
+Comando não-óbvio: o editor roda **de dentro de `apps/driva_editor`**, com caminhos relativos — `cd apps/driva_editor && flutter run -d chrome --target lib/main_dev.dart --dart-define-from-file=config/dev.json` (a forma do `README.md` e dos 4 configs de editor do `.vscode/launch.json`). Da raiz não funciona: o `pubspec.yaml` da raiz é o `driva_workspace`, sem plataforma web — `flutter build web` sai com `This project is not configured for the web`, e o `flutter run -d chrome` é pior, porque **avisa e sobe assim mesmo**, com um scaffold sintetizado que ignora o `apps/driva_editor/web/flutter_bootstrap.js` (o arquivo que força `canvasKitVariant: "full"` e é o antídoto do "tofu").
 
 ## Economia de tokens e tempo (obrigatório)
 

@@ -39,10 +39,15 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 ## Qualidade
 
 ```bash
-flutter analyze                       # workspace inteiro
-dart test packages/sdui_core          # kernel (30 testes)
-flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (124 testes: cubits, slug, widget por estado, shell/breadcrumb, golden)
+flutter analyze                              # workspace inteiro
+bash scripts/gates_guard.sh                  # Gates 1 e 4 (design system e widgets)
+dart test -r compact packages/sdui_core      # kernel
+
+# as suítes Flutter rodam de dentro da pasta do pacote — da raiz o bundle de
+# assets não é montado e os goldens estouram com "FontManifest.json vazio"
+(cd packages/sdui_flutter && flutter test -r compact)   # renderer
+(cd apps/driva_editor     && flutter test -r compact)   # editor
+(cd apps/driva_demo_app   && flutter test -r compact)   # app de demonstração
 ```
 
 ## Arquitetura (resumo)
