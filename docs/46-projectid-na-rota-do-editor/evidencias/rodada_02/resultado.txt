@@ -1,0 +1,76 @@
+Alvo: https://hml.driva.duckdns.org   API: https://api-hml.driva.duckdns.org/v1
+PROJ_A: "Portal da RE" qyk9xbclx0moxwno3wplb4u9
+PROJ_B: "E2E item 46 — projeto B" o8zw3ctaahlni0lhyqpes8f6
+CT_A: p5ha2j9x7dgjkaqla0gy2wyt   CT_B: b7pxnjxd94qb53c7c60vtp27
+preview esperado no passo 4: https://hml.driva.duckdns.org/preview/qyk9xbclx0moxwno3wplb4u9/p5ha2j9x7dgjkaqla0gy2wyt
+
+=== passo 1 — home → PROJ_A → abrir CT_A pelo caminho normal
+  [32mPASS[0m a home levou à tela do PROJ_A
+  [32mPASS[0m abrir o conteúdo pelo caminho normal leva à rota com os DOIS ids
+  [32mPASS[0m o editor carregou o CT_A
+  [2m·[0m 01_url_com_dois_ids.png
+
+=== passo 2 — F5 na mesma aba — o defeito de origem
+  [32mPASS[0m depois do F5 a URL continua a mesma
+  [32mPASS[0m depois do F5 o MESMO conteúdo voltou
+  [32mPASS[0m nenhuma tela de falha apareceu depois do F5
+  [32mPASS[0m o GET do conteúdo depois do F5 saiu com o x-project-id do PROJ_A
+  [2m·[0m 02_reload_mesmo_conteudo.png
+
+=== passo 4 — "ver no celular" — o modo silencioso (§11.4›31)
+  [32mPASS[0m o diálogo "Ver no celular" abriu
+  [2m·[0m 04_link_preview_projeto_certo.png
+  [2mvia:[0m árvore semântica do diálogo
+  [32mPASS[0m o link do "ver no celular" aponta para o projeto da URL, não para o default
+  [32mPASS[0m o link NÃO contém /preview/default/
+
+=== passo 5 — breadcrumb leva ao PROJ_A, não ao default
+  [32mPASS[0m o breadcrumb do editor leva a /projects/qyk9xbclx0moxwno3wplb4u9
+  [32mPASS[0m a tela que abriu é a do PROJ_A
+  [32mPASS[0m a lista aberta é a do PROJ_A — o CT_A está nela
+  [2m·[0m 05_breadcrumb_e_volta.png
+
+=== passo 3 — aba anônima (contexto novo) — o header da PRIMEIRA requisição
+  [32mPASS[0m a aba anônima abriu o conteúdo direto, sem passar pela tela do projeto
+  [32mPASS[0m a aba anônima não caiu em tela de falha
+  [2m·[0m 03_aba_anonima.png
+  [32mPASS[0m a PRIMEIRA requisição do conteúdo saiu com x-project-id = PROJ_A (D2)
+  [32mPASS[0m a rodada correu contra a API real (D12›1) — houve chamada HTTP ao backend
+  [2m·[0m 03b_header_primeira_requisicao.png
+
+=== passo 6 — conteúdo fora do projeto — a mensagem nomeia o PROJ_B
+  [32mPASS[0m a mensagem NOMEIA o projeto da URL
+  [32mPASS[0m a ação oferecida é "Voltar para o projeto"
+  [32mPASS[0m a mensagem NÃO insinua que o conteúdo existe em outro projeto (D7)
+  [2m·[0m 06_falha_conteudo_fora_do_projeto.png
+  [32mPASS[0m a saída da tela de falha leva ao projeto da URL, não ao default
+
+=== passo 7 — projeto inexistente — mensagem DIFERENTE da do passo 6
+  [32mPASS[0m a mensagem é a do projeto inexistente
+  [32mPASS[0m a ação oferecida é "Ver meus projetos"
+  [32mPASS[0m a mensagem do passo 7 é diferente da do passo 6 (§11.4›34)
+  [32mPASS[0m a AÇÃO do passo 7 é diferente da do passo 6
+  [32mPASS[0m a mensagem NÃO insinua que o conteúdo existe em outro projeto (D7)
+  [2m·[0m 07_falha_projeto_inexistente.png
+  [32mPASS[0m a saída do projeto inexistente leva à home, não a um beco
+
+=== passo 8 — link no formato antigo cai na home, sem aviso dedicado (D4)
+  [32mPASS[0m o link antigo levou à home de projetos
+  [32mPASS[0m a home listou os projetos
+  [32mPASS[0m não apareceu tela de aviso dedicada para o link antigo (D4)
+  [2m·[0m 08_link_antigo_home.png
+
+=== passo 9 — alternar entre conteúdos de dois projetos e voltar pelo histórico
+  [32mPASS[0m CT_A abriu (projeto A)
+  [2m·[0m 09a_ct_a.png
+  [32mPASS[0m CT_B abriu (projeto B) — o escopo foi recarimbado
+  [2m·[0m 09b_ct_b.png
+  [32mPASS[0m o botão voltar do navegador devolveu a URL de CT_A
+  [32mPASS[0m CT_A voltou a carregar depois do histórico
+  [2m·[0m 09c_volta_ct_a.png
+  [32mPASS[0m o link do "ver no celular" abre o conteúdo (não um 404) num contexto que nunca viu o app
+  [2m·[0m 04c_preview_aberto_no_driver.png
+
+Limpando o rastro do driver…
+
+[32mPASS=35[0m  [31mFAIL=0[0m  [33mBLOQUEADO=0[0m
