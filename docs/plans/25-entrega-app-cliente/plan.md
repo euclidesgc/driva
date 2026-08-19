@@ -125,6 +125,25 @@ dependentes a ajustar, que o plano original dizia conter "só o editor".
 | **F4** | E2E do ciclo completo contra hml, atestado pelo humano | dep. F2 |
 | **F5** | Bateria automatizada (§4 P5) | dep. F4 — regra do cap. 22 |
 
+**R7 — A F2 apaga a tela de catálogo, e isso obriga uma decisão que o plano não tinha.**
+O roadmap já decidiu que a tela de catálogo do app de demonstração sai neste item
+("apagar o arquivo `content_meta_bar.dart`, a tela de catálogo e o restante da
+branch `parked/demo-app-internet-e-casca`"). Consequência que ninguém escreveu:
+**hoje é o catálogo que escolhe o slug**, e sem ele o app não sabe o que abrir.
+O `driva_client` **não tem API de listagem** — e não deve ter: `GET /v1/public/contents`
+lista o projeto inteiro, o que serve a um app de demonstração e a mais ninguém.
+**Decidido:** o app passa a abrir um **slug de entrada vindo de config**
+(`DEFAULT_SLUG` no `--dart-define-from-file`, ao lado de `API_BASE_URL` e
+`PUBLISHABLE_KEY` que já existem em `apps/driva_demo_app/config/*.json`), com o
+campo para trocar de slug e o botão de recarregar que a fase P3 do §4 já previa.
+É a forma que um app de cliente de verdade usaria: ele conhece os slugs dele.
+
+**R8 — Fronteira com o item 43, para não apagar duas vezes.** A branch
+`parked/demo-app-internet-e-casca` (commit `c1d16c0`) remove **o `content_meta_bar.dart`
+e a casca da tela de conteúdo no mesmo commit**. A casca (`appBar`/`bottomNavigationBar`)
+é **F0 do item 43** por decisão de 2026-08-17; o `content_meta_bar.dart` é desta F2.
+Quem chegar primeiro apaga o arquivo; o outro encontra o trabalho feito e segue.
+
 **R6 — O mapa do §5 fica assim** (o P1 sai; F1 e F3 são as duas frentes que
 correm juntas, e tocam arquivos disjuntos — `packages/driva_client/lib` × `docs/`
 e `README.md`):
