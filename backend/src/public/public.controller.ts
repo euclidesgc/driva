@@ -5,13 +5,16 @@ import {
   NotFoundException,
   Param,
   Res,
+  UseGuards,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 import { PublicService } from './public.service';
 
 export const PUBLISHABLE_KEY_HEADER = 'x-driva-key';
 
 @Controller('public/contents')
+@UseGuards(ThrottlerGuard)
 export class PublicController {
   constructor(private readonly published: PublicService) {}
 
