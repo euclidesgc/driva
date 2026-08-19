@@ -64,12 +64,17 @@ function createPrismaMock() {
       deleteMany: jest.fn(),
       update: jest.fn(),
       create: jest.fn(),
+      delete: jest.fn(),
     },
     contentVersion: {
       aggregate: jest.fn(),
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
     },
     category: {
       findFirst: jest.fn(),
@@ -105,11 +110,21 @@ describe('ContentsService.publish', () => {
     });
     prisma.content.findFirst.mockResolvedValue(row);
     prisma.contentVersion.findUnique.mockResolvedValue({ version: 3 });
+    // Deixa o caminho de criação de versão completável mesmo não sendo
+    // percorrido em código correto: se a guarda de idempotência sumir, o
+    // publish precisa reprovar por asserção (uma versão criada de verdade),
+    // não estourar num dublê incompleto antes de qualquer expect rodar.
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 3 } });
+    prisma.contentVersion.create.mockResolvedValue({
+      id: 'version-4',
+      version: 4,
+      createdAt: NOW,
+    });
 
     const result = await serviceWith(prisma).publish('project-1', 'content-1', {});
 
-    expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(prisma.contentVersion.create).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(result).toEqual({
       publishedVersion: { version: 3, publishedAt: NOW },
       hasUnpublishedChanges: false,
@@ -171,16 +186,30 @@ describe('ContentsService.publish', () => {
 });
 
 describe('ContentsService.unpublish', () => {
-  it('zera o ponteiro de publicação sem apagar a versão publicada', async () => {
+  it('zera o ponteiro de publicação sem nenhuma escrita destrutiva sobre a versão publicada', async () => {
     const prisma = createPrismaMock();
     prisma.content.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await serviceWith(prisma).unpublish('project-1', 'content-1');
 
+    expect(prisma.content.updateMany).toHaveBeenCalledTimes(1);
     expect(prisma.content.updateMany).toHaveBeenCalledWith({
       where: { id: 'content-1', projectId: 'project-1' },
       data: { publishedVersionId: null, publishedAt: null },
     });
+    // "Não apaga versão" cobre a chamada direta a contentVersion e também o
+    // nested write escondido num content.update/updateMany
+    // (`data: { versions: { deleteMany: {} } } }`) — por isso cada delegate
+    // de escrita/apagamento precisa aparecer aqui, não só o que a
+    // implementação atual usa.
+    expect(prisma.content.update).not.toHaveBeenCalled();
+    expect(prisma.content.delete).not.toHaveBeenCalled();
+    expect(prisma.content.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.create).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.update).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.updateMany).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.delete).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.deleteMany).not.toHaveBeenCalled();
     expect(result).toEqual({ publishedVersion: null, hasUnpublishedChanges: true });
   });
 
@@ -214,6 +243,7 @@ describe('ContentsService.restoreVersion', () => {
       where: { id: 'content-1' },
       data: { draftSpec: restoredSpec, draftUpdatedAt: expect.any(Date) },
     });
+    expect(prisma.contentVersion.create).not.toHaveBeenCalled();
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(result.publishedVersion).toEqual({ version: 9, publishedAt: NOW });
   });
