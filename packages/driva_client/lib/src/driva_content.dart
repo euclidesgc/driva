@@ -55,33 +55,35 @@ class _DrivaContentState extends State<DrivaContent> {
   }
 
   void _subscribe() {
-    _subscription = Driva.instance.repository.load(widget.slug).listen(
-      (spec) {
-        if (!mounted) return;
-        setState(() {
-          _spec = spec;
-          _error = null;
-        });
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        log(
-          'Erro inesperado ao carregar "${widget.slug}": $error',
-          name: 'driva_client',
-          stackTrace: stackTrace,
+    _subscription = Driva.instance.repository
+        .load(widget.slug)
+        .listen(
+          (spec) {
+            if (!mounted) return;
+            setState(() {
+              _spec = spec;
+              _error = null;
+            });
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            log(
+              'Erro inesperado ao carregar "${widget.slug}": $error',
+              name: 'driva_client',
+              stackTrace: stackTrace,
+            );
+            if (!mounted) return;
+            setState(() => _error = error);
+          },
+          onDone: () {
+            if (!mounted || _spec != null) return;
+            setState(
+              () => _error = StateError(
+                'Driva: nenhum conteúdo disponível para "${widget.slug}" '
+                '(sem cache, sem rede, sem fallback).',
+              ),
+            );
+          },
         );
-        if (!mounted) return;
-        setState(() => _error = error);
-      },
-      onDone: () {
-        if (!mounted || _spec != null) return;
-        setState(
-          () => _error = StateError(
-            'Driva: nenhum conteúdo disponível para "${widget.slug}" '
-            '(sem cache, sem rede, sem fallback).',
-          ),
-        );
-      },
-    );
   }
 
   @override
