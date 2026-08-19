@@ -8,9 +8,11 @@ class UnpublishConfirmDialog extends StatelessWidget {
 
   final int versionsCount;
 
-  String get _historyMessage => versionsCount == 1
-      ? 'A única versão publicada continua guardada'
-      : 'As $versionsCount versões publicadas continuam guardadas';
+  String get _historyMessage => switch (versionsCount) {
+    <= 0 => 'O histórico de versões continua guardado',
+    1 => 'A única versão publicada continua guardada',
+    _ => 'As $versionsCount versões publicadas continuam guardadas',
+  };
 
   @override
   Widget build(BuildContext context) {

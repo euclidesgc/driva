@@ -4,10 +4,9 @@ import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-/// "No ar" / "Fora do ar" / "Rascunho" — ícone + texto, nunca só cor (item
-/// 24, revisto no item 50). O tooltip carrega a nuance que o rótulo curto
-/// omite (publicado com alterações pendentes de republicar, ou despublicado
-/// com histórico ainda guardado).
+/// "No ar" / "Fora do ar" / "Rascunho" — ícone + texto, nunca só cor. O
+/// tooltip carrega a nuance que o rótulo curto omite (publicado com alterações
+/// pendentes de republicar, ou despublicado com histórico ainda guardado).
 class PublicationBadge extends StatelessWidget {
   const PublicationBadge({
     required this.publishedAt,

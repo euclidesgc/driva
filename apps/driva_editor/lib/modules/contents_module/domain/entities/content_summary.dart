@@ -27,7 +27,7 @@ class ContentSummary extends Equatable {
   final bool hasUnpublishedChanges;
 
   /// Maior versão já criada, mesmo que nenhuma esteja no ar agora.
-  /// `null` = nunca publicado nem uma vez. Item 50 (fora do ar).
+  /// `null` = nunca publicado nem uma vez.
   final int? latestVersion;
 
   @override
