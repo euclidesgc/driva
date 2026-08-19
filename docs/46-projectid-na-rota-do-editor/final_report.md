@@ -76,11 +76,30 @@ homologação, e vale como registro histórico do que ainda não fechava.
 
 ---
 
-## O que fica para a F3
+## F3 — fechada em 2026-08-18
 
 A bateria automatizada (os cinco testes da §5›F3 do `plan.md`) e a varredura das docs que
 citavam a rota antiga (§11.5›40). **Nenhum teste foi escrito antes deste atestado** — é a
 regra do cap. 22, e é o motivo de a F3 existir como fase separada.
+
+Doze testes entraram, em três arquivos, e a suíte do editor foi de 519 para 531:
+
+| Arquivo | Cobre |
+| --- | --- |
+| `apps/driva_editor/test/modules/editor_module/editor_routes_test.dart` | o header `x-project-id` da **primeira** requisição, lido de um `HttpClientAdapter` gravador sobre o Dio real (D2), e a guarda de path param (D5) |
+| `apps/driva_editor/test/modules/editor_module/presentation/editor/page/editor_load_failure_view_test.dart` | a matriz inteira da D7 — as três saídas, distinguíveis por texto **e** ícone (D8) —, a espera pelo `projectFuture` (D6) e as falhas que não esperam por ele |
+| `apps/driva_editor/test/modules/contents_module/presentation/project_detail/project_detail_navigation_test.dart` | os dois `goNamed` reais da tela de projeto, dirigidos até a URL nova |
+
+O teste da ordem foi verificado por mutação: removida a linha
+`getIt<ProjectScope>().projectId = projectId;` do `pageBuilder`, os dois testes de escopo
+reprovam. Os quatro testes que montam `EditorPage` sem DI (`VR-16-02`/D3) seguem verdes e
+**fora do diff**.
+
+Docs varridas (§11.5›40): `docs/plans/20-…/plan.md` e `docs/plans/26-…/plan.md` já citavam a
+rota nova; `docs/02-conteudos/{plan,specs,prd}.md`, `docs/08-…/plan.md` e
+`docs/17-ergonomia-editor/plan.md` ganharam nota histórica datada; o `test_plan.md` do item 02
+passou a citar a URL que o `e2e_shots.sh` vivo já usa; e o `final_report.md` do item 24 (que
+registrou o achado) passou a registrar a correção. Nenhum arquivo sob `evidencias/` foi tocado.
 
 Também segue registrado como débito, apontando para o item 26: o singleton `ProjectScope`
 continua vivo (A4›A), e o `DEFAULT_PROJECT_ID` continua compilado nos quatro flavors.

@@ -6,6 +6,8 @@ gaveta**: escopo novo, nascido do pedido do dev humano em 2026-08-15. A matéria
 2026-08-16** (§2.0). Onde este plano divergir do PRD, **este manda**, e o motivo está na
 §8._
 
+> **Nota histórica (2026-08-18).** As menções a `/contents/:id/edit` neste documento descrevem a rota do editor à época. Desde o item **46** a rota é `/projects/:projectId/contents/:id/edit` — ver `docs/46-projectid-na-rota-do-editor/`.
+
 > **Regra do "pronto":** `flutter analyze` verde + testes existentes passando. Nunca opinião.
 > **Toca backend?** Não — nenhuma linha, em nenhuma fase. **Toca `sdui_core`?** Não.
 > **Gate CISO?** Não é obrigatório em nenhuma fase (§4›D3 explica por que a rota de
@@ -890,7 +892,8 @@ link do editor aberto frio** (alguém compartilha `/contents/:id/edit` e o apare
 passou pela tela do projeto) cai no `DEFAULT_PROJECT_ID` do build, e os dois botões
 apontariam para o projeto errado. **Isso já é verdade hoje**, no botão "Voltar para o
 projeto" da tela de falha — a F1b não cria o problema, herda. É a família da D18 e do item
-26, e está fora (§12).
+26, e está fora (§12). **Limitação fechada pelo item 46 em 2026-08-18:** a rota virou
+`/projects/:projectId/contents/:id/edit` e o deep link frio já chega com o projeto certo.
 
 O caminho real — lista → tocar num conteúdo → portão — tem o `ProjectScope` quente, e é
 **esse** o caminho que o aceite percorre (item 35-C do DoD). Um aceite que testasse o deep
@@ -2855,7 +2858,8 @@ silêncio, ou se a tela cheia esconde erro — nada mais no DoD importa.
   passar pela tela do projeto) — o `ProjectScope` cai no `DEFAULT_PROJECT_ID` do build e os
   botões do portão apontariam para o projeto errado. **Isso já é verdade hoje**, no botão
   "Voltar para o projeto" da tela de falha: a F1b herda, não cria (D24). Família da D18 e
-  do **item 26**.
+  do **item 26**. **Débito quitado pelo item 46 em 2026-08-18** — a rota passou a carregar
+  o projeto.
 - **Item 30** — variação do spec por breakpoint. Nome parecido, problema outro. O
   `AppBreakpoints` da F1 usa os **mesmos números** e **não** importa o enum do kernel (D5).
 - **Item 24** — publicação e versionamento. Este item **não** constrói sobre a rota pública
