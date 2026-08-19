@@ -4,16 +4,21 @@ import 'package:flutter/material.dart';
 /// reversível (basta publicar de novo), mas ninguém deveria clicar sem
 /// perceber o efeito.
 class UnpublishConfirmDialog extends StatelessWidget {
-  const UnpublishConfirmDialog({super.key});
+  const UnpublishConfirmDialog({required this.versionsCount, super.key});
+
+  final int versionsCount;
+
+  String get _historyMessage => versionsCount == 1
+      ? 'A única versão publicada continua guardada'
+      : 'As $versionsCount versões publicadas continuam guardadas';
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Despublicar conteúdo?'),
-      content: const Text(
+      content: Text(
         'Ele deixa de ficar visível para quem consome a API pública agora '
-        'mesmo. O histórico de versões continua guardado — publicar de novo '
-        'é só um clique.',
+        'mesmo. $_historyMessage — publicar de novo é só um clique.',
       ),
       actions: [
         TextButton(

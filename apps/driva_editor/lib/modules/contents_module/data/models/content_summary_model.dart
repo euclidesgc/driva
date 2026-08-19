@@ -13,6 +13,7 @@ class ContentSummaryModel extends ContentSummary {
     super.description,
     super.publishedAt,
     super.hasUnpublishedChanges = true,
+    super.latestVersion,
   });
 
   // A forma esperada do item de `GET /v1/contents` (dentro do envelope
@@ -30,6 +31,7 @@ class ContentSummaryModel extends ContentSummary {
     'updatedAt': z.date(),
     'publishedAt': z.date().nullable().optional(),
     'hasUnpublishedChanges': z.bool().optional(),
+    'latestVersion': z.int().nullable().optional(),
   });
 
   static Either<Failure, ContentSummaryModel> tryParse(
@@ -50,6 +52,7 @@ class ContentSummaryModel extends ContentSummary {
         updatedAt: data['updatedAt'] as DateTime,
         publishedAt: data['publishedAt'] as DateTime?,
         hasUnpublishedChanges: data['hasUnpublishedChanges'] as bool? ?? true,
+        latestVersion: data['latestVersion'] as int?,
       ),
     );
   }
