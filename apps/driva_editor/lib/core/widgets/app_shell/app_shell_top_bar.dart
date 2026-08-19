@@ -45,7 +45,7 @@ class AppShellTopBar extends StatelessWidget {
                   compact: isCompact,
                 ),
                 if (controller.status case final status?) ...[
-                  AppShellStatusIndicator(status: status),
+                  Flexible(child: AppShellStatusIndicator(status: status)),
                   const SizedBox(width: AppSpacing.s12),
                 ],
                 themeButton,

@@ -81,8 +81,19 @@ GoRouter _router({VoidCallback? onAction}) => GoRouter(
 Widget _harness(GoRouter router) =>
     MaterialApp.router(theme: AppTheme.light, routerConfig: router);
 
+/// Estas provas exercitam a faixa larga do shell (crumbs/ações por extenso,
+/// sem colapso) — a faixa estreita é coberta à parte em
+/// `app_shell_top_bar_test.dart`. Acima de [AppSizes.topBarActionsFitWidth].
+void _useWideSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1400, 900);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 void main() {
   testWidgets('renderiza crumb e ação publicados pela página', (tester) async {
+    _useWideSurface(tester);
     await tester.pumpWidget(_harness(_router()));
     await tester.pumpAndSettle();
 
@@ -93,6 +104,7 @@ void main() {
 
   testWidgets('a ação renderizada pelo shell dispara o closure da página '
       '(sem ProviderNotFound)', (tester) async {
+    _useWideSurface(tester);
     var invoked = 0;
     await tester.pumpWidget(_harness(_router(onAction: () => invoked++)));
     await tester.pumpAndSettle();
@@ -104,6 +116,7 @@ void main() {
   });
 
   testWidgets('crumb clicável navega para a rota alvo', (tester) async {
+    _useWideSurface(tester);
     final router = _router();
     await tester.pumpWidget(_harness(router));
     await tester.pumpAndSettle();
@@ -120,6 +133,7 @@ void main() {
   testWidgets('o topo limpa ao trocar de página sem piscar vazio', (
     tester,
   ) async {
+    _useWideSurface(tester);
     final router = _router();
     await tester.pumpWidget(_harness(router));
     await tester.pumpAndSettle();
@@ -135,6 +149,7 @@ void main() {
   testWidgets(
     'esconde as duas faixas quando imersivo, mostra normalmente quando não',
     (tester) async {
+      _useWideSurface(tester);
       final key = GlobalKey<_ImmersiveTogglePageState>();
       final router = GoRouter(
         initialLocation: '/gamma',
