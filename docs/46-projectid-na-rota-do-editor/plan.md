@@ -12,14 +12,15 @@
 
 | Fase | O que entrega | Situação |
 | --- | --- | --- |
-| **F1** | A URL do editor passa a bastar (rota + escopo + navegação + tela de falha) | `[x]` implementada — gates de QA e CISO passados, **falta o PR** |
-| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[ ]` bloqueada pelo PR da F1 |
-| **F3** | Bateria automatizada + docs vivas | `[ ]` bloqueada por F2 |
+| **F1** | A URL do editor passa a bastar (rota + escopo + navegação + tela de falha) | `[x]` mergeada em `develop` (PR #167, `ff50ab7`) e no ar em hml |
+| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[x]` rodada 02 atestada pelo dev em 2026-08-18 (35 PASS / 0 FAIL + o 4b no aparelho) |
+| **F3** | Bateria automatizada + docs vivas | `[ ]` **destravada** — a F2 fechou em 2026-08-18 |
 
-**Última atualização:** 2026-08-17 — F1 consolidada na `bugfix/46-projectid-na-rota-do-editor`
-(frente A `ab5f304`, frente B `3e1b7e6`, docs `33e7f0d`), `analyze` limpo e 706 testes verdes;
-CISO liberou sem bloqueante (`ciso_review.md`), QA aprovou com os achados já corrigidos e o
-desvio do `e2e_shots.sh` registrado como `VR-46-03`.
+**Última atualização:** 2026-08-17 — a `rodada_02` correu contra hml servido pelo Coolify, com
+os scripts `e2e_shots.sh`/`e2e_drive.mjs` versionados nesta pasta. O passo 4 (§11.4›31, o modo
+silencioso) saiu do bloqueio da `rodada_01`: a URL de "ver no celular" é lida da árvore
+semântica do diálogo e traz o `projectId`, não `default`. O bloqueio da rodada anterior era
+artefato de dirigir um build de debug em `localhost`, não defeito do diálogo.
 
 ---
 
