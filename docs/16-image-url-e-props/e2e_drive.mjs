@@ -166,10 +166,12 @@ async function enableSemantics() {
 /// escreve o rótulo como TEXTO de um `<span>` dentro do `flt-semantics`. Ler só
 /// o atributo fazia a asserção reprovar uma mensagem que estava na tela.
 ///
-/// O texto próprio sai dos filhos DIRETOS (nó de texto ou `<span>`): os
-/// `flt-semantics` se aninham, e um `textContent` cru devolveria a subárvore
-/// inteira em cada ancestral — todo rótulo casaria com todo nó e a asserção de
-/// que dois sinais se distinguem passaria sem provar nada.
+/// O texto próprio sai dos filhos DIRETOS (nó de texto ou `<span>`), e não de
+/// `textContent`: os `flt-semantics` se aninham, então `textContent` faria cada
+/// ancestral repetir a subárvore inteira e a lista deixaria de ser um rótulo
+/// POR NÓ — o que importa para quem lê o `resultado.txt` atrás de qual nó
+/// carrega a mensagem, e para qualquer asserção futura que precise apontar um
+/// nó em vez de perguntar se o texto está em algum lugar da página.
 const semanticLabels = async () =>
   (await evalJS(`(() => Array.from(document.querySelectorAll('flt-semantics')).map((e) => {
     const proprio = Array.from(e.childNodes)
@@ -463,8 +465,11 @@ try {
     olho: 'a mensagem agora é **"Valor inválido"** — TEXTO diferente do print anterior, não só cor diferente. É esse par de textos que distingue os dois modos de falha para quem não enxerga cor; se os dois prints trouxerem a mesma frase, o item reprova',
   });
   check('(D15/DoD 23) o campo mostra errorText de valor inválido', true, /inv[áa]lid/i.test(rotulosAbc));
-  check('(D15/DoD 23) os dois sinais se distinguem', true,
-    /Ajustado para o m[íi]nimo/.test(rotulosZero) && /inv[áa]lid/i.test(rotulosAbc));
+  // Só as NEGATIVAS distinguem: repetir aqui as duas positivas acima faria uma
+  // conjunção que não tem como reprovar sozinha, e as duas mensagens aparecendo
+  // nos DOIS estados passaria pelas três asserções com a tela errada.
+  check('(D15/DoD 23) os dois sinais se distinguem: nenhum estado traz a mensagem do outro', true,
+    !/inv[áa]lid/i.test(rotulosZero) && !/Ajustado para o m[íi]nimo/.test(rotulosAbc));
 
   // ------------------------------------------------------------- props novas da F4
   step('§10.10–11 (F4)', 'width 100%, alignment, borderRadius e backgroundColor');
