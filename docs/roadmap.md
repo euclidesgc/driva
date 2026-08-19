@@ -15,22 +15,22 @@ Rastreamento vivo do que está **feito**, **em andamento** e **por fazer**. A li
 O que destrava o quê, em uma linha. Os números são identidade do item (histórica), **não** posição na fila.
 
 ```
-38 (drop sem beco sem saída) ─┐
-39 (image: erro visível)      ├─► 24 (publicação) ─┬─► 25 (entrega ao app) ─► 26 (auth) ─► 27 (storage)
-23 (histórico/undo) ──────────┤                    │                       │
- 9 (catálogo, contínuo) ──────┘                    │                       ├─► 28 (eventos/ações) ─► 29 (dados/binding)
-                                                   │                       │
-                                                   │                       └─► 19 ─► 20 ─► 21 ─► 22 (componentes)
-                                                   └─► 50 (histórico seguro)   ← ∥ com o 25, arquivos disjuntos
+✔ 38, 39*, 23, 9 ─► ✔ 24 (publicação) ─┬─► 25 (entrega ao app) ─┬─► 26 (auth) ─► 27 (storage)
+                                       │   └ fatia 2 no PR #182 │
+                                       │     falta o E2E humano ├─► 28 (eventos/ações) ─► 29 (dados/binding)
+                                       │                        │
+                                       │                        └─► 19 ─► 20 ─► 21 ─► 22 (componentes)
+                                       └─► 50 (histórico seguro)   ← ∥ com o 25, arquivos disjuntos
 
-17 ─► 18 (offline-first)     8b (JSON)     30 (breakpoints)      ← independentes, encaixáveis quando fizer sentido
+17 ─► 18 (offline-first)   8b (JSON)   30 (breakpoints)   43, 45, 47, 48, 49   ← encaixáveis, sem dependência
 ```
+`✔` = entregue. `39*` = F2/F3/F4 entregues, **falta só a bateria (F5)**.
 
-**O gargalo do produto hoje é o item 24 + 25**: o driva ainda não entrega conteúdo para app cliente nenhum. Tudo entregue até aqui é o lado do editor.
+**O gargalo era o 24 + 25, e ele está caindo.** O 24 fechou em 2026-08-17; o **código** da fatia 2 do 25 está no PR #182 com CI verde (`packages/driva_client`, o app de demonstração migrado, rate limit da rota pública). O que separa o driva de "entrega conteúdo para app cliente" é agora **um E2E atestado por humano**, não código a escrever.
 
 **O item 50 é a única frente que corre em paralelo com o 25 hoje**: nasce do item 24, vive em `apps/driva_editor` + `backend/src/contents`, e não encosta no `packages/driva_client` que a fatia 2 do 25 cria do zero.
 
-**Na frente do 24, dois defeitos do uso real (2026-08-15).** Os itens **38** e **39** não são pré-requisito técnico da publicação — entram antes porque são 0-dep, não tocam backend e travam quem usa o editor hoje: o 38 deixa a página **sem saída** depois de um drop recusado (a única alternativa apaga o conteúdo inteiro) e o 39 faz a imagem falhar em silêncio, indistinguível de "sem URL".
+**Os dois defeitos que entraram na frente do 24 (2026-08-15) foram corrigidos.** O **38** (página sem saída depois de um drop recusado) fechou; o **39** (imagem falhando em silêncio, indistinguível de "sem URL") teve as três fases de código entregues — proxy de mídia, resolver e `image` abrangente. **O que ainda segura o 39 é a bateria (F5)**, e antes dela as três asserções que o E2E da rodada 01 não conseguiu provar: que o campo de dimensão distingue "ajustado ao mínimo" de "valor inválido".
 
 ---
 
