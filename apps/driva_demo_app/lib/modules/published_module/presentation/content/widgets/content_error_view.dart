@@ -1,13 +1,10 @@
-import 'package:driva_demo_app/core/error/error.dart';
 import 'package:driva_demo_app/core/theme/theme.dart';
-import 'package:driva_demo_app/modules/published_module/presentation/catalog/cubit/catalog_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CatalogErrorView extends StatelessWidget {
-  const CatalogErrorView({required this.failure, super.key});
+class ContentErrorView extends StatelessWidget {
+  const ContentErrorView({required this.onRetry, super.key});
 
-  final Failure failure;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +22,13 @@ class CatalogErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              failure.message,
+              'Não foi possível carregar este conteúdo.',
               style: theme.textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
-              onPressed: context.read<CatalogCubit>().load,
+              onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Tentar de novo'),
             ),
