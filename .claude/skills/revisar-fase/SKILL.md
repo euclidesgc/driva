@@ -7,6 +7,8 @@ description: Valida uma fase implementada contra o plan.md e as regras do projet
 
 Objetivo: dado o diff da fase, conferir item a item se o que foi feito bate com o que estava planejado — o caminho inverso da `criar-modulo`.
 
+**O que já foi conferido antes de você.** Cada tarefa que mudou comportamento passou por um `supervisor-dod`, que cobrou o **DoD daquela tarefa** sem conhecer o plano. Você é o oposto: conhece o plano e olha o **conjunto**. Não reconfira critério de tarefa item a item — se o conjunto contradisser um veredito verde dele (a tarefa cumpriu o critério, mas o critério não era o que a fase precisava), aí sim é achado seu, e volta ao tech-lead como qualquer desvio.
+
 Confira, nesta ordem:
 
 1. **Plano.** Cada tarefa da fase no `docs/NN-<nome>/plan.md` foi feita? Algo foi feito que NÃO estava no plano? Desvio não se aceita de cara: reporte ao tech-lead (correção ou justificativa ao dev).
