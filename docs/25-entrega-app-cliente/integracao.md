@@ -195,6 +195,37 @@ erros interna como contrato público.
 uma aba, de um `ListView`. Ele desenha o conteúdo do spec e mais nada; a
 `AppBar`, a navegação e o chrome do seu app continuam sendo seus.
 
+### Recarregar sob demanda (pull-to-refresh, botão "atualizar")
+
+`DrivaContent` já revalida sozinho toda vez que é montado: ele mostra o cache na
+hora e consulta o servidor em seguida. O que ele **não** tem hoje é um método
+público para você mandar revalidar sem remontá-lo.
+
+O padrão para um botão de recarregar é **trocar a `Key`**, o que remonta o widget
+e dispara uma resolução nova (memória → disco → rede):
+
+```dart
+int _reloadNonce = 0;
+
+DrivaContent(
+  key: ValueKey('$slug-$_reloadNonce'),
+  slug: slug,
+)
+
+// no onPressed do botão:
+setState(() => _reloadNonce++);
+```
+
+Isso é comportamento **suportado**, não truque: `load(slug)` devolve um `Stream`
+novo a cada escuta, e o widget cancela a assinatura anterior ao ser descartado.
+Trocar apenas o `slug` também basta — a troca de slug já força a nova resolução
+sem precisar do nonce.
+
+> **Limitação conhecida.** Uma API explícita (algo como um `DrivaContentController`
+> com `refresh()`) seria mais direta e é o caminho natural quando o package for
+> publicado no pub. Enquanto ela não existe, a `Key` é a forma recomendada — e é
+> a que o `apps/driva_demo_app` usa.
+
 ---
 
 ## 5. O que acontece sem rede
