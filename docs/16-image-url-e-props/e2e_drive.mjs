@@ -159,11 +159,13 @@ async function enableSemantics() {
   }
 }
 
-/// `aria-label` sozinho é CEGO para texto: o engine do Flutter Web só usa o
-/// atributo quando o nó tem filhos (`AriaLabelRepresentation`). Nó-folha com
-/// rótulo — todo `Text`, e portanto o `helperText`/`errorText` do
-/// `InputDecorator` — cai na `SizedSpanRepresentation`, que remove o `role` e
-/// escreve o rótulo como TEXTO de um `<span>` dentro do `flt-semantics`. Ler só
+/// `aria-label` sozinho é CEGO para texto: nó COM filhos sempre usa o atributo
+/// (`AriaLabelRepresentation`), mas nó-folha usa a representação preferida do
+/// papel dele — e um `Text`, que é o `helperText`/`errorText` do
+/// `InputDecorator`, cai em `GenericRole` → `SizedSpanRepresentation`, que
+/// remove o `role` e escreve o rótulo como TEXTO de um `<span>` dentro do
+/// `flt-semantics`. (Outros papéis preferem `aria-label` mesmo sendo folha, daí
+/// o leitor abaixo somar as duas fontes em vez de trocar uma pela outra.) Ler só
 /// o atributo fazia a asserção reprovar uma mensagem que estava na tela.
 ///
 /// O texto próprio sai dos filhos DIRETOS (nó de texto ou `<span>`), e não de
