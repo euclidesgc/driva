@@ -22,15 +22,23 @@ class AppShellStatusIndicator extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       label: 'Status: ${status.label}',
-      child: Row(
-        children: [
-          Icon(status.icon, size: 16, color: color),
-          const SizedBox(width: AppSpacing.s4),
-          Text(
-            status.label,
-            style: TextStyle(color: color, fontSize: AppTypography.base),
-          ),
-        ],
+      child: Tooltip(
+        message: status.label,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(status.icon, size: 16, color: color),
+            const SizedBox(width: AppSpacing.s4),
+            Flexible(
+              child: Text(
+                status.label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: TextStyle(color: color, fontSize: AppTypography.base),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -105,10 +105,20 @@ abstract final class AppSizes {
   /// Abaixo desta largura, a `AppShellTopBar` degrada em três peças (D35):
   /// wordmark curto, a ação `filled` primária vira só ícone (um toque) e as
   /// demais colapsam no `AppShellActionsOverflowMenu`. Não é breakpoint — é
-  /// o limiar em que a composição mais densa do shell (o topo do editor:
-  /// desfazer + refazer + Salvar + Publish, com status e o botão de tema)
-  /// para de caber (mesmo papel de `contentPanelWideHeaderFitWidth`).
-  static const double topBarActionsFitWidth = 760;
+  /// o limiar em que a parte rígida do shell (wordmark + desfazer + refazer
+  /// + Salvar + Publicar + Despublicar + Histórico + botão de tema) para de
+  /// caber (mesmo papel de `contentPanelWideHeaderFitWidth`). Só `Histórico`
+  /// é `outlined` com rótulo (T1.1 do item 50); `Despublicar` continua
+  /// `icon` — ação rara e destrutiva, não a que se procura. O indicador de
+  /// status é `Flexible` e não entra nessa conta — ele encolhe com ellipsis
+  /// em vez de forçar a largura. Medido com a fonte real do app
+  /// (`test/support/app_fonts.dart`, não a de teste do Flutter, que infla o
+  /// texto): o cruzamento ficou em ~794px nos três estados de publicação;
+  /// os 46px de folga (mesma margem usada nas calibrações anteriores)
+  /// cobrem variação de hinting entre ambientes — decisão do dono do
+  /// produto em 2026-08-19, registrada em
+  /// `docs/plans/50-historico-seguro/plan.md` (T1).
+  static const double topBarActionsFitWidth = 840;
 
   /// Altura da barra de ferramentas do canvas (presets de device + zoom).
   static const double canvasToolbarHeight = 44;

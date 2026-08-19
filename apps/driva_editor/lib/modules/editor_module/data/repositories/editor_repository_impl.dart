@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/modules/editor_module/data/models/content_versions_page_model.dart';
+import 'package:driva_editor/modules/editor_module/data/models/loaded_content_version_model.dart';
 import 'package:driva_editor/modules/editor_module/data/models/publication_state_model.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/repositories/editor_repository.dart';
@@ -88,6 +89,23 @@ class EditorRepositoryImpl implements EditorRepository {
       );
       final body = response.data ?? const <String, dynamic>{};
       return ContentVersionsPageModel.tryParse(body);
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoadedContentVersion>> getVersion(
+    String id,
+    int version,
+  ) async {
+    try {
+      final response = await dio.get<Map<String, dynamic>>(
+        '/v1/contents/$id/versions/$version',
+      );
+      return LoadedContentVersionModel.tryParse(
+        response.data ?? const <String, dynamic>{},
+      );
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }

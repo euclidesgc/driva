@@ -13,21 +13,24 @@
 //
 // 1. **Diálogos e o corpo da página** expõem árvore semântica: o alvo sai do
 //    rótulo (`Publicar conteúdo`, `Versão 2`, `Restaurar`…), não de pixel.
-// 2. **O topo do shell NÃO expõe semântica nenhuma** — nem os botões
-//    (Salvar/Publicar/⋮), nem o indicador de status ("No ar (v3)"), nem os
-//    breadcrumbs. Idem a **barra de status do editor** (o rodapé com
-//    "Nenhum problema" e os avisos de falha). É o achado A1 do `test_plan.md`
-//    (o `BlockSemantics` da barreira de rota derruba a casca do shell). Até
-//    ele ser corrigido, esses dois pedaços são tratados por:
-//    · **clique varrido e verificado** — tenta os x candidatos da faixa de
-//      ações e confirma pelo diálogo que abriu (diálogo tem semântica);
-//      errou o alvo, manda Esc e tenta o próximo. A faixa é ancorada à
-//      direita e desliza com a largura do texto de status, por isso varredura
-//      e não coordenada fixa.
+// 2. **Os botões de ação do topo do shell EXPÕEM semântica** (rechecado no
+//    item 50): `Publicar`, `Despublicar` e `Histórico` são achados por
+//    `clickLabel`/papel "button" na árvore real — ver `clickPublishButton`,
+//    `clickUnpublishButton`, `clickHistoryButton` abaixo. Isso contradiz, ao
+//    menos para os botões, a alegação geral do achado A1 do `test_plan.md`
+//    de que "o topo do shell não expõe semântica nenhuma" — não foi
+//    reverificado aqui se A1 já era impreciso antes do item 50, ou se algo
+//    nesse item destravou a semântica dos botões. **O que este driver NÃO
+//    reverificou** e continua tratando por impressão digital de pixels, sem
+//    ler texto: o indicador de status do topo ("No ar (v3)"), os
+//    breadcrumbs e a **barra de status do editor** (o rodapé com "Nenhum
+//    problema" e os avisos de falha) — para esses três, a suspeita do A1
+//    permanece sem confirmação nem contestação nesta rodada.
 //    · **impressão digital de faixa de pixels** — o hash de um recorte da
 //      tela prova "mudou" / "não mudou" sem precisar ler o texto. É assim que
 //      o roteiro assere, por máquina, que falhar é visualmente diferente de
-//      dar certo.
+//      dar certo (usado para status do topo e rodapé, não mais para os
+//      botões de ação).
 // ---------------------------------------------------------------------------
 //
 // Auto-limpante: cria UM conteúdo de teste (slug $SLUG) e o apaga no fim, e
@@ -207,20 +210,43 @@ async function clickInRowOf(anchorRe, labelRe, description) {
   return hit;
 }
 
-/// Varredura verificada da faixa de ações do topo (ver o cabeçalho: o topo não
-/// tem semântica e desliza com a largura do texto de status). Só toca a região
-/// dos dois últimos botões — Desfazer/Refazer ficam bem à esquerda de 980 e
-/// nunca entram na varredura, para nenhum clique perdido mexer no documento.
-const TOP_BAR_Y = 27;
-const SCAN = { publish: [1067, 1097, 1037, 1127, 1007, 1157, 987], more: [1144, 1174, 1114, 1194, 1084] };
+/// `Publicar` e `Histórico` são `AppBarAction.outlined` com rótulo visível
+/// na barra — achados por texto na árvore de semântica real, nunca por
+/// coordenada. Isso substitui o antigo `openFromTopBar`/`SCAN`: aquele
+/// mecanismo varria coordenadas fixas porque a faixa de ações desliza de
+/// posição conforme a largura do texto de status ao lado (o `Spacer` do
+/// topo ancora status/tema à direita e empurra o bloco de ações para a
+/// esquerda quando o status é mais comprido) — mas se a árvore de
+/// semântica expõe rótulo e papel de botão, a posição em si deixa de
+/// importar.
+async function clickPublishButton() {
+  return clickLabel(/^Publicar$/, 'botão "Publicar" da barra');
+}
 
-async function openFromTopBar(which, expectRe, description) {
-  for (const x of SCAN[which]) {
-    await click(x, TOP_BAR_Y, 900);
-    if (await labelsWithin(expectRe, { timeout: 2500 })) return x;
-    await pressEscape();
-  }
-  throw new Error(`não consegui abrir ${description} pela faixa de ações do topo`);
+/// `Histórico` tem rótulo visível na barra desde o item 50 (T1.1) — não há
+/// mais menu "Mais opções" para atravessar antes de chegar nele.
+async function clickHistoryButton() {
+  return clickLabel(/^Histórico$/, 'botão "Histórico" da barra');
+}
+
+/// `Despublicar` é ícone + tooltip, sem rótulo visível (decisão do dono do
+/// item 50: ação rara e destrutiva não leva texto). Sem texto para casar,
+/// acha pela posição real: o botão de papel "button" mais próximo à
+/// esquerda de `Histórico`, na mesma faixa Y — usa a árvore de semântica
+/// de verdade (via `getBoundingClientRect`), não uma coordenada fixa (pelo
+/// mesmo motivo de `clickPublishButton` acima).
+async function clickUnpublishButton() {
+  const historico = await findNode(
+    (n) => n.role === 'button' && /^Histórico$/.test(n.label),
+    'botão "Histórico" (âncora para achar "Despublicar")',
+  );
+  const candidates = (await nodes())
+    .filter((n) => n.role === 'button' && n.x < historico.x && Math.abs(n.y - historico.y) <= 12)
+    .sort((a, b) => b.x - a.x);
+  const hit = candidates[0];
+  if (!hit) throw new Error('não achei o botão "Despublicar" (ícone) à esquerda de "Histórico"');
+  await click(hit.x, hit.y);
+  return hit;
 }
 
 /// O selo de publicação do card. O `InkWell` do card funde a semântica dos
@@ -352,7 +378,7 @@ try {
   check('a API confirma que nada está no ar', null, await publishedVersion());
 
   step('3', 'confirmar a publicação — o diálogo anuncia a versão que nasce');
-  await openFromTopBar('publish', /Publicar conteúdo/, 'o diálogo de publicação');
+  await clickPublishButton();
   check('o diálogo anuncia a versão 1', true, await labelsWithin(/Isso cria a versão 1 e coloca ela no ar/));
   await shot('03_dialogo_publicar_v1.png', 'Diálogo de publicação',
     'o diálogo diz "Isso cria a versão 1 e coloca ela no ar"',
@@ -392,7 +418,7 @@ try {
     'o topo diz "Alterações não publicadas" — o terceiro estado, distinguível por ícone, não só pela frase');
 
   step('7', 'publicar de novo — versão 2');
-  await openFromTopBar('publish', /Publicar conteúdo/, 'o diálogo de publicação');
+  await clickPublishButton();
   check('o diálogo anuncia a versão 2', true, await labelsWithin(/Isso cria a versão 2 e coloca ela no ar/));
   await clickConfirm(/^Publicar$/, 'botão Publicar do diálogo');
   await sleep(1800);
@@ -405,12 +431,10 @@ try {
     'o topo diz "No ar (v2)" — o número acompanhou a versão, não ficou preso na v1');
 
   step('8', 'histórico de versões — as duas, mais nova primeiro, com o selo "No ar"');
-  await openFromTopBar('more', /Mais opções/, 'o menu "Mais opções"');
-  check('o menu oferece despublicar (o conteúdo está no ar)', true, await labelsWithin(/Despublicar/));
-  await shot('08_menu_mais_opcoes.png', 'Menu "Mais opções"',
-    'o menu expõe "Ver histórico de versões" e "Despublicar"',
-    'despublicar está escondido atrás do menu, nunca no botão principal (decisão do §8 do plano)');
-  await clickLabel(/Ver histórico de versões/, 'opção "Ver histórico de versões"');
+  await shot('08_barra_com_despublicar_e_historico.png', 'Despublicar e Histórico na barra',
+    'Despublicar (ícone) e Histórico (com rótulo) ficam direto na barra, ao lado de Publicar — sem menu "Mais opções" para atravessar (item 50)',
+    'os dois botões aparecem lado a lado com Publicar, sem ⋮ nenhum entre eles');
+  await clickHistoryButton();
   check('o histórico lista a versão 2', true, await labelsWithin(/Versão 2/));
   check('o histórico lista a versão 1', true, await labelsWithin(/Versão 1/));
   await shot('09_historico_de_versoes.png', 'Histórico de versões',
@@ -437,7 +461,7 @@ try {
     'o canvas passou a desenhar o conteúdo da v1, o rodapé NÃO tem aviso de erro e o botão Desfazer ficou habilitado');
 
   step('11', 'republicar o rollback — publish salva o rascunho sujo antes (P3)');
-  await openFromTopBar('publish', /Publicar conteúdo/, 'o diálogo de publicação');
+  await clickPublishButton();
   await clickConfirm(/^Publicar$/, 'botão Publicar do diálogo');
   await sleep(2500);
   check('a API confirma a versão 3 no ar', 3, await publishedVersion());
@@ -453,7 +477,7 @@ try {
   await goto(editorUrl());
   const topAntesDaFalha = await stripHash(TOP_STATUS_STRIP);
   const barraAntesDaFalha = await stripHash(STATUS_BAR_STRIP);
-  await openFromTopBar('publish', /Publicar conteúdo/, 'o diálogo de publicação');
+  await clickPublishButton();
   await clickConfirm(/^Publicar$/, 'botão Publicar do diálogo');
   await sleep(3000);
   const barraDepoisDaFalha = await stripHash(STATUS_BAR_STRIP);
@@ -468,8 +492,7 @@ try {
 
   step('13', 'MODO DE FALHA 2 — restore que falha mantém o histórico aberto');
   await blockRoutes(['*/restore']);
-  await openFromTopBar('more', /Mais opções/, 'o menu "Mais opções"');
-  await clickLabel(/Ver histórico de versões/, 'opção "Ver histórico de versões"');
+  await clickHistoryButton();
   await clickInRowOf(/Versão 1/, /^Restaurar$/, 'botão Restaurar da linha da v1');
   await clickConfirm(/^Restaurar$/, 'botão Restaurar da confirmação');
   await sleep(3000);
@@ -489,8 +512,7 @@ try {
 
   step('14', 'despublicar — sai do ar sem perder o histórico');
   await blockRoutes([]);
-  await openFromTopBar('more', /Mais opções/, 'o menu "Mais opções"');
-  await clickLabel(/Despublicar/, 'opção "Despublicar" do menu');
+  await clickUnpublishButton();
   check('a confirmação de despublicar aparece', true, await labelsWithin(/Despublicar conteúdo\?/));
   await shot('16_confirmar_despublicar.png', 'Confirmação de despublicar',
     'o diálogo avisa que o conteúdo some da API pública agora e que o histórico fica guardado',

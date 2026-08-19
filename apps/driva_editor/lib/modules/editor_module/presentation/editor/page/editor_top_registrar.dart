@@ -8,7 +8,6 @@ import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.da
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/editor_more_menu_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/publish_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/unpublish_confirm_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
@@ -30,7 +29,7 @@ class EditorTopRegistrar extends StatelessWidget {
   final Widget child;
 
   /// `null` só em teste sem DI (mesmo motivo de `EditorPage`, D19) — nesse
-  /// caso o item "Ver histórico" do menu some, o resto do topo continua
+  /// caso o botão "Histórico" fica desabilitado, o resto do topo continua
   /// funcionando.
   final GetContentVersionsUseCase? getContentVersionsUseCase;
 
@@ -127,14 +126,23 @@ class EditorTopRegistrar extends StatelessWidget {
                         : null,
                   ),
                   AppBarAction.icon(
-                    icon: Icons.more_vert,
-                    tooltip: 'Mais opções',
-                    onPressed: () => _openMoreMenu(
-                      context,
-                      cubit,
-                      publication,
-                      getContentVersionsUseCase,
-                    ),
+                    icon: Icons.visibility_off_outlined,
+                    tooltip: _unpublishTooltip(publication),
+                    onPressed: publication.isPublished
+                        ? () => _confirmUnpublish(context, cubit, publication)
+                        : null,
+                  ),
+                  AppBarAction.outlined(
+                    label: 'Histórico',
+                    icon: Icons.history,
+                    tooltip: _historyTooltip(getContentVersionsUseCase),
+                    onPressed: getContentVersionsUseCase == null
+                        ? null
+                        : () => _openVersionHistory(
+                            context,
+                            cubit,
+                            getContentVersionsUseCase,
+                          ),
                   ),
                 ],
                 child: staticChild!,
@@ -167,27 +175,6 @@ Future<void> _confirmPublish(
   );
   if (result == null) return;
   await cubit.publish(note: result.note);
-}
-
-Future<void> _openMoreMenu(
-  BuildContext context,
-  EditorCubit cubit,
-  PublicationState publication,
-  GetContentVersionsUseCase? getContentVersionsUseCase,
-) async {
-  final choice = await showDialog<EditorMoreMenuChoice>(
-    context: context,
-    builder: (_) => EditorMoreMenuDialog(isPublished: publication.isPublished),
-  );
-  if (!context.mounted) return;
-  switch (choice) {
-    case EditorMoreMenuChoice.versionHistory:
-      await _openVersionHistory(context, cubit, getContentVersionsUseCase);
-    case EditorMoreMenuChoice.unpublish:
-      await _confirmUnpublish(context, cubit, publication);
-    case null:
-      break;
-  }
 }
 
 Future<void> _confirmUnpublish(
@@ -240,6 +227,19 @@ String _publishTooltip(PublishBlockReason? reason) => switch (reason) {
     'Corrija os erros do documento antes de publicar '
         '(veja a barra de status)',
 };
+
+String _unpublishTooltip(PublicationState publication) {
+  if (publication.isPublished) return 'Despublicar';
+  if (!publication.everPublished) return 'Despublicar (nunca foi publicado)';
+  return 'Despublicar (já está fora do ar)';
+}
+
+String _historyTooltip(GetContentVersionsUseCase? getContentVersionsUseCase) {
+  if (getContentVersionsUseCase == null) {
+    return 'Histórico de versões (indisponível)';
+  }
+  return 'Histórico de versões';
+}
 
 /// Estado da linha inteira do save é urgente e transiente — cobre a barra
 /// enquanto dura. Quando não há nada em andamento, o status conta o que

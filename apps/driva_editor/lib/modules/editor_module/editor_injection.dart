@@ -31,6 +31,9 @@ void registerEditorModule(GetIt getIt) {
       () => GetContentVersionsUseCase(repository: getIt<EditorRepository>()),
     )
     ..registerFactory(
+      () => GetContentVersionUseCase(repository: getIt<EditorRepository>()),
+    )
+    ..registerFactory(
       () => RestoreContentVersionUseCase(repository: getIt<EditorRepository>()),
     )
     ..registerLazySingleton<EditorLayoutRepository>(
