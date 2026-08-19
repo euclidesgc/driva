@@ -144,6 +144,20 @@ e a casca da tela de conteúdo no mesmo commit**. A casca (`appBar`/`bottomNavig
 é **F0 do item 43** por decisão de 2026-08-17; o `content_meta_bar.dart` é desta F2.
 Quem chegar primeiro apaga o arquivo; o outro encontra o trabalho feito e segue.
 
+**R9 — Regressão a corrigir ANTES do E2E (F4), achada pela supervisão da F2.**
+A migração apagou `missing_key_view.dart` junto com o resto da tela de catálogo.
+Ele existia por um motivo: os `config/*.json` versionados trazem
+`PUBLISHABLE_KEY: "cole-aqui-a-chave-do-projeto"` (nenhuma chave real é
+versionada), e o app **explicava como obter a chave** em vez de falhar genérico —
+isso está anunciado como feature no CHANGELOG da fatia 1. Hoje, chave placeholder
+ou errada devolve 404 do servidor, o `_fetchAndValidate` retorna `null` e a tela
+cai na **mesma** `ContentErrorView` de "sem rede". **Dois modos de falha
+distintos, um único estado visual** — exatamente o que a regra de E2E do projeto
+proíbe, e o que já custou uma tarde na fatia 1 (o APK release que abria com a
+vitrine vazia por causa do placeholder). Quem executar a F4 corrige isto antes de
+rodar o roteiro, senão o primeiro erro do E2E será indistinguível de falta de
+internet.
+
 **R6 — O mapa do §5 fica assim** (o P1 sai; F1 e F3 são as duas frentes que
 correm juntas, e tocam arquivos disjuntos — `packages/driva_client/lib` × `docs/`
 e `README.md`):
