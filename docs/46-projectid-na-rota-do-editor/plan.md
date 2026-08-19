@@ -13,8 +13,8 @@
 | Fase | O que entrega | Situação |
 | --- | --- | --- |
 | **F1** | A URL do editor passa a bastar (rota + escopo + navegação + tela de falha) | `[x]` mergeada em `develop` (PR #167, `ff50ab7`) e no ar em hml |
-| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[-]` rodada 02 executada (35 PASS / 0 FAIL); pendente o passo 4b no aparelho e o atestado |
-| **F3** | Bateria automatizada + docs vivas | `[ ]` bloqueada por F2 |
+| **F2** | E2E manual em homologação, executado e **atestado pelo dev humano** | `[x]` rodada 02 atestada pelo dev em 2026-08-18 (35 PASS / 0 FAIL + o 4b no aparelho) |
+| **F3** | Bateria automatizada + docs vivas | `[ ]` **destravada** — a F2 fechou em 2026-08-18 |
 
 **Última atualização:** 2026-08-17 — a `rodada_02` correu contra hml servido pelo Coolify, com
 os scripts `e2e_shots.sh`/`e2e_drive.mjs` versionados nesta pasta. O passo 4 (§11.4›31, o modo

@@ -37,7 +37,7 @@
 | 3 | URL colada em aba anônima | abriu direto, sem passar pela tela do projeto | `03_aba_anonima.png` | §11.4›30 |
 | 3b | Header da **primeira** requisição | `x-project-id: qyk9xbclx0moxwno3wplb4u9` | `03b_header_primeira_requisicao.png` + `03b_network.txt` | §11.3›23, §11.4›30 (D2) |
 | 4 | "Ver no celular" — a URL do link gerado | `https://hml.driva.duckdns.org/preview/qyk9xbclx0moxwno3wplb4u9/p5ha2j9x7dgjkaqla0gy2wyt` (lido via árvore semântica do diálogo) | `04_link_preview_projeto_certo.png` | §11.4›**31** — **o aceite que carrega o item** |
-| 4b | Abrir o link no aparelho | **do humano** — instruções abaixo | `04b_preview_no_aparelho.jpg` (a tirar) | §11.4›31 |
+| 4b | Abrir o link no aparelho | ✅ Android físico, 2026-08-18: o conteúdo **"Canvas do conteúdo A (item 46)"** apareceu, sem barra de endereços (modo standalone da F2c) | `04b_preview_no_aparelho.jpg` | §11.4›31 |
 | 5 | Breadcrumb → projeto | levou a `/projects/qyk9xbclx0moxwno3wplb4u9` | `05_breadcrumb_e_volta.png` | §11.4›32 |
 | 6 | `:projectId` trocado por `PROJ_B` (válido) | mensagem nomeando "E2E item 46 — projeto B" | `06_falha_conteudo_fora_do_projeto.png` | §11.4›33, §11.4›36 (D7) |
 | 7 | `:projectId` inexistente | mensagem e ação **diferentes** das do passo 6 | `07_falha_projeto_inexistente.png` | §11.4›34, §11.4›35 (D8) |
