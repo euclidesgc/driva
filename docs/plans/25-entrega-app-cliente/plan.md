@@ -74,6 +74,66 @@ Web de terceiro exigiria CORS por origem cadastrada por projeto — escopo próp
 **D7 — Rate limit desde o primeiro dia.**
 `@nestjs/throttler` na rota pública: 120 req/min por IP. Sem isso, um app com bug em loop derruba o backend do editor junto (mesmo processo).
 
+## 3b. Revisão de 2026-08-19 — o que a Fatia 1 mudou neste plano
+
+Este plano foi escrito **antes** da Fatia 1. Ela foi entregue em 2026-08-15
+(`docs/13-loop-sdui/`) e o item 24 fechou em 2026-08-17, então três suposições
+do §4 caducaram. **Onde esta seção contradiz o §4, ela ganha.**
+
+**R1 — O P1 está entregue; não há backend a escrever nesta fatia.**
+`Project.publishableKey`, o header `x-driva-key`, `GET /v1/public/contents[/:slug]`
+com `ETag`/`304` e o CORS restrito ao prefixo público já existem
+(`backend/src/public/public.controller.ts:18-59`). O item 24 fechou o VR-13-01:
+a rota serve `publishedVersionId`, não mais o rascunho. **As perguntas 1–3 do §8
+já foram respondidas em código** — só a 4 (`http` como dependência) segue valendo
+para o P2, e a resposta continua sendo a do §3 D4: `http`, com `Client` injetável.
+
+**R2 — `apps/driva_showcase` não nasce. O `apps/driva_demo_app` é o showcase.**
+O P3 previa um app mínimo novo. A Fatia 1 entregou algo maior: um app com Clean
+Architecture completa (`published_module` com `dio`, models zard, use cases,
+repositório), na CI, com job de build Android e sob os mesmos gates do editor.
+Criar um segundo app de exemplo agora significaria manter dois. **O P3 vira
+"migrar o `driva_demo_app` para o `driva_client`"** — e essa migração é a melhor
+prova que o package pode ter: ela **apaga** `published_module/data` inteiro e o
+substitui por três linhas de `Driva.init` + `DrivaContent`. Se o package não der
+conta, a migração não fecha, e isso é exatamente o sinal que se quer.
+
+**R3 — O `driva_demo_app` é a régua do contrato do `driva_client`.**
+O que ele faz hoje é o mínimo que o package precisa cobrir:
+`published_repository_impl.dart` traduz `DioException` em `NotFoundFailure`/
+`ValidationFailure`/`NetworkFailure` e lê o `etag` do header de resposta. O
+`driva_client` **não** expõe `Either<Failure, T>` para o app do cliente (é API
+pública de terceiro, não camada interna) — ele resolve por dentro e entrega ao
+widget conteúdo, `loadingBuilder` ou `errorBuilder`. **A tradução de erro
+some do app e vira responsabilidade do package.**
+
+**R4 — `DrivaContent` continua o `UnimplementedError` que o §1 descreve.**
+Verificado em `packages/sdui_flutter/lib/src/driva_content.dart`: nada mudou lá,
+e nenhum código o importa. A deleção do §4 P2 segue válida palavra por palavra,
+incluindo o bump `sdui_flutter` 0.3.0 → 0.4.0 e o ajuste da constraint.
+**Acrescentar ao §4:** `apps/driva_demo_app/pubspec.yaml` também trava
+`sdui_flutter: ^0.3.0` e `sdui_core: ^0.3.0` — ele entra na mesma lista de
+dependentes a ajustar, que o plano original dizia conter "só o editor".
+
+**R5 — Fases desta fatia, substituindo P2–P5 do §4:**
+
+| Fase | O que é | Paralela? |
+| --- | --- | --- |
+| **F1** | `packages/driva_client` nasce (§4 P2, sem alteração de conteúdo) + remoção do `DrivaContent` do `sdui_flutter` + bumps e constraints | — (é a base) |
+| **F2** | `driva_demo_app` migra para o `driva_client`; `published_module/data` é apagado | dep. F1 |
+| **F3** | Guia de integração (`README.md` do package + `docs/25-entrega-app-cliente/integracao.md`) | **∥ com F1** — o contrato público está congelado no §4 |
+| **F4** | E2E do ciclo completo contra hml, atestado pelo humano | dep. F2 |
+| **F5** | Bateria automatizada (§4 P5) | dep. F4 — regra do cap. 22 |
+
+**R6 — O mapa do §5 fica assim** (o P1 sai; F1 e F3 são as duas frentes que
+correm juntas, e tocam arquivos disjuntos — `packages/driva_client/lib` × `docs/`
+e `README.md`):
+
+```
+F1 (runtime) ─┬─► F2 (demo app migra) ─► F4 (E2E) ─► F5 (bateria)
+F3 (docs) ────┘
+```
+
 ## 4. Fases
 
 ### P1 — Backend: chave publicável + rota pública  **[CISO]**
