@@ -23,12 +23,15 @@ docs e refatorações de base embaixo, o que depende delas em cima.
    com `gh stack view` — o `⚠` some quando a branch está no lugar certo.
 3. **Rode a cancela no topo, uma vez.** O topo contém todos os commits da pilha, então
    `flutter analyze` + `flutter test -r compact` ali cobrem o conjunto.
-4. **Publique:** `gh stack submit`.
-5. **Tire do rascunho:** `gh stack submit` cria os PRs novos em **draft**. `gh pr ready
-   <n>` em cada um, senão o humano não consegue mergear.
-6. **Escreva o corpo de cada PR.** O `submit` usa a mensagem de commit; PR que nasce da
+4. **Publique, numa chamada só:** `gh stack submit --auto --open`. Os dois flags são
+   obrigatórios para um agente: sem `--auto`, o `submit` abre um **editor interativo de
+   tela cheia** (submissão por `Ctrl+S`) e trava a sessão; e com `--auto` sozinho os PRs
+   novos nascem em **draft**, que o humano não consegue mergear — `--open` marca os
+   novos **e os já existentes** como prontos para revisão. (Confira com
+   `gh stack submit --help`.)
+5. **Escreva o corpo de cada PR.** O `submit` usa a mensagem de commit; PR que nasce da
    pilha merece o mesmo corpo que um PR aberto à mão.
-7. **Confira o CI dos PRs do meio.** Se algum tiver **só** o GitGuardian, a base usa um
+6. **Confira o CI dos PRs do meio.** Se algum tiver **só** o GitGuardian, a base usa um
    prefixo que falta no filtro `on.pull_request.branches` do `.github/workflows/ci.yml` —
    acrescente o prefixo **no commit do fundo da pilha**, e a correção vale para os de cima.
 
@@ -40,7 +43,7 @@ automaticamente para a base da pilha.
 
 ## Iterando depois de publicada
 
-- Commitou em alguma branch do meio: `gh stack rebase && gh stack submit`.
+- Commitou em alguma branch do meio: `gh stack rebase && gh stack submit --auto --open`.
 - Navegar: `gh stack bottom` / `up` / `down` / `top` / `switch`.
 - Branch nova no topo: `gh stack add <branch>`.
 

@@ -9,12 +9,12 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num edito
 | `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parseContentSpec`), catálogo de 14 primitivos, operações puras de árvore |
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e, futuramente, nos apps dos clientes |
 | `apps/driva_editor` | O editor (Flutter Web): AppBar global com breadcrumb (via `ShellRoute`) + home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel |
+| `apps/driva_demo_app` | App de demonstração (Android/iOS/Web): o primeiro consumidor externo do renderer — busca o spec por slug na API pública (`/v1/public`, header `x-driva-key`) e desenha com `SduiView` |
 | `backend/` | NestJS + Prisma + Postgres: hierarquia Projeto → Categoria → Conteúdo (`/v1/projects`, `/v1/categories`, `/v1/contents`), tenant por `x-project-id` |
 | `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
 | `docs/02-conteudos/` | Docs vivas da feature Conteúdos (rename página→conteúdo: slug, CUID2, migração) |
 | `docs/09-crud-projeto/` | Docs vivas do CRUD de Projeto (upload seguro, StorageService, `Content.projectId` FK) |
 | `docs/08-api-conteudos-filtro-busca/` | Docs vivas da API de conteúdos (envelope/cursor/busca) + Categorias + tela do projeto |
-| `docs/livro-flutter/` | O livro que define a arquitetura e o método de trabalho (gabarito) |
 
 ## Rodando em dev
 
@@ -27,7 +27,7 @@ cd backend
 cp .env.example .env
 pnpm install
 docker compose up -d
-pnpm prisma:push
+pnpm prisma:migrate:dev
 pnpm start:dev
 
 # 3. Editor (em outro terminal, a partir de apps/driva_editor)
@@ -40,10 +40,15 @@ Sem backend? Rode o editor **sem** o `--dart-define-from-file`: entra em modo fa
 ## Qualidade
 
 ```bash
-flutter analyze                       # workspace inteiro
-dart test packages/sdui_core          # kernel (30 testes)
-flutter test packages/sdui_flutter    # renderer (7 testes)
-flutter test apps/driva_editor        # editor (124 testes: cubits, slug, widget por estado, shell/breadcrumb, golden)
+flutter analyze                              # workspace inteiro
+bash scripts/gates_guard.sh                  # Gates 1 e 4 (design system e widgets)
+dart test -r compact packages/sdui_core      # kernel
+
+# as suítes Flutter rodam de dentro da pasta do pacote — da raiz o bundle de
+# assets não é montado e os goldens estouram com "FontManifest.json vazio"
+(cd packages/sdui_flutter && flutter test -r compact)   # renderer
+(cd apps/driva_editor     && flutter test -r compact)   # editor
+(cd apps/driva_demo_app   && flutter test -r compact)   # app de demonstração
 ```
 
 ## Arquitetura (resumo)

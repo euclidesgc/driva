@@ -7,12 +7,29 @@ Plataforma de **Server-Driven UI** para apps Flutter: o editor web (`apps/driva_
 - `packages/sdui_core` — kernel do spec. **Dart puro** (equatable, fpdart, zard; `package:flutter` proibido). Modelos, schema zard, catálogo de widgets, operações puras de árvore.
 - `packages/sdui_flutter` — renderer. Registry `type → builder`, `SduiView`. Depende só de `sdui_core`.
 - `apps/driva_editor` — o editor. Depende de `sdui_flutter` e `sdui_core`.
+- `apps/driva_demo_app` — app de demonstração (Android/iOS/Web). Primeiro consumidor externo do renderer: lê o spec por slug na API pública (`/v1/public`, header `x-driva-key`) e desenha com `SduiView`. Tem suíte própria na CI, um job de build Android e está sob os mesmos gates do editor.
 - `backend/` — NestJS (fora do workspace Dart). Contrato REST em `/v1/contents`.
 - `docs/NN-<nome>/` — docs vivas de cada feature (specs, prd, plan, variance_report, test_plan, final_report). **`NN`** é o número de sequência com dois dígitos, na ordem de desenvolvimento (`01`, `02`, …), para o dev enxergar a linha do tempo e saber onde está. Pastas de referência/apoio (`web-prototipe/`, `deploy/`, `specs/`) **não** são numeradas.
 
 ## O gabarito
 
-A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módulo de referência é `apps/driva_editor/lib/modules/pages_module/` — na dúvida, imite-o. Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.**
+A arquitetura vem de um livro que **não está neste repositório** (é material do dono, fora do versionamento) — as referências a "cap. N do livro" espalhadas pelo harness são procedência, não ponteiro: ninguém consegue abri-las, e nada depende de abri-las. O que se imita é código.
+
+O módulo de referência é `apps/driva_editor/lib/modules/contents_module/` — na dúvida, imite-o. São 72 arquivos, então **abra o exemplar da camada**, não o módulo inteiro (caminhos relativos a `apps/driva_editor/lib/modules/contents_module/`):
+
+| Camada | Exemplar |
+|---|---|
+| Entidade | `domain/entities/content_summary.dart` |
+| Contrato de repositório | `domain/repositories/contents_repository.dart` |
+| Use case | `domain/use_cases/get_contents_use_case.dart` |
+| Model com validação zard | `data/models/content_summary_model.dart` |
+| Impl do repositório (o try/catch) | `data/repositories/contents_repository_impl.dart` |
+| Cubit + estado `sealed` | `presentation/content_list/cubit/content_list_cubit.dart` + `content_list_state.dart` |
+| Página com `pageBuilder` | `presentation/project_detail/project_detail_page.dart` |
+| Widget de UI (token + `Semantics`) | `presentation/project_detail/widgets/content_panel/publication_badge.dart` |
+| Fiação do módulo | `contents_routes.dart`, `contents_injection.dart`, `contents_module.dart` |
+
+Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.**
 
 ## Regras inegociáveis (Flutter/Dart)
 
@@ -26,20 +43,27 @@ A arquitetura segue o livro em `docs/livro-flutter/` (Seções I–IV). O módul
 - Erros imprevistos: `runZonedGuarded` + `FlutterError.onError` + `PlatformDispatcher.onError` + `AppBlocObserver` no `bootstrap.dart`.
 - Flavors: `main_dev.dart`/`main_prod.dart` → `bootstrap(AppConfig)`; config via `--dart-define-from-file=config/<env>.json`; segredo nunca em dart-define.
 - **Zero build_runner** (nada de freezed, json_serializable, injectable, mockito, go_router_builder).
-- Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`; a bateria automatizada é escrita **por último** (após o E2E manual — cap. 22 do livro).
+- Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`; a bateria automatizada é escrita **por último**, depois do E2E atestado.
 - Acessibilidade: cor nunca é o único sinal de informação; controles com `Semantics`/tooltip.
-- Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora no mesmo arquivo do cubit via `part of`.
+- Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora na mesma **biblioteca** do cubit, num `<x>_state.dart` ligado por `part`/`part of` (ver o exemplar de cubit em "O gabarito").
 - **Zero comentário — o código se explica por nomes.** Vale para todo código do repo (Dart e TypeScript), em `//` e em dartdoc `///`. **Não escreva** comentário que diga o que a linha faz, que repita o nome do identificador logo abaixo, cabeçalho decorativo de seção, nem nota de autoria/histórico ("antes era X", "adicionado na F12") — para isso existe o git. Legibilidade se conquista **extraindo** variável/função/widget com nome descritivo, não com prosa ao lado. **Única exceção:** o **porquê** que o código não tem como mostrar — decisão de arquitetura, workaround de bug externo, restrição de plataforma ou invariante não óbvia; e aí o comentário explica a **razão**, nunca a mecânica. Ao editar um arquivo já comentado, limpe o que não passa nesse teste.
 - Cancela de máquina: **"pronto" = `flutter analyze` verde + testes existentes passando.** Nunca opinião.
 
 ## Design system e organização de widgets (inegociável)
 
-Valem em **`apps/driva_editor` e `packages/sdui_flutter`** (ambos são Flutter). Gates cobrados na `revisar-fase` (QA), no `criar-modulo` e pelos especialistas de apresentação/infra.
+Valem em **`apps/driva_editor`, `apps/driva_demo_app` e `packages/sdui_flutter`** (os três são Flutter).
 
-- **Gate 1 — Zero função/método que retorna `Widget`.** Cada pedaço de UI é um `Widget` próprio (`StatelessWidget`/`StatefulWidget`) recebendo dados **pelo construtor** — nunca `Widget _buildX(...)`. Isso preserva `const`, isolamento de rebuild e reuso (a razão de o Flutter/Dart desaconselharem o padrão). **Não são o anti-padrão** (e são permitidos): o `build()` override, o `static Widget pageBuilder`, e os callbacks de builder do framework (`itemBuilder`, `builder:`) — mas quando não-triviais devem delegar a um widget dedicado, não montar árvore inline extensa. **Exceção documentada:** os **builders do renderer SDUI** (`packages/sdui_flutter/lib/src/builders/`) — `type → builder(node)` — são um padrão de registry/plugin e ficam **fora** deste gate; o isolamento de rebuild lá vem do wrapper por-nó do `renderer.dart`.
+**Quem cobra na máquina é `scripts/gates_guard.sh`** — job "Gates de qualidade" do `ci.yml`, `exit 1` na primeira violação, e nenhum `flutter analyze` o substitui. Rode-o antes de dar qualquer coisa por pronta. O que ele alcança, exatamente:
+
+- **Gates 1 e 4** em `apps/driva_editor/lib` e `apps/driva_demo_app/lib`; **só o Gate 4** em `packages/sdui_flutter/lib`.
+- **Isento por caminho:** `core/theme/` (apps) e `src/theme/` (renderer) — são a fonte dos tokens. A isenção é do caminho exato: `presentation/theme/` do `preferences_module` continua sob os gates.
+- **Escape por linha, com motivo:** `// gate1-ok: <motivo>` ou `// gate4-ok: <motivo>` no fim da linha. É a **única** saída — sem ela, a CI fica vermelha. Escape sem motivo real é achado de revisão.
+- Os **Gates 2 e 3** são heurísticos demais para grep e ficam com a revisão humana (`revisar-fase`) e com os especialistas de apresentação/infra.
+
+- **Gate 1 — Zero função/método que retorna `Widget`.** Cada pedaço de UI é um `Widget` próprio (`StatelessWidget`/`StatefulWidget`) recebendo dados **pelo construtor** — nunca `Widget _buildX(...)`. Isso preserva `const`, isolamento de rebuild e reuso (a razão de o Flutter/Dart desaconselharem o padrão). **Não são o anti-padrão** (e são permitidos): o `build()` override, o `static Widget pageBuilder`, e os callbacks de builder do framework (`itemBuilder`, `builder:`) — mas quando não-triviais devem delegar a um widget dedicado, não montar árvore inline extensa. **Exceção documentada:** `packages/sdui_flutter/lib` fica **inteiro** fora deste gate (não só `src/builders/`) — os builders `type → builder(node)` são um padrão de registry/plugin, e `render`/`renderAll`/`renderFlexChildren` são a API pública do renderer; o isolamento de rebuild lá vem do wrapper por-nó do `renderer.dart`.
 - **Gate 2 — Widget mora por proximidade — menos específico = mais longe da feature.** Três tiers: **feature** (`.../presentation/<feature>/widgets/`) → **módulo** (`modules/<x>_module/presentation/widgets/`, usado por mais de uma feature do módulo) → **app-wide compartilhado** em `apps/driva_editor/lib/core/widgets/` (**o "components"**: organizado por categoria em subpastas, cada categoria com barrel; barrel raiz `core/widgets/widgets.dart`). **Padrão de destino:** widget usado por vários módulos vai para `core/widgets/`; só desce de tier quando o uso justificar. Ao promover um widget, mova-o de tier e ajuste os barrels.
 - **Gate 3 — Uma classe/widget por arquivo.** Widget novo = arquivo novo `snake_case`. O **alvo real** são arquivos gordos entupidos de widgets distintos (várias telas/`_XCard`/`_YBanner` no mesmo arquivo). **Não são violação** (podem coabitar o arquivo): o par `StatefulWidget`+`State`, o cubit e seus estados via `part of` (`sealed class` + subestados), uma família `sealed` e **enums agrupados** num `*_enum.dart`.
-- **Gate 4 — Design system: tema-token, zero hardcode.** Cor, tipografia, espaçamento, raio, elevação, duração de animação etc. vivem **agrupados em `core/theme/`** (tokens tipados: `AppColors`/`AppTypography`/`AppSpacing`/`AppRadii`… + `ThemeExtension` quando não couber no `ThemeData` padrão) e são consumidos via `Theme.of(context)`/token — **nunca** `Color(0x…)`, `EdgeInsets.all(16)`, `TextStyle(fontSize: …)` cru na tela/widget. **Tokenizar tudo, sem exceção de estilo hardcoded:** até o chrome do device-mock, gradientes de capa e a paleta de syntax highlight viram token (com variante dark, mesmo que hoje não variem entre temas). Trocar ou criar um tema novo = mexer **só** no `core/theme/`. O renderer (`sdui_flutter`) segue o mesmo princípio para o que é chrome do renderer (o styling derivado do spec SDUI continua vindo do catálogo/props).
+- **Gate 4 — Design system: tema-token, zero hardcode.** Cor, tipografia, espaçamento, raio, elevação, duração de animação etc. vivem **agrupados em `core/theme/`** (tokens tipados: `AppColors`/`AppTypography`/`AppSpacing`/`AppRadii`… + `ThemeExtension` quando não couber no `ThemeData` padrão) e são consumidos via `Theme.of(context)`/token — nada de literal cru na tela/widget. O `gates_guard.sh` reprova, um a um: `Color(0x…)`, `Colors.<nome>` (menos `white`/`black`/`transparent`), `fontSize: <num>`, `circular(<num>)` e `EdgeInsets.all/fromLTRB(<num>)` ou `EdgeInsets.symmetric/only(…: <num>)`. **Tokenizar tudo, sem exceção de estilo hardcoded:** até o chrome do device-mock, gradientes de capa e a paleta de syntax highlight viram token (com variante dark, mesmo que hoje não variem entre temas). Trocar ou criar um tema novo = mexer **só** no `core/theme/`. O renderer (`sdui_flutter`) segue o mesmo princípio para o que é chrome do renderer (o styling derivado do spec SDUI continua vindo do catálogo/props).
 
 ## Regras do spec SDUI
 
@@ -54,9 +78,11 @@ O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-ma
 
 **Todo plano termina num DoD, e o E2E faz parte dele — plano sem DoD não está pronto.** A última seção de toda `docs/NN-<nome>/plan.md` é a **Definition of Done**, com cada linha **verificável** (responde "como eu provo que isto está feito", não intenção genérica). O **E2E da feature implementada é item do DoD**, não apêndice: a feature só fecha quando o roteiro foi executado e **atestado pelo dev humano** — o QA instrumenta o script, o humano confere os prints, a evidência fica em `evidencias/rodada_MM/`. O roteiro exercita o que a feature **promete**, não o caminho feliz: se a feature corrige uma falha silenciosa, o E2E prova que cada modo de falha produz estado **visualmente distinto**. Sempre UI real no ambiente real (homologação, não `localhost` — lição do item 9g).
 
+**Toda tarefa também tem DoD, e quem o cobra é um supervisor cego.** São **três níveis**: o **plano** (a seção final de toda `plan.md`, acima), a **fase** (a tabela "Aceites da F\<N\>", que o QA cobra na skill `revisar-fase`) e a **tarefa**, o nível novo: cada uma termina num bloco **DoD** com critérios de "está feito quando Z", em vez da instrução "faça X". Ao concluir uma tarefa que **muda comportamento** (código, spec, contrato, rota, script de E2E), o tech-manager lança o agente `supervisor-dod` passando **o bloco DoD e o ponteiro para o trabalho, mais nada**: o ponteiro é o **objeto sob verificação**, não contexto — o DoD segue sendo a **única fonte de critério**. O supervisor não conhece o plano nem o raciocínio de quem executou, e é essa cegueira que o mantém um par independente em vez de um revisor que já comprou o argumento. Por isso o bloco tem de ser **auto-contido**: apagadas todas as referências entre parênteses (`(D2)`, `(§2.5)`, "a decisão acima"), cada linha ainda diz o que conferir e onde. Tarefa puramente textual (CHANGELOG, doc de gaveta, roadmap) tem DoD, mas não lança supervisor — entra no lote da fase, com o QA. Veredito reprovado volta ao **tech-manager**, nunca direto ao executor: ele devolve a tarefa, ou corrige o DoD **se o errado era o DoD**, ou escala ao dev. **Afrouxar o DoD para a tarefa passar é proibido** — mudança que não seja correção de erro é decisão do humano, registrada em `variance_report.md`.
+
 **Roadmap vivo (`docs/roadmap.md`).** Fonte única de rastreabilidade do produto — o que foi feito, o que está em andamento, o que falta. Lista **ordenada por dependência** (o que destrava o quê), com status `[ ]` não iniciada · `[-]` em andamento · `[x]` concluída. **É mantido atualizado pela IA** como parte do fechamento de cada trabalho (mesmo checkpoint da faxina de branches): marca o item entregue `[x]`, o item da vez `[-]`. Ao surgir feature nova, a IA tem permissão de **reescrever o texto** do item para dar clareza e **reordená-lo** para o ponto de precedência correto (analisando o código para inferir dependências). Rever/ajustar o roadmap é atividade recorrente, não pontual.
 
-Comando não-óbvio: `flutter run -d chrome --target apps/driva_editor/lib/main_dev.dart --dart-define-from-file=apps/driva_editor/config/dev.json`.
+Comando não-óbvio: o editor roda **de dentro de `apps/driva_editor`**, com caminhos relativos — `cd apps/driva_editor && flutter run -d chrome --target lib/main_dev.dart --dart-define-from-file=config/dev.json` (a forma do `README.md` e dos 4 configs de editor do `.vscode/launch.json`). Da raiz não funciona: o `pubspec.yaml` da raiz é o `driva_workspace`, sem plataforma web — `flutter build web` sai com `This project is not configured for the web`, e o `flutter run -d chrome` é pior, porque **avisa e sobe assim mesmo**, com um scaffold sintetizado que ignora o `apps/driva_editor/web/flutter_bootstrap.js` (o arquivo que força `canvasKitVariant: "full"` e é o antídoto do "tofu").
 
 ## Economia de tokens e tempo (obrigatório)
 

@@ -19,4 +19,20 @@ O que escrever, por camada:
 4. **Golden** — captura de referência dos estados visuais estáveis (página renderizada pelo `SduiView`, painéis do editor). Gere com `flutter test --update-goldens` e commite.
 5. **Contratos do kernel** — fixtures de `packages/sdui_core/test/fixtures/` validam no schema e renderizam no `sdui_flutter` (o teste de contrato catálogo ↔ registry já existe — mantenha-o passando).
 
-Pirâmide: muito domínio/cubit, alguns widget, poucos integração. DoD: **tudo verde** (`dart test packages/sdui_core`, `flutter test packages/sdui_flutter`, `flutter test apps/driva_editor`) — e só então a tarefa fecha.
+Pirâmide: muito domínio/cubit, alguns widget, poucos integração.
+
+DoD: **as quatro suítes verdes** — e só então a tarefa fecha. As três suítes
+Flutter rodam **de dentro da pasta do pacote**; passar o caminho a partir da
+raiz falha:
+
+```bash
+dart test -r compact packages/sdui_core                     # kernel (Dart puro)
+cd packages/sdui_flutter && flutter test -r compact         # renderer
+cd apps/driva_editor     && flutter test -r compact         # editor
+cd apps/driva_demo_app   && flutter test -r compact         # app de demonstração
+```
+
+`flutter test apps/driva_editor` **a partir da raiz reprova**: o bundle de
+assets não é montado, o `FontManifest.json` sai vazio e os testes de golden
+estouram no `setUpAll` (`Bad state: FontManifest.json vazio`). É por isso que o
+`.github/workflows/ci.yml` roda cada suíte Flutter com `working-directory`.
