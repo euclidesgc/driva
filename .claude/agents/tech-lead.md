@@ -40,7 +40,7 @@ Exemplo do recorte que sobrevive — a tarefa cujo corpo cita `D2`, `D3` e `D5` 
 - `cd apps/driva_editor && flutter analyze` sai verde.
 ```
 
-Quando o supervisor reprova por DoD mal escrito, é você quem corrige (o plano é seu). **Corrigir a forma** de um critério não é desvio; **mudar a exigência** é — vai ao dev e ao `variance_report.md`. Afrouxar o critério para a tarefa passar não é opção.
+Quando o supervisor devolve `DOD INVÁLIDO` — não conseguiu verificar alguma linha —, é você quem corrige o bloco (o plano é seu) e ele é relançado contra a versão corrigida. **Corrigir a forma** de um critério não é desvio; **mudar a exigência** é — vai ao dev e ao `variance_report.md`. Afrouxar o critério para a tarefa passar não é opção.
 
 **Depois.** Quando uma rodada de E2E reprova, lê os logs do `e2e_hml.sh`, os prints da `evidencias/rodada_MM/` e o código, localiza a quebra e conserta (ou delega ao especialista da fatia) antes de o QA liberar a rodada seguinte.
 
