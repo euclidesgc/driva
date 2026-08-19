@@ -67,14 +67,18 @@ function createPrismaMock() {
       delete: jest.fn(),
     },
     contentVersion: {
-      aggregate: jest.fn(),
+      aggregate: jest.fn().mockResolvedValue({ _max: { version: null } }),
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
+      updateManyAndReturn: jest.fn().mockResolvedValue([]),
+      upsert: jest.fn().mockResolvedValue({}),
+      createMany: jest.fn().mockResolvedValue({ count: 0 }),
+      createManyAndReturn: jest.fn().mockResolvedValue([]),
+      delete: jest.fn().mockResolvedValue({}),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
     },
     category: {
       findFirst: jest.fn(),
@@ -128,6 +132,7 @@ describe('ContentsService.publish', () => {
     expect(result).toEqual({
       publishedVersion: { version: 3, publishedAt: NOW },
       hasUnpublishedChanges: false,
+      latestVersion: 3,
     });
   });
 
@@ -189,6 +194,7 @@ describe('ContentsService.unpublish', () => {
   it('zera o ponteiro de publicação sem nenhuma escrita destrutiva sobre a versão publicada', async () => {
     const prisma = createPrismaMock();
     prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 4 } });
 
     const result = await serviceWith(prisma).unpublish('project-1', 'content-1');
 
@@ -210,7 +216,15 @@ describe('ContentsService.unpublish', () => {
     expect(prisma.contentVersion.updateMany).not.toHaveBeenCalled();
     expect(prisma.contentVersion.delete).not.toHaveBeenCalled();
     expect(prisma.contentVersion.deleteMany).not.toHaveBeenCalled();
-    expect(result).toEqual({ publishedVersion: null, hasUnpublishedChanges: true });
+    expect(prisma.contentVersion.upsert).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.createMany).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.createManyAndReturn).not.toHaveBeenCalled();
+    expect(prisma.contentVersion.updateManyAndReturn).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      publishedVersion: null,
+      hasUnpublishedChanges: true,
+      latestVersion: 4,
+    });
   });
 
   it('id de outro projeto não zera nada e devolve 404', async () => {
