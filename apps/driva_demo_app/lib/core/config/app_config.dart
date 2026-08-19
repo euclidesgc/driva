@@ -7,6 +7,7 @@ final class AppConfig extends Equatable {
     required this.environment,
     required this.apiBaseUrl,
     required this.publishableKey,
+    required this.defaultSlug,
   });
 
   const AppConfig.fromEnvironment({required String environment})
@@ -17,6 +18,10 @@ final class AppConfig extends Equatable {
           defaultValue: 'http://localhost:3000',
         ),
         publishableKey: const String.fromEnvironment('PUBLISHABLE_KEY'),
+        defaultSlug: const String.fromEnvironment(
+          'DEFAULT_SLUG',
+          defaultValue: 'home',
+        ),
       );
 
   final String environment;
@@ -26,6 +31,15 @@ final class AppConfig extends Equatable {
   /// Identifica o projeto do driva que este app consome.
   final String publishableKey;
 
+  /// Slug que a tela de conteúdo abre ao iniciar — sem catálogo, o app
+  /// precisa saber de antemão o que mostrar.
+  final String defaultSlug;
+
   @override
-  List<Object?> get props => [environment, apiBaseUrl, publishableKey];
+  List<Object?> get props => [
+    environment,
+    apiBaseUrl,
+    publishableKey,
+    defaultSlug,
+  ];
 }
