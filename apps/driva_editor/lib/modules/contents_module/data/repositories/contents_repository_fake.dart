@@ -40,6 +40,7 @@ class ContentsRepositoryFake implements ContentsRepository {
           updatedAt: store.updatedAtOf(content.id),
           publishedAt: store.publishedAtOf(content.id),
           hasUnpublishedChanges: store.hasUnpublishedChanges(content.id),
+          latestVersion: store.latestVersionOf(content.id),
         ),
     ];
 
@@ -104,6 +105,7 @@ class ContentsRepositoryFake implements ContentsRepository {
         updatedAt: store.updatedAtOf(content.id),
         publishedAt: store.publishedAtOf(content.id),
         hasUnpublishedChanges: store.hasUnpublishedChanges(content.id),
+        latestVersion: store.latestVersionOf(content.id),
       ),
     );
   }
@@ -141,6 +143,7 @@ class ContentsRepositoryFake implements ContentsRepository {
         updatedAt: store.updatedAtOf(updated.id),
         publishedAt: store.publishedAtOf(updated.id),
         hasUnpublishedChanges: store.hasUnpublishedChanges(updated.id),
+        latestVersion: store.latestVersionOf(updated.id),
       ),
     );
   }

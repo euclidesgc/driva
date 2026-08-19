@@ -184,16 +184,21 @@ Future<void> _openMoreMenu(
     case EditorMoreMenuChoice.versionHistory:
       await _openVersionHistory(context, cubit, getContentVersionsUseCase);
     case EditorMoreMenuChoice.unpublish:
-      await _confirmUnpublish(context, cubit);
+      await _confirmUnpublish(context, cubit, publication);
     case null:
       break;
   }
 }
 
-Future<void> _confirmUnpublish(BuildContext context, EditorCubit cubit) async {
+Future<void> _confirmUnpublish(
+  BuildContext context,
+  EditorCubit cubit,
+  PublicationState publication,
+) async {
   final confirmed = await showDialog<bool>(
     context: context,
-    builder: (_) => const UnpublishConfirmDialog(),
+    builder: (_) =>
+        UnpublishConfirmDialog(versionsCount: publication.latestVersion ?? 0),
   );
   if (confirmed != true) return;
   await cubit.unpublish();
@@ -254,17 +259,25 @@ AppBarStatus _statusFor(SaveStatus status, PublicationState publication) {
       tone: AppBarStatusTone.danger,
     );
   }
-  if (!publication.isPublished) {
+  if (!publication.everPublished) {
     return const AppBarStatus(
       icon: Icons.visibility_off_outlined,
       label: 'Nunca publicado',
       tone: AppBarStatusTone.neutral,
     );
   }
+  if (!publication.isPublished) {
+    return AppBarStatus(
+      icon: Icons.unpublished_outlined,
+      label: 'Fora do ar (última: v${publication.latestVersion})',
+      tone: AppBarStatusTone.danger,
+    );
+  }
   if (publication.hasUnpublishedChanges) {
-    return const AppBarStatus(
+    return AppBarStatus(
       icon: Icons.edit_outlined,
-      label: 'Alterações não publicadas',
+      label:
+          'Alterações não publicadas (no ar: v${publication.publishedVersion})',
       tone: AppBarStatusTone.neutral,
     );
   }

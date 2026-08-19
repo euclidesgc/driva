@@ -97,5 +97,6 @@ class EditorRepositoryFake implements EditorRepository {
     publishedVersion: store.publishedVersionOf(id),
     publishedAt: store.publishedAtOf(id),
     hasUnpublishedChanges: store.hasUnpublishedChanges(id),
+    latestVersion: store.latestVersionOf(id),
   );
 }

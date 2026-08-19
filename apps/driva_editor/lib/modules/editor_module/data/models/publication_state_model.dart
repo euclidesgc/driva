@@ -12,11 +12,13 @@ class PublicationStateModel extends PublicationState {
     required super.hasUnpublishedChanges,
     super.publishedVersion,
     super.publishedAt,
+    super.latestVersion,
   });
 
   static final ZMap _envelopeSchema = z.map({
     'hasUnpublishedChanges': z.bool(),
     'publishedVersion': z.map({}).nullable().optional(),
+    'latestVersion': z.int().nullable().optional(),
   });
 
   static final ZMap _publishedVersionSchema = z.map({
@@ -33,11 +35,15 @@ class PublicationStateModel extends PublicationState {
     }
     final hasUnpublishedChanges =
         envelope.data!['hasUnpublishedChanges'] as bool;
+    final latestVersion = envelope.data!['latestVersion'] as int?;
 
     final rawPublishedVersion = map['publishedVersion'];
     if (rawPublishedVersion == null) {
       return Right(
-        PublicationStateModel(hasUnpublishedChanges: hasUnpublishedChanges),
+        PublicationStateModel(
+          hasUnpublishedChanges: hasUnpublishedChanges,
+          latestVersion: latestVersion,
+        ),
       );
     }
 
@@ -53,6 +59,7 @@ class PublicationStateModel extends PublicationState {
         publishedVersion: versionData['version'] as int,
         publishedAt: versionData['publishedAt'] as DateTime,
         hasUnpublishedChanges: hasUnpublishedChanges,
+        latestVersion: latestVersion,
       ),
     );
   }

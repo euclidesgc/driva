@@ -113,8 +113,14 @@ export class ContentsService {
         ? encodeCursor(this.sortValueOf(last, sort), last.id)
         : null;
 
+    const latestVersions = await this.latestVersionsFor(
+      page.map((row) => row.id),
+    );
+
     return {
-      data: page.map((row) => this.toSummary(row)),
+      data: page.map((row) =>
+        this.toSummary(row, latestVersions.get(row.id) ?? null),
+      ),
       nextCursor,
     };
   }
@@ -153,7 +159,7 @@ export class ContentsService {
           select: CONTENT_SUMMARY_SELECT,
         });
       });
-      return this.toSummary(row);
+      return this.toSummary(row, null);
     } catch (error) {
       if (this.isSlugConflict(error)) {
         return this.throwSlugConflict(projectId, dto.slug);
@@ -174,6 +180,7 @@ export class ContentsService {
       categoryId: content.categoryId,
       spec: content.draftSpec,
       publishedVersion: await this.toPublishState(content),
+      latestVersion: await this.latestVersionFor(content.id),
       hasUnpublishedChanges: this.hasUnpublishedChanges(content),
       updatedAt: content.updatedAt,
     };
@@ -222,7 +229,7 @@ export class ContentsService {
       select: CONTENT_SUMMARY_SELECT,
     });
     if (!updated) throw new NotFoundException();
-    return this.toSummary(updated);
+    return this.toSummary(updated, await this.latestVersionFor(updated.id));
   }
 
   async remove(projectId: string, id: string) {
@@ -237,6 +244,7 @@ export class ContentsService {
     if (!this.hasUnpublishedChanges(row)) {
       return {
         publishedVersion: await this.toPublishState(row),
+        latestVersion: await this.latestVersionFor(row.id),
         hasUnpublishedChanges: false,
       };
     }
@@ -270,6 +278,7 @@ export class ContentsService {
           version: created.version,
           publishedAt: created.createdAt,
         },
+        latestVersion: created.version,
         hasUnpublishedChanges: false,
       };
     } catch (error) {
@@ -286,7 +295,11 @@ export class ContentsService {
       data: { publishedVersionId: null, publishedAt: null },
     });
     if (result.count === 0) throw new NotFoundException();
-    return { publishedVersion: null, hasUnpublishedChanges: true };
+    return {
+      publishedVersion: null,
+      latestVersion: await this.latestVersionFor(id),
+      hasUnpublishedChanges: true,
+    };
   }
 
   async listVersions(projectId: string, id: string, query: ListVersionsQueryDto) {
@@ -438,7 +451,7 @@ export class ContentsService {
     return row.updatedAt.toISOString();
   }
 
-  private toSummary(row: ContentRow) {
+  private toSummary(row: ContentRow, latestVersion: number | null) {
     return {
       id: row.id,
       name: row.name,
@@ -448,7 +461,34 @@ export class ContentsService {
       updatedAt: row.updatedAt,
       publishedAt: row.publishedAt,
       hasUnpublishedChanges: this.hasUnpublishedChanges(row),
+      latestVersion,
     };
+  }
+
+  // A `(sort: Desc)` de `[contentId, version]` (schema.prisma) faz do MAX
+  // agregado um lookup pelo índice, não um table scan.
+  private async latestVersionFor(contentId: string): Promise<number | null> {
+    const latest = await this.prisma.contentVersion.aggregate({
+      where: { contentId },
+      _max: { version: true },
+    });
+    return latest._max.version ?? null;
+  }
+
+  private async latestVersionsFor(
+    contentIds: string[],
+  ): Promise<Map<string, number>> {
+    if (contentIds.length === 0) return new Map();
+    const grouped = await this.prisma.contentVersion.groupBy({
+      by: ['contentId'],
+      where: { contentId: { in: contentIds } },
+      _max: { version: true },
+    });
+    return new Map(
+      grouped
+        .filter((row) => row._max.version !== null)
+        .map((row) => [row.contentId, row._max.version as number]),
+    );
   }
 
   private isP2002(error: unknown): boolean {

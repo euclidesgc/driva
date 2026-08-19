@@ -96,6 +96,12 @@ class FakeContentsStore {
 
   int? publishedVersionOf(String id) => _publishedVersion[id];
 
+  int? latestVersionOf(String id) {
+    final metas = _versionMeta[id];
+    if (metas == null || metas.isEmpty) return null;
+    return metas.last.version;
+  }
+
   DateTime? publishedAtOf(String id) => _publishedAt[id];
 
   bool hasUnpublishedChanges(String id) {

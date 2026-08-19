@@ -83,6 +83,7 @@ class ContentRowBody extends StatelessWidget {
                   PublicationBadge(
                     publishedAt: content.publishedAt,
                     hasUnpublishedChanges: content.hasUnpublishedChanges,
+                    latestVersion: content.latestVersion,
                   ),
                   const SizedBox(width: AppSpacing.s12),
                   UpdatedAt(updatedAt: content.updatedAt),

@@ -10,6 +10,7 @@ class ContentSummary extends Equatable {
     required this.publishedAt,
     required this.hasUnpublishedChanges,
     this.description,
+    this.latestVersion,
   });
 
   final String id;
@@ -25,6 +26,10 @@ class ContentSummary extends Equatable {
   final DateTime? publishedAt;
   final bool hasUnpublishedChanges;
 
+  /// Maior versão já criada, mesmo que nenhuma esteja no ar agora.
+  /// `null` = nunca publicado nem uma vez. Item 50 (fora do ar).
+  final int? latestVersion;
+
   @override
   List<Object?> get props => [
     id,
@@ -35,5 +40,6 @@ class ContentSummary extends Equatable {
     updatedAt,
     publishedAt,
     hasUnpublishedChanges,
+    latestVersion,
   ];
 }
