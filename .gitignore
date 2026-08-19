@@ -42,3 +42,4 @@ docs/**/.e2e-backend.*
 # Saída transitória do MCP do Playwright (console logs + snapshots de página
 # de sessões de automação de browser) — não é evidência de feature.
 .playwright-mcp/
+.flutter-plugins-dependencies

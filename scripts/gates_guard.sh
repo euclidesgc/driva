@@ -35,7 +35,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 TARGET_LIBS=("apps/driva_editor/lib" "apps/driva_demo_app/lib")
-GATE4_ONLY_LIBS=("packages/sdui_flutter/lib")
+GATE4_ONLY_LIBS=("packages/sdui_flutter/lib" "packages/driva_client/lib")
 fail=0
 
 # ----------------------------------------------------------------------------
