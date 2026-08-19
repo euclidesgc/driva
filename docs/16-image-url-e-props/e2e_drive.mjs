@@ -159,8 +159,25 @@ async function enableSemantics() {
   }
 }
 
+/// `aria-label` sozinho é CEGO para texto: o engine do Flutter Web só usa o
+/// atributo quando o nó tem filhos (`AriaLabelRepresentation`). Nó-folha com
+/// rótulo — todo `Text`, e portanto o `helperText`/`errorText` do
+/// `InputDecorator` — cai na `SizedSpanRepresentation`, que remove o `role` e
+/// escreve o rótulo como TEXTO de um `<span>` dentro do `flt-semantics`. Ler só
+/// o atributo fazia a asserção reprovar uma mensagem que estava na tela.
+///
+/// O texto próprio sai dos filhos DIRETOS (nó de texto ou `<span>`): os
+/// `flt-semantics` se aninham, e um `textContent` cru devolveria a subárvore
+/// inteira em cada ancestral — todo rótulo casaria com todo nó e a asserção de
+/// que dois sinais se distinguem passaria sem provar nada.
 const semanticLabels = async () =>
-  (await evalJS(`(() => Array.from(document.querySelectorAll('flt-semantics')).map(e => (e.getAttribute('aria-label')||'').replace(/\\s+/g,' ').trim()).filter(Boolean))()`)) || [];
+  (await evalJS(`(() => Array.from(document.querySelectorAll('flt-semantics')).map((e) => {
+    const proprio = Array.from(e.childNodes)
+      .filter((n) => n.nodeType === 3 || (n.nodeType === 1 && n.tagName === 'SPAN'))
+      .map((n) => n.textContent || '')
+      .join(' ');
+    return [e.getAttribute('aria-label') || '', proprio].join(' ').replace(/\\s+/g, ' ').trim();
+  }).filter(Boolean))()`)) || [];
 
 // ------------------------------- coordenadas do layout -------------------------------
 // Layout 1366x900: paleta 0..280, canvas 286..1046, inspector 1046..1366.
@@ -428,8 +445,8 @@ try {
   await shot('23a_largura_zero.png', {
     titulo: 'Largura = 0',
     clip: UI.recorteInspectorTamanho,
-    provado: 'o valor comitado no spec é 1 (o clamp da D6 agiu)',
-    olho: '**a mensagem "Ajustado para o mínimo (1)" que a D15 exige NÃO aparece** — o campo mostra 0 e o spec grava 1, sem sinal nenhum. Compare com o print seguinte',
+    provado: 'o valor comitado no spec é 1 (o clamp da D6 agiu) e o rótulo "Ajustado para o mínimo (1)" está na árvore acessível',
+    olho: 'logo abaixo do campo, a mensagem **"Ajustado para o mínimo (1)"**: o editor conta que mexeu no que você digitou, em vez de clampar calado. Guarde o TEXTO — o print seguinte tem de trazer outro',
   });
   const larguraZero = (await salvarEler((p) => p.width === 1)).width;
   check('o clamp da D6 agiu: 0 virou 1 no spec', 1, larguraZero);
@@ -442,8 +459,8 @@ try {
   await shot('23b_largura_abc.png', {
     titulo: 'Largura = abc',
     clip: UI.recorteInspectorTamanho,
-    provado: 'o texto inválido não derruba o editor',
-    olho: '**o `errorText` que a D15 exige NÃO aparece** — e o print anterior (0) é IGUAL a este: os dois sinais não se distinguem porque nenhum dos dois existe',
+    provado: 'o texto inválido não derruba o editor e o rótulo "Valor inválido" está na árvore acessível',
+    olho: 'a mensagem agora é **"Valor inválido"** — TEXTO diferente do print anterior, não só cor diferente. É esse par de textos que distingue os dois modos de falha para quem não enxerga cor; se os dois prints trouxerem a mesma frase, o item reprova',
   });
   check('(D15/DoD 23) o campo mostra errorText de valor inválido', true, /inv[áa]lid/i.test(rotulosAbc));
   check('(D15/DoD 23) os dois sinais se distinguem', true,
