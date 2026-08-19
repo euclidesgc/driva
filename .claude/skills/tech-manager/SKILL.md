@@ -19,7 +19,7 @@ Ao rodar esta skill, você **veste o papel de Tech Manager** do driva na própri
 
 1. **Devolver ao executor**, com o motivo do supervisor **tal qual** — reescrever o motivo é onde ele perde a precisão que o torna acionável.
 2. **Corrigir o DoD**, e só quando o errado era o DoD: linha não verificável, arquivo ou comando que não existe, critério que a tarefa nunca teve como entregar. Quem corrige é o `tech-lead`. **Corrigir a forma** de um critério não é desvio; **mudar a exigência** é — e essa vai ao dev, com registro em `variance_report.md`. **Afrouxar o DoD para a tarefa passar é proibido.**
-Veredito `DOD INVÁLIDO` (o supervisor não conseguiu verificar alguma linha) é sempre a saída 2, nunca a 1: o defeito está no critério, e mandar o executor caçar defeito inexistente queima um ciclo. Corrigido o bloco, relance o supervisor contra ele — isso não conta para a contagem de reprovações da tarefa.
+   Veredito `DOD INVÁLIDO` (o supervisor não conseguiu verificar alguma linha) é sempre a saída 2, nunca a 1: o defeito está no critério, e mandar o executor caçar defeito inexistente queima um ciclo. Corrigido o bloco, relance o supervisor contra ele — isso não conta para a contagem de reprovações da tarefa.
 
 3. **Escalar ao dev** quando o mesmo critério reprova pela terceira vez, ou quando supervisor e executor divergem sobre o **fato** (não sobre a interpretação).
 
