@@ -2,22 +2,42 @@ import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { configureApp } from '../src/configure-app';
-import { PublicModule } from '../src/public/public.module';
+import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { PUBLIC_THROTTLE } from '../src/public/public.constants';
 
-// Sem `x-driva-key` a rota devolve 404 antes de qualquer consulta ao banco
-// (`public.controller.ts`, `keyOf`) — o que deixa este teste exercitar o
-// `ThrottlerGuard` de verdade, em processo, sem depender de Postgres.
+// `ThrottlerModule` é `@Global()` e três módulos (`ProjectsModule`,
+// `MediaModule`, `PublicModule`) chamam `forRoot` — o defeito que este
+// arquivo prova só existe quando os três disputam o mesmo token, então o
+// teste monta o `AppModule` de verdade, não `PublicModule` isolado.
+//
+// Nenhuma das requisições daqui passa da checagem de `x-driva-key`
+// ausente (`public.controller.ts`, `keyOf` lança 404 antes de tocar
+// `PublicService`) — então o `PrismaService` nunca deveria ser consultado.
+// Um objeto vazio no lugar dele não pede Postgres real (a CI de backend
+// não sobe banco no job atual) e, se algum caminho inesperado tentasse
+// `this.prisma.content...`, falharia alto (`Cannot read properties of
+// undefined`) em vez de mascarar o acesso.
+const untouchedPrisma = {} as PrismaService;
+
+async function buildApp(): Promise<NestExpressApplication> {
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule],
+  })
+    .overrideProvider(PrismaService)
+    .useValue(untouchedPrisma)
+    .compile();
+  const app = moduleRef.createNestApplication<NestExpressApplication>();
+  configureApp(app);
+  await app.init();
+  return app;
+}
+
 describe('Rota pública — rate limit (item 25, D7)', () => {
   let app: NestExpressApplication;
 
   beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [PublicModule],
-    }).compile();
-    app = moduleRef.createNestApplication<NestExpressApplication>();
-    configureApp(app);
-    await app.init();
+    app = await buildApp();
   });
 
   afterEach(async () => {
@@ -25,7 +45,7 @@ describe('Rota pública — rate limit (item 25, D7)', () => {
   });
 
   it('devolve 429 acima do limite, sem vazar projeto/slug/chave no corpo', async () => {
-    const limit = PUBLIC_THROTTLE.limit;
+    const limit = PUBLIC_THROTTLE.default.limit;
 
     let last = { status: 0, body: {} as Record<string, unknown> };
     for (let i = 0; i < limit + 1; i += 1) {
@@ -40,7 +60,7 @@ describe('Rota pública — rate limit (item 25, D7)', () => {
   });
 
   it('a rota de detalhe (:slug) está sob o mesmo limite', async () => {
-    const limit = PUBLIC_THROTTLE.limit;
+    const limit = PUBLIC_THROTTLE.default.limit;
 
     let last = { status: 0 };
     for (let i = 0; i < limit + 1; i += 1) {
@@ -53,7 +73,7 @@ describe('Rota pública — rate limit (item 25, D7)', () => {
   });
 
   it('abaixo do limite, a rota responde 404 (chave ausente) — nunca 429', async () => {
-    const belowLimit = PUBLIC_THROTTLE.limit - 1;
+    const belowLimit = PUBLIC_THROTTLE.default.limit - 1;
 
     let last = { status: 0 };
     for (let i = 0; i < belowLimit; i += 1) {
