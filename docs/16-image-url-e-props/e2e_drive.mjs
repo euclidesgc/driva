@@ -159,8 +159,29 @@ async function enableSemantics() {
   }
 }
 
+/// `aria-label` sozinho é CEGO para texto: nó COM filhos sempre usa o atributo
+/// (`AriaLabelRepresentation`), mas nó-folha usa a representação preferida do
+/// papel dele — e um `Text`, que é o `helperText`/`errorText` do
+/// `InputDecorator`, cai em `GenericRole` → `SizedSpanRepresentation`, que
+/// remove o `role` e escreve o rótulo como TEXTO de um `<span>` dentro do
+/// `flt-semantics`. (Outros papéis preferem `aria-label` mesmo sendo folha, daí
+/// o leitor abaixo somar as duas fontes em vez de trocar uma pela outra.) Ler só
+/// o atributo fazia a asserção reprovar uma mensagem que estava na tela.
+///
+/// O texto próprio sai dos filhos DIRETOS (nó de texto ou `<span>`), e não de
+/// `textContent`: os `flt-semantics` se aninham, então `textContent` faria cada
+/// ancestral repetir a subárvore inteira e a lista deixaria de ser um rótulo
+/// POR NÓ — o que importa para quem lê o `resultado.txt` atrás de qual nó
+/// carrega a mensagem, e para qualquer asserção futura que precise apontar um
+/// nó em vez de perguntar se o texto está em algum lugar da página.
 const semanticLabels = async () =>
-  (await evalJS(`(() => Array.from(document.querySelectorAll('flt-semantics')).map(e => (e.getAttribute('aria-label')||'').replace(/\\s+/g,' ').trim()).filter(Boolean))()`)) || [];
+  (await evalJS(`(() => Array.from(document.querySelectorAll('flt-semantics')).map((e) => {
+    const proprio = Array.from(e.childNodes)
+      .filter((n) => n.nodeType === 3 || (n.nodeType === 1 && n.tagName === 'SPAN'))
+      .map((n) => n.textContent || '')
+      .join(' ');
+    return [e.getAttribute('aria-label') || '', proprio].join(' ').replace(/\\s+/g, ' ').trim();
+  }).filter(Boolean))()`)) || [];
 
 // ------------------------------- coordenadas do layout -------------------------------
 // Layout 1366x900: paleta 0..280, canvas 286..1046, inspector 1046..1366.
@@ -428,8 +449,8 @@ try {
   await shot('23a_largura_zero.png', {
     titulo: 'Largura = 0',
     clip: UI.recorteInspectorTamanho,
-    provado: 'o valor comitado no spec é 1 (o clamp da D6 agiu)',
-    olho: '**a mensagem "Ajustado para o mínimo (1)" que a D15 exige NÃO aparece** — o campo mostra 0 e o spec grava 1, sem sinal nenhum. Compare com o print seguinte',
+    provado: 'o valor comitado no spec é 1 (o clamp da D6 agiu) e o rótulo "Ajustado para o mínimo (1)" está na árvore acessível',
+    olho: 'logo abaixo do campo, a mensagem **"Ajustado para o mínimo (1)"**: o editor conta que mexeu no que você digitou, em vez de clampar calado. Guarde o TEXTO — o print seguinte tem de trazer outro',
   });
   const larguraZero = (await salvarEler((p) => p.width === 1)).width;
   check('o clamp da D6 agiu: 0 virou 1 no spec', 1, larguraZero);
@@ -442,12 +463,15 @@ try {
   await shot('23b_largura_abc.png', {
     titulo: 'Largura = abc',
     clip: UI.recorteInspectorTamanho,
-    provado: 'o texto inválido não derruba o editor',
-    olho: '**o `errorText` que a D15 exige NÃO aparece** — e o print anterior (0) é IGUAL a este: os dois sinais não se distinguem porque nenhum dos dois existe',
+    provado: 'o texto inválido não derruba o editor e o rótulo "Valor inválido" está na árvore acessível',
+    olho: 'a mensagem agora é **"Valor inválido"** — TEXTO diferente do print anterior, não só cor diferente. É esse par de textos que distingue os dois modos de falha para quem não enxerga cor; se os dois prints trouxerem a mesma frase, o item reprova',
   });
   check('(D15/DoD 23) o campo mostra errorText de valor inválido', true, /inv[áa]lid/i.test(rotulosAbc));
-  check('(D15/DoD 23) os dois sinais se distinguem', true,
-    /Ajustado para o m[íi]nimo/.test(rotulosZero) && /inv[áa]lid/i.test(rotulosAbc));
+  // Só as NEGATIVAS distinguem: repetir aqui as duas positivas acima faria uma
+  // conjunção que não tem como reprovar sozinha, e as duas mensagens aparecendo
+  // nos DOIS estados passaria pelas três asserções com a tela errada.
+  check('(D15/DoD 23) os dois sinais se distinguem: nenhum estado traz a mensagem do outro', true,
+    !/inv[áa]lid/i.test(rotulosZero) && !/Ajustado para o m[íi]nimo/.test(rotulosAbc));
 
   // ------------------------------------------------------------- props novas da F4
   step('§10.10–11 (F4)', 'width 100%, alignment, borderRadius e backgroundColor');

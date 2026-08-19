@@ -581,7 +581,10 @@ class EditorCubit extends Cubit<EditorState> {
       ),
       (_) => emit(
         latest.copyWith(
-          publication: const PublicationState(hasUnpublishedChanges: true),
+          publication: PublicationState(
+            hasUnpublishedChanges: true,
+            latestVersion: latest.publication.latestVersion,
+          ),
           publishStatus: PublishStatus.idle,
         ),
       ),

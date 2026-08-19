@@ -10,6 +10,7 @@ Numeração: `VR-16-NN`, na ordem em que os desvios acontecem.
 | --- | --- | --- | --- | --- |
 | VR-16-01 | F2 | `app.set('trust proxy', 1)` em `backend/src/main.ts` | Gate CISO | **Aplicado** |
 | VR-16-02 | F3 | O ponto de injeção do resolver: **8** arquivos do editor, não 1 | Regra do CLAUDE.md cobrada por 5 testes | **Aplicado** |
+| VR-16-03 | E2E | As 3 asserções vermelhas da rodada 01 tinham **duas** causas: regressão da F4 (já corrigida) e cegueira do driver | Investigação pós-rodada | **Aplicado** |
 
 > **Nota de numeração — reserva desfeita.** A **D16** do `plan.md` havia reservado o rótulo
 > `VR-16-02` para uma hipótese que nunca se concretizou (o teste do contrato da D12 descendo
@@ -164,3 +165,116 @@ até alguém tentar o sexto.
 - **Gate CISO:** liberado.
 - **QA:** código aprovado; desvio confirmado como **procedente**, com a ressalva dos 5 níveis.
 - **Registro:** este documento; a §5›F3 do `plan.md` foi corrigida para os 8 arquivos.
+
+---
+
+## VR-16-03 — As 3 asserções vermelhas da rodada 01 tinham duas causas, não uma
+
+**Fase:** E2E (rodada 01). **Origem:** investigação pedida depois de a rodada fechar 26 PASS / 3 FAIL.
+**Data:** 2026-08-19. **Estado:** aplicado; nenhum arquivo de `lib/` foi tocado nesta investigação.
+
+As três falhas registradas em `evidencias/rodada_01/README.md:9` (o placar, `26 PASS / 3 FAIL`, está em `:7`) — `(D15/DoD 23) o campo mostra
+"Ajustado para o mínimo (1)"`, `(D15/DoD 23) o campo mostra errorText de valor inválido` e
+`(D15/DoD 23) os dois sinais se distinguem` — **não** tinham causa comum. Corrigir só a primeira
+teria devolvido a rodada 02 vermelha, pelo segundo motivo, sem ninguém entender por quê.
+
+### Causa 1 — a F4 desfez o sinal que a F1 tinha acabado de criar (produto; já corrigida)
+
+A **F1** fez o campo numérico parar de clampar calado: `packages/sdui_core/lib/src/catalog/widget_catalog.dart:330`
+e `:340` subiram `image.width`/`image.height` de `min: 0` para `min: 1`, e o `NumberEditor` passou a
+avisar quando ajustava o valor.
+
+A **F4** (`9af0cbb`, 2026-08-15 22:29) migrou esses dois campos de `FieldKind.doubleNum` para
+`FieldKind.dimension` (as duas trocas aparecem no diff do arquivo acima). Com isso
+`apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/prop_field/typed_prop_editor.dart:58`
+passou a despachar `image.width` para o **`DimensionEditor`**, que clampava **sem sinalizar** — o
+`NumberEditor` continuou avisando, mas `image.width` deixou de passar por ele.
+
+Duas fases do mesmo item, uma desfazendo a outra, **ambas aprovadas em revisão**. Quem pegou foi o
+E2E: os prints `evidencias/rodada_01/23a_largura_zero.png` e `23b_largura_abc.png` são a mesma tela,
+com a borda laranja de foco e mensagem nenhuma.
+
+**Já está corrigido.** `624970b` criou
+`apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/prop_field/numeric_clamp.dart`
+(`:3` a mensagem de valor inválido, `:21-27` o `clampMessageFor` que separa mínimo de máximo) e ligou
+os dois editores nele — `dimension_editor.dart:208-209` e `number_editor.dart:118-119` levam
+`errorText`/`helperText` ao campo.
+
+### A evidência da rodada 01 é de ANTES da correção
+
+- `9af0cbb` — 2026-08-15 22:29:13 -0300 — F4 introduz a regressão
+- `624970b` — 2026-08-16 **00:26:02** -0300 — a correção
+- `f4daf0c` — 2026-08-16 **00:29:09** -0300 — a pasta `evidencias/rodada_01/` é comitada
+
+**Três minutos.** Os 3 FAIL registram um estado que já não existia quando o arquivo entrou no
+repositório. O `README.md` da rodada 01 **não foi reescrito** — evidência de execução passada não se
+edita; quem fecha o item é a rodada 02.
+
+### Causa 2 — o driver não conseguia ler o sinal, mesmo depois de corrigido
+
+`docs/16-image-url-e-props/e2e_drive.mjs`, no `semanticLabels()`, lia só
+`getAttribute('aria-label')`.
+
+> Os ponteiros de engine abaixo são do **SDK do Flutter 3.44.9**, não deste repositório, e a
+> numeração de linha muda entre versões — o que não muda é o mecanismo. Para reconferir noutra
+> versão, procure por `LabelRepresentation` e `GenericRole`. O engine do Flutter Web só usa esse atributo quando o nó **tem filhos**
+(`AriaLabelRepresentation`, em
+`flutter/engine/src/flutter/lib/web_ui/lib/src/engine/semantics/label_and_value.dart:123`).
+
+Nó-**folha** com rótulo — todo `Text`, e portanto o `helperText`/`errorText` do `InputDecorator` — cai
+no `GenericRole`
+(`.../lib/web_ui/lib/src/engine/semantics/semantics.dart:1057`), que escolhe
+`LabelRepresentation.sizedSpan` (`:1065`) e **remove o atributo `role`** (`:1101`). A
+`SizedSpanRepresentation` escreve o rótulo como **texto de um `<span>`** dentro do `flt-semantics`
+(`label_and_value.dart:275`) — nunca como `aria-label`. O DOM esperado está no teste do próprio
+engine: `.../lib/web_ui/test/engine/semantics/semantics_test.dart:717`, `<sem><span>Hello</span></sem>`.
+
+**As três asserções vermelhas eram as únicas do roteiro que dependiam de leitura semântica.** As
+outras 26 são de rede (domínio `Network` do CDP), de spec (API) ou de pixel — e passaram todas. Ler o
+atributo errado era invisível enquanto nenhuma outra asserção o exercitava.
+
+Corrigido: o texto próprio passa a sair também dos filhos **diretos** (nó de texto ou `<span>`).
+Simulado contra um DOM aninhado com essa estrutura, o leitor antigo devolve só `["Largura"]` e o novo,
+`["Largura", "Ajustado para o mínimo (1)"]`.
+
+### Dois achados do supervisor, no mesmo arquivo
+
+**A asserção de distinção não distinguia.** `check('(D15/DoD 23) os dois sinais se distinguem')` era a
+**conjunção literal** das duas asserções positivas anteriores — não tinha como reprovar sozinha, e
+nunca afirmou que o estado `0` **não** traz "Valor inválido" nem que o estado `abc` **não** traz
+"Ajustado para o mínimo". Com as duas mensagens aparecendo nos dois estados, as três asserções
+passariam com a tela errada. Hoje isso é impossível porque
+`.../prop_field/number_text_field.dart:32` suprime o `helperText` quando há `errorText` — mas o E2E
+não provava o que o nome dele diz, e foi um E2E que não provava o que dizia que deixou este item
+parado. A asserção passou a ser só as **negativas**.
+
+**O comentário do filtro dava uma razão falsa.** Ele afirmava que `textContent` cru faria "todo rótulo
+casar com todo nó" e a asserção "passaria sem provar nada". Não procede: as três asserções rodam
+regex sobre um `join(' | ')` da página inteira, onde a duplicação nos ancestrais não muda resultado
+nenhum. O filtro continua certo — a razão escrita é que estava errada, e pela regra de comentários do
+`CLAUDE.md` um **porquê** incorreto é pior que nenhum. Reescrito com a razão verdadeira: manter a
+lista como **um rótulo por nó**.
+
+### A lição de fundo — a suíte não tinha uma linha sobre essas mensagens
+
+Nenhum teste em `apps/driva_editor/test/` mencionava "Ajustado para o mínimo" ou "Valor inválido"
+antes desta investigação. **Foi isso que permitiu duas fases do mesmo item se desfazerem uma à outra
+com revisão aprovada nas duas** — não havia nada na cancela de máquina que percebesse o sinal sumindo,
+e o único instrumento que percebeu foi o E2E, três dias depois.
+
+A rede agora existe: `.../prop_field/dimension_editor_test.dart:127` (grupo "sinal do ajuste e do
+erro", 4 casos, incluindo a árvore acessível em `:170`) e a dupla equivalente no `NumberEditor`, em
+`.../prop_field/prop_field_editors_test.dart`. Os 4 casos do `DimensionEditor` **falham** contra a
+versão pré-`624970b` do editor e passam contra a atual — verificado restaurando `9af0cbb:dimension_editor.dart`
+e reproduzido de forma independente pelo supervisor, com o mesmo resultado (4 vermelhos, nenhum outro).
+
+O teste da árvore acessível não duplica o de texto: em opacidade zero o `FadeTransition` do
+`InputDecorator` tira o nó da árvore semântica, então "está na tela" e "é anunciável" são condições
+diferentes — e a segunda é a que o leitor de tela e o driver do E2E leem.
+
+### Aprovação
+
+- **Nada de `lib/` mudou:** a causa 1 já estava corrigida em `develop`; esta investigação acrescentou
+  teste e corrigiu o instrumento.
+- **Pendente:** a **rodada 02** contra homologação, com a `develop` atual implantada. É o que falta
+  para o atestado humano do DoD 23.

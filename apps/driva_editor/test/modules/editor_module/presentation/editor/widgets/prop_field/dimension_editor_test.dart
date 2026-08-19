@@ -12,13 +12,26 @@ const _largura = PropField(
   min: 0,
 );
 
+const _larguraDaImagem = PropField(
+  key: 'width',
+  kind: FieldKind.dimension,
+  label: 'Largura',
+  group: FieldGroups.size,
+  min: 1,
+);
+
 /// Segura o valor como o Inspector faz, para o campo receber de volta o que
 /// emitiu — sem isso não dá para testar ressincronização nem foco.
 class _Harness extends StatefulWidget {
-  const _Harness({required this.initial, required this.changes});
+  const _Harness({
+    required this.initial,
+    required this.changes,
+    required this.field,
+  });
 
   final Object? initial;
   final List<Object?> changes;
+  final PropField field;
 
   @override
   State<_Harness> createState() => _HarnessState();
@@ -34,7 +47,7 @@ class _HarnessState extends State<_Harness> {
       body: SizedBox(
         width: 360,
         child: PropFieldEditor(
-          field: _largura,
+          field: widget.field,
           value: _value,
           onChanged: (value) {
             widget.changes.add(value);
@@ -49,9 +62,12 @@ class _HarnessState extends State<_Harness> {
 Future<List<Object?>> _pumpEditor(
   WidgetTester tester, {
   Object? value,
+  PropField field = _largura,
 }) async {
   final changes = <Object?>[];
-  await tester.pumpWidget(_Harness(initial: value, changes: changes));
+  await tester.pumpWidget(
+    _Harness(initial: value, changes: changes, field: field),
+  );
   return changes;
 }
 
@@ -105,6 +121,71 @@ void main() {
       await tester.pump();
 
       expect(changes.last, 0.0);
+    });
+  });
+
+  group('sinal do ajuste e do erro', () {
+    testWidgets('valor abaixo do mínimo diz na tela para onde foi ajustado', (
+      tester,
+    ) async {
+      await _pumpEditor(tester, value: 200.0, field: _larguraDaImagem);
+
+      await tester.enterText(find.byType(TextField), '0');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajustado para o mínimo (1)'), findsOneWidget);
+    });
+
+    testWidgets('texto não numérico mostra o erro na tela', (tester) async {
+      await _pumpEditor(tester, value: 200.0, field: _larguraDaImagem);
+
+      await tester.enterText(find.byType(TextField), 'abc');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Valor inválido'), findsOneWidget);
+    });
+
+    testWidgets('os dois sinais se distinguem por texto, não por cor', (
+      tester,
+    ) async {
+      await _pumpEditor(tester, value: 200.0, field: _larguraDaImagem);
+      final campo = find.byType(TextField);
+
+      await tester.enterText(campo, '0');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajustado para o mínimo (1)'), findsOneWidget);
+      expect(find.text('Valor inválido'), findsNothing);
+
+      await tester.enterText(campo, 'abc');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Valor inválido'), findsOneWidget);
+      expect(find.text('Ajustado para o mínimo (1)'), findsNothing);
+    });
+
+    /// Um leitor de tela — e o driver do E2E — só enxergam o que o
+    /// `FadeTransition` do `InputDecorator` já revelou: em opacidade zero o nó
+    /// some da árvore acessível, e a mensagem existiria só no pixel.
+    testWidgets('os dois sinais chegam à árvore acessível', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pumpEditor(tester, value: 200.0, field: _larguraDaImagem);
+      final campo = find.byType(TextField);
+
+      await tester.enterText(campo, '0');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.bySemanticsLabel('Ajustado para o mínimo (1)'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(campo, 'abc');
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Valor inválido'), findsOneWidget);
+
+      semantics.dispose();
     });
   });
 

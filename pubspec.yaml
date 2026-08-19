@@ -11,5 +11,6 @@ dev_dependencies:
 workspace:
   - packages/sdui_core
   - packages/sdui_flutter
+  - packages/driva_client
   - apps/driva_editor
   - apps/driva_demo_app

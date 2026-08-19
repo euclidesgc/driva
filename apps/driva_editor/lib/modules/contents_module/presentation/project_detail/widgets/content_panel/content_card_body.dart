@@ -76,6 +76,7 @@ class ContentCardBody extends StatelessWidget {
                     PublicationBadge(
                       publishedAt: content.publishedAt,
                       hasUnpublishedChanges: content.hasUnpublishedChanges,
+                      latestVersion: content.latestVersion,
                     ),
                   ],
                 ),

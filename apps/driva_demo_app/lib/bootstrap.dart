@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:driva_client/driva_client.dart';
 import 'package:driva_demo_app/app_widget.dart';
 import 'package:driva_demo_app/core/config/app_config.dart';
 import 'package:driva_demo_app/core/observability/app_bloc_observer.dart';
@@ -10,8 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> bootstrap(AppConfig config) async {
-  runZonedGuarded(
-    () {
+  await runZonedGuarded(
+    () async {
       WidgetsFlutterBinding.ensureInitialized();
 
       Bloc.observer = const AppBlocObserver();
@@ -31,6 +32,12 @@ Future<void> bootstrap(AppConfig config) async {
       };
 
       setupInjection(config);
+      await Driva.init(
+        DrivaConfig(
+          baseUrl: config.apiBaseUrl,
+          publishableKey: config.publishableKey,
+        ),
+      );
       runApp(const AppWidget());
     },
     (error, stack) {

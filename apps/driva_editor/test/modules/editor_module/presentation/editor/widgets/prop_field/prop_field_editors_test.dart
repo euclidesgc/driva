@@ -209,6 +209,27 @@ void main() {
 
       expect(tester.widget<Slider>(find.byType(Slider)).divisions, 11);
     });
+
+    testWidgets('valor abaixo do mínimo diz na tela para onde foi ajustado', (
+      tester,
+    ) async {
+      await _pumpEditor(tester, field: comFaixa, value: 24.0);
+
+      await tester.enterText(find.byType(TextField), '2');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajustado para o mínimo (8)'), findsOneWidget);
+    });
+
+    testWidgets('texto não numérico mostra o erro na tela', (tester) async {
+      await _pumpEditor(tester, field: comFaixa, value: 24.0);
+
+      await tester.enterText(find.byType(TextField), 'abc');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Valor inválido'), findsOneWidget);
+      expect(find.text('Ajustado para o mínimo (8)'), findsNothing);
+    });
   });
 
   group('PropResetButton', () {

@@ -74,6 +74,10 @@ jobs:
         run: flutter test
         working-directory: packages/sdui_flutter
 
+      - name: Testes — driva_client (runtime do app cliente)
+        run: flutter test
+        working-directory: packages/driva_client
+
       # Da raiz o bundle de assets não é montado e os goldens rodariam sem
       # fontes nem ícones (`loadAppFonts` falha alto nesse caso).
       - name: Testes — driva_editor (editor)
