@@ -4,6 +4,8 @@
 > Regra de ouro do "pronto": **`flutter analyze` verde + `backend build` verde + testes existentes passando** (nunca opinião). Bateria automatizada nova é escrita **por último** (após E2E).
 > Escopo do plano: o **item 10** (API de conteúdos: envelope/cursor/busca/sort/filtro + fundação `Category`) **mais** a **UI da tela do projeto** (árvore de categorias + painel de conteúdos + forms), fechando o fluxo do protótipo. A home de Projetos (cards) é da feature 09; o Construtor já existe (`editor_module`) — só o clique no conteúdo leva a ele.
 
+> **Nota histórica (2026-08-18).** As menções a `/contents/:id/edit` neste documento descrevem a rota do editor à época. Desde o item **46** a rota é `/projects/:projectId/contents/:id/edit` — ver `docs/46-projectid-na-rota-do-editor/`.
+
 ## Contexto de dependência (crítico) — empilhamento sobre a feature 09
 
 A feature 09 (`feature/crud-projeto`, ainda **não mergeada** em `develop` — F5 dela é UI, bloqueada por design) criou:
