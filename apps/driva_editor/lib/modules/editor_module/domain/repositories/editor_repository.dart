@@ -17,5 +17,10 @@ abstract interface class EditorRepository {
     String? cursor,
   });
 
+  Future<Either<Failure, LoadedContentVersion>> getVersion(
+    String id,
+    int version,
+  );
+
   Future<Either<Failure, ContentSpec>> restoreVersion(String id, int version);
 }

@@ -82,6 +82,37 @@ class EditorRepositoryFake implements EditorRepository {
   }
 
   @override
+  Future<Either<Failure, LoadedContentVersion>> getVersion(
+    String id,
+    int version,
+  ) async {
+    await Future<void>.delayed(_latency);
+    if (store.find(id) == null) return const Left(NotFoundFailure());
+
+    final spec = store.specAtVersion(id, version);
+    if (spec == null) return const Left(NotFoundFailure());
+
+    FakeVersionMeta? meta;
+    for (final candidate in store.versionsOf(id)) {
+      if (candidate.version == version) {
+        meta = candidate;
+        break;
+      }
+    }
+    if (meta == null) return const Left(NotFoundFailure());
+
+    return Right(
+      LoadedContentVersion(
+        version: meta.version,
+        spec: spec,
+        createdAt: meta.createdAt,
+        note: meta.note,
+        createdBy: meta.createdBy,
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, ContentSpec>> restoreVersion(
     String id,
     int version,
