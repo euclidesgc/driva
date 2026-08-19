@@ -99,11 +99,13 @@ Custo de token é regra, não preferência — e tempo de parede também: numa f
 
   `search` acha a seção (`--path <trecho>` restringe a um caminho); `label` acha onde um rótulo do harness (`D32`, `F8`, `VR-46-02`, `§6`) aparece, com a provável definição primeiro; `outline` lista o sumário de um arquivo. Com a faixa de linhas na mão, o `Read` vai direto por `offset`/`limit`, sem despejar o arquivo. O banco vive em `.docs-index/` (local, ignorado pelo git) e **toda consulta reindexa o que mudou antes de responder** — `--no-refresh` desliga.
 
-  **O hook que reindexa a cada edição não é versionado.** Ele mora no `settings.json` do Claude Code da máquina (`~/.claude/settings.json`), fora do repositório: quem clona recebe o script e **não** recebe a reindexação automática. Para instalar, acrescente este comando ao `PostToolUse` com matcher `Edit|Write`, no seu `~/.claude/settings.json` ou no `.claude/settings.local.json` do repo (que é gitignorado):
+  **O hook que reindexa a cada edição é versionado em `.claude/settings.json`** — viaja com o repositório e não exige passo de setup. Ele é `PostToolUse` com matcher `Edit|Write`, e o comando é este:
 
   ```bash
   ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f "$ROOT/scripts/docs_index.py" ] && python3 "$ROOT/scripts/docs_index.py" --root "$ROOT" index --quiet >/dev/null 2>&1 || true
   ```
+
+  Hooks de escopos diferentes **somam** em vez de se sobrescrever: quem já tiver este mesmo comando no `~/.claude/settings.json` deve removê-lo de lá, ou pagará a reindexação duas vezes a cada edição.
 
   **O que o índice não resolve:** ele acha **onde** a informação está, não se ela continua verdadeira. Ponteiro `arquivo:linha` escrito numa doc não é verificado por ele — conferir no arquivo continua sendo de quem lê, e foi exatamente esse tipo de ponteiro morto que a faxina do harness teve de caçar à mão.
 - **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
