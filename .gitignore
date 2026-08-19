@@ -35,6 +35,10 @@ docs/**/.e2e-backend.*
 .claude/settings.local.json
 .vscode/backend.pid
 
+# Banco do índice de busca das docs (scripts/docs_index.py). Derivado dos .md e
+# reconstruído sob demanda — versioná-lo daria conflito binário a cada edição de doc.
+.docs-index/
+
 # Saída transitória do MCP do Playwright (console logs + snapshots de página
 # de sessões de automação de browser) — não é evidência de feature.
 .playwright-mcp/

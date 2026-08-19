@@ -89,6 +89,25 @@ Comando não-óbvio: o editor roda **de dentro de `apps/driva_editor`**, com cam
 Custo de token é regra, não preferência — e tempo de parede também: numa fase orquestrada pelo `/tech-manager`, o gargalo não é `flutter analyze`/`flutter test` (segundos), é o raciocínio dos agentes. rtk (reescreve `git`/`grep`/`ls`/… via hook) e o grafo do CRG (`.code-review-graph/`, auto-atualizado por hook a cada edição) já estão ativos — **use-os**:
 
 - **Grafo antes de grep/read cru.** Para explorar/entender código, consulte primeiro os tools do MCP `code-review-graph` (`query_graph`, `get_review_context`, `detect_changes`, `semantic_search_nodes`, `get_impact_radius`). Só caia em `Grep`/`Read` quando o grafo não cobrir. (Vale para subagentes — inclua isso no prompt deles.)
+- **Índice antes de `grep` cru em docs.** O equivalente do grafo para prosa: `scripts/docs_index.py` indexa cada `.md` **por seção** (FTS5/BM25 do sqlite) e devolve caminho, faixa de linhas e trilha de títulos — no lugar de `grep` cego seguido de `sed` às escuras dentro de um `plan.md` de 200 KB. Três comandos, rodados da raiz do repositório:
+
+  ```bash
+  python3 scripts/docs_index.py search "E2E manual em aparelho físico" --limit 3
+  python3 scripts/docs_index.py label D32
+  python3 scripts/docs_index.py outline docs/GITFLOW.md --max-level 2
+  ```
+
+  `search` acha a seção (`--path <trecho>` restringe a um caminho); `label` acha onde um rótulo do harness (`D32`, `F8`, `VR-46-02`, `§6`) aparece, com a provável definição primeiro; `outline` lista o sumário de um arquivo. Com a faixa de linhas na mão, o `Read` vai direto por `offset`/`limit`, sem despejar o arquivo. O banco vive em `.docs-index/` (local, ignorado pelo git) e **toda consulta reindexa o que mudou antes de responder** — `--no-refresh` desliga.
+
+  **O hook que reindexa a cada edição é versionado em `.claude/settings.json`** — viaja com o repositório e não exige passo de setup. Ele é `PostToolUse` com matcher `Edit|Write`, e o comando é este:
+
+  ```bash
+  ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f "$ROOT/scripts/docs_index.py" ] && python3 "$ROOT/scripts/docs_index.py" --root "$ROOT" index --quiet >/dev/null 2>&1 || true
+  ```
+
+  Hooks de escopos diferentes **somam** em vez de se sobrescrever: quem já tiver este mesmo comando no `~/.claude/settings.json` deve removê-lo de lá, ou pagará a reindexação duas vezes a cada edição.
+
+  **O que o índice não resolve:** ele acha **onde** a informação está, não se ela continua verdadeira. Ponteiro `arquivo:linha` escrito numa doc não é verificado por ele — conferir no arquivo continua sendo de quem lê, e foi exatamente esse tipo de ponteiro morto que a faxina do harness teve de caçar à mão.
 - **Saída de comando enxuta.** Testes com `-r compact` (`flutter test -r compact`, `dart test -r compact`) e/ou `| tail`; nunca despejar log de teste linha a linha. Analyze/format já são curtos.
 - **Teste escopado durante iteração; suíte completa só na consolidação.** Corrigindo um achado pontual (fix de QA, ajuste pequeno)? Rode só o(s) arquivo(s) de teste afetado(s) (`flutter test -r compact <caminho>`). A suíte inteira roda nos pontos de consolidação: fim de um conjunto de tarefas paralelas, antes do gate QA/CISO, antes de abrir PR. Rodar tudo a cada ajuste pequeno não pega bug antes — só soma tempo de parede.
 - **Paralelize tarefas de implementação genuinamente independentes.** Quando o `plan.md` de uma fase marca tarefas `[paralela: sim]` tocando arquivos majoritariamente disjuntos, dispare um `especialista-*` por frente (`Agent` com `isolation: worktree`, já que vão escrever ao mesmo tempo), não um agente único fazendo tudo em sequência. Consolide (merge das branches) e só então rode a suíte completa na branch integrada. Tarefas `[paralela: não — dep. X]` continuam sequenciais de propósito — não force paralelismo onde há dependência real (ex.: a regra de separar causas em commits distintos, como a D32 do item 41).
