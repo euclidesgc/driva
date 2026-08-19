@@ -1,0 +1,20 @@
+name: driva_client
+description: Runtime do driva para apps clientes — resolve ContentSpec publicado por slug, com cache em disco, stale-while-revalidate e fallback embarcado.
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  equatable: ^2.0.7
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  sdui_core: ^0.3.0
+  sdui_flutter: ^0.4.0
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
