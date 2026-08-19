@@ -93,7 +93,9 @@ dois bugs pré-existentes, sem relação com publicação/versionamento:
    encontrado" — mensagem enganosa, o conteúdo existe. Só não afeta o
    projeto `default` por coincidência de valor de fallback. Descoberto
    porque o driver do E2E de UI usa `Page.navigate` (reload completo, como
-   um F5) entre as telas.
+   um F5) entre as telas. **Corrigido pelo item 46 em 2026-08-18:** a rota
+   virou `/projects/:projectId/contents/:id/edit`
+   (`docs/46-projectid-na-rota-do-editor/`).
 2. **A categoria "Geral" pode ser renomeada**, e o fallback de criação de
    conteúdo sem `categoryId` explícito busca por esse nome literal (item
    **47**). No projeto `default` de hml, "Geral" foi renomeada em uso real —

@@ -2,6 +2,8 @@
 
 > Mudança de conceito aprovada pelo dev humano (2026-07-02). Documento vivo: descreve o que a feature **é**. Dono: PM. Base técnica levantada com o tech-lead sobre o estado atual do repo.
 
+> **Nota histórica (2026-08-18).** As menções a `/contents/:id/edit` neste documento descrevem a rota do editor à época. Desde o item **46** a rota é `/projects/:projectId/contents/:id/edit` — ver `docs/46-projectid-na-rota-do-editor/`.
+
 ## O que é
 
 O driva deixa de gerenciar **"páginas"** e passa a gerenciar **"conteúdos" (content)**. Um conteúdo é uma árvore SDUI que pode ser uma **página inteira** ou só um **fragmento** — a diferença deixa de ser um conceito do produto. No app cliente, o dev pede um conteúdo **por referência (slug)** e usa o widget do pacote driva para renderizá-lo **onde quiser** na sua própria tela.

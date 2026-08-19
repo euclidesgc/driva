@@ -56,7 +56,7 @@ Gera, em `evidencias/rodada_MM/`:
 | 01 | `01_lista_vazia` | lista vazia (`/contents`, sem `#`) |
 | 02 | `02_lista_com_conteudos` | cards com slug em destaque + "ID de suporte" |
 | 03 | `03_editor_carregado` | editor de um conteúdo real (paleta, inspector) |
-| 04 | `04_notfound` | `/contents/nao-existe/edit` → NotFound tratado |
+| 04 | `04_notfound` | `/projects/:projectId/contents/nao-existe/edit` → NotFound tratado (URL atualizada pelo item 46; o `e2e_shots.sh` vivo já usa esta) |
 | 05 | `05_slug_ao_vivo` | diálogo "Novo conteúdo": Nome → **slug derivado ao vivo** |
 | 06 | `06_colisao_home2` | slug repetido → resolve p/ **`home-2`** (ver achado abaixo) |
 | 07 | `07_drag_preview` | **drag-drop** da paleta → preview renderiza |

@@ -4,6 +4,8 @@
 >
 > Marcas de tarefa: `[P]` pode rodar em paralelo com as vizinhas · `[S]` delegar a sub-agente (varredura/rename pesado).
 
+> **Nota histórica (2026-08-18).** As menções a `/contents/:id/edit` neste documento descrevem a rota do editor à época. Desde o item **46** a rota é `/projects/:projectId/contents/:id/edit` — ver `docs/46-projectid-na-rota-do-editor/`.
+
 ## Convenções desta feature
 
 - **Sem comentários explicativos no código.** Nome descritivo no lugar do comentário; comentar só o "porquê" não-óbvio. Vale para Dart e TypeScript.

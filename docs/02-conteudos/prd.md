@@ -2,6 +2,8 @@
 
 > Redigido em 2026-07-02 a partir da `specs.md` + respostas do dev às 7 pendências do discovery. **Aguardando aprovação do dev.** Dono: PM. "Pronto" = bater com este documento. Nada de `plan.md`/implementação antes do OK humano.
 
+> **Nota histórica (2026-08-18).** As menções a `/contents/:id/edit` neste documento descrevem a rota do editor à época. Desde o item **46** a rota é `/projects/:projectId/contents/:id/edit` — ver `docs/46-projectid-na-rota-do-editor/`.
+
 ## Resultado esperado
 
 O driva passa a falar "conteúdo" no lugar de "página" em toda a stack, sem perder nenhuma capacidade atual. Um usuário abre o editor no Chrome, vê a lista de **Conteúdos**, cria um conteúdo informando **Nome** e **Descrição** (o `slug` é derivado do nome ao vivo, editável e garantidamente livre), edita a árvore SDUI como antes, salva, recarrega e reencontra tudo. Cada card mostra `slug` em destaque (a referência que o dev usará no código) e o `id` de suporte. Os dados reais que já existem em hml/prod são migrados de `page` para `content` sem perda, com o `slug` semeado do antigo `screenTarget`.
