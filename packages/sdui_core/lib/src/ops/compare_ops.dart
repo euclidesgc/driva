@@ -395,3 +395,18 @@ bool _deepEquals(Object? a, Object? b) {
   }
   return a == b;
 }
+
+/// Chaves de [SduiNode.properties] que diferem entre [base] e [candidate] —
+/// união das duas chaves, mantendo só as que [_deepEquals] considera
+/// diferentes. Reusa a mesma comparação de [_diffNode]: outra implementação
+/// aqui divergiria de [NodeDiff.propertiesChanged], podendo marcar o nó como
+/// alterado sem nenhuma chave correspondente no resultado.
+Set<String> changedPropertyKeys(SduiNode base, SduiNode candidate) {
+  final keys = base.properties.keys.toSet().union(
+    candidate.properties.keys.toSet(),
+  );
+  return {
+    for (final key in keys)
+      if (!_deepEquals(base.properties[key], candidate.properties[key])) key,
+  };
+}

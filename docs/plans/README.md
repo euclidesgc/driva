@@ -14,7 +14,7 @@ Um plano por item **aberto** do [`docs/roadmap.md`](../roadmap.md). Cada pasta g
 | 38 | Destravar o construtor — envolver nó e drop sem beco sem saída | [`38-destravar-drop-e-envolver`](38-destravar-drop-e-envolver/plan.md) | — (0-dep; **antes do 24**) |
 | 39 | Widget `image` — a URL aparece e o editor de propriedades cresce | [`39-image-url-e-props`](39-image-url-e-props/plan.md) | — (0-dep; **antes do 24**) |
 | 24 | Publicação e versionamento do conteúdo | [`24-publicacao-versionamento`](24-publicacao-versionamento/plan.md) | — |
-| 50 | Historico seguro de publicacao | [`50-historico-seguro`](50-historico-seguro/plan.md) | 24 |
+| 50 | Historico seguro de publicacao | [`50-historico-seguro`](50-historico-seguro/plan.md) · [T5b](50-historico-seguro/plan_t5b.md) | 24 |
 | 25 | Entrega ao app cliente (API pública + runtime + exemplo) | [`25-entrega-app-cliente`](25-entrega-app-cliente/plan.md) | 24 |
 | 26 | Autenticação e multi-tenant real | [`26-auth-multi-tenant`](26-auth-multi-tenant/plan.md) | 25 (convive) |
 | 27 | Storage S3/Garage ligado | [`27-storage-garage`](27-storage-garage/plan.md) | 26 |

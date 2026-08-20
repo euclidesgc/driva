@@ -1,11 +1,13 @@
 ---
 name: escrever-testes
-description: Escreve a bateria automatizada do driva (unit + widget + golden) — por último, após o E2E atestado e o segundo gate do CISO. Usada pelo QA na etapa 11 do fluxo.
+description: Escreve a bateria automatizada do driva (unit + widget + golden) — junto da fase que ela cobre, como gate principal da entrega. Usada pelo QA ao fechar cada fase.
 ---
 
 # Skill: escrever os testes automatizados
 
-Objetivo: blindar o comportamento **já estável** (o alvo parou de se mexer). Guiado pelo PRD: caminho feliz, exceções, casos de borda.
+Objetivo: blindar o comportamento entregue pela fase, **como gate principal dela** — não como apêndice do fim do item. Guiado pelo PRD: caminho feliz, exceções, casos de borda.
+
+**A pirâmide é a régua** (`CLAUDE.md` › _Método de trabalho_, decisão do dono de 2026-08-20): o que se prova com unitário ou widget **não sobe para E2E**. Fluxo de UI, lógica de cubit, validação de spec e comparação de árvore são widget e unitário. O E2E só entra pelos três critérios de admissão do `CLAUDE.md`, e escrevê-lo nunca substitui a cobertura de widget da mesma tela.
 
 Convenções (cap. 19 do livro):
 - `test/` espelha `lib/` em cada pacote. Sem build_runner: **mocktail** (`class MockX extends Mock implements X {}`) e **bloc_test**.

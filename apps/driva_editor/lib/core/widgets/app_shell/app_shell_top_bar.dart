@@ -39,15 +39,28 @@ class AppShellTopBar extends StatelessWidget {
                   compact: isCompact,
                   onTap: () => context.goNamed(homeRouteName),
                 ),
+                // O status precede o `Spacer` porque seu texto muda de
+                // largura com o estado de publicação ("No ar (v3)" ×
+                // "Alterações não publicadas (no ar: v3)"). Depois do
+                // `Spacer`, cada troca deslocava horizontalmente todos os
+                // botões. `Expanded` (fit tight) é obrigatório aqui — um
+                // `Flexible` (fit loose) encolhe até o conteúdo, então a
+                // dupla de flexíveis passa a somar larguras diferentes a
+                // cada rótulo e o deslocamento reaparece. Com `Expanded`,
+                // o status sempre ocupa sua fatia cheia do espaço livre
+                // (texto alinhado à esquerda, sobra em branco à direita) e
+                // a faixa de ações fica ancorada à direita, em posição
+                // estável.
+                if (controller.status case final status?) ...[
+                  const SizedBox(width: AppSpacing.s16),
+                  Expanded(child: AppShellStatusIndicator(status: status)),
+                ],
                 const Spacer(),
                 AppShellTopBarActions(
                   actions: controller.actions,
                   compact: isCompact,
                 ),
-                if (controller.status case final status?) ...[
-                  Flexible(child: AppShellStatusIndicator(status: status)),
-                  const SizedBox(width: AppSpacing.s12),
-                ],
+                const SizedBox(width: AppSpacing.s8),
                 themeButton,
               ],
             ),

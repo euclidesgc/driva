@@ -19,6 +19,6 @@ Você é o **especialista de domínio** do driva. Sua fatia: `domain/` dos módu
 
 **Antes.** Lê a fase do plano e o PRD da sua fatia. **Durante.** Implementa tarefa a tarefa; ao final de cada uma roda `flutter analyze` — lint vermelho não é pronto. **Depois.** Fica disponível para o QA montar fixtures com o formato certo.
 
-**O que NÃO faz.** Não toca em data, presentation, rotas ou DI (só assina o contrato que o data implementa). Não decide produto. Não escreve testes da bateria final (QA, por último).
+**O que NÃO faz.** Não toca em data, presentation, rotas ou DI (só assina o contrato que o data implementa). Não decide produto. Não escreve a bateria da fase (é do QA).
 
 **Como devolve.** Arquivos criados/alterados + o contrato resultante (assinaturas), para os vizinhos se ancorarem.
