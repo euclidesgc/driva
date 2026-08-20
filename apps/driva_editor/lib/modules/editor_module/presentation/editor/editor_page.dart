@@ -29,6 +29,7 @@ class EditorPage extends StatefulWidget {
     this.saveEditorLayoutUseCase,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
+    this.getContentCheckpointsUseCase,
     super.key,
   });
 
@@ -69,6 +70,10 @@ class EditorPage extends StatefulWidget {
   /// acionados — mesma opcionalidade de [getContentVersionsUseCase].
   final GetContentVersionUseCase? getContentVersionUseCase;
 
+  /// Ausente, o histórico mostra só publicações — mesma opcionalidade dos
+  /// outros use cases de versão.
+  final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
+
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final projectId = state.pathParameters['projectId'];
     final id = state.pathParameters['id'];
@@ -106,6 +111,7 @@ class EditorPage extends StatefulWidget {
         saveEditorLayoutUseCase: getIt<SaveEditorLayoutUseCase>(),
         getContentVersionsUseCase: getIt<GetContentVersionsUseCase>(),
         getContentVersionUseCase: getIt<GetContentVersionUseCase>(),
+        getContentCheckpointsUseCase: getIt<GetContentCheckpointsUseCase>(),
       ),
     );
   }
@@ -161,6 +167,8 @@ class _EditorPageState extends State<EditorPage> {
                     layoutController: _layoutController,
                     getContentVersionsUseCase: widget.getContentVersionsUseCase,
                     getContentVersionUseCase: widget.getContentVersionUseCase,
+                    getContentCheckpointsUseCase:
+                        widget.getContentCheckpointsUseCase,
                   )
                 : _editorBootScaffold,
           ),

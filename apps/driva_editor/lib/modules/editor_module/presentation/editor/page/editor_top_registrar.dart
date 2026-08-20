@@ -25,6 +25,7 @@ class EditorTopRegistrar extends StatelessWidget {
     required this.child,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
+    this.getContentCheckpointsUseCase,
     this.imageUrlResolver,
     super.key,
   });
@@ -41,6 +42,7 @@ class EditorTopRegistrar extends StatelessWidget {
   /// no rascunho` de cada linha — mesma opcionalidade de
   /// [getContentVersionsUseCase].
   final GetContentVersionUseCase? getContentVersionUseCase;
+  final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
 
   /// Repassado ao snapshot de `VersionReviewDialog` (T3, item 50) — mesmo
   /// resolvedor de imagens do canvas principal, para o preview histórico não
@@ -169,6 +171,7 @@ class EditorTopRegistrar extends StatelessWidget {
                             cubit,
                             getContentVersionsUseCase,
                             getContentVersionUseCase,
+                            getContentCheckpointsUseCase,
                             imageUrlResolver,
                           ),
                   ),
@@ -224,6 +227,7 @@ Future<void> _openVersionHistory(
   EditorCubit cubit,
   GetContentVersionsUseCase? getContentVersionsUseCase,
   GetContentVersionUseCase? getContentVersionUseCase,
+  GetContentCheckpointsUseCase? getContentCheckpointsUseCase,
   SduiImageUrlResolver? imageUrlResolver,
 ) async {
   if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
@@ -239,6 +243,7 @@ Future<void> _openVersionHistory(
   final historyCubit = VersionHistoryCubit(
     getContentVersionsUseCase: getContentVersionsUseCase,
     contentId: state.document.id,
+    getContentCheckpointsUseCase: getContentCheckpointsUseCase,
     publishedVersion: state.publication.publishedVersion,
   );
   unawaited(historyCubit.load());
