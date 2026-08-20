@@ -23,11 +23,9 @@ class AppShellTopBarActions extends StatelessWidget {
     if (!compact) {
       return Row(
         mainAxisSize: MainAxisSize.min,
+        spacing: AppSpacing.s8,
         children: [
-          for (final action in actions) ...[
-            AppShellActionButton(action: action),
-            const SizedBox(width: AppSpacing.s8),
-          ],
+          for (final action in actions) AppShellActionButton(action: action),
         ],
       );
     }
@@ -44,15 +42,12 @@ class AppShellTopBarActions extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
+      spacing: AppSpacing.s8,
       children: [
-        if (secondary.isNotEmpty) ...[
+        if (secondary.isNotEmpty)
           AppShellActionsOverflowMenu(actions: secondary),
-          const SizedBox(width: AppSpacing.s8),
-        ],
-        if (primary != null) ...[
+        if (primary != null)
           AppShellActionButton(action: primary, compact: true),
-          const SizedBox(width: AppSpacing.s8),
-        ],
       ],
     );
   }

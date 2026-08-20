@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
@@ -27,7 +28,7 @@ class AppShellStatusIndicator extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(status.icon, size: 16, color: color),
+            Icon(status.icon, size: AppIconSizes.s16, color: color),
             const SizedBox(width: AppSpacing.s4),
             Flexible(
               child: Text(
