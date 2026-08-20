@@ -63,15 +63,29 @@ class RenderFitOrFallback extends RenderBox
     );
     _preferredFits = _preferred.size.width <= available;
 
-    final chosen = _chosen..layout(constraints, parentUsesSize: true);
+    // O escolhido recebe a largura **apertada**, e não a restrição frouxa que
+    // pode ter chegado: o ramo preferido é `mainAxisSize.min` para poder ser
+    // medido, e sob restrição frouxa ele encolheria para o conteúdo em vez de
+    // ocupar a barra — o `spaceBetween` não teria espaço para distribuir e o
+    // grupo da direita não encostaria na borda.
+    final finalConstraints = available.isFinite
+        ? constraints.tighten(width: available)
+        : constraints;
+    if (_preferredFits) {
+      // O preferido cabe: refaz o layout dele com a largura final e dá ao
+      // fallback a mesma restrição — o compacto cabe onde o cheio coube.
+      _preferred.layout(finalConstraints, parentUsesSize: true);
+      _fallback.layout(finalConstraints);
+    } else {
+      // O preferido **não** recebe segundo layout: ele já tem o da medição,
+      // com largura livre. Espremê-lo no espaço do compacto o faria estourar,
+      // e o erro apareceria como se a barra tivesse vazado — quando o que
+      // está na tela cabe perfeitamente.
+      _fallback.layout(finalConstraints, parentUsesSize: true);
+    }
+
+    final chosen = _chosen;
     (chosen.parentData! as _FitParentData).offset = Offset.zero;
-
-    // O não escolhido ainda precisa de layout: sem ele, o framework reclama
-    // ao pintar ou medir a árvore em depuração.
-    final other = identical(chosen, _preferred) ? _fallback : _preferred
-      ..layout(BoxConstraints.tight(chosen.size));
-    assert(other.hasSize, 'o filho não escolhido precisa de layout');
-
     size = constraints.constrain(chosen.size);
   }
 
