@@ -1,11 +1,6 @@
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-/// Qual coluna exclusiva o controle segmentado do compacto mostra em
-/// `VersionCompareExclusiveNodes` — nada a ver com `VersionComparisonBase`
-/// (que escolhe o spec comparado); este é só um filtro de exibição local.
-enum VersionCompareVisibleSide { base, candidate }
-
 /// Vocabulário de marcadores da comparação (T5, item 50) — sempre ícone +
 /// texto + cor, nunca cor sozinha. `isReadOnly` marca os três tipos que a
 /// v1 só declara, nunca copia (eventos, safe area, metadados).

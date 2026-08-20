@@ -33,8 +33,9 @@ final class VersionCompareModeActive extends VersionCompareModeState {
   final LoadedContentVersion candidate;
 
   /// O rascunho ao vivo, sincronizado pelo `editorCubit.stream` a cada
-  /// mudança — nunca a versão publicada (D5: `VersionComparisonBase` e o
-  /// toggle "No ar" morreram com o modal).
+  /// mudança — nunca a versão publicada: escolher entre rascunho e versão no
+  /// ar como base morreu junto com o modal, porque o lado esquerdo passou a
+  /// ser o canvas ao vivo.
   final ContentSpec baseSpec;
 
   final Either<ComparisonFailure, SpecComparisonResult> result;

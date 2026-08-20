@@ -4,10 +4,12 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/v
 import 'package:flutter/material.dart';
 
 /// Alternativa segura oferecida por `VersionCompareUnsafeView` e
-/// `VersionCompareFullLoadBanner` (T5, item 50): a versão já foi lida pelo
-/// diálogo de comparação, então não há GET a refazer — só a mesma
-/// confirmação de `VersionHistoryDialog._loadToDraft` antes de aplicar em
-/// memória e fechar o diálogo por cima.
+/// `VersionCompareFullLoadBanner`: a versão já foi lida pelo modo de
+/// comparação, então não há requisição a refazer — só a mesma confirmação de
+/// `VersionHistoryDialog._loadToDraft` antes de aplicar em memória.
+///
+/// Não fecha nada ao terminar: com a comparação vivendo no canvas, não há
+/// diálogo por cima para dispensar, e o usuário decide quando sair do modo.
 Future<void> loadFullVersionIntoDraft(
   BuildContext context, {
   required EditorCubit editorCubit,
@@ -27,5 +29,4 @@ Future<void> loadFullVersionIntoDraft(
   if (!context.mounted) return;
 
   editorCubit.loadVersionIntoDraft(candidate.spec, version: candidate.version);
-  Navigator.of(context).pop();
 }
