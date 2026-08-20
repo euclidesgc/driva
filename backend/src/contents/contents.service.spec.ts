@@ -236,17 +236,54 @@ describe('ContentsService.publish', () => {
   it('tudo que decide o resultado é lido dentro da transação', async () => {
     const prisma = createPrismaMock();
     const spec = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' };
-    prisma.content.findFirst.mockResolvedValue(
-      contentRow({ draftSpec: spec, publishedVersionId: 'version-3', publishedAt: NOW }),
-    );
-    prisma.contentVersion.findUnique.mockResolvedValue({ version: 3, spec });
+    const row = contentRow({
+      draftSpec: spec,
+      publishedVersionId: 'version-3',
+      publishedAt: NOW,
+    });
     prisma.contentVersion.findMany.mockResolvedValue([{ version: 3 }]);
 
-    await serviceWith(prisma).publish('project-1', 'content-1', {});
+    // O `tx` é um dublê **distinto** do cliente de topo, e só ele sabe
+    // responder. O dublê que reaproveita o próprio `prisma` como `tx` deixa
+    // um ponto cego: trocar cada `tx.` por `this.prisma.` no serviço manteria
+    // a suíte verde, e a garantia transacional — a razão de a idempotência
+    // não poder ser furada por um publish concorrente — deixaria de existir
+    // sem nenhum teste vermelho.
+    const tx = {
+      content: { findFirst: jest.fn().mockResolvedValue(row), update: jest.fn() },
+      contentVersion: {
+        findUnique: jest.fn().mockResolvedValue({ version: 3, spec }),
+        aggregate: jest.fn().mockResolvedValue({ _max: { version: 3 } }),
+        create: jest.fn(),
+      },
+    };
+    prisma.$transaction.mockImplementation((callback: (client: unknown) => unknown) =>
+      callback(tx),
+    );
+    // O cliente de topo passa a recusar as leituras decisivas: se o serviço
+    // usar `this.prisma` em vez de `tx`, o teste falha por exceção.
+    prisma.content.findFirst.mockImplementation(() => {
+      throw new Error('leitura decisiva fora da transação');
+    });
+    prisma.contentVersion.findUnique.mockImplementation(() => {
+      throw new Error('leitura decisiva fora da transação');
+    });
 
-    // Um publish concorrente entre a leitura e a escrita produziria duas
-    // versões com o mesmo conteúdo — e o histórico é append-only.
+    const service = serviceWith(prisma);
+    // `findContentOrThrow`, antes da transação, é a única leitura de topo
+    // legítima — devolve a linha e não decide nada.
+    prisma.content.findFirst.mockResolvedValueOnce(row);
+
+    await service.publish('project-1', 'content-1', {});
+
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.content.findFirst).toHaveBeenCalledTimes(1);
+    expect(tx.contentVersion.findUnique).toHaveBeenCalledTimes(1);
+    expect(tx.content.update).toHaveBeenCalledWith({
+      where: { id: 'content-1' },
+      data: { draftUpdatedAt: NOW },
+    });
+    expect(tx.contentVersion.create).not.toHaveBeenCalled();
   });
 
   it('carimba o draftSpec guardado no servidor, ignorando qualquer spec enviado no corpo', async () => {
