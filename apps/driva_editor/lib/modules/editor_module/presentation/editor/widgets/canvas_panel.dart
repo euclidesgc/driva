@@ -33,6 +33,10 @@ class CanvasPanel extends StatelessWidget {
     required this.onDropOnNode,
     required this.isFullscreen,
     required this.onToggleFullscreen,
+    this.compareBuilder,
+    this.onCompareSideChanged,
+    this.compareSide = CanvasCompareSide.draft,
+    this.compareCandidateVersion,
     this.imageUrlResolver,
     this.onOpenPreview,
     super.key,
@@ -58,19 +62,78 @@ class CanvasPanel extends StatelessWidget {
 
   final SduiImageUrlResolver? imageUrlResolver;
 
+  /// Monta o mock da versão comparada com a escala que este widget calculou.
+  /// É builder e não widget pronto porque a escala é **uma só** para os dois
+  /// lados — mocks em tamanhos diferentes não se comparam a olho — e ela só
+  /// existe depois de medir o viewport aqui dentro.
+  final Widget Function(double effectiveScale)? compareBuilder;
+
+  /// Qual mock está visível quando a janela não comporta os dois.
+  final CanvasCompareSide compareSide;
+  final ValueChanged<CanvasCompareSide>? onCompareSideChanged;
+  final int? compareCandidateVersion;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isComparing = compareBuilder != null;
+        final splitWidth = isComparing
+            ? (constraints.maxWidth - AppSizes.canvasCompareGutter) / 2
+            : constraints.maxWidth;
         final viewport = Size(
-          constraints.maxWidth - AppSpacing.s32 * 2,
+          splitWidth - AppSpacing.s32 * 2,
           constraints.maxHeight -
               AppSizes.canvasToolbarHeight -
               AppSpacing.s32 * 2,
         );
+        final splitScale = fitScaleFor(
+          frame: device.frameSize,
+          viewport: viewport,
+        );
+
+        // Dois mocks só valem a pena enquanto cada um continua legível: abaixo
+        // do piso, mostrar os dois seria mostrar duas ilegibilidades lado a
+        // lado, e a escala volta a ser calculada sobre a largura inteira.
+        final fitsSideBySide =
+            isComparing && splitScale >= AppSizes.canvasCompareMinSplitScale;
+
+        final fullViewport = Size(
+          constraints.maxWidth - AppSpacing.s32 * 2,
+          viewport.height,
+        );
+        final fullScale = fitScaleFor(
+          frame: device.frameSize,
+          viewport: fullViewport,
+        );
         final effectiveScale = fitToWindow
-            ? fitScaleFor(frame: device.frameSize, viewport: viewport)
+            ? (fitsSideBySide ? splitScale : fullScale)
             : zoom;
+
+        if (isComparing && !fitsSideBySide) {
+          return CanvasCompareSingleMock(
+            side: compareSide,
+            candidateVersion: compareCandidateVersion ?? 0,
+            onSideChanged: onCompareSideChanged ?? (_) {},
+            comparePane: compareBuilder!(effectiveScale),
+            draftPanel: CanvasPanelBody(
+              device: device,
+              effectiveScale: effectiveScale,
+              fitToWindow: fitToWindow,
+              onSelect: onSelect,
+              onChangeDevice: onChangeDevice,
+              onChangeZoom: onChangeZoom,
+              onToggleFitToWindow: onToggleFitToWindow,
+              onDropOnDevice: onDropOnDevice,
+              onDropOnNode: onDropOnNode,
+              imageUrlResolver: imageUrlResolver,
+              onOpenPreview: onOpenPreview,
+              isFullscreen: isFullscreen,
+              onToggleFullscreen: onToggleFullscreen,
+            ),
+          );
+        }
+
         return CanvasPanelBody(
           device: device,
           effectiveScale: effectiveScale,
@@ -85,6 +148,7 @@ class CanvasPanel extends StatelessWidget {
           onOpenPreview: onOpenPreview,
           isFullscreen: isFullscreen,
           onToggleFullscreen: onToggleFullscreen,
+          comparePane: compareBuilder?.call(effectiveScale),
         );
       },
     );

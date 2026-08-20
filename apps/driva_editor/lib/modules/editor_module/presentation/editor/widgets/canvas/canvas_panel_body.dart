@@ -1,4 +1,3 @@
-import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
@@ -18,6 +17,7 @@ class CanvasPanelBody extends StatelessWidget {
     required this.onDropOnNode,
     required this.isFullscreen,
     required this.onToggleFullscreen,
+    this.comparePane,
     this.imageUrlResolver,
     this.onOpenPreview,
     super.key,
@@ -48,6 +48,12 @@ class CanvasPanelBody extends StatelessWidget {
 
   final SduiImageUrlResolver? imageUrlResolver;
 
+  /// O mock da versão comparada, quando o modo de comparação está ativo.
+  /// Entra como irmão de [CanvasDraftMock] numa `Row`, e não como filho
+  /// dele: o `DragTarget` do rascunho termina lá dentro, então soltar um
+  /// widget da paleta sobre a versão histórica não altera o rascunho.
+  final Widget? comparePane;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -64,32 +70,14 @@ class CanvasPanelBody extends StatelessWidget {
           onToggleFullscreen: onToggleFullscreen,
         ),
         Expanded(
-          child: DragTarget<DragPayload>(
-            onAcceptWithDetails: (details) => onDropOnDevice(details.data),
-            builder: (context, candidates, _) => InteractiveViewer(
-              constrained: false,
-              boundaryMargin: const EdgeInsets.all(AppSpacing.s64),
-              minScale: 1,
-              maxScale: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s32),
-                child: Transform.scale(
-                  scale: effectiveScale,
-                  alignment: Alignment.topCenter,
-                  child: RepaintBoundary(
-                    child: DeviceFrame(
-                      device: device,
-                      highlighted: candidates.isNotEmpty,
-                      child: PreviewSurface(
-                        onSelect: onSelect,
-                        onDropOn: onDropOnNode,
-                        imageUrlResolver: imageUrlResolver,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          child: CanvasMockArea(
+            device: device,
+            effectiveScale: effectiveScale,
+            onSelect: onSelect,
+            onDropOnDevice: onDropOnDevice,
+            onDropOnNode: onDropOnNode,
+            comparePane: comparePane,
+            imageUrlResolver: imageUrlResolver,
           ),
         ),
       ],

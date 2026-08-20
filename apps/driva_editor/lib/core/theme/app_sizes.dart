@@ -191,6 +191,28 @@ abstract final class AppSizes {
   /// caber **lá**, não só em janela confortável.
   static const double canvasToolbarDenseFitWidth = 460;
 
+  /// Vão entre o mock do rascunho e o mock da versão comparada, no modo de
+  /// comparação. Desconta-se da largura antes de calcular a escala: a escala
+  /// é **uma só** para os dois lados, porque mocks em tamanhos diferentes
+  /// não se comparam a olho.
+  static const double canvasCompareGutter = 24;
+
+  /// Piso da escala abaixo do qual o modo de comparação deixa de mostrar os
+  /// dois mocks lado a lado e passa a mostrar um por vez, com alternador.
+  ///
+  /// É o mesmo piso do zoom manual do editor (`EditorCubit.minZoom`): abaixo
+  /// dele o próprio editor já considera o mock pequeno demais para trabalhar,
+  /// e dois mocks nesse tamanho seriam duas ilegibilidades lado a lado. O
+  /// critério é a **escala resultante**, não uma largura de janela fixa,
+  /// porque a mesma janela comporta dois smartphones (393pt) e não comporta
+  /// dois tablets (820pt).
+  static const double canvasCompareMinSplitScale = 0.4;
+
+  /// Abaixo desta largura **disponível para a barra da versão comparada**, os
+  /// rótulos saem e sobram os ícones: na faixa estreita o mock já ocupa a
+  /// largura inteira e a barra tem de caber junto dele.
+  static const double versionCompareBarLabelsFitWidth = 520;
+
   // F3 — status bar do mock (D29).
   /// Largura da cápsula do indicador de home do mock — cabe sem colidir com
   /// as bordas no menor preset (Smartphone, 393 de largura).

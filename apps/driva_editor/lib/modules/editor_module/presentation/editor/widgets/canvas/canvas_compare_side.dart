@@ -1,0 +1,1 @@
+enum CanvasCompareSide { draft, candidate }
