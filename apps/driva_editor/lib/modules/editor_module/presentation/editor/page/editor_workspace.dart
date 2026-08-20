@@ -24,6 +24,7 @@ class EditorWorkspace extends StatelessWidget {
     this.imageUrlResolver,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
+    this.getContentCheckpointsUseCase,
     super.key,
   });
 
@@ -34,6 +35,7 @@ class EditorWorkspace extends StatelessWidget {
   /// Repassado a `EditorTopRegistrar` (T3, item 50) — mesma opcionalidade de
   /// [getContentVersionsUseCase].
   final GetContentVersionUseCase? getContentVersionUseCase;
+  final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
 
   /// O soquete da D7: montado aqui, acima de tudo o que hoje monta o
   /// `ResizableSplitView`, para que a F7 (tela cheia) o alcance sem um sexto

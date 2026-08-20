@@ -24,11 +24,67 @@ class EditorRepositoryFake implements EditorRepository {
     );
   }
 
+  /// O fake guarda os pontos marcados em memória, na mesma sessão — sem
+  /// isso, o histórico do modo de demonstração mostraria publicações e nunca
+  /// um checkpoint, e a tela pareceria quebrada onde está correta.
+  final _checkpoints = <String, List<LoadedContentCheckpoint>>{};
+
   @override
-  Future<Either<Failure, Unit>> saveDraft(ContentSpec content) async {
+  Future<Either<Failure, ContentCheckpointsPage>> listCheckpoints(
+    String id, {
+    String? cursor,
+  }) async {
+    await Future<void>.delayed(_latency);
+    if (store.find(id) == null) return const Left(NotFoundFailure());
+    final rows = _checkpoints[id] ?? const <LoadedContentCheckpoint>[];
+    return Right(
+      ContentCheckpointsPage(
+        items: [
+          for (final row in rows)
+            ContentCheckpoint(
+              id: row.id,
+              createdAt: row.createdAt,
+              note: row.note,
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, LoadedContentCheckpoint>> getCheckpoint(
+    String id,
+    String checkpointId,
+  ) async {
+    await Future<void>.delayed(_latency);
+    for (final row in _checkpoints[id] ?? const <LoadedContentCheckpoint>[]) {
+      if (row.id == checkpointId) return Right(row);
+    }
+    return const Left(NotFoundFailure());
+  }
+
+  @override
+  Future<Either<Failure, Unit>> saveDraft(
+    ContentSpec content, {
+    String? checkpointNote,
+  }) async {
     await Future<void>.delayed(_latency);
     if (store.find(content.id) == null) return const Left(NotFoundFailure());
     store.save(content);
+    if (checkpointNote != null) {
+      final now = DateTime.now();
+      _checkpoints
+          .putIfAbsent(content.id, () => [])
+          .insert(
+            0,
+            LoadedContentCheckpoint(
+              id: 'ckpt_${now.microsecondsSinceEpoch}',
+              spec: content,
+              createdAt: now,
+              note: checkpointNote,
+            ),
+          );
+    }
     return const Right(unit);
   }
 

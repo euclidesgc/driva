@@ -198,26 +198,48 @@ export class ContentsService {
         ? await this.assertCategoryInProject(projectId, dto.categoryId)
         : undefined;
     try {
-      const result = await this.prisma.content.updateMany({
-        where: { id, projectId },
-        data: {
-          ...(dto.name !== undefined
-            ? { name: dto.name, nameNormalized: normalizeName(dto.name) }
-            : {}),
-          ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
-          ...(dto.description !== undefined
-            ? { description: dto.description }
-            : {}),
-          ...(categoryId !== undefined ? { categoryId } : {}),
-          ...(dto.spec !== undefined
-            ? {
-                draftSpec: dto.spec as Prisma.InputJsonValue,
-                draftUpdatedAt: new Date(),
-              }
-            : {}),
-        },
+      await this.prisma.$transaction(async (tx) => {
+        const result = await tx.content.updateMany({
+          where: { id, projectId },
+          data: {
+            ...(dto.name !== undefined
+              ? { name: dto.name, nameNormalized: normalizeName(dto.name) }
+              : {}),
+            ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
+            ...(dto.description !== undefined
+              ? { description: dto.description }
+              : {}),
+            ...(categoryId !== undefined ? { categoryId } : {}),
+            ...(dto.spec !== undefined
+              ? {
+                  draftSpec: dto.spec as Prisma.InputJsonValue,
+                  draftUpdatedAt: new Date(),
+                }
+              : {}),
+          },
+        });
+        if (result.count === 0) throw new NotFoundException();
+        if (dto.checkpointNote === undefined) return;
+
+        // O checkpoint guarda o spec que este save gravou, lido de volta por
+        // `tx`: usar `dto.spec` deixaria de fora o save que só renomeia, e
+        // marcar um ponto no histórico sem o conteúdo do ponto não serve para
+        // nada. Na mesma transação do save porque "salvar e marcar" é uma
+        // operação só — um checkpoint órfão de um save que falhou apontaria
+        // para um estado que nunca existiu.
+        const saved = await tx.content.findFirst({
+          where: { id, projectId },
+          select: { draftSpec: true },
+        });
+        if (!saved) throw new NotFoundException();
+        await tx.contentCheckpoint.create({
+          data: {
+            contentId: id,
+            spec: saved.draftSpec as Prisma.InputJsonValue,
+            note: dto.checkpointNote,
+          },
+        });
       });
-      if (result.count === 0) throw new NotFoundException();
     } catch (error) {
       if (dto.slug !== undefined && this.isSlugConflict(error)) {
         return this.throwSlugConflict(projectId, dto.slug);
@@ -378,6 +400,67 @@ export class ContentsService {
         ...(row.createdBy !== null ? { createdBy: row.createdBy } : {}),
       })),
       nextCursor,
+    };
+  }
+
+  async listCheckpoints(
+    projectId: string,
+    id: string,
+    query: ListVersionsQueryDto,
+  ) {
+    await this.findContentOrThrow(projectId, id);
+    const limit = query.limit ?? 20;
+    const where: Prisma.ContentCheckpointWhereInput = { contentId: id };
+
+    // O cursor é a data, e não um número de sequência: checkpoint não tem
+    // `version` de propósito — esse número é o que o usuário lê como "no ar
+    // (v3)" e só publicação o consome.
+    if (query.cursor) {
+      const { value } = decodeCursor(query.cursor);
+      where.createdAt = { lt: new Date(value) };
+    }
+
+    const rows = await this.prisma.contentCheckpoint.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      select: { id: true, note: true, createdAt: true, createdBy: true },
+    });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+
+    return {
+      data: page.map((row) => ({
+        id: row.id,
+        ...(row.note !== null ? { note: row.note } : {}),
+        createdAt: row.createdAt,
+        ...(row.createdBy !== null ? { createdBy: row.createdBy } : {}),
+      })),
+      nextCursor:
+        hasMore && last
+          ? encodeCursor(last.createdAt.toISOString(), last.id)
+          : null,
+    };
+  }
+
+  async findCheckpoint(projectId: string, id: string, checkpointId: string) {
+    await this.findContentOrThrow(projectId, id);
+    const row = await this.prisma.contentCheckpoint.findFirst({
+      // `contentId` na cláusula, e não só o id do checkpoint: sem ele, quem
+      // soubesse um id leria o ponto de trabalho de outro conteúdo — e o
+      // dono do conteúdo já foi conferido acima contra o projeto.
+      where: { id: checkpointId, contentId: id },
+      select: { id: true, spec: true, note: true, createdAt: true, createdBy: true },
+    });
+    if (!row) throw new NotFoundException();
+    return {
+      id: row.id,
+      spec: row.spec,
+      ...(row.note !== null ? { note: row.note } : {}),
+      createdAt: row.createdAt,
+      ...(row.createdBy !== null ? { createdBy: row.createdBy } : {}),
     };
   }
 

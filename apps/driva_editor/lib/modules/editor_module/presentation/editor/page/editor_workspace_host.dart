@@ -27,6 +27,7 @@ class EditorWorkspaceHost extends StatefulWidget {
     this.imageUrlResolver,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
+    this.getContentCheckpointsUseCase,
     super.key,
   });
 
@@ -35,6 +36,7 @@ class EditorWorkspaceHost extends StatefulWidget {
   final SduiImageUrlResolver? imageUrlResolver;
   final GetContentVersionsUseCase? getContentVersionsUseCase;
   final GetContentVersionUseCase? getContentVersionUseCase;
+  final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
 
   @override
   State<EditorWorkspaceHost> createState() => _EditorWorkspaceHostState();
@@ -70,6 +72,7 @@ class _EditorWorkspaceHostState extends State<EditorWorkspaceHost> {
       layoutController: widget.layoutController,
       getContentVersionsUseCase: widget.getContentVersionsUseCase,
       getContentVersionUseCase: widget.getContentVersionUseCase,
+      getContentCheckpointsUseCase: widget.getContentCheckpointsUseCase,
     );
     final mode = _compareMode;
     if (mode == null) return workspace;

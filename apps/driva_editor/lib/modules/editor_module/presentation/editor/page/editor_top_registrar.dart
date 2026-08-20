@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell.dart';
 import 'package:driva_editor/modules/contents_module/contents_module.dart';
@@ -10,6 +9,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/ver
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/publish_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/save_checkpoint_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/unpublish_confirm_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
@@ -25,6 +25,7 @@ class EditorTopRegistrar extends StatelessWidget {
     required this.child,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
+    this.getContentCheckpointsUseCase,
     this.imageUrlResolver,
     super.key,
   });
@@ -41,6 +42,7 @@ class EditorTopRegistrar extends StatelessWidget {
   /// no rascunho` de cada linha — mesma opcionalidade de
   /// [getContentVersionsUseCase].
   final GetContentVersionUseCase? getContentVersionUseCase;
+  final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
 
   /// Repassado ao snapshot de `VersionReviewDialog` (T3, item 50) — mesmo
   /// resolvedor de imagens do canvas principal, para o preview histórico não
@@ -132,6 +134,13 @@ class EditorTopRegistrar extends StatelessWidget {
                     icon: Icons.save_outlined,
                     onPressed: status == SaveStatus.saving ? null : cubit.save,
                   ),
+                  AppBarAction.icon(
+                    icon: Icons.bookmark_add_outlined,
+                    tooltip: 'Salvar e marcar no histórico',
+                    onPressed: status == SaveStatus.saving
+                        ? null
+                        : () => _saveWithCheckpoint(context, cubit),
+                  ),
                   AppBarAction.outlined(
                     label: 'Publicar',
                     tooltip: _publishTooltip(publishBlockReason),
@@ -162,6 +171,7 @@ class EditorTopRegistrar extends StatelessWidget {
                             cubit,
                             getContentVersionsUseCase,
                             getContentVersionUseCase,
+                            getContentCheckpointsUseCase,
                             imageUrlResolver,
                           ),
                   ),
@@ -217,6 +227,7 @@ Future<void> _openVersionHistory(
   EditorCubit cubit,
   GetContentVersionsUseCase? getContentVersionsUseCase,
   GetContentVersionUseCase? getContentVersionUseCase,
+  GetContentCheckpointsUseCase? getContentCheckpointsUseCase,
   SduiImageUrlResolver? imageUrlResolver,
 ) async {
   if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
@@ -232,6 +243,7 @@ Future<void> _openVersionHistory(
   final historyCubit = VersionHistoryCubit(
     getContentVersionsUseCase: getContentVersionsUseCase,
     contentId: state.document.id,
+    getContentCheckpointsUseCase: getContentCheckpointsUseCase,
     publishedVersion: state.publication.publishedVersion,
   );
   unawaited(historyCubit.load());
@@ -249,6 +261,21 @@ Future<void> _openVersionHistory(
     ),
   );
   await historyCubit.close();
+}
+
+/// Salvar marcando um ponto no histórico — o "commit" do editor. Fica ao lado
+/// do Salvar, e não dentro dele, porque salvar é a ação de todo dia e não pode
+/// ganhar um passo a mais: quem quer marcar sabe que quer.
+Future<void> _saveWithCheckpoint(
+  BuildContext context,
+  EditorCubit cubit,
+) async {
+  final note = await showDialog<String>(
+    context: context,
+    builder: (_) => const SaveCheckpointDialog(),
+  );
+  if (note == null || !context.mounted) return;
+  await cubit.save(checkpointNote: note);
 }
 
 /// O motivo do botão desabilitado tem que ser verdadeiro (acessibilidade):

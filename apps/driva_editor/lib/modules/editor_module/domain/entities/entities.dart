@@ -1,6 +1,10 @@
+export 'content_checkpoint.dart';
+export 'content_checkpoints_page.dart';
+export 'content_history_entry.dart';
 export 'content_version.dart';
 export 'content_versions_page.dart';
 export 'editor_layout_snapshot.dart';
 export 'loaded_content.dart';
+export 'loaded_content_checkpoint.dart';
 export 'loaded_content_version.dart';
 export 'publication_state.dart';

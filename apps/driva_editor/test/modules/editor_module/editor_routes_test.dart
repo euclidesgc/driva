@@ -123,6 +123,10 @@ void main() {
         () => GetContentVersionUseCase(repository: getIt<EditorRepository>()),
       )
       ..registerFactory(
+        () =>
+            GetContentCheckpointsUseCase(repository: getIt<EditorRepository>()),
+      )
+      ..registerFactory(
         () => GetEditorLayoutUseCase(
           repository: getIt<EditorLayoutRepository>(),
         ),

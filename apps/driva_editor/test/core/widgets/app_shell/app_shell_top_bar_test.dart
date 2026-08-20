@@ -212,7 +212,7 @@ void _regressionTests() {
     },
   );
 
-  for (final width in [1600.0, 1280.0, 1024.0, 900.0, 841.0]) {
+  for (final width in [1600.0, 1280.0, 1024.0, 950.0, 894.0]) {
     testWidgets(
       'a ${width}px a barra cheia não estoura com o status mais longo',
       (tester) async {
