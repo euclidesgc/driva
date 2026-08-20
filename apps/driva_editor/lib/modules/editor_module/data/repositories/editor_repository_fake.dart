@@ -25,7 +25,10 @@ class EditorRepositoryFake implements EditorRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> saveDraft(ContentSpec content) async {
+  Future<Either<Failure, Unit>> saveDraft(
+    ContentSpec content, {
+    String? checkpointNote,
+  }) async {
     await Future<void>.delayed(_latency);
     if (store.find(content.id) == null) return const Left(NotFoundFailure());
     store.save(content);
