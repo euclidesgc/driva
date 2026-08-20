@@ -141,7 +141,16 @@ abstract final class AppSizes {
   /// cobrem variação de hinting entre ambientes — decisão do dono do
   /// produto em 2026-08-19, registrada em
   /// `docs/plans/50-historico-seguro/plan.md` (T1).
-  static const double topBarActionsFitWidth = 840;
+  ///
+  /// **Recalibrado em 2026-08-20 para 893**, quando "salvar e marcar no
+  /// histórico" virou a sétima ação da barra: o cruzamento subiu para ~847px
+  /// (medido — a 840 a `Row` estourava 6,6px), e os mesmos 46px de folga
+  /// levam a 893. O custo é conhecido e vale registrar: quem estiver com a
+  /// janela entre 840 e 893 passa a ver a barra colapsada no overflow único
+  /// do shell. É a evidência de que a barra chegou ao teto de ações
+  /// enfileiradas — o item 52 do roadmap trata disso, e enquanto ele não
+  /// vier, cada ação nova custa mais uma faixa de largura.
+  static const double topBarActionsFitWidth = 893;
 
   /// Altura da barra de ferramentas do canvas (presets de device + zoom).
   static const double canvasToolbarHeight = 44;

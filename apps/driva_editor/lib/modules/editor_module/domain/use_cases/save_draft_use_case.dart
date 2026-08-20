@@ -7,12 +7,15 @@ class SaveDraftUseCase {
   const SaveDraftUseCase({required this.repository});
   final EditorRepository repository;
 
-  Future<Either<Failure, Unit>> call(ContentSpec content) {
+  Future<Either<Failure, Unit>> call(
+    ContentSpec content, {
+    String? checkpointNote,
+  }) {
     // Trava: nunca persistir spec que o próprio kernel rejeitaria.
     final revalidated = parseContentSpec(content.toJson());
     return revalidated.fold(
       (error) async => Left(ValidationFailure(error.message)),
-      (_) => repository.saveDraft(content),
+      (_) => repository.saveDraft(content, checkpointNote: checkpointNote),
     );
   }
 }

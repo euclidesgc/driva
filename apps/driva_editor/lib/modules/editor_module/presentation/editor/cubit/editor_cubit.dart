@@ -493,13 +493,21 @@ class EditorCubit extends Cubit<EditorState> {
     emit(current.copyWith(fitToWindow: !current.fitToWindow));
   }
 
-  Future<void> save() async {
+  /// [checkpointNote] marca um ponto no histórico junto do save — o "commit"
+  /// do editor. Salvar continua não publicando: o ponto marcado aqui nunca vai
+  /// ao ar, e só publicar cria versão. Nota em branco é tratada como ausente:
+  /// um ponto sem nota é indistinguível de qualquer outro save.
+  Future<void> save({String? checkpointNote}) async {
     final current = state;
     if (current is! EditorReady) return;
     if (current.saveStatus == SaveStatus.saving) return;
     emit(current.copyWith(saveStatus: SaveStatus.saving));
 
-    final result = await saveDraftUseCase(current.document);
+    final note = checkpointNote?.trim();
+    final result = await saveDraftUseCase(
+      current.document,
+      checkpointNote: note == null || note.isEmpty ? null : note,
+    );
     if (isClosed) return;
     final latest = state;
     if (latest is! EditorReady) return;

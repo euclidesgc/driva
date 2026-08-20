@@ -38,11 +38,18 @@ class EditorRepositoryImpl implements EditorRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> saveDraft(ContentSpec content) async {
+  Future<Either<Failure, Unit>> saveDraft(
+    ContentSpec content, {
+    String? checkpointNote,
+  }) async {
     try {
       await dio.put<void>(
         '/v1/contents/${content.id}',
-        data: {'name': content.name, 'spec': content.toJson()},
+        data: {
+          'name': content.name,
+          'spec': content.toJson(),
+          'checkpointNote': ?checkpointNote,
+        },
       );
       return const Right(unit);
     } on DioException catch (e) {
