@@ -4,9 +4,11 @@ import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_failure_message.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
@@ -16,8 +18,9 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// A lista paginada de versões (padrão de scroll infinito do item 16:
 /// `NotificationListener` + rodapé "Carregando mais…"). `editorCubit` é quem
-/// de fato troca o documento ao carregar uma versão no rascunho; este
-/// diálogo só lista e delega `Ver`/`Carregar no rascunho` (T3, item 50).
+/// de fato troca o documento ao carregar uma versão ou aplicar uma cópia
+/// seletiva; este diálogo só lista e delega `Ver`/`Comparar`/`Carregar no
+/// rascunho` (item 50).
 class VersionHistoryDialog extends StatelessWidget {
   const VersionHistoryDialog({
     required this.editorCubit,
@@ -84,6 +87,28 @@ class VersionHistoryDialog extends StatelessWidget {
     Navigator.of(context).pop();
   }
 
+  Future<void> _compare(BuildContext context, int candidateVersion) async {
+    final editorState = editorCubit.state;
+    if (editorState is! EditorReady) return;
+    final contentId = context.read<VersionHistoryCubit>().contentId;
+    final compareCubit = VersionCompareCubit(
+      getContentVersionUseCase: getContentVersionUseCase,
+      editorCubit: editorCubit,
+      contentId: contentId,
+      candidateVersion: candidateVersion,
+    );
+    unawaited(compareCubit.load());
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: compareCubit,
+        child: const VersionCompareDialog(),
+      ),
+    );
+    await compareCubit.close();
+  }
+
   bool _onScroll(BuildContext context, ScrollNotification notification) {
     if (notification.metrics.axis == Axis.vertical &&
         notification.metrics.pixels >=
@@ -130,6 +155,7 @@ class VersionHistoryDialog extends StatelessWidget {
                           isPublished: version.version == s.publishedVersion,
                           onView: (v) => _view(context, v),
                           onLoadToDraft: (v) => _loadToDraft(context, v),
+                          onCompare: (v) => _compare(context, v),
                         );
                       },
                     ),

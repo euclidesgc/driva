@@ -2,10 +2,10 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row_action_button.dart';
 import 'package:flutter/material.dart';
 
-/// As três ações de uma linha do histórico (T3, item 50): `Ver` é a única
+/// As três ações de uma linha do histórico (item 50): `Ver` é a única
 /// primária — escolher uma versão para olhar nunca é destrutivo, então é ela
-/// quem chama mais atenção. `Comparar` fica desabilitada até a T4 entregar o
-/// motor de comparação; o lugar dela já existe.
+/// quem chama mais atenção. `Comparar` fica desabilitada só quando
+/// `onCompare` é nulo (uso sem `VersionHistoryDialog`, ex. teste isolado).
 class VersionRowActions extends StatelessWidget {
   const VersionRowActions({
     required this.onView,
