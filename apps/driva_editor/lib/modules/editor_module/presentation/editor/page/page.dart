@@ -10,6 +10,7 @@ export 'editor_viewport_gate.dart';
 export 'editor_workspace.dart';
 export 'editor_workspace_host.dart';
 export 'inspector_area.dart';
+export 'inspector_compare_section.dart';
 export 'inspector_vm.dart';
 export 'invalid_content_screen.dart';
 export 'left_panel.dart';

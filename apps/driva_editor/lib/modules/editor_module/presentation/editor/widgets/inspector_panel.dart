@@ -19,6 +19,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onRemove,
     required this.onWrap,
     this.collapsedSections,
+    this.compareSection,
     super.key,
   });
 
@@ -31,6 +32,11 @@ class InspectorPanel extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>> onUpdateSafeAreaProps;
   final ValueChanged<String> onRemove;
   final ValueChanged<String> onWrap;
+
+  /// O que difere da versão comparada, desenhado abaixo do cabeçalho quando o
+  /// modo de comparação está ativo. Chega pronto de fora porque o dado de
+  /// comparação não passa pelo `InspectorVm` — ver `InspectorCompareSection`.
+  final Widget? compareSection;
 
   /// Repassado a `InspectorPropList` — ver o doc lá para a decisão (Q2/P3).
   final ValueNotifier<Set<String>>? collapsedSections;
@@ -51,6 +57,7 @@ class InspectorPanel extends StatelessWidget {
             onRemove: null,
             onWrap: null,
           ),
+          ?compareSection,
           Expanded(
             child: InspectorPropList(
               ownerKey: 'page',
@@ -77,6 +84,7 @@ class InspectorPanel extends StatelessWidget {
           removeLabel: isRoot ? clearContentLabel : removeNodeLabel,
           onWrap: onWrap,
         ),
+        ?compareSection,
         Expanded(
           child: descriptor == null || descriptor.fields.isEmpty
               ? Center(
