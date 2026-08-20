@@ -6,6 +6,7 @@ import 'package:driva_editor/modules/contents_module/contents_module.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/publish_dialog.dart';
@@ -224,6 +225,10 @@ Future<void> _openVersionHistory(
   final state = cubit.state;
   if (state is! EditorReady) return;
 
+  // `showDialog` monta noutra subárvore, fora do alcance dos provedores da
+  // página: o cubit do modo é lido aqui e viaja por construtor.
+  final compareModeCubit = context.read<VersionCompareModeCubit>();
+
   final historyCubit = VersionHistoryCubit(
     getContentVersionsUseCase: getContentVersionsUseCase,
     contentId: state.document.id,
@@ -237,6 +242,7 @@ Future<void> _openVersionHistory(
       value: historyCubit,
       child: VersionHistoryDialog(
         editorCubit: cubit,
+        compareModeCubit: compareModeCubit,
         getContentVersionUseCase: getContentVersionUseCase,
         imageUrlResolver: imageUrlResolver,
       ),

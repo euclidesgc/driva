@@ -155,7 +155,7 @@ class _EditorPageState extends State<EditorPage> {
             future: _layoutController.ready,
             builder: (context, snapshot) =>
                 snapshot.connectionState == ConnectionState.done
-                ? EditorWorkspace(
+                ? EditorWorkspaceHost(
                     projectFuture: widget.projectFuture,
                     imageUrlResolver: widget.imageUrlResolver,
                     layoutController: _layoutController,
