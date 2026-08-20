@@ -1,5 +1,6 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_compare_header.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_marker_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -120,7 +121,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Safe area alterada'), findsOneWidget);
+      expect(
+        find.widgetWithText(VersionCompareMarkerChip, 'Safe area alterada'),
+        findsOneWidget,
+        reason:
+            'o critério é chip, não texto solto — cor nunca é o único '
+            'sinal, então o rótulo precisa vir dentro do chip que traz o ícone',
+      );
       expect(find.widgetWithText(OutlinedButton, _copyLabel), findsNothing);
     },
   );

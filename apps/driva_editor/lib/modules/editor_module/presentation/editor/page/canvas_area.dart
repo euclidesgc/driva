@@ -8,6 +8,8 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/edit
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_full_version_into_draft.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_unsafe_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -72,16 +74,29 @@ class CanvasArea extends StatelessWidget {
               _ => null,
             },
             compareBuilder: switch (compareState) {
-              final VersionCompareModeActive s =>
+              final VersionCompareModeActive s when mode != null =>
                 (scale) => VersionCompareMockPane(
                   device: vm.device,
                   effectiveScale: scale,
                   spec: s.candidate.spec,
                   candidateVersion: s.candidate.version,
                   imageUrlResolver: imageUrlResolver,
-                  onOlder: context.read<VersionCompareModeCubit>().stepOlder,
-                  onNewer: context.read<VersionCompareModeCubit>().stepNewer,
-                  onClose: context.read<VersionCompareModeCubit>().exit,
+                  onOlder: mode.stepOlder,
+                  onNewer: mode.stepNewer,
+                  onClose: mode.exit,
+                  unsafeView: s.result.fold(
+                    (failure) => VersionCompareUnsafeView(
+                      failure: failure,
+                      onLoadFullVersion: () => unawaited(
+                        loadFullVersionIntoDraft(
+                          context,
+                          editorCubit: cubit,
+                          candidate: s.candidate,
+                        ),
+                      ),
+                    ),
+                    (_) => null,
+                  ),
                 ),
               _ => null,
             },

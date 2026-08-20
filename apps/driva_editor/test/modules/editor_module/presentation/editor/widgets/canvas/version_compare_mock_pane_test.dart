@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/device_pr
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_unsafe_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -217,4 +218,98 @@ void main() {
       );
     },
   );
+
+  _paneEdgeTests();
 }
+
+void _paneEdgeTests() {
+  testWidgets(
+    'ID duplicado bloqueia a comparação: o lugar do mock explica por quê, e '
+    'não há moldura a mais',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1600, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: VersionCompareMockPane(
+              device: DevicePreset.smartphone,
+              effectiveScale: 0.8,
+              spec: _candidateSpec,
+              candidateVersion: 3,
+              onOlder: () {},
+              onNewer: () {},
+              onClose: () {},
+              unsafeView: const VersionCompareUnsafeView(
+                failure: DuplicateNodeIdComparisonFailure(
+                  baseDuplicateIds: {'nd_1'},
+                  candidateDuplicateIds: {},
+                ),
+                onLoadFullVersion: _noop,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(VersionCompareUnsafeView), findsOneWidget);
+      expect(
+        find.byType(DeviceFrame),
+        findsNothing,
+        reason:
+            'com a comparação bloqueada não há o que mostrar na moldura — '
+            'exibi-la sugeriria que a comparação vale',
+      );
+    },
+  );
+
+  testWidgets(
+    'nas pontas do histórico, a navegação de versão fica desabilitada',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1600, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: VersionCompareMockPane(
+              device: DevicePreset.smartphone,
+              effectiveScale: 0.8,
+              spec: _candidateSpec,
+              candidateVersion: 3,
+              onOlder: null,
+              onNewer: null,
+              onClose: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final older = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_right),
+      );
+      final newer = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_left),
+      );
+      expect(
+        older.onPressed,
+        isNull,
+        reason:
+            'na versão mais antiga carregada e sem próxima página, não há '
+            'para onde descer',
+      );
+      expect(
+        newer.onPressed,
+        isNull,
+        reason: 'na versão mais nova do histórico, não há para onde subir',
+      );
+    },
+  );
+}
+
+void _noop() {}
