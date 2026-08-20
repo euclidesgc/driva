@@ -60,3 +60,97 @@ critério de prova por mutação.
 **Corrigido pelo tech-manager** em 2026-08-20, como correção de DoD errado — não como
 afrouxamento para a tarefa passar. O trabalho já cumpria as duas metades verificáveis, ambas
 provadas por mutação.
+
+
+---
+
+## VR-50-04 — O modal de comparação foi substituído por um modo do editor
+
+**O plano dizia:** T5 inteira — a comparação como diálogo (`VersionCompareDialog`), com dois
+previews, listas de nós exclusivos e o botão de cópia dentro dele.
+
+**O que foi feito:** a comparação virou um **modo do editor**, com dois mocks no canvas (o
+rascunho ao vivo à esquerda, a versão escolhida à direita), marcadores no Inspector e o modal
+apagado. O redesenho está planejado em [`plan_t5b.md`](plan_t5b.md) e entregue na F1
+(PR #199).
+
+**Por quê:** o dono testou a T5 entregue e disse que não era o que tinha em mente. Nas palavras
+dele, em 2026-08-20: *"exibir outro mock na janela do builder, ao lado do existente, onde o da
+esquerda é o atual e o da direita é a versão que o user está comparando"*. Usar revelou o
+defeito do desenho: comparar tirava o usuário do editor, e a cópia de propriedade acontecia
+longe do canvas onde o resultado aparece.
+
+**Pedido pelo dono do produto** em 2026-08-20. Não é correção de erro de execução: a T5 cumpria
+o plano; o plano é que descrevia a superfície errada.
+
+---
+
+## VR-50-05 — A saída do modo não se chama "Cancelar"
+
+**O plano dizia (pedido do dono):** *"Para sair desse modo o user salva ou cancela."*
+
+**O que foi feito:** o botão chama-se **"Fechar comparação"**.
+
+**Por quê:** "Cancelar" promete reverter, e nada é revertido — as propriedades já trazidas da
+versão continuam no rascunho, desfazíveis uma a uma por `Ctrl+Z` como qualquer edição manual.
+Um botão que promete desfazer e não desfaz é a mesma classe de falha silenciosa que o item 50
+existe para matar. Registrado como decisão da D3 do `plan_t5b.md`.
+
+**Desvio proposto pelo tech-lead e mantido pelo tech-manager**, comunicado ao dono em
+2026-08-20. Se ele preferir que cancelar reverta de fato o que foi copiado durante o modo,
+isso é implementável e vira decisão dele.
+
+---
+
+## VR-50-06 — O toggle "base: rascunho / no ar" foi removido
+
+**O plano dizia:** T5, item 1 — "A base default é o rascunho; quando houver, o usuário pode
+trocar para a versão no ar". O VR-50-02 acima nasceu desse mesmo item.
+
+**O que foi feito:** o toggle não existe no modo in-canvas. O lado esquerdo é sempre o canvas ao
+vivo. Com isso, o VR-50-02 fica superado — não há mais base variável para o rótulo nomear.
+
+**Por quê:** consequência estrutural do VR-50-04. O lado esquerdo passou a ser o editor de
+verdade, e não um painel que pode exibir qualquer spec. Comparar a versão no ar contra uma
+versão antiga, sem passar pelo rascunho, deixa de ter porta própria — continua sendo possível
+ver as duas pelo histórico, uma de cada vez.
+
+⚠️ **Perda consciente, ainda pendente de confirmação do dono** (comunicada em 2026-08-20, no
+PR #199 e no roadmap). Se for uso real, a alternativa será desenhada antes da F2.
+
+---
+
+## VR-50-07 — O E2E do item deixa de ser script e vira roteiro manual curto
+
+**O plano dizia:** T7 — criar `e2e_hml.sh`, `e2e_shots.sh` e `e2e_drive.mjs` no padrão do item
+24, com o driver visual capturando desktop, overflow compacto, ver, comparar, seta, cancelar,
+carregar e publicar.
+
+**O que foi feito:** a T7 passa a ser um roteiro manual curto, cobrindo só o que a pirâmide de
+testes não alcança. A cobertura de fluxo, cubits, marcadores e undo passou a ser widget e
+unitário, escrita junto de cada fase.
+
+**Por quê:** mudança de política do repositório, decidida pelo dono em 2026-08-20 e registrada
+no `CLAUDE.md` — unitário e widget primeiro, E2E por exceção com três critérios de admissão. A
+decisão veio da constatação de que cada feature carregava scripts caros para provar o que um
+`bloc_test` prova mais barato e mais cedo. Vale para o repositório inteiro, não só para este
+item.
+
+**Decisão do dono do produto** em 2026-08-20.
+
+---
+
+## VR-50-08 — O limiar de colapso da barra de topo subiu de 840 para 893
+
+**O plano dizia:** T1 — decisão registrada do dono fixou `AppSizes.topBarActionsFitWidth = 840`
+(cruzamento medido em ~794px + 46px de folga).
+
+**O que foi feito:** o token passou a **893** (cruzamento em ~847px + os mesmos 46px).
+
+**Por quê:** o item 53 acrescentou "salvar e marcar no histórico" como sétima ação da barra, e a
+`Row` passou a estourar 6,6px em 840 — a cerca calibrada na T1 pegou na hora. **O custo é real e
+está registrado no dartdoc do token:** quem tiver a janela entre 840 e 893 passa a ver a barra
+colapsada. É também a evidência objetiva de que a barra chegou ao teto de ações enfileiradas,
+que é o que o **item 52** do roadmap trata.
+
+**Consequência de uma feature pedida pelo dono**, comunicada a ele em 2026-08-20.
