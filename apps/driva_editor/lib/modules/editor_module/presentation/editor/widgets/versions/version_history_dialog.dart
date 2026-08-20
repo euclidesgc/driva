@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
@@ -7,11 +6,11 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_row.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_failure_message.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_dialog.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
@@ -147,17 +146,14 @@ class VersionHistoryDialog extends StatelessWidget {
                             ? AppSizes.loadingMoreFooterInset
                             : 0,
                       ),
-                      itemCount: s.versions.length,
-                      itemBuilder: (context, index) {
-                        final version = s.versions[index];
-                        return VersionRow(
-                          version: version,
-                          isPublished: version.version == s.publishedVersion,
-                          onView: (v) => _view(context, v),
-                          onLoadToDraft: (v) => _loadToDraft(context, v),
-                          onCompare: (v) => _compare(context, v),
-                        );
-                      },
+                      itemCount: s.entries.length,
+                      itemBuilder: (context, index) => HistoryEntryRow(
+                        entry: s.entries[index],
+                        publishedVersion: s.publishedVersion,
+                        onViewVersion: (v) => _view(context, v),
+                        onLoadVersionToDraft: (v) => _loadToDraft(context, v),
+                        onCompareVersion: (v) => _compare(context, v),
+                      ),
                     ),
                     if (s.isLoadingMore)
                       const Positioned(
