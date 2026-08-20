@@ -105,35 +105,148 @@ function p2002(constraint: string): Prisma.PrismaClientKnownRequestError {
 }
 
 describe('ContentsService.publish', () => {
-  it('não cria versão nova quando o rascunho não mudou desde a última publicação', async () => {
+  it('publicar um rascunho igual ao que está no ar não cria versão e conserva publishedAt', async () => {
     const prisma = createPrismaMock();
+    const spec = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' };
     const row = contentRow({
+      draftSpec: spec,
       publishedVersionId: 'version-3',
       publishedAt: NOW,
-      draftUpdatedAt: NOW,
+      // Mais novo que o publish de propósito: salvar sobe este marcador, e
+      // um save que só desfaz o que foi digitado deixa o rascunho igual ao
+      // ar com timestamp mais novo. Publicar por timestamp criaria aqui uma
+      // versão idêntica à v3, num histórico que ninguém pode reescrever.
+      draftUpdatedAt: new Date(NOW.getTime() + 60_000),
     });
     prisma.content.findFirst.mockResolvedValue(row);
-    prisma.contentVersion.findUnique.mockResolvedValue({ version: 3 });
-    // Deixa o caminho de criação de versão completável mesmo não sendo
-    // percorrido em código correto: se a guarda de idempotência sumir, o
-    // publish precisa reprovar por asserção (uma versão criada de verdade),
-    // não estourar num dublê incompleto antes de qualquer expect rodar.
+    prisma.contentVersion.findUnique.mockResolvedValue({ version: 3, spec });
+    // Deixa o caminho de criação completável mesmo não sendo percorrido em
+    // código correto: se a guarda de idempotência sumir, o publish reprova
+    // por asserção, não estoura num dublê incompleto antes do expect.
     prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 3 } });
     prisma.contentVersion.create.mockResolvedValue({
       id: 'version-4',
       version: 4,
       createdAt: NOW,
     });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 3 }]);
 
     const result = await serviceWith(prisma).publish('project-1', 'content-1', {});
 
     expect(prisma.contentVersion.create).not.toHaveBeenCalled();
-    expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(result).toEqual({
       publishedVersion: { version: 3, publishedAt: NOW },
       hasUnpublishedChanges: false,
       latestVersion: 3,
     });
+    // O marcador do rascunho reconcilia para a próxima leitura nascer limpa,
+    // e `publishedAt` fica intocado porque alimenta o ETag da rota pública.
+    expect(prisma.content.update).toHaveBeenCalledWith({
+      where: { id: 'content-1' },
+      data: { draftUpdatedAt: NOW },
+    });
+  });
+
+  it('a igualdade é semântica: ordem diferente das chaves não conta como mudança', async () => {
+    const prisma = createPrismaMock();
+    const row = contentRow({
+      draftSpec: { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' },
+      publishedVersionId: 'version-3',
+      publishedAt: NOW,
+      draftUpdatedAt: new Date(NOW.getTime() + 60_000),
+    });
+    prisma.content.findFirst.mockResolvedValue(row);
+    prisma.contentVersion.findUnique.mockResolvedValue({
+      version: 3,
+      spec: { slug: 'home', name: 'Home', id: 'content-1', kind: 'content', specVersion: 1 },
+    });
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 3 } });
+    prisma.contentVersion.create.mockResolvedValue({ id: 'version-4', version: 4, createdAt: NOW });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 3 }]);
+
+    await serviceWith(prisma).publish('project-1', 'content-1', {});
+
+    expect(prisma.contentVersion.create).not.toHaveBeenCalled();
+  });
+
+  it('rascunho diferente do que está no ar cria a próxima versão', async () => {
+    const prisma = createPrismaMock();
+    const row = contentRow({
+      draftSpec: { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home v2', slug: 'home' },
+      publishedVersionId: 'version-3',
+      publishedAt: NOW,
+      draftUpdatedAt: new Date(NOW.getTime() + 60_000),
+    });
+    prisma.content.findFirst.mockResolvedValue(row);
+    prisma.contentVersion.findUnique.mockResolvedValue({
+      version: 3,
+      spec: { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' },
+    });
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 3 } });
+    prisma.contentVersion.create.mockResolvedValue({ id: 'version-4', version: 4, createdAt: NOW });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 4 }]);
+
+    const result = await serviceWith(prisma).publish('project-1', 'content-1', {});
+
+    expect(prisma.contentVersion.create).toHaveBeenCalledTimes(1);
+    expect(result.publishedVersion?.version).toBe(4);
+  });
+
+  it('rascunho igual a uma versão antiga, mas diferente da que está no ar, cria versão nova', async () => {
+    const prisma = createPrismaMock();
+    const specDaV1 = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Original', slug: 'home' };
+    const row = contentRow({
+      draftSpec: specDaV1,
+      publishedVersionId: 'version-3',
+      publishedAt: NOW,
+      draftUpdatedAt: new Date(NOW.getTime() + 60_000),
+    });
+    prisma.content.findFirst.mockResolvedValue(row);
+    prisma.contentVersion.findUnique.mockResolvedValue({
+      version: 3,
+      spec: { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' },
+    });
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: 3 } });
+    prisma.contentVersion.create.mockResolvedValue({ id: 'version-4', version: 4, createdAt: NOW });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 4 }]);
+
+    const result = await serviceWith(prisma).publish('project-1', 'content-1', {});
+
+    // Restaurar a v1 e publicar não faz o ponteiro voltar para a v1: cria a
+    // v4 com aquele conteúdo. O histórico é append-only, e é isso que mantém
+    // a auditoria linear.
+    expect(prisma.contentVersion.create).toHaveBeenCalledTimes(1);
+    expect(result.publishedVersion?.version).toBe(4);
+  });
+
+  it('conteúdo nunca publicado sempre cria a primeira versão', async () => {
+    const prisma = createPrismaMock();
+    const row = contentRow({ publishedVersionId: null, publishedAt: null });
+    prisma.content.findFirst.mockResolvedValue(row);
+    prisma.contentVersion.aggregate.mockResolvedValue({ _max: { version: null } });
+    prisma.contentVersion.create.mockResolvedValue({ id: 'version-1', version: 1, createdAt: NOW });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 1 }]);
+
+    const result = await serviceWith(prisma).publish('project-1', 'content-1', {});
+
+    expect(prisma.contentVersion.findUnique).not.toHaveBeenCalled();
+    expect(result.publishedVersion?.version).toBe(1);
+  });
+
+  it('tudo que decide o resultado é lido dentro da transação', async () => {
+    const prisma = createPrismaMock();
+    const spec = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' };
+    prisma.content.findFirst.mockResolvedValue(
+      contentRow({ draftSpec: spec, publishedVersionId: 'version-3', publishedAt: NOW }),
+    );
+    prisma.contentVersion.findUnique.mockResolvedValue({ version: 3, spec });
+    prisma.contentVersion.findMany.mockResolvedValue([{ version: 3 }]);
+
+    await serviceWith(prisma).publish('project-1', 'content-1', {});
+
+    // Um publish concorrente entre a leitura e a escrita produziria duas
+    // versões com o mesmo conteúdo — e o histórico é append-only.
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it('carimba o draftSpec guardado no servidor, ignorando qualquer spec enviado no corpo', async () => {
