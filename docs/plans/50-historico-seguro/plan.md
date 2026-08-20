@@ -127,7 +127,7 @@ Antes de comparar, o motor indexa os IDs de cada arvore. ID repetido em qualquer
 2. Preview e arvore exibem os mesmos marcadores: `Propriedades alteradas`, `Eventos alterados`, `Safe area alterada`, `Metadados alterados`, `Somente no rascunho`, `Somente na versao` e `Tipo mudou`, todos com icone + texto + cor. Eventos, safe area e metadados declaram que sao somente leitura nesta v1.
 3. A seta para a esquerda aparece apenas em propriedades de no compativel. Ela chama o motor puro, atualiza `EditorCubit`, empilha undo e marca dirty; nao salva nem chama restore.
 4. Para estrutura, tipo, eventos, safe area ou metadados, explicar ausencia da seta e oferecer somente `Carregar versao inteira no rascunho` como alternativa segura. Com ID duplicado, bloquear a comparacao inteira e indicar que a versao nao pode ser comparada com seguranca.
-5. Reexecutar diagnosticos apos copia; se criar erro, mostra-lo no fluxo normal de publicacao, sem desfazer a acao escondido.
+5. A copia nunca e desfeita por baixo dos panos: o documento resultante fica aplicado mesmo continuando com erro, e o bloqueio de publicacao reflete os diagnosticos do documento resultante, pelo fluxo normal. Copia de propriedades nao pode criar erro novo - `diagnoseTree` so olha `type`, tipo do pai e `child`/`children` (ver VR-50-03).
 
 **DoD T5:** comparar e puro; seta so existe em ID/tipo compativeis; copia somente propriedades e Ctrl+Z a desfaz; eventos, safe area e metadados nunca aparecem como iguais por omissao; IDs duplicados nao exibem seta nem mutam o documento; preview/arvore/Inspector refletem rascunho; mobile nao corta texto; widget/golden tests cobrem marcadores e layouts.
 

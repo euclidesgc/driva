@@ -14,6 +14,29 @@ Future<void> installTolerantGoldenComparator({double threshold = 0.05}) async {
   );
 }
 
+/// Aperta a tolerância para um golden específico dentro do arquivo, sem
+/// afetar os outros: o padrão de 5% (acima) existe para a página inteira,
+/// mas um rótulo cortado por `ellipsis` some numa fração pequena da
+/// imagem — perto de 3% num crop pequeno — e passaria batido nesse teto.
+/// Restaura o comparador anterior ao final, mesmo se [body] lançar.
+Future<void> withStricterGolden(
+  double threshold,
+  Future<void> Function() body,
+) async {
+  final previous = goldenFileComparator;
+  if (previous is LocalFileComparator) {
+    goldenFileComparator = _TolerantComparator(
+      previous.basedir,
+      threshold: threshold,
+    );
+  }
+  try {
+    await body();
+  } finally {
+    goldenFileComparator = previous;
+  }
+}
+
 class _TolerantComparator extends LocalFileComparator {
   _TolerantComparator(Uri baseDir, {required this.threshold})
     : super(baseDir.resolve('placeholder_test.dart'));

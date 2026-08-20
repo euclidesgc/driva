@@ -73,6 +73,30 @@ abstract final class AppSizes {
   /// disponível.
   static const double versionSnapshotPreviewHeight = 420;
 
+  /// Largura de conteúdo de `VersionCompareDialog` (item 50, T5) no
+  /// desktop — mais largo que [versionReviewDialogWidth] porque a seção de
+  /// nós exclusivos vira duas colunas lado a lado (rascunho | versão).
+  static const double versionCompareDialogWidth = 860;
+
+  /// Abaixo desta largura de janela, `VersionCompareDialog` deixa de caber
+  /// como diálogo flutuante com duas colunas e passa a ocupar a tela
+  /// inteira, com as colunas viram controle segmentado (mesmo papel de
+  /// [versionReviewDialogFitWidth] para esta composição mais densa).
+  static const double versionCompareDialogFitWidth = 1000;
+
+  /// Teto de altura do conteúdo rolável de `VersionCompareDialog` no
+  /// desktop — a lista de nós pode crescer bastante; sem teto o
+  /// `AlertDialog` estouraria a tela em conteúdos grandes. Maior que a
+  /// primeira calibração (560) porque o par de previews lado a lado
+  /// entrou acima da lista de diffs.
+  static const double versionCompareDialogMaxHeight = 640;
+
+  /// Altura de cada preview em `VersionComparePreviewSection` (item 50,
+  /// T5) — os dois cabem lado a lado no desktop sem estourar
+  /// [versionCompareDialogMaxHeight] junto com o cabeçalho e a lista de
+  /// diffs abaixo.
+  static const double versionComparePreviewPaneHeight = 220;
+
   /// O orçamento horizontal que `DialogContentWidth` precisa descontar da
   /// tela: o `insetPadding` padrão do Material (`AlertDialog`) é 40px de
   /// cada lado — 80 no total. Só isso; o `contentPadding` interno do diálogo

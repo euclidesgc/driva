@@ -639,6 +639,17 @@ class EditorCubit extends Cubit<EditorState> {
     _emitDocument(current, spec, markUnpublished: !loadsPublishedVersion);
   }
 
+  /// Aplica o resultado de `copyComparableNodeProperties` (motor puro do
+  /// `sdui_core`, T5 do item 50): [updatedDocument] já é o rascunho com só
+  /// as `properties` do nó copiado da candidata. Mesmo funil de
+  /// [_emitDocument] de qualquer edição comum — vira entrada de undo, marca
+  /// sujo, nunca persiste ou toca `restore` sozinho.
+  void applyComparedNodeProperties(ContentSpec updatedDocument) {
+    final current = state;
+    if (current is! EditorReady) return;
+    _emitDocument(current, updatedDocument);
+  }
+
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
     DropRefusal.cycle => EditorNoticeKind.dropCycle,
     DropRefusal.unknownTarget => EditorNoticeKind.dropUnknownTarget,
