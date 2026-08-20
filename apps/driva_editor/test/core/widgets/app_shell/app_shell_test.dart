@@ -83,7 +83,7 @@ Widget _harness(GoRouter router) =>
 
 /// Estas provas exercitam a faixa larga do shell (crumbs/ações por extenso,
 /// sem colapso) — a faixa estreita é coberta à parte em
-/// `app_shell_top_bar_test.dart`. Acima de [AppSizes.topBarActionsFitWidth].
+/// `app_shell_top_bar_test.dart`. Em largura confortável para a barra cheia.
 void _useWideSurface(WidgetTester tester) {
   tester.view.physicalSize = const Size(1400, 900);
   tester.view.devicePixelRatio = 1.0;

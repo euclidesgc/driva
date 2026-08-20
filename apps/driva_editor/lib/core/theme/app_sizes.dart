@@ -22,8 +22,7 @@ abstract final class AppSizes {
   /// de categorias fixa) para de caber — soma [categoryTreePanelWidth] + 1
   /// (divisor) + 48 (padding do cabeçalho) + [contentPanelSearchWidth] + 10
   /// (vão) + 244 (ordenação + modo, medido). Não é breakpoint — é o limiar
-  /// em que esta composição específica para de caber (mesmo papel de
-  /// `topBarActionsFitWidth`, F3); não governa mais nada.
+  /// em que esta composição específica para de caber; não governa mais nada.
   static const double contentPanelWideHeaderFitWidth =
       categoryTreePanelWidth +
       1 +
@@ -63,8 +62,8 @@ abstract final class AppSizes {
 
   /// Abaixo desta largura de janela, `VersionReviewDialog` deixa de caber
   /// como diálogo flutuante sem espremer o snapshot e passa a ocupar a tela
-  /// inteira (mesmo papel de [topBarActionsFitWidth]/
-  /// [contentPanelWideHeaderFitWidth] para esta composição).
+  /// inteira (mesmo papel de [contentPanelWideHeaderFitWidth] para esta
+  /// composição).
   static const double versionReviewDialogFitWidth = 900;
 
   /// Altura do snapshot somente leitura dentro de `VersionReviewDialog` no
@@ -125,32 +124,23 @@ abstract final class AppSizes {
   /// Altura fixa da faixa 2 do `AppShell` (breadcrumb).
   static const double breadcrumbBarHeight = 30;
 
-  /// Abaixo desta largura, a `AppShellTopBar` degrada em três peças (D35):
-  /// wordmark curto, a ação `filled` primária vira só ícone (um toque) e as
-  /// demais colapsam no `AppShellActionsOverflowMenu`. Não é breakpoint — é
-  /// o limiar em que a parte rígida do shell (wordmark + desfazer + refazer
-  /// + Salvar + Publicar + Despublicar + Histórico + botão de tema) para de
-  /// caber (mesmo papel de `contentPanelWideHeaderFitWidth`). Só `Histórico`
-  /// é `outlined` com rótulo (T1.1 do item 50); `Despublicar` continua
-  /// `icon` — ação rara e destrutiva, não a que se procura. O indicador de
-  /// status é `Flexible` e não entra nessa conta — ele encolhe com ellipsis
-  /// em vez de forçar a largura. Medido com a fonte real do app
-  /// (`test/support/app_fonts.dart`, não a de teste do Flutter, que infla o
-  /// texto): o cruzamento ficou em ~794px nos três estados de publicação;
-  /// os 46px de folga (mesma margem usada nas calibrações anteriores)
-  /// cobrem variação de hinting entre ambientes — decisão do dono do
-  /// produto em 2026-08-19, registrada em
-  /// `docs/plans/50-historico-seguro/plan.md` (T1).
+  // `topBarActionsFitWidth` viveu aqui: o limiar em que a barra do topo
+  // deixava de caber, medido à mão com a fonte real e somado a uma folga.
+  // Precisou ser recalibrado duas vezes em dois dias — quando `Histórico`
+  // ganhou rótulo e quando "salvar e marcar" virou a sétima ação —, porque
+  // uma constante não sabe quantas ações a barra tem. Ela passou a somar
+  // [topBarChromeWidth] com a largura estimada das próprias ações, e o
+  // limiar deixou de existir.
+
+  /// O que a barra do topo ocupa **fora** das ações: wordmark completo, o
+  /// indicador de status no rótulo mais longo que o editor exibe, o botão de
+  /// tema e os respiros entre eles.
   ///
-  /// **Recalibrado em 2026-08-20 para 893**, quando "salvar e marcar no
-  /// histórico" virou a sétima ação da barra: o cruzamento subiu para ~847px
-  /// (medido — a 840 a `Row` estourava 6,6px), e os mesmos 46px de folga
-  /// levam a 893. O custo é conhecido e vale registrar: quem estiver com a
-  /// janela entre 840 e 893 passa a ver a barra colapsada no overflow único
-  /// do shell. É a evidência de que a barra chegou ao teto de ações
-  /// enfileiradas — o item 52 do roadmap trata disso, e enquanto ele não
-  /// vier, cada ação nova custa mais uma faixa de largura.
-  static const double topBarActionsFitWidth = 893;
+  /// Some-se a isto a largura estimada das ações (`estimatedActionsWidth`)
+  /// para saber quanto a barra cheia precisa. É o pedaço que não muda com a
+  /// tela — o que muda é o conjunto de ações, e é justamente ele que a
+  /// constante antiga não sabia contar.
+  static const double topBarChromeWidth = 430;
 
   /// Altura da barra de ferramentas do canvas (presets de device + zoom).
   static const double canvasToolbarHeight = 44;
@@ -159,7 +149,7 @@ abstract final class AppSizes {
   /// janela — o painel central encolhe sozinho quando os laterais abrem), o
   /// texto de dimensão do preset sai: ele é o único item redundante da barra,
   /// porque o tooltip de cada preset já diz `393×852`. Mesmo papel de
-  /// [topBarActionsFitWidth].
+  /// [contentPanelWideHeaderFitWidth].
   static const double canvasToolbarDimensionsFitWidth = 650;
 
   /// Abaixo desta largura, as ações secundárias da barra do canvas (ver no
