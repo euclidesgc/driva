@@ -2,32 +2,85 @@ import 'dart:async';
 
 import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
+import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/restore_version_confirm_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_failure_message.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// A lista paginada de versões (padrão de scroll infinito do item 16:
 /// `NotificationListener` + rodapé "Carregando mais…"). `editorCubit` é quem
-/// de fato troca o documento ao restaurar — este diálogo só lista.
+/// de fato troca o documento ao carregar uma versão no rascunho; este
+/// diálogo só lista e delega `Ver`/`Carregar no rascunho` (T3, item 50).
 class VersionHistoryDialog extends StatelessWidget {
-  const VersionHistoryDialog({required this.editorCubit, super.key});
+  const VersionHistoryDialog({
+    required this.editorCubit,
+    required this.getContentVersionUseCase,
+    this.imageUrlResolver,
+    super.key,
+  });
 
   final EditorCubit editorCubit;
+  final GetContentVersionUseCase getContentVersionUseCase;
+  final SduiImageUrlResolver? imageUrlResolver;
 
   static const _prefetchExtent = 200.0;
 
-  Future<void> _restore(BuildContext context, int version) async {
+  Future<void> _view(BuildContext context, int version) async {
+    final contentId = context.read<VersionHistoryCubit>().contentId;
+    final reviewCubit = VersionReviewCubit(
+      getContentVersionUseCase: getContentVersionUseCase,
+      contentId: contentId,
+      version: version,
+    );
+    unawaited(reviewCubit.load());
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: reviewCubit,
+        child: VersionReviewDialog(imageUrlResolver: imageUrlResolver),
+      ),
+    );
+    await reviewCubit.close();
+  }
+
+  Future<void> _loadToDraft(BuildContext context, int version) async {
+    final contentId = context.read<VersionHistoryCubit>().contentId;
+    final result = await getContentVersionUseCase(contentId, version);
+    if (!context.mounted) return;
+
+    final loaded = result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(versionFailureMessage(failure))),
+        );
+        return null;
+      },
+      (loadedVersion) => loadedVersion,
+    );
+    if (loaded == null) return;
+
+    final editorState = editorCubit.state;
+    if (editorState is! EditorReady) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => RestoreVersionConfirmDialog(version: version),
+      builder: (_) => LoadVersionIntoDraftConfirmDialog(
+        version: version,
+        isDirty: editorState.saveStatus == SaveStatus.dirty,
+      ),
     );
     if (confirmed != true) return;
     if (!context.mounted) return;
-    final restored = await editorCubit.restoreVersion(version);
-    if (!context.mounted || !restored) return;
+
+    editorCubit.loadVersionIntoDraft(loaded.spec, version: loaded.version);
     Navigator.of(context).pop();
   }
 
@@ -45,7 +98,7 @@ class VersionHistoryDialog extends StatelessWidget {
     return AlertDialog(
       title: const Text('Histórico de versões'),
       content: SizedBox(
-        width: AppSizes.formDialogWidth,
+        width: AppSizes.versionHistoryDialogWidth,
         height: AppSizes.versionHistoryListHeight,
         child: BlocBuilder<VersionHistoryCubit, VersionHistoryState>(
           builder: (context, state) => switch (state) {
@@ -75,7 +128,8 @@ class VersionHistoryDialog extends StatelessWidget {
                         return VersionRow(
                           version: version,
                           isPublished: version.version == s.publishedVersion,
-                          onRestore: (v) => _restore(context, v),
+                          onView: (v) => _view(context, v),
+                          onLoadToDraft: (v) => _loadToDraft(context, v),
                         );
                       },
                     ),

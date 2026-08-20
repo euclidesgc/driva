@@ -120,6 +120,9 @@ void main() {
         () => GetContentVersionsUseCase(repository: getIt<EditorRepository>()),
       )
       ..registerFactory(
+        () => GetContentVersionUseCase(repository: getIt<EditorRepository>()),
+      )
+      ..registerFactory(
         () => GetEditorLayoutUseCase(
           repository: getIt<EditorLayoutRepository>(),
         ),

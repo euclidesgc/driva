@@ -28,6 +28,7 @@ class EditorPage extends StatefulWidget {
     this.getEditorLayoutUseCase,
     this.saveEditorLayoutUseCase,
     this.getContentVersionsUseCase,
+    this.getContentVersionUseCase,
     super.key,
   });
 
@@ -62,6 +63,11 @@ class EditorPage extends StatefulWidget {
   /// `VersionHistoryCubit` só quando o diálogo de histórico abre (P4) — o
   /// mesmo motivo de opcionalidade dos dois use cases acima.
   final GetContentVersionsUseCase? getContentVersionsUseCase;
+
+  /// Repassado até `VersionHistoryDialog` (T3, item 50), que constrói o
+  /// `VersionReviewCubit` só quando `Ver`/`Carregar no rascunho` são
+  /// acionados — mesma opcionalidade de [getContentVersionsUseCase].
+  final GetContentVersionUseCase? getContentVersionUseCase;
 
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final projectId = state.pathParameters['projectId'];
@@ -99,6 +105,7 @@ class EditorPage extends StatefulWidget {
         getEditorLayoutUseCase: getIt<GetEditorLayoutUseCase>(),
         saveEditorLayoutUseCase: getIt<SaveEditorLayoutUseCase>(),
         getContentVersionsUseCase: getIt<GetContentVersionsUseCase>(),
+        getContentVersionUseCase: getIt<GetContentVersionUseCase>(),
       ),
     );
   }
@@ -153,6 +160,7 @@ class _EditorPageState extends State<EditorPage> {
                     imageUrlResolver: widget.imageUrlResolver,
                     layoutController: _layoutController,
                     getContentVersionsUseCase: widget.getContentVersionsUseCase,
+                    getContentVersionUseCase: widget.getContentVersionUseCase,
                   )
                 : _editorBootScaffold,
           ),

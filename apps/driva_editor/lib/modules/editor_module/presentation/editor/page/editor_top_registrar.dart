@@ -16,12 +16,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 import 'package:sdui_core/sdui_core.dart' show DiagnosticSeverity;
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 class EditorTopRegistrar extends StatelessWidget {
   const EditorTopRegistrar({
     required this.projectFuture,
     required this.child,
     this.getContentVersionsUseCase,
+    this.getContentVersionUseCase,
+    this.imageUrlResolver,
     super.key,
   });
 
@@ -32,6 +35,16 @@ class EditorTopRegistrar extends StatelessWidget {
   /// caso o botão "Histórico" fica desabilitado, o resto do topo continua
   /// funcionando.
   final GetContentVersionsUseCase? getContentVersionsUseCase;
+
+  /// Repassado a `VersionHistoryDialog` (T3, item 50) para o `Ver`/`Carregar
+  /// no rascunho` de cada linha — mesma opcionalidade de
+  /// [getContentVersionsUseCase].
+  final GetContentVersionUseCase? getContentVersionUseCase;
+
+  /// Repassado ao snapshot de `VersionReviewDialog` (T3, item 50) — mesmo
+  /// resolvedor de imagens do canvas principal, para o preview histórico não
+  /// quebrar imagem nenhuma.
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -135,13 +148,20 @@ class EditorTopRegistrar extends StatelessWidget {
                   AppBarAction.outlined(
                     label: 'Histórico',
                     icon: Icons.history,
-                    tooltip: _historyTooltip(getContentVersionsUseCase),
-                    onPressed: getContentVersionsUseCase == null
+                    tooltip: _historyTooltip(
+                      getContentVersionsUseCase,
+                      getContentVersionUseCase,
+                    ),
+                    onPressed:
+                        getContentVersionsUseCase == null ||
+                            getContentVersionUseCase == null
                         ? null
                         : () => _openVersionHistory(
                             context,
                             cubit,
                             getContentVersionsUseCase,
+                            getContentVersionUseCase,
+                            imageUrlResolver,
                           ),
                   ),
                 ],
@@ -195,8 +215,12 @@ Future<void> _openVersionHistory(
   BuildContext context,
   EditorCubit cubit,
   GetContentVersionsUseCase? getContentVersionsUseCase,
+  GetContentVersionUseCase? getContentVersionUseCase,
+  SduiImageUrlResolver? imageUrlResolver,
 ) async {
-  if (getContentVersionsUseCase == null) return;
+  if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
+    return;
+  }
   final state = cubit.state;
   if (state is! EditorReady) return;
 
@@ -211,7 +235,11 @@ Future<void> _openVersionHistory(
     context: context,
     builder: (_) => BlocProvider.value(
       value: historyCubit,
-      child: VersionHistoryDialog(editorCubit: cubit),
+      child: VersionHistoryDialog(
+        editorCubit: cubit,
+        getContentVersionUseCase: getContentVersionUseCase,
+        imageUrlResolver: imageUrlResolver,
+      ),
     ),
   );
   await historyCubit.close();
@@ -234,8 +262,11 @@ String _unpublishTooltip(PublicationState publication) {
   return 'Despublicar (já está fora do ar)';
 }
 
-String _historyTooltip(GetContentVersionsUseCase? getContentVersionsUseCase) {
-  if (getContentVersionsUseCase == null) {
+String _historyTooltip(
+  GetContentVersionsUseCase? getContentVersionsUseCase,
+  GetContentVersionUseCase? getContentVersionUseCase,
+) {
+  if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
     return 'Histórico de versões (indisponível)';
   }
   return 'Histórico de versões';
