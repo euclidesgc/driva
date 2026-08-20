@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:driva_editor/core/error/error.dart';
+import 'package:driva_editor/modules/editor_module/data/models/content_checkpoints_page_model.dart';
 import 'package:driva_editor/modules/editor_module/data/models/content_versions_page_model.dart';
+import 'package:driva_editor/modules/editor_module/data/models/loaded_content_checkpoint_model.dart';
 import 'package:driva_editor/modules/editor_module/data/models/loaded_content_version_model.dart';
 import 'package:driva_editor/modules/editor_module/data/models/publication_state_model.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
@@ -96,6 +98,41 @@ class EditorRepositoryImpl implements EditorRepository {
       );
       final body = response.data ?? const <String, dynamic>{};
       return ContentVersionsPageModel.tryParse(body);
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ContentCheckpointsPage>> listCheckpoints(
+    String id, {
+    String? cursor,
+  }) async {
+    try {
+      final response = await dio.get<Map<String, dynamic>>(
+        '/v1/contents/$id/checkpoints',
+        queryParameters: {'cursor': ?cursor},
+      );
+      return ContentCheckpointsPageModel.tryParse(
+        response.data ?? const <String, dynamic>{},
+      );
+    } on DioException catch (e) {
+      return Left(_failureFor(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoadedContentCheckpoint>> getCheckpoint(
+    String id,
+    String checkpointId,
+  ) async {
+    try {
+      final response = await dio.get<Map<String, dynamic>>(
+        '/v1/contents/$id/checkpoints/$checkpointId',
+      );
+      return LoadedContentCheckpointModel.tryParse(
+        response.data ?? const <String, dynamic>{},
+      );
     } on DioException catch (e) {
       return Left(_failureFor(e));
     }

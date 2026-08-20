@@ -14,6 +14,18 @@ abstract interface class EditorRepository {
     String? checkpointNote,
   });
 
+  /// Os pontos de trabalho marcados ao salvar. Paginados por data, não por
+  /// número: checkpoint não consome `vN`.
+  Future<Either<Failure, ContentCheckpointsPage>> listCheckpoints(
+    String id, {
+    String? cursor,
+  });
+
+  Future<Either<Failure, LoadedContentCheckpoint>> getCheckpoint(
+    String id,
+    String checkpointId,
+  );
+
   Future<Either<Failure, PublicationState>> publish(String id, {String? note});
 
   Future<Either<Failure, Unit>> unpublish(String id);
