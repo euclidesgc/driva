@@ -1402,4 +1402,72 @@ void main() {
       },
     );
   });
+
+  group('carregar versão no rascunho (T3, item 50)', () {
+    const loaded = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_1',
+      name: 'Home',
+      slug: 'home',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(id: 'nd_antigo', type: 'text', properties: {'data': 'v2'}),
+        ],
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'aplica o spec já lido, fica sujo e desfazível — sem chamar nenhum '
+      'use case de rede',
+      build: buildLoaded,
+      act: (cubit) => cubit.loadVersionIntoDraft(loaded, version: 2),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, loaded);
+        expect(state.saveStatus, SaveStatus.dirty);
+        expect(state.canUndo, isTrue);
+        verifyZeroInteractions(restoreContentVersion);
+        verifyZeroInteractions(saveDraft);
+        verifyZeroInteractions(publishContent);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'um Ctrl+Z depois de carregar volta ao rascunho anterior',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..loadVersionIntoDraft(loaded, version: 2)
+          ..undo();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.canRedo, isTrue);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'carregar a versão que já está publicada não gera falsa pendência',
+      build: () => build()
+        ..emit(
+          EditorReady(
+            document: content,
+            publication: PublicationState(
+              publishedVersion: 2,
+              publishedAt: DateTime.utc(2026, 8, 16, 12),
+              hasUnpublishedChanges: false,
+            ),
+          ),
+        ),
+      act: (cubit) => cubit.loadVersionIntoDraft(loaded, version: 2),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, loaded);
+        expect(state.publication.hasUnpublishedChanges, isFalse);
+      },
+    );
+  });
 }

@@ -50,6 +50,29 @@ abstract final class AppSizes {
   /// consegue rolar até ele.
   static const double loadingMoreFooterInset = 56;
 
+  /// Largura de conteúdo do histórico de versões (item 50) — mais largo que
+  /// [formDialogWidth] porque cada linha ganhou três ações (`Ver`,
+  /// `Comparar`, `Carregar no rascunho`) ao lado dos metadados, e 380px as
+  /// espremia.
+  static const double versionHistoryDialogWidth = 560;
+
+  /// Largura do diálogo de revisão de versão (item 50) no desktop: espaço
+  /// para o cabeçalho de metadados e o snapshot `SduiView` sem que ele
+  /// pareça um recorte apertado do canvas real.
+  static const double versionReviewDialogWidth = 720;
+
+  /// Abaixo desta largura de janela, `VersionReviewDialog` deixa de caber
+  /// como diálogo flutuante sem espremer o snapshot e passa a ocupar a tela
+  /// inteira (mesmo papel de [topBarActionsFitWidth]/
+  /// [contentPanelWideHeaderFitWidth] para esta composição).
+  static const double versionReviewDialogFitWidth = 900;
+
+  /// Altura do snapshot somente leitura dentro de `VersionReviewDialog` no
+  /// desktop — teto para o `AlertDialog` não crescer com o tamanho do spec
+  /// histórico; no compacto o diálogo ocupa a tela e o snapshot usa a altura
+  /// disponível.
+  static const double versionSnapshotPreviewHeight = 420;
+
   /// O orçamento horizontal que `DialogContentWidth` precisa descontar da
   /// tela: o `insetPadding` padrão do Material (`AlertDialog`) é 40px de
   /// cada lado — 80 no total. Só isso; o `contentPadding` interno do diálogo

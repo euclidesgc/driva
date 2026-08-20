@@ -130,6 +130,9 @@ Future<void> _pumpBarAt(
                     getContentVersionsUseCase: GetContentVersionsUseCase(
                       repository: _MockEditorRepository(),
                     ),
+                    getContentVersionUseCase: GetContentVersionUseCase(
+                      repository: _MockEditorRepository(),
+                    ),
                     child: const SizedBox.shrink(),
                   ),
                 ),

@@ -12,6 +12,7 @@ export 'src/model/dimension_value.dart';
 export 'src/model/sdui_action.dart';
 export 'src/model/sdui_binding.dart';
 export 'src/model/sdui_node.dart';
+export 'src/ops/compare_ops.dart';
 export 'src/ops/drop_ops.dart';
 export 'src/ops/tree_ops.dart';
 export 'src/schema/content_schema.dart';

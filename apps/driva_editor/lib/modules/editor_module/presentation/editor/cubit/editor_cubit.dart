@@ -626,6 +626,19 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  /// Aplica em memória o spec de uma versão já lida por GET (T3, item 50):
+  /// nunca chama o endpoint remoto `restore` — só o próximo [save] persiste.
+  /// Passa pelo mesmo [_emitDocument] de [restoreVersion], então vira uma
+  /// entrada de undo e marca o rascunho sujo, salvo quando a versão já é a
+  /// publicada.
+  void loadVersionIntoDraft(ContentSpec spec, {required int version}) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final loadsPublishedVersion =
+        version == current.publication.publishedVersion;
+    _emitDocument(current, spec, markUnpublished: !loadsPublishedVersion);
+  }
+
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {
     DropRefusal.cycle => EditorNoticeKind.dropCycle,
     DropRefusal.unknownTarget => EditorNoticeKind.dropUnknownTarget,

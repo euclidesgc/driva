@@ -23,12 +23,17 @@ class EditorWorkspace extends StatelessWidget {
     required this.layoutController,
     this.imageUrlResolver,
     this.getContentVersionsUseCase,
+    this.getContentVersionUseCase,
     super.key,
   });
 
   final Future<Either<Failure, Project>> projectFuture;
 
   final GetContentVersionsUseCase? getContentVersionsUseCase;
+
+  /// Repassado a `EditorTopRegistrar` (T3, item 50) — mesma opcionalidade de
+  /// [getContentVersionsUseCase].
+  final GetContentVersionUseCase? getContentVersionUseCase;
 
   /// O soquete da D7: montado aqui, acima de tudo o que hoje monta o
   /// `ResizableSplitView`, para que a F7 (tela cheia) o alcance sem um sexto
@@ -94,6 +99,8 @@ class EditorWorkspace extends StatelessWidget {
       child: EditorTopRegistrar(
         projectFuture: projectFuture,
         getContentVersionsUseCase: getContentVersionsUseCase,
+        getContentVersionUseCase: getContentVersionUseCase,
+        imageUrlResolver: imageUrlResolver,
         child: workspace,
       ),
     );
