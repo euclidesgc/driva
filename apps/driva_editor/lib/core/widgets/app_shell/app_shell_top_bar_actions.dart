@@ -52,3 +52,48 @@ class AppShellTopBarActions extends StatelessWidget {
     );
   }
 }
+
+/// Estima a largura que [actions] ocupa na faixa larga, somando o que cada
+/// botão de fato compõe: ícone, vão, rótulo medido com a tipografia real e o
+/// respiro interno do Material.
+///
+/// Existe para a barra do topo decidir o colapso **contando o que ela tem**,
+/// e não comparando a janela contra uma constante gravada à mão. Essa
+/// constante precisou ser recalibrada duas vezes em dois dias — quando
+/// `Histórico` ganhou rótulo e quando "salvar e marcar" virou a sétima ação —,
+/// e errar a conta estoura o layout ou colapsa cedo demais, sem nada reprovar.
+///
+/// É estimativa, não medição exata: some [kActionsWidthSafety] antes de
+/// comparar. A alternativa exata seria medir a árvore num render object, e
+/// isso esbarra em o conteúdo da barra chegar depois do primeiro layout.
+double estimatedActionsWidth(
+  List<AppBarAction> actions,
+  TextStyle? labelStyle,
+) {
+  var total = 0.0;
+  for (final action in actions) {
+    total += switch (action.kind) {
+      AppBarActionKind.icon => _kIconButtonWidth,
+      _ => _labeledButtonWidth(action, labelStyle),
+    };
+    total += AppSpacing.s8;
+  }
+  return total;
+}
+
+/// Folga sobre [estimatedActionsWidth], para variação de hinting entre
+/// ambientes e para o que a estimativa não enxerga (bordas, densidade).
+const double kActionsWidthSafety = 24;
+
+const double _kIconButtonWidth = 48;
+const double _kLabeledButtonPadding = 40;
+const double _kLabeledButtonIconWidth = 26;
+
+double _labeledButtonWidth(AppBarAction action, TextStyle? style) {
+  final painter = TextPainter(
+    text: TextSpan(text: action.label ?? '', style: style),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  final icon = action.icon == null ? 0.0 : _kLabeledButtonIconWidth;
+  return painter.width + icon + _kLabeledButtonPadding;
+}

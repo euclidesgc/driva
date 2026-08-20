@@ -1,5 +1,4 @@
 import 'package:driva_editor/core/error/error.dart';
-import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell_status_indicator.dart';
@@ -149,10 +148,12 @@ Future<void> _pumpBarAt(
 void main() {
   setUpAll(loadAppFonts);
 
-  const threshold = AppSizes.topBarActionsFitWidth;
-
+  // Larguras generosas, e não um limiar: o colapso é decidido contando as
+  // ações que a barra tem, então o teste cobra que, com espaço de sobra, nada
+  // some nem vaza — não onde fica o ponto de virada, que muda com o conjunto
+  // de ações e é justamente o que a conta automática existe para acompanhar.
   for (final stateEntry in _publicationStates.entries) {
-    for (final width in [threshold, threshold + 150, threshold + 400]) {
+    for (final width in [1100.0, 1300.0, 1600.0]) {
       testWidgets(
         'estado "${stateEntry.key}" em ${width}px cabe sem overflow, com '
         'Despublicar/Histórico/status inteiramente na tela e sem menu',
@@ -190,9 +191,10 @@ void main() {
     }
   }
 
-  for (final width in [threshold - 200, threshold - 10]) {
+  for (final width in [480.0, 700.0]) {
     testWidgets(
-      'em ${width}px (abaixo do limiar de colapso) a barra nunca estoura: '
+      'em ${width}px, largura em que a barra cheia não cabe, ela nunca '
+      'estoura: '
       'vira um único menu do shell, sem menu dentro de menu, e '
       'Despublicar/Histórico continuam alcançáveis nele',
       (tester) async {

@@ -24,7 +24,20 @@ class AppShellTopBar extends StatelessWidget {
     final controller = AppShellScope.watch(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < AppSizes.topBarActionsFitWidth;
+        // O colapso é decidido **contando as ações que a barra tem**, e não
+        // comparando a janela contra uma constante gravada à mão. A constante
+        // precisou ser recalibrada duas vezes em dois dias, e errar a conta
+        // estoura o layout ou colapsa cedo demais, sem nada reprovar. Ação
+        // nova, rótulo traduzido ou tipografia diferente entram nesta conta
+        // sozinhos.
+        final needed =
+            AppSizes.topBarChromeWidth +
+            estimatedActionsWidth(
+              controller.actions,
+              Theme.of(context).textTheme.labelLarge,
+            ) +
+            kActionsWidthSafety;
+        final isCompact = constraints.maxWidth < needed;
         return Material(
           color: colors.panel,
           child: Container(
