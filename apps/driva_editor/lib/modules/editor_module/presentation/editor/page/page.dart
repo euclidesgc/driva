@@ -1,4 +1,5 @@
 export 'canvas_area.dart';
+export 'canvas_compare_binding.dart';
 export 'center_area.dart';
 export 'center_tab_label.dart';
 export 'editor_intents.dart';
@@ -7,8 +8,11 @@ export 'editor_load_failure_view.dart';
 export 'editor_top_registrar.dart';
 export 'editor_viewport_gate.dart';
 export 'editor_workspace.dart';
+export 'editor_workspace_host.dart';
 export 'inspector_area.dart';
+export 'inspector_compare_section.dart';
 export 'inspector_vm.dart';
 export 'invalid_content_screen.dart';
 export 'left_panel.dart';
 export 'small_viewport_notice.dart';
+export 'version_compare_mode_scope.dart';

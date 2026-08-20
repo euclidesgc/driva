@@ -9,24 +9,15 @@ import 'package:flutter/material.dart';
 /// é texto de verdade na tela, não só `Tooltip`/`Semantics` — quem não usa
 /// mouse nem leitor de tela também precisa enxergá-la.
 class VersionCompareMarkerChip extends StatelessWidget {
-  const VersionCompareMarkerChip({
-    required this.kind,
-    this.labelOverride,
-    super.key,
-  });
+  const VersionCompareMarkerChip({required this.kind, super.key});
 
   final VersionCompareMarkerKind kind;
-
-  /// Substitui `kind.label` quando o texto depende de algo em tempo de
-  /// execução — hoje só `onlyInBase`, que nomeia a base exibida (rascunho
-  /// ou a versão no ar), nunca "rascunho" fixo.
-  final String? labelOverride;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     final tone = kind.tone(colors);
-    final label = labelOverride ?? kind.label;
+    final label = kind.label;
     final message = kind.isReadOnly
         ? '$label — somente leitura nesta versão do Driva'
         : label;

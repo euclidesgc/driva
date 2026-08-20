@@ -1,4 +1,9 @@
 export 'camera_cutout.dart';
+export 'canvas_compare_side.dart';
+export 'canvas_compare_side_toggle.dart';
+export 'canvas_compare_single_mock.dart';
+export 'canvas_draft_mock.dart';
+export 'canvas_mock_area.dart';
 export 'canvas_panel_body.dart';
 export 'canvas_toolbar.dart';
 export 'device_frame.dart';
@@ -11,3 +16,6 @@ export 'preview_surface.dart';
 export 'selectable_node.dart';
 export 'selectable_node_surface.dart';
 export 'side_button.dart';
+export 'version_compare_candidate_bar.dart';
+export 'version_compare_inert_preview.dart';
+export 'version_compare_mock_pane.dart';

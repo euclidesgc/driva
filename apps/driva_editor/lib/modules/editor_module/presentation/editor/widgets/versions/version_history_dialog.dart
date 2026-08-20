@@ -4,11 +4,10 @@ import 'package:driva_editor/core/theme/theme.dart';
 import 'package:driva_editor/core/widgets/feedback/feedback.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_failure_message.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
@@ -24,12 +23,17 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 class VersionHistoryDialog extends StatelessWidget {
   const VersionHistoryDialog({
     required this.editorCubit,
+    required this.compareModeCubit,
     required this.getContentVersionUseCase,
     this.imageUrlResolver,
     super.key,
   });
 
   final EditorCubit editorCubit;
+
+  /// Chega por construtor, como `editorCubit`, pelo mesmo motivo: `showDialog`
+  /// monta noutra subárvore, fora do alcance dos provedores da página.
+  final VersionCompareModeCubit compareModeCubit;
   final GetContentVersionUseCase getContentVersionUseCase;
   final SduiImageUrlResolver? imageUrlResolver;
 
@@ -87,26 +91,20 @@ class VersionHistoryDialog extends StatelessWidget {
     Navigator.of(context).pop();
   }
 
-  Future<void> _compare(BuildContext context, int candidateVersion) async {
-    final editorState = editorCubit.state;
-    if (editorState is! EditorReady) return;
-    final contentId = context.read<VersionHistoryCubit>().contentId;
-    final compareCubit = VersionCompareCubit(
-      getContentVersionUseCase: getContentVersionUseCase,
-      editorCubit: editorCubit,
-      contentId: contentId,
-      candidateVersion: candidateVersion,
-    );
-    unawaited(compareCubit.load());
-
-    await showDialog<void>(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: compareCubit,
-        child: VersionCompareDialog(imageUrlResolver: imageUrlResolver),
-      ),
-    );
-    await compareCubit.close();
+  /// Comparar deixou de abrir um segundo diálogo: liga o modo de comparação
+  /// do editor, onde a versão aparece num mock ao lado do rascunho ao vivo.
+  /// O histórico fecha porque o lugar de olhar a comparação passou a ser o
+  /// canvas atrás dele — e continua sendo o seletor: com o modo já ativo,
+  /// escolher outra linha troca a candidata sem sair e voltar.
+  void _compare(BuildContext context, int candidateVersion) {
+    if (editorCubit.state is! EditorReady) return;
+    final mode = compareModeCubit;
+    if (mode.state is VersionCompareModeInactive) {
+      unawaited(mode.enter(candidateVersion));
+    } else {
+      unawaited(mode.selectVersion(candidateVersion));
+    }
+    Navigator.of(context).pop();
   }
 
   bool _onScroll(BuildContext context, ScrollNotification notification) {

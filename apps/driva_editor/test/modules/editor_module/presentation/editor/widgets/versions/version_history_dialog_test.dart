@@ -5,6 +5,7 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
@@ -102,7 +103,18 @@ void main() {
         ),
       );
 
-  Future<void> openHistory(WidgetTester tester, EditorCubit editorCubit) async {
+  VersionCompareModeCubit buildCompareMode(EditorCubit editorCubit) =>
+      VersionCompareModeCubit(
+        getContentVersionUseCase: getContentVersion,
+        getContentVersionsUseCase: getContentVersions,
+        editorCubit: editorCubit,
+      );
+
+  Future<void> openHistory(
+    WidgetTester tester,
+    EditorCubit editorCubit, {
+    VersionCompareModeCubit? compareMode,
+  }) async {
     tester.view.physicalSize = const Size(1600, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -127,6 +139,8 @@ void main() {
                   value: historyCubit,
                   child: VersionHistoryDialog(
                     editorCubit: editorCubit,
+                    compareModeCubit:
+                        compareMode ?? buildCompareMode(editorCubit),
                     getContentVersionUseCase: getContentVersion,
                   ),
                 ),
@@ -140,6 +154,99 @@ void main() {
     await tester.tap(find.text('abrir'));
     await tester.pumpAndSettle();
   }
+
+  group('Comparar', () {
+    testWidgets(
+      'liga o modo de comparação com a versão da linha e fecha o histórico — '
+      'a comparação passa a acontecer no canvas, não noutro diálogo',
+      (tester) async {
+        final editorCubit = buildEditorCubit();
+        addTearDown(editorCubit.close);
+        final compareMode = buildCompareMode(editorCubit);
+        addTearDown(compareMode.close);
+        when(
+          () => getContentVersion('ct_1', 3),
+        ).thenAnswer((_) async => Right(loadedVersion));
+
+        await openHistory(tester, editorCubit, compareMode: compareMode);
+        await tester.tap(find.text('Comparar'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(VersionHistoryDialog), findsNothing);
+        expect(
+          compareMode.state,
+          isA<VersionCompareModeActive>().having(
+            (s) => s.candidate.version,
+            'candidate.version',
+            3,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'com o modo já ativo, comparar outra linha troca a candidata sem passar '
+      'por inativo',
+      (tester) async {
+        final editorCubit = buildEditorCubit();
+        addTearDown(editorCubit.close);
+        final compareMode = buildCompareMode(editorCubit);
+        addTearDown(compareMode.close);
+
+        final olderVersion = LoadedContentVersion(
+          version: 2,
+          spec: historicalSpec,
+          createdAt: DateTime.utc(2026, 8, 15),
+        );
+        when(
+          () => getContentVersion('ct_1', 3),
+        ).thenAnswer((_) async => Right(loadedVersion));
+        when(
+          () => getContentVersion('ct_1', 2),
+        ).thenAnswer((_) async => Right(olderVersion));
+        when(() => getContentVersions('ct_1')).thenAnswer(
+          (_) async => Right(
+            ContentVersionsPage(
+              items: [
+                ContentVersion(
+                  version: 3,
+                  createdAt: DateTime.utc(2026, 8, 16),
+                ),
+                ContentVersion(
+                  version: 2,
+                  createdAt: DateTime.utc(2026, 8, 15),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        await compareMode.enter(3);
+        final seen = <VersionCompareModeState>[];
+        final subscription = compareMode.stream.listen(seen.add);
+        addTearDown(subscription.cancel);
+
+        await openHistory(tester, editorCubit, compareMode: compareMode);
+        await tester.tap(find.text('Comparar').last);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(VersionHistoryDialog), findsNothing);
+        expect(
+          compareMode.state,
+          isA<VersionCompareModeActive>().having(
+            (s) => s.candidate.version,
+            'candidate.version',
+            2,
+          ),
+        );
+        expect(
+          seen.whereType<VersionCompareModeInactive>(),
+          isEmpty,
+          reason: 'trocar de versão não pode piscar o modo desligado',
+        );
+      },
+    );
+  });
 
   group('Ver', () {
     testWidgets(

@@ -1,0 +1,78 @@
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_frame.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_candidate_bar.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_inert_preview.dart';
+import 'package:flutter/material.dart';
+import 'package:sdui_core/sdui_core.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
+
+/// O mock da direita no modo de comparação: a versão escolhida no histórico,
+/// inerte, ao lado do rascunho ao vivo.
+///
+/// Tem `RepaintBoundary` próprio porque os dois mocks vivem na mesma `Row` e
+/// o da esquerda repinta a cada tecla digitada — sem a barreira, o snapshot
+/// histórico, que nunca muda entre trocas de versão, repintaria junto.
+///
+/// [unsafeView] substitui a moldura quando a comparação não pôde ser feita
+/// com segurança (IDs duplicados): o lugar do mock é onde o usuário procura
+/// a resposta, então a explicação mora ali, não numa faixa distante.
+class VersionCompareMockPane extends StatelessWidget {
+  const VersionCompareMockPane({
+    required this.device,
+    required this.effectiveScale,
+    required this.spec,
+    required this.candidateVersion,
+    required this.onOlder,
+    required this.onNewer,
+    required this.onClose,
+    this.unsafeView,
+    this.imageUrlResolver,
+    super.key,
+  });
+
+  final DevicePreset device;
+  final double effectiveScale;
+  final ContentSpec spec;
+  final int candidateVersion;
+  final VoidCallback? onOlder;
+  final VoidCallback? onNewer;
+  final VoidCallback onClose;
+  final Widget? unsafeView;
+  final SduiImageUrlResolver? imageUrlResolver;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        VersionCompareCandidateBar(
+          candidateVersion: candidateVersion,
+          onOlder: onOlder,
+          onNewer: onNewer,
+          onClose: onClose,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.s32),
+            child:
+                unsafeView ??
+                Transform.scale(
+                  scale: effectiveScale,
+                  alignment: Alignment.topCenter,
+                  child: RepaintBoundary(
+                    child: DeviceFrame(
+                      device: device,
+                      highlighted: false,
+                      child: VersionCompareInertPreview(
+                        spec: spec,
+                        imageUrlResolver: imageUrlResolver,
+                      ),
+                    ),
+                  ),
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}

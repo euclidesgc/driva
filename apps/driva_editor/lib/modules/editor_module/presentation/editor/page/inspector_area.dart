@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_compare_section.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_vm.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class InspectorArea extends StatelessWidget {
       builder: (context, vm) => vm == null
           ? const SizedBox.shrink()
           : InspectorPanel(
+              compareSection: InspectorCompareSection(nodeId: vm.node?.id),
               node: vm.node,
               isRoot: vm.isRoot,
               safeArea: vm.safeArea,
