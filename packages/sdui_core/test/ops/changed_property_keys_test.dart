@@ -11,13 +11,13 @@ void main() {
 
     test('chave só na base entra no conjunto', () {
       final base = _emptyNode.copyWith(properties: {'text': 'Olá'});
-      final candidate = _emptyNode;
+      const candidate = _emptyNode;
 
       expect(changedPropertyKeys(base, candidate), {'text'});
     });
 
     test('chave só na candidata entra no conjunto', () {
-      final base = _emptyNode;
+      const base = _emptyNode;
       final candidate = _emptyNode.copyWith(properties: {'text': 'Olá'});
 
       expect(changedPropertyKeys(base, candidate), {'text'});
@@ -104,7 +104,7 @@ void main() {
 
     test('nó sem properties comparado a nó com properties devolve as chaves '
         'da candidata', () {
-      final base = _emptyNode;
+      const base = _emptyNode;
       final candidate = _emptyNode.copyWith(
         properties: {'text': 'Olá', 'color': 'red'},
       );
