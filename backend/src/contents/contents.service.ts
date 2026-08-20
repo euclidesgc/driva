@@ -7,6 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { decodeCursor, encodeCursor } from './cursor';
+import { isSameJsonValue } from './json-equality';
 import { CreateContentDto } from './dto/create-content.dto';
 import {
   ListContentsQueryDto,
@@ -240,17 +241,53 @@ export class ContentsService {
   }
 
   async publish(projectId: string, id: string, dto: PublishContentDto) {
-    const row = await this.findContentOrThrow(projectId, id);
-    if (!this.hasUnpublishedChanges(row)) {
-      return {
-        publishedVersion: await this.toPublishState(row),
-        latestVersion: await this.latestVersionFor(row.id),
-        hasUnpublishedChanges: false,
-      };
-    }
+    await this.findContentOrThrow(projectId, id);
     try {
       const now = new Date();
-      const created = await this.prisma.$transaction(async (tx) => {
+      const outcome = await this.prisma.$transaction(async (tx) => {
+        // Tudo que decide o resultado é lido por `tx`: um publish concorrente
+        // que entrasse entre a leitura e a escrita produziria duas versões com
+        // o mesmo conteúdo, e o histórico é append-only — não há como desfazer.
+        const row = await tx.content.findFirst({
+          where: { id, projectId },
+          select: {
+            draftSpec: true,
+            publishedVersionId: true,
+            publishedAt: true,
+          },
+        });
+        if (!row) throw new NotFoundException();
+
+        const published = row.publishedVersionId
+          ? await tx.contentVersion.findUnique({
+              where: { id: row.publishedVersionId },
+              select: { version: true, spec: true },
+            })
+          : null;
+
+        // A igualdade é de JSONB, não de timestamp: `draftUpdatedAt` sobe a
+        // cada save, inclusive no save que apenas desfaz o que foi digitado.
+        // Publicar por timestamp criaria uma versão idêntica à que está no ar
+        // — ruído permanente num histórico que ninguém pode reescrever.
+        if (
+          published &&
+          row.publishedAt &&
+          isSameJsonValue(row.draftSpec, published.spec)
+        ) {
+          // O marcador do rascunho reconcilia com o publish que já existe, para
+          // a próxima leitura nascer limpa. `publishedAt` não é tocado: ele
+          // alimenta o ETag da rota pública, e mexer nele invalidaria o cache
+          // de todo app cliente sem que nada tivesse mudado.
+          await tx.content.update({
+            where: { id },
+            data: { draftUpdatedAt: row.publishedAt },
+          });
+          return {
+            version: published.version,
+            publishedAt: row.publishedAt,
+          };
+        }
+
         const latest = await tx.contentVersion.aggregate({
           where: { contentId: id },
           _max: { version: true },
@@ -269,16 +306,18 @@ export class ContentsService {
           data: {
             publishedVersionId: version.id,
             publishedAt: now,
+            draftUpdatedAt: now,
           },
         });
-        return version;
+        return { version: version.version, publishedAt: version.createdAt };
       });
+
       return {
         publishedVersion: {
-          version: created.version,
-          publishedAt: created.createdAt,
+          version: outcome.version,
+          publishedAt: outcome.publishedAt,
         },
-        latestVersion: created.version,
+        latestVersion: await this.latestVersionFor(id),
         hasUnpublishedChanges: false,
       };
     } catch (error) {
