@@ -13,6 +13,7 @@ class VersionCompareExclusiveList extends StatelessWidget {
     required this.spec,
     required this.kind,
     required this.emptyLabel,
+    this.labelOverride,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class VersionCompareExclusiveList extends StatelessWidget {
   final ContentSpec spec;
   final VersionCompareMarkerKind kind;
   final String emptyLabel;
+  final String? labelOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,7 @@ class VersionCompareExclusiveList extends StatelessWidget {
             nodeId: id,
             nodeType: root == null ? null : findNode(root, id)?.type,
             kind: kind,
+            labelOverride: labelOverride,
           ),
       ],
     );

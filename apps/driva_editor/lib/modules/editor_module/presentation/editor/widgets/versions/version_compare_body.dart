@@ -3,14 +3,20 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/v
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_failure_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// Conteúdo de `VersionCompareDialog` (T5, item 50), sem o invólucro do
 /// diálogo — a mesma separação de `VersionReviewBody`, para servir tanto a
 /// moldura larga do desktop quanto a tela cheia do compacto.
 class VersionCompareBody extends StatelessWidget {
-  const VersionCompareBody({required this.isCompact, super.key});
+  const VersionCompareBody({
+    required this.isCompact,
+    this.imageUrlResolver,
+    super.key,
+  });
 
   final bool isCompact;
+  final SduiImageUrlResolver? imageUrlResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +32,7 @@ class VersionCompareBody extends StatelessWidget {
         final VersionCompareLoaded s => VersionCompareLoadedBody(
           state: s,
           isCompact: isCompact,
+          imageUrlResolver: imageUrlResolver,
         ),
       },
     );

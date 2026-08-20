@@ -1,5 +1,8 @@
 import 'package:driva_editor/core/theme/theme.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_comparison_base.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_base_phrases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_changed_nodes.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_exclusive_nodes.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_full_load_banner.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_summary_markers.dart';
@@ -17,6 +20,9 @@ class VersionCompareDiffView extends StatelessWidget {
     required this.candidateSpec,
     required this.canCopy,
     required this.isCompact,
+    required this.visibleSide,
+    required this.base,
+    required this.publishedVersion,
     required this.onCopy,
     required this.onLoadFullVersion,
     super.key,
@@ -27,6 +33,9 @@ class VersionCompareDiffView extends StatelessWidget {
   final ContentSpec candidateSpec;
   final bool canCopy;
   final bool isCompact;
+  final VersionCompareVisibleSide visibleSide;
+  final VersionComparisonBase base;
+  final int? publishedVersion;
   final ValueChanged<String> onCopy;
   final VoidCallback onLoadFullVersion;
 
@@ -40,7 +49,8 @@ class VersionCompareDiffView extends StatelessWidget {
       children: [
         if (!result.hasDifferences)
           Text(
-            'Nenhuma diferença entre o rascunho e esta versão.',
+            'Nenhuma diferença entre ${baseNounPhrase(base, publishedVersion)} '
+            'e esta versão.',
             style: TextStyle(color: colors.inkSecondary),
           ),
         VersionCompareSummaryMarkers(
@@ -63,6 +73,9 @@ class VersionCompareDiffView extends StatelessWidget {
           baseSpec: baseSpec,
           candidateSpec: candidateSpec,
           isCompact: isCompact,
+          visibleSide: visibleSide,
+          base: base,
+          publishedVersion: publishedVersion,
         ),
         const SizedBox(height: AppSpacing.s16),
         Text(

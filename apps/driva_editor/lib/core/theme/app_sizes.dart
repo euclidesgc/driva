@@ -86,8 +86,16 @@ abstract final class AppSizes {
 
   /// Teto de altura do conteúdo rolável de `VersionCompareDialog` no
   /// desktop — a lista de nós pode crescer bastante; sem teto o
-  /// `AlertDialog` estouraria a tela em conteúdos grandes.
-  static const double versionCompareDialogMaxHeight = 560;
+  /// `AlertDialog` estouraria a tela em conteúdos grandes. Maior que a
+  /// primeira calibração (560) porque o par de previews lado a lado
+  /// entrou acima da lista de diffs.
+  static const double versionCompareDialogMaxHeight = 640;
+
+  /// Altura de cada preview em `VersionComparePreviewSection` (item 50,
+  /// T5) — os dois cabem lado a lado no desktop sem estourar
+  /// [versionCompareDialogMaxHeight] junto com o cabeçalho e a lista de
+  /// diffs abaixo.
+  static const double versionComparePreviewPaneHeight = 220;
 
   /// O orçamento horizontal que `DialogContentWidth` precisa descontar da
   /// tela: o `insetPadding` padrão do Material (`AlertDialog`) é 40px de

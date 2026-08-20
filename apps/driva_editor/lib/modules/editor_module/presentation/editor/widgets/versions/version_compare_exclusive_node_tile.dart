@@ -10,12 +10,14 @@ class VersionCompareExclusiveNodeTile extends StatelessWidget {
     required this.nodeId,
     required this.nodeType,
     required this.kind,
+    this.labelOverride,
     super.key,
   });
 
   final String nodeId;
   final String? nodeType;
   final VersionCompareMarkerKind kind;
+  final String? labelOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,7 @@ class VersionCompareExclusiveNodeTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          VersionCompareMarkerChip(kind: kind),
+          VersionCompareMarkerChip(kind: kind, labelOverride: labelOverride),
           const SizedBox(width: AppSpacing.s8),
           Expanded(
             child: Text(

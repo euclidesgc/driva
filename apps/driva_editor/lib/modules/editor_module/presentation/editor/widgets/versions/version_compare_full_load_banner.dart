@@ -34,7 +34,7 @@ class VersionCompareFullLoadBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                Icons.info_outline,
+                Icons.warning_amber_outlined,
                 color: colors.inkSecondary,
                 size: AppIconSizes.s18,
               ),

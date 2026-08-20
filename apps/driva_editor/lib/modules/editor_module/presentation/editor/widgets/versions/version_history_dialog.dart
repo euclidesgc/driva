@@ -103,7 +103,7 @@ class VersionHistoryDialog extends StatelessWidget {
       context: context,
       builder: (_) => BlocProvider.value(
         value: compareCubit,
-        child: const VersionCompareDialog(),
+        child: VersionCompareDialog(imageUrlResolver: imageUrlResolver),
       ),
     );
     await compareCubit.close();
