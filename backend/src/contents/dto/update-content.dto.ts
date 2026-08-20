@@ -36,4 +36,13 @@ export class UpdateContentDto {
   @IsString()
   @IsNotEmpty()
   categoryId?: string;
+
+  /// Presente, o save também marca um ponto no histórico — o "commit" do
+  /// editor. String vazia não conta: um checkpoint sem nota é indistinguível
+  /// de qualquer outro save e polui o histórico sem informar nada.
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(280)
+  checkpointNote?: string;
 }

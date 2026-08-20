@@ -50,6 +50,24 @@ export class ContentsController {
     return this.contents.listVersions(projectOf(projectId), id, query);
   }
 
+  @Get(':id/checkpoints')
+  listCheckpoints(
+    @Param('id') id: string,
+    @Query() query: ListVersionsQueryDto,
+    @Headers('x-project-id') projectId?: string,
+  ) {
+    return this.contents.listCheckpoints(projectOf(projectId), id, query);
+  }
+
+  @Get(':id/checkpoints/:checkpointId')
+  findCheckpoint(
+    @Param('id') id: string,
+    @Param('checkpointId') checkpointId: string,
+    @Headers('x-project-id') projectId?: string,
+  ) {
+    return this.contents.findCheckpoint(projectOf(projectId), id, checkpointId);
+  }
+
   @Get(':id/versions/:version')
   findVersion(
     @Param('id') id: string,
