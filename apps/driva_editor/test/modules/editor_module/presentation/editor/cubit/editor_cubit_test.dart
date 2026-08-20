@@ -1075,6 +1075,69 @@ void main() {
     );
   });
 
+  group('save com checkpoint', () {
+    EditorCubit buildDirty() => build()
+      ..emit(
+        const EditorReady(document: content, saveStatus: SaveStatus.dirty),
+      );
+
+    void stubSave() => when(
+      () => saveDraft(any(), checkpointNote: any(named: 'checkpointNote')),
+    ).thenAnswer((_) async => const Right(unit));
+
+    blocTest<EditorCubit, EditorState>(
+      'salvar sem nota não pede marcação nenhuma',
+      build: buildDirty,
+      setUp: stubSave,
+      act: (cubit) => cubit.save(),
+      verify: (_) => expect(
+        verify(
+          () => saveDraft(
+            any(),
+            checkpointNote: captureAny(named: 'checkpointNote'),
+          ),
+        ).captured.single,
+        isNull,
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'salvar com nota repassa a nota',
+      build: buildDirty,
+      setUp: stubSave,
+      act: (cubit) => cubit.save(checkpointNote: 'antes do banner'),
+      verify: (_) => verify(
+        () => saveDraft(any(), checkpointNote: 'antes do banner'),
+      ).called(1),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'nota só com espaços vira ausente — um ponto sem nota não se distingue '
+      'de qualquer outro save no histórico',
+      build: buildDirty,
+      setUp: stubSave,
+      act: (cubit) => cubit.save(checkpointNote: '   '),
+      verify: (_) => expect(
+        verify(
+          () => saveDraft(
+            any(),
+            checkpointNote: captureAny(named: 'checkpointNote'),
+          ),
+        ).captured.single,
+        isNull,
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'a nota é aparada nas pontas antes de viajar',
+      build: buildDirty,
+      setUp: stubSave,
+      act: (cubit) => cubit.save(checkpointNote: '  ponto  '),
+      verify: (_) =>
+          verify(() => saveDraft(any(), checkpointNote: 'ponto')).called(1),
+    );
+  });
+
   group('publicar', () {
     final published = PublicationState(
       publishedVersion: 3,

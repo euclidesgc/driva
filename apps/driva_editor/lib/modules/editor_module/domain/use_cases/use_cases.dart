@@ -1,3 +1,5 @@
+export 'get_content_checkpoint_use_case.dart';
+export 'get_content_checkpoints_use_case.dart';
 export 'get_content_version_use_case.dart';
 export 'get_content_versions_use_case.dart';
 export 'get_editor_layout_use_case.dart';
