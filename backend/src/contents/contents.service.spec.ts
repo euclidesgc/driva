@@ -66,6 +66,11 @@ function createPrismaMock() {
       create: jest.fn(),
       delete: jest.fn(),
     },
+    contentCheckpoint: {
+      create: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
+      findFirst: jest.fn(),
+    },
     contentVersion: {
       aggregate: jest.fn().mockResolvedValue({ _max: { version: null } }),
       create: jest.fn(),
@@ -103,6 +108,107 @@ function p2002(constraint: string): Prisma.PrismaClientKnownRequestError {
     { code: 'P2002', clientVersion: '6.19.3' },
   );
 }
+
+describe('ContentsService.update — checkpoint no salvar', () => {
+  const spec = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' };
+
+  it('salvar sem nota não marca nada no histórico', async () => {
+    const prisma = createPrismaMock();
+    prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.content.findFirst.mockResolvedValue(contentRow());
+    prisma.contentVersion.findMany.mockResolvedValue([]);
+
+    await serviceWith(prisma).update('project-1', 'content-1', { spec });
+
+    expect(prisma.contentCheckpoint.create).not.toHaveBeenCalled();
+  });
+
+  it('salvar com nota marca um ponto, com o spec que o save gravou', async () => {
+    const prisma = createPrismaMock();
+    prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.content.findFirst.mockResolvedValue(contentRow({ draftSpec: spec }));
+    prisma.contentVersion.findMany.mockResolvedValue([]);
+
+    await serviceWith(prisma).update('project-1', 'content-1', {
+      spec,
+      checkpointNote: 'antes de mexer no banner',
+    });
+
+    expect(prisma.contentCheckpoint.create).toHaveBeenCalledWith({
+      data: {
+        contentId: 'content-1',
+        spec,
+        note: 'antes de mexer no banner',
+      },
+    });
+  });
+
+  it('o checkpoint usa o spec lido de volta, não o do corpo — cobre o save que só renomeia', async () => {
+    const prisma = createPrismaMock();
+    const specNoBanco = { specVersion: 1, kind: 'content', id: 'content-1', name: 'Home', slug: 'home' };
+    prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.content.findFirst.mockResolvedValue(contentRow({ draftSpec: specNoBanco }));
+    prisma.contentVersion.findMany.mockResolvedValue([]);
+
+    await serviceWith(prisma).update('project-1', 'content-1', {
+      name: 'Home renomeada',
+      checkpointNote: 'só o nome',
+    });
+
+    expect(prisma.contentCheckpoint.create).toHaveBeenCalledWith({
+      data: { contentId: 'content-1', spec: specNoBanco, note: 'só o nome' },
+    });
+  });
+
+  it('salvar e marcar acontecem na mesma transação', async () => {
+    const prisma = createPrismaMock();
+    prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.content.findFirst.mockResolvedValue(contentRow({ draftSpec: spec }));
+    prisma.contentVersion.findMany.mockResolvedValue([]);
+
+    await serviceWith(prisma).update('project-1', 'content-1', {
+      spec,
+      checkpointNote: 'ponto',
+    });
+
+    // Um checkpoint órfão de um save que falhou apontaria para um estado que
+    // nunca existiu.
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('conteúdo de outro projeto não é salvo nem marcado', async () => {
+    const prisma = createPrismaMock();
+    prisma.content.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      serviceWith(prisma).update('outro-projeto', 'content-1', {
+        spec,
+        checkpointNote: 'ponto',
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.contentCheckpoint.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('ContentsService.findCheckpoint', () => {
+  it('checkpoint de outro conteúdo devolve 404 mesmo com o id certo', async () => {
+    const prisma = createPrismaMock();
+    prisma.content.findFirst.mockResolvedValue(contentRow());
+    prisma.contentCheckpoint.findFirst.mockResolvedValue(null);
+
+    await expect(
+      serviceWith(prisma).findCheckpoint('project-1', 'content-1', 'ckpt-de-outro'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    // O `contentId` precisa entrar na cláusula: sem ele, quem soubesse um id
+    // leria o ponto de trabalho de outro conteúdo.
+    expect(prisma.contentCheckpoint.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'ckpt-de-outro', contentId: 'content-1' },
+      }),
+    );
+  });
+});
 
 describe('ContentsService.publish', () => {
   it('publicar um rascunho igual ao que está no ar não cria versão e conserva publishedAt', async () => {

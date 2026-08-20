@@ -84,7 +84,8 @@ model Content {
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  versions ContentVersion[]
+  versions    ContentVersion[]
+  checkpoints ContentCheckpoint[]
 
   @@unique([projectId, slug])
   @@index([projectId])
@@ -114,4 +115,28 @@ model ContentVersion {
   @@unique([contentId, version])
   @@index([contentId, version(sort: Desc)])
   @@map("content_versions")
+}
+
+/// Um ponto de trabalho marcado pelo autor ao salvar — o "commit" do editor.
+///
+/// Mora em tabela própria, e não como uma espécie de `ContentVersion`, por
+/// uma razão de significado: `version` é o número que o usuário lê como "no
+/// ar (v3)" e que a API pública serve. Deixar checkpoints consumirem esse
+/// número faria a numeração pular sem que nada tivesse ido ao ar; deixá-lo
+/// nulo obrigaria toda leitura de versão a tratar a ausência. Separando,
+/// `vN` continua significando exatamente "esteve publicado", e o histórico
+/// da tela é quem junta as duas espécies numa linha do tempo só.
+///
+/// Nunca é servido pela API pública: checkpoint não é publicação.
+model ContentCheckpoint {
+  id        String   @id @default(cuid(2))
+  contentId String   @map("content_id")
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  spec      Json
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
+
+  @@index([contentId, createdAt(sort: Desc)])
+  @@map("content_checkpoints")
 }
