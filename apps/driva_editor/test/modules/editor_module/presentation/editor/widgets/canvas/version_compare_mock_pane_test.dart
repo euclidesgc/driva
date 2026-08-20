@@ -4,6 +4,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -198,8 +199,15 @@ void main() {
 
       expect(find.byType(VersionCompareInertPreview), findsOneWidget);
       expect(
+        find.byType(DragTarget<DragPayload>),
+        findsWidgets,
+        reason:
+            'os alvos de arraste do rascunho precisam existir para a '
+            'asserção seguinte significar alguma coisa',
+      );
+      expect(
         find.descendant(
-          of: find.byType(CanvasDraftMock),
+          of: find.byType(DragTarget<DragPayload>),
           matching: find.byType(VersionCompareMockPane),
         ),
         findsNothing,
