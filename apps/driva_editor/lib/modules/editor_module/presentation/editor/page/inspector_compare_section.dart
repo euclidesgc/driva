@@ -25,21 +25,28 @@ class InspectorCompareSection extends StatelessWidget {
         }
         return state.result.fold(
           (_) => const SizedBox.shrink(),
-          (comparison) => InspectorCompareHeader(
-            nodeId: nodeId,
-            diff: _diffFor(comparison, nodeId),
-            isOnlyInDraft:
-                nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
-            isOnlyInVersion:
-                nodeId != null &&
-                comparison.nodesOnlyInCandidate.contains(nodeId),
-            safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
-            changedMetadataFields: nodeId == null
-                ? comparison.changedContentMetadataFields
-                : const {},
-            candidateVersion: state.candidate.version,
-            onCopyNodeProperties: cubit.copyNodeProperties,
-          ),
+          (comparison) {
+            final nodes = _correspondingNodes(state, nodeId);
+            return InspectorCompareHeader(
+              nodeId: nodeId,
+              diff: _diffFor(comparison, nodeId),
+              isOnlyInDraft:
+                  nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
+              isOnlyInVersion:
+                  nodeId != null &&
+                  comparison.nodesOnlyInCandidate.contains(nodeId),
+              safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
+              changedMetadataFields: nodeId == null
+                  ? comparison.changedContentMetadataFields
+                  : const {},
+              changedPropertyKeys: nodes == null
+                  ? const {}
+                  : changedPropertyKeys(nodes.base, nodes.candidate),
+              descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
+              candidateVersion: state.candidate.version,
+              onCopyNodeProperties: cubit.copyNodeProperties,
+            );
+          },
         );
       },
     );
@@ -53,3 +60,19 @@ NodeDiff? _diffFor(SpecComparisonResult comparison, String? nodeId) {
   }
   return null;
 }
+
+typedef _NodePair = ({SduiNode base, SduiNode candidate});
+
+_NodePair? _correspondingNodes(
+  VersionCompareModeActive state,
+  String? nodeId,
+) {
+  if (nodeId == null) return null;
+  final base = _nodeById(state.baseSpec.root, nodeId);
+  final candidate = _nodeById(state.candidate.spec.root, nodeId);
+  if (base == null || candidate == null) return null;
+  return (base: base, candidate: candidate);
+}
+
+SduiNode? _nodeById(SduiNode? root, String id) =>
+    root == null ? null : findNode(root, id);
