@@ -1,6 +1,6 @@
 ---
 name: instrumentar-e2e
-description: Instrumenta o E2E por script (contrato por API + prints headless por CDP) quando o plano registrou que ele é necessário. NÃO é o default — o padrão hoje é roteiro manual curto; use esta skill só quando o plano justificar o script. Nada aqui vai para produção.
+description: PARADA — o E2E está suspenso no repositório desde 2026-08-20 (CLAUDE.md › Método de trabalho), e nenhuma fase escreve E2E, nem script nem roteiro manual. Não invoque enquanto a suspensão valer. Quando ela cair: instrumenta o E2E por script (contrato por API + prints headless por CDP) quando o plano registrou que ele é necessário, e mesmo aí não é o default — o padrão é roteiro manual curto. Nada aqui vai para produção.
 ---
 
 # Skill: instrumentar o E2E
