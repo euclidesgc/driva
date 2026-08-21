@@ -36,7 +36,6 @@ class CanvasPanel extends StatelessWidget {
     this.compareBuilder,
     this.onCompareSideChanged,
     this.compareSide = CanvasCompareSide.draft,
-    this.compareCandidateVersion,
     this.imageUrlResolver,
     this.onOpenPreview,
     this.onReturnToPublished,
@@ -76,7 +75,6 @@ class CanvasPanel extends StatelessWidget {
   /// Qual mock está visível quando a janela não comporta os dois.
   final CanvasCompareSide compareSide;
   final ValueChanged<CanvasCompareSide>? onCompareSideChanged;
-  final int? compareCandidateVersion;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +116,6 @@ class CanvasPanel extends StatelessWidget {
         if (isComparing && !fitsSideBySide) {
           return CanvasCompareSingleMock(
             side: compareSide,
-            candidateVersion: compareCandidateVersion ?? 0,
             onSideChanged: onCompareSideChanged ?? (_) {},
             comparePane: compareBuilder!(effectiveScale),
             draftPanel: CanvasPanelBody(

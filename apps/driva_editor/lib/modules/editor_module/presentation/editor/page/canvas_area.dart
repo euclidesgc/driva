@@ -1,16 +1,14 @@
 import 'dart:async';
 import 'package:driva_editor/modules/editor_module/editor_routes.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_binding.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_chrome_binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_pane.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_full_version_into_draft.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/return_to_published.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_unsafe_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -55,72 +53,50 @@ class CanvasArea extends StatelessWidget {
             ),
       builder: (context, vm) => ValueListenableBuilder<bool>(
         valueListenable: layoutController.isFullscreen,
-        builder: (context, isFullscreen, _) => CanvasCompareBinding(
-          builder: (context, compareState, mode) => CanvasPanel(
-            device: vm.device,
-            zoom: vm.zoom,
-            fitToWindow: vm.fitToWindow,
-            onSelect: cubit.selectNode,
-            onChangeDevice: cubit.changeDevice,
-            onChangeZoom: cubit.changeZoom,
-            onToggleFitToWindow: cubit.toggleFitToWindow,
-            imageUrlResolver: imageUrlResolver,
-            onOpenPreview: vm.ready
-                ? () => _openPreviewDialog(context, cubit)
-                : null,
-            isFullscreen: isFullscreen,
-            onToggleFullscreen: layoutController.toggleFullscreen,
-            onDropOnDevice: (payload) {
-              final state = cubit.state;
-              if (state is! EditorReady) return;
-              // Conteúdo vazio: o nó vira a raiz (alvo null resolve isso).
-              _dispatch(cubit, payload, state.document.root?.id);
-            },
-            onDropOnNode: (payload, targetId) =>
-                _dispatch(cubit, payload, targetId),
-            onReturnToPublished: switch (compareState) {
-              VersionCompareModeActive() when mode != null && vm.isPublished =>
-                () => unawaited(
-                  returnToPublishedFlow(
-                    context,
-                    compareCubit: mode,
-                    editorCubit: cubit,
-                  ),
-                ),
-              _ => null,
-            },
-            compareCandidateVersion: switch (compareState) {
-              final VersionCompareModeActive s => s.candidate.version,
-              _ => null,
-            },
-            compareBuilder: switch (compareState) {
-              final VersionCompareModeActive s when mode != null =>
-                (scale) => VersionCompareMockPane(
-                  device: vm.device,
-                  effectiveScale: scale,
-                  spec: s.candidate.spec,
-                  candidateVersion: s.candidate.version,
-                  imageUrlResolver: imageUrlResolver,
-                  onOlder: mode.stepOlder,
-                  onNewer: mode.stepNewer,
-                  onClose: mode.exit,
-                  unsafeView: s.result.fold(
-                    (failure) => VersionCompareUnsafeView(
-                      failure: failure,
-                      onLoadFullVersion: () => unawaited(
-                        loadFullVersionIntoDraft(
+        builder: (context, isFullscreen, _) => CanvasCompareChromeBinding(
+          builder: (context, {required isActive, required compareCubit}) =>
+              CanvasPanel(
+                device: vm.device,
+                zoom: vm.zoom,
+                fitToWindow: vm.fitToWindow,
+                onSelect: cubit.selectNode,
+                onChangeDevice: cubit.changeDevice,
+                onChangeZoom: cubit.changeZoom,
+                onToggleFitToWindow: cubit.toggleFitToWindow,
+                imageUrlResolver: imageUrlResolver,
+                onOpenPreview: vm.ready
+                    ? () => _openPreviewDialog(context, cubit)
+                    : null,
+                isFullscreen: isFullscreen,
+                onToggleFullscreen: layoutController.toggleFullscreen,
+                onDropOnDevice: (payload) {
+                  final state = cubit.state;
+                  if (state is! EditorReady) return;
+                  // Conteúdo vazio: o nó vira a raiz (alvo null resolve isso).
+                  _dispatch(cubit, payload, state.document.root?.id);
+                },
+                onDropOnNode: (payload, targetId) =>
+                    _dispatch(cubit, payload, targetId),
+                onReturnToPublished:
+                    isActive && compareCubit != null && vm.isPublished
+                    ? () => unawaited(
+                        returnToPublishedFlow(
                           context,
+                          compareCubit: compareCubit,
                           editorCubit: cubit,
-                          candidate: s.candidate,
                         ),
-                      ),
-                    ),
-                    (_) => null,
-                  ),
-                ),
-              _ => null,
-            },
-          ),
+                      )
+                    : null,
+                compareBuilder: isActive && compareCubit != null
+                    ? (scale) => CanvasComparePane(
+                        device: vm.device,
+                        effectiveScale: scale,
+                        cubit: compareCubit,
+                        editorCubit: cubit,
+                        imageUrlResolver: imageUrlResolver,
+                      )
+                    : null,
+              ),
         ),
       ),
     );
