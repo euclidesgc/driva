@@ -99,17 +99,22 @@ class _LeftPanelState extends State<LeftPanel>
             child: TabBarView(
               controller: _tabController,
               children: [
-                WidgetPalettePanel(
-                  collapsedCategories:
-                      layoutController?.collapsedPaletteCategories ??
-                      _fallbackCollapsedCategories,
+                BlocSelector<EditorCubit, EditorState, bool>(
+                  selector: (state) => state is EditorReady && state.isReadOnly,
+                  builder: (context, isReadOnly) => WidgetPalettePanel(
+                    collapsedCategories:
+                        layoutController?.collapsedPaletteCategories ??
+                        _fallbackCollapsedCategories,
+                    isReadOnly: isReadOnly,
+                  ),
                 ),
                 BlocSelector<EditorCubit, EditorState, String>(
                   selector: (state) {
                     if (state is! EditorReady) return '';
                     final root = state.document.root;
                     final structure = root == null ? '' : _structureKey(root);
-                    return '$structure#${state.selectedNodeId ?? ''}';
+                    return '$structure#${state.selectedNodeId ?? ''}'
+                        '#${state.isReadOnly}';
                   },
                   builder: (context, _) {
                     final state = cubit.state;

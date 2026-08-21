@@ -9,6 +9,7 @@ class InspectorVm {
     required this.safeArea,
     required this.contentName,
     required this.contentSlug,
+    required this.isReadOnly,
   });
 
   /// `null` = nenhum nó selecionado; o Inspector mostra a página.
@@ -19,6 +20,9 @@ class InspectorVm {
   final String contentName;
   final String contentSlug;
 
+  /// Rascunho congelado pelo modo de comparação.
+  final bool isReadOnly;
+
   @override
   bool operator ==(Object other) =>
       other is InspectorVm &&
@@ -26,7 +30,8 @@ class InspectorVm {
       other.isRoot == isRoot &&
       mapEquals(other.safeArea, safeArea) &&
       other.contentName == contentName &&
-      other.contentSlug == contentSlug;
+      other.contentSlug == contentSlug &&
+      other.isReadOnly == isReadOnly;
 
   @override
   int get hashCode => Object.hash(
@@ -37,5 +42,6 @@ class InspectorVm {
     ]),
     contentName,
     contentSlug,
+    isReadOnly,
   );
 }

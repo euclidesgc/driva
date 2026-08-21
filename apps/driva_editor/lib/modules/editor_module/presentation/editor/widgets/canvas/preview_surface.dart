@@ -43,6 +43,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
 
   late ContentSpec _rendered;
   String? _selectedNodeId;
+  bool _isReadOnly = false;
   Map<String, List<SpecDiagnostic>> _nodeDiagnostics = const {};
 
   String? _hoveredNodeId;
@@ -55,6 +56,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
     final state = _cubit.state as EditorReady;
     _rendered = state.document;
     _selectedNodeId = state.selectedNodeId;
+    _isReadOnly = state.isReadOnly;
     _nodeDiagnostics = diagnosticsByNode(diagnoseTree(_rendered.root));
     _subscription = _cubit.stream.listen(_onState);
   }
@@ -64,6 +66,12 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
 
     if (state.selectedNodeId != _selectedNodeId) {
       setState(() => _selectedNodeId = state.selectedNodeId);
+    }
+
+    // Fora do throttle do documento de propósito: o congelamento não espera
+    // o próximo re-render do preview, senão sobra uma janela de arraste.
+    if (state.isReadOnly != _isReadOnly) {
+      setState(() => _isReadOnly = state.isReadOnly);
     }
 
     if (state.document != _rendered) {
@@ -121,6 +129,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                 nodeWrapper: (node, built) => SelectableNode(
                   node: node,
                   built: built,
+                  isDraggable: !_isReadOnly,
                   isSelected: node.id == _selectedNodeId,
                   isHovered: node.id == _hoveredNodeId,
                   diagnostics: _nodeDiagnostics[node.id] ?? const [],

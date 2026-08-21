@@ -30,6 +30,7 @@ class CompareAwareWidgetTree extends StatelessWidget {
         : null;
     return WidgetTreePanel(
       root: state.document.root,
+      isReadOnly: state.isReadOnly,
       selectedNodeId: state.selectedNodeId,
       nodeDiagnostics: diagnosticsByNode(state.diagnostics),
       compareDiffs: comparison == null

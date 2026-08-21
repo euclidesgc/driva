@@ -97,8 +97,19 @@ Um botão que promete desfazer e não desfaz é a mesma classe de falha silencio
 existe para matar. Registrado como decisão da D3 do `plan_t5b.md`.
 
 **Desvio proposto pelo tech-lead e mantido pelo tech-manager**, comunicado ao dono em
-2026-08-20. Se ele preferir que cancelar reverta de fato o que foi copiado durante o modo,
-isso é implementável e vira decisão dele.
+2026-08-20.
+
+**Resolvido pelo dono em 2026-08-21, por um caminho que dissolve a pergunta.** Em vez de
+decidir o que `Fechar` deveria reverter, ele tirou o que havia para reverter: enquanto o
+modo está aberto o editor é **somente leitura**, e o modo tem duas saídas — **aplicar a
+versão inteira** por cima do rascunho, ou **fechar sem mudar nada**. Com ninguém editando
+durante a comparação, `Fechar comparação` volta a ser um nome honesto: não há edição
+intermediária que ele pudesse desfazer.
+
+**Consequência registrada:** a regra da D3 de que a transição `saving → saved` encerrava o
+modo saiu junto. Com `Salvar` desabilitado durante a comparação, ela só poderia disparar por
+um save iniciado **antes** da entrada no modo, fechando-o sozinho sem ninguém ter pedido.
+Entregue como bugfix pós-fechamento (`bugfix/50-comparacao-somente-leitura`).
 
 ---
 

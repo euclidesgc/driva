@@ -12,6 +12,7 @@ class PaletteCategorySection extends StatelessWidget {
     required this.descriptors,
     required this.isExpanded,
     required this.onToggle,
+    this.isDraggable = true,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class PaletteCategorySection extends StatelessWidget {
   final List<WidgetDescriptor> descriptors;
   final bool isExpanded;
   final VoidCallback? onToggle;
+  final bool isDraggable;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,10 @@ class PaletteCategorySection extends StatelessWidget {
               runSpacing: AppSpacing.s8,
               children: [
                 for (final descriptor in descriptors)
-                  PaletteItem(descriptor: descriptor),
+                  PaletteItem(
+                    descriptor: descriptor,
+                    isDraggable: isDraggable,
+                  ),
               ],
             ),
           ),

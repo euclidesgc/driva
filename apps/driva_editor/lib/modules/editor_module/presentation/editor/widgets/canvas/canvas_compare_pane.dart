@@ -44,7 +44,7 @@ class CanvasComparePane extends StatelessWidget {
           loadFullVersionIntoDraft(
             context,
             editorCubit: editorCubit,
-            candidate: state.candidate,
+            compareMode: cubit,
           ),
         );
         return VersionCompareMockPane(

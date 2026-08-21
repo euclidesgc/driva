@@ -311,4 +311,51 @@ void main() {
       },
     );
   });
+
+  group('rascunho congelado pelo modo de comparação', () {
+    Finder enabledButtonWithLabel(String label) => find.ancestor(
+      of: find.text(label),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is ButtonStyleButton && widget.onPressed != null,
+      ),
+    );
+
+    testWidgets('escrever sai da barra; Histórico continua', (tester) async {
+      final cubit = await _pumpBarAt(
+        tester,
+        _publicationStates['no ar']!,
+        1600,
+      );
+
+      expect(enabledButtonWithLabel('Salvar'), findsOneWidget);
+      expect(enabledButtonWithLabel('Publicar'), findsOneWidget);
+
+      cubit.setReadOnly(value: true);
+      await tester.pumpAndSettle();
+
+      expect(enabledButtonWithLabel('Salvar'), findsNothing);
+      expect(enabledButtonWithLabel('Publicar'), findsNothing);
+      expect(enabledButtonWithLabel('Histórico'), findsOneWidget);
+      expect(
+        find.byTooltip('Comparando versões — feche a comparação para editar'),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('descongelado, Salvar e Publicar voltam', (tester) async {
+      final cubit = await _pumpBarAt(
+        tester,
+        _publicationStates['no ar']!,
+        1600,
+      );
+
+      cubit
+        ..setReadOnly(value: true)
+        ..setReadOnly(value: false);
+      await tester.pumpAndSettle();
+
+      expect(enabledButtonWithLabel('Salvar'), findsOneWidget);
+      expect(enabledButtonWithLabel('Publicar'), findsOneWidget);
+    });
+  });
 }

@@ -83,6 +83,146 @@ void main() {
 
   EditorCubit buildLoaded() => buildWith(content);
 
+  group('rascunho congelado (modo de comparação)', () {
+    EditorCubit buildFrozen() {
+      final cubit = build()
+        ..emit(const EditorReady(document: content, isReadOnly: true));
+      return cubit;
+    }
+
+    const otherSpec = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_1',
+      name: 'Home',
+      slug: 'home',
+      root: SduiNode(id: 'nd_v2', type: 'text'),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'nenhuma mutação da árvore atravessa o congelamento',
+      build: buildFrozen,
+      act: (cubit) => cubit
+        ..selectNode('nd_text')
+        ..addNode('container', targetId: 'nd_root')
+        ..addNodeAt('text', 'nd_root', 0)
+        ..moveNode('nd_text', 'nd_banner')
+        ..moveNodeAt('nd_text', 'nd_root', 0)
+        ..updateProps('nd_text', {'data': 'editado'})
+        ..updateSafeAreaProps({'top': false})
+        ..duplicateSelected()
+        ..copySelected()
+        ..wrapSelected('column')
+        ..removeNode('nd_banner')
+        ..removeSelected(),
+      verify: (cubit) => expect(
+        (cubit.state as EditorReady).document,
+        content,
+        reason: 'o documento tem de sair igual ao que entrou',
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'desfazer e refazer não atravessam — a pilha fica onde estava',
+      build: buildLoaded,
+      act: (cubit) async {
+        cubit.updateProps('nd_text', {'data': 'antes de congelar'});
+        final edited = (cubit.state as EditorReady).document;
+        cubit
+          ..setReadOnly(value: true)
+          ..undo()
+          ..redo();
+        expect((cubit.state as EditorReady).document, edited);
+        cubit
+          ..setReadOnly(value: false)
+          ..undo();
+        expect((cubit.state as EditorReady).document, content);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar não atravessa, e a área de transferência sobrevive ao modo',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..copySelected()
+          ..setReadOnly(value: true)
+          ..paste();
+        expect(
+          (cubit.state as EditorReady).document,
+          content,
+          reason: 'congelado, colar não muda o documento',
+        );
+        cubit
+          ..setReadOnly(value: false)
+          ..paste();
+      },
+      verify: (cubit) => expect(
+        (cubit.state as EditorReady).document,
+        isNot(content),
+        reason: 'descongelado, o mesmo colar volta a valer',
+      ),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'salvar, publicar, despublicar e restaurar não chamam o servidor',
+      build: buildFrozen,
+      act: (cubit) async {
+        await cubit.save();
+        await cubit.save(checkpointNote: 'ponto');
+        await cubit.publish();
+        await cubit.unpublish();
+        await cubit.restoreVersion(2);
+      },
+      verify: (_) {
+        verifyNever(
+          () => saveDraft(any(), checkpointNote: any(named: 'checkpointNote')),
+        );
+        verifyNever(() => publishContent(any(), note: any(named: 'note')));
+        verifyNever(() => unpublishContent(any()));
+        verifyNever(() => restoreContentVersion(any(), any()));
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'carregar a versão inteira atravessa — é a saída do modo, não uma '
+      'edição do usuário',
+      build: buildFrozen,
+      act: (cubit) => cubit.loadVersionIntoDraft(otherSpec, version: 2),
+      verify: (cubit) =>
+          expect((cubit.state as EditorReady).document, otherSpec),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'ler continua: seleção, zoom e dispositivo respondem congelados',
+      build: buildFrozen,
+      act: (cubit) => cubit
+        ..selectNode('nd_text')
+        ..changeZoom(1.2)
+        ..changeDevice(DevicePreset.tablet)
+        ..toggleFitToWindow(),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.selectedNodeId, 'nd_text');
+        expect(state.zoom, 1.2);
+        expect(state.device, DevicePreset.tablet);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'publicar fica bloqueado com motivo próprio, não "corrija os erros"',
+      build: buildFrozen,
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.canPublish, isFalse);
+        expect(
+          state.publishBlockReason,
+          PublishBlockReason.comparingVersions,
+        );
+      },
+    );
+  });
+
   group('loadContent', () {
     blocTest<EditorCubit, EditorState>(
       'emite Loading → Ready com o documento',

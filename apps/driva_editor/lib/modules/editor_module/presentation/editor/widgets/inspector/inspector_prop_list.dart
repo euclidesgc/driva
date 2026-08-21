@@ -2,6 +2,7 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/input/search_field.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/editing_lock.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_group_summary.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_section.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
@@ -17,6 +18,7 @@ class InspectorPropList extends StatefulWidget {
     required this.descriptor,
     required this.onUpdateProps,
     this.collapsedSections,
+    this.isReadOnly = false,
     super.key,
   });
 
@@ -27,6 +29,11 @@ class InspectorPropList extends StatefulWidget {
   final Map<String, dynamic> properties;
   final WidgetDescriptor descriptor;
   final ValueChanged<Map<String, dynamic>> onUpdateProps;
+
+  /// Rascunho congelado pelo modo de comparação: os campos ficam à vista,
+  /// com o valor que têm, mas inertes — buscar, rolar e colapsar seção
+  /// continuam, porque ler as propriedades é metade do que se faz comparando.
+  final bool isReadOnly;
 
   /// Chave é o rótulo do grupo (Q2/P3), lembrado globalmente entre nós — não
   /// por [descriptor]. `null` fora do `EditorLayoutScope` (ex. este widget
@@ -140,14 +147,17 @@ class _InspectorPropListState extends State<InspectorPropList> {
                             _toggleSection(group, expanded: expanded),
                         children: [
                           for (final field in _fieldsOf(group))
-                            PropFieldEditor(
+                            EditingLock(
                               key: ValueKey(
                                 '${widget.ownerKey}_${field.key}',
                               ),
-                              field: field,
-                              value: widget.properties[field.key],
-                              onChanged: (value) =>
-                                  widget.onUpdateProps({field.key: value}),
+                              locked: widget.isReadOnly,
+                              child: PropFieldEditor(
+                                field: field,
+                                value: widget.properties[field.key],
+                                onChanged: (value) =>
+                                    widget.onUpdateProps({field.key: value}),
+                              ),
                             ),
                         ],
                       ),

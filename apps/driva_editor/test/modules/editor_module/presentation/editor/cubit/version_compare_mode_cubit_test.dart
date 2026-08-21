@@ -286,22 +286,21 @@ void main() {
     );
 
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(
-      'a transição saving → saved encerra o modo',
+      'entrar congela o rascunho e fechar o descongela',
       build: build,
       act: (cubit) async {
         await cubit.enter(3);
-        editorStates.add(ready(saveStatus: SaveStatus.saving));
-        await Future<void>.delayed(Duration.zero);
-        editorStates.add(ready());
-        await Future<void>.delayed(Duration.zero);
+        cubit.exit();
       },
-      skip: 2,
-      expect: () => [const VersionCompareModeInactive()],
+      verify: (_) {
+        verify(() => editorCubit.setReadOnly(value: true)).called(1);
+        verify(() => editorCubit.setReadOnly(value: false)).called(1);
+      },
     );
 
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(
-      'saved que não veio de saving NÃO encerra o modo — é o Ctrl+Z que '
-      'devolve o documento ao último salvo',
+      'documento do editor mudando não encerra o modo — só atualiza a base '
+      'comparada',
       build: build,
       act: (cubit) async {
         await cubit.enter(3);
@@ -439,5 +438,73 @@ void main() {
         await cubit.close();
       },
     );
+
+    test('a volta ao publicado encerra o modo', () async {
+      realEditorCubit.emit(readyPublished());
+      final cubit = buildWithRealEditor()..emit(activeWith(v2));
+
+      await cubit.returnToPublished();
+
+      expect(cubit.state, isA<VersionCompareModeInactive>());
+      expect((realEditorCubit.state as EditorReady).isReadOnly, isFalse);
+      await cubit.close();
+    });
+  });
+
+  group('aplicar a versão inteira', () {
+    late EditorCubit realEditorCubit;
+
+    setUp(() {
+      realEditorCubit = EditorCubit(
+        loadContentUseCase: MockLoadContentUseCase(),
+        saveDraftUseCase: MockSaveDraftUseCase(),
+        publishContentUseCase: MockPublishContentUseCase(),
+        unpublishContentUseCase: MockUnpublishContentUseCase(),
+        restoreContentVersionUseCase: MockRestoreContentVersionUseCase(),
+        projectId: 'p1',
+      )..emit(EditorReady(document: draftSpec));
+    });
+
+    tearDown(() => realEditorCubit.close());
+
+    VersionCompareModeCubit buildWithRealEditor() => VersionCompareModeCubit(
+      getContentVersionUseCase: getVersion,
+      getContentVersionsUseCase: getVersions,
+      editorCubit: realEditorCubit,
+    );
+
+    test('traz a candidata para o rascunho, encerra o modo e descongela '
+        'o editor', () async {
+      final cubit = buildWithRealEditor();
+      await cubit.enter(3);
+      expect((realEditorCubit.state as EditorReady).isReadOnly, isTrue);
+
+      cubit.applyCandidateToDraft();
+
+      expect(cubit.state, isA<VersionCompareModeInactive>());
+      final state = realEditorCubit.state as EditorReady;
+      expect(state.document, v3Spec);
+      expect(state.isReadOnly, isFalse);
+      await cubit.close();
+    });
+
+    test('fora do modo não faz nada', () async {
+      final cubit = buildWithRealEditor()..applyCandidateToDraft();
+
+      expect(cubit.state, isA<VersionCompareModeInactive>());
+      expect((realEditorCubit.state as EditorReady).document, draftSpec);
+      await cubit.close();
+    });
+
+    test('um único undo desfaz a versão aplicada', () async {
+      final cubit = buildWithRealEditor();
+      await cubit.enter(3);
+      cubit.applyCandidateToDraft();
+
+      realEditorCubit.undo();
+
+      expect((realEditorCubit.state as EditorReady).document, draftSpec);
+      await cubit.close();
+    });
   });
 }
