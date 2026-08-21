@@ -74,6 +74,7 @@ class EditorTopRegistrar extends StatelessWidget {
             bool,
             PublishBlockReason?,
             PublicationState,
+            bool,
           )
         >(
           selector: (state) => state is EditorReady
@@ -84,6 +85,7 @@ class EditorTopRegistrar extends StatelessWidget {
                   state.canRedo,
                   state.publishBlockReason,
                   state.publication,
+                  state.isReadOnly,
                 )
               : (
                   '',
@@ -92,6 +94,7 @@ class EditorTopRegistrar extends StatelessWidget {
                   false,
                   PublishBlockReason.documentErrors,
                   const PublicationState(hasUnpublishedChanges: true),
+                  false,
                 ),
           builder: (context, vm) {
             final (
@@ -101,8 +104,10 @@ class EditorTopRegistrar extends StatelessWidget {
               canRedo,
               publishBlockReason,
               publication,
+              isReadOnly,
             ) = vm;
             final canPublish = publishBlockReason == null;
+            final isSaving = status == SaveStatus.saving;
             return ValueListenableBuilder<bool>(
               valueListenable: layoutController.isFullscreen,
               builder: (context, isFullscreen, staticChild) => AppShellSlot(
@@ -124,22 +129,25 @@ class EditorTopRegistrar extends StatelessWidget {
                   AppBarAction.icon(
                     icon: Icons.undo,
                     tooltip: 'Desfazer (Ctrl+Z)',
-                    onPressed: canUndo ? cubit.undo : null,
+                    onPressed: canUndo && !isReadOnly ? cubit.undo : null,
                   ),
                   AppBarAction.icon(
                     icon: Icons.redo,
                     tooltip: 'Refazer (Ctrl+Shift+Z)',
-                    onPressed: canRedo ? cubit.redo : null,
+                    onPressed: canRedo && !isReadOnly ? cubit.redo : null,
                   ),
                   AppBarAction.filled(
                     label: 'Salvar',
                     icon: Icons.save_outlined,
-                    onPressed: status == SaveStatus.saving ? null : cubit.save,
+                    tooltip: isReadOnly ? _readOnlyTooltip : null,
+                    onPressed: isSaving || isReadOnly ? null : cubit.save,
                   ),
                   AppBarAction.icon(
                     icon: Icons.bookmark_add_outlined,
-                    tooltip: 'Salvar e marcar no histórico',
-                    onPressed: status == SaveStatus.saving
+                    tooltip: isReadOnly
+                        ? _readOnlyTooltip
+                        : 'Salvar e marcar no histórico',
+                    onPressed: isSaving || isReadOnly
                         ? null
                         : () => _saveWithCheckpoint(context, cubit),
                   ),
@@ -152,8 +160,10 @@ class EditorTopRegistrar extends StatelessWidget {
                   ),
                   AppBarAction.icon(
                     icon: Icons.visibility_off_outlined,
-                    tooltip: _unpublishTooltip(publication),
-                    onPressed: publication.isPublished
+                    tooltip: isReadOnly
+                        ? _readOnlyTooltip
+                        : _unpublishTooltip(publication),
+                    onPressed: publication.isPublished && !isReadOnly
                         ? () => _confirmUnpublish(context, cubit, publication)
                         : null,
                   ),
@@ -284,8 +294,12 @@ Future<void> _saveWithCheckpoint(
 
 /// O motivo do botão desabilitado tem que ser verdadeiro (acessibilidade):
 /// "corrija os erros" só quando o bloqueio é mesmo por erro no documento.
+const String _readOnlyTooltip =
+    'Comparando versões — feche a comparação para editar';
+
 String _publishTooltip(PublishBlockReason? reason) => switch (reason) {
   null => 'Publicar as alterações',
+  PublishBlockReason.comparingVersions => _readOnlyTooltip,
   PublishBlockReason.saving => 'Salvando…',
   PublishBlockReason.publishing => 'Publicando…',
   PublishBlockReason.documentErrors =>

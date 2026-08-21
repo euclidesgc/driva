@@ -40,7 +40,7 @@ class VersionCompareModeBar extends StatelessWidget {
           loadFullVersionIntoDraft(
             context,
             editorCubit: editorCubit,
-            candidate: state.candidate,
+            compareMode: cubit,
           ),
         );
         return Row(

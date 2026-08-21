@@ -1,32 +1,34 @@
-import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
 import 'package:flutter/material.dart';
 
-/// Alternativa segura oferecida por `VersionCompareUnsafeView` e
-/// `VersionCompareFullLoadBanner`: a versão já foi lida pelo modo de
-/// comparação, então não há requisição a refazer — só a mesma confirmação de
-/// `VersionHistoryDialog._loadToDraft` antes de aplicar em memória.
+/// A saída "aplica" do modo de comparação: a versão já foi lida pelo modo,
+/// então não há requisição a refazer — só a mesma confirmação de
+/// `VersionHistoryDialog._loadToDraft` antes de sobrescrever o rascunho em
+/// memória.
 ///
-/// Não fecha nada ao terminar: com a comparação vivendo no canvas, não há
-/// diálogo por cima para dispensar, e o usuário decide quando sair do modo.
+/// Aplicar encerra o modo (quem faz isso é `applyCandidateToDraft`): com o
+/// rascunho igual à versão, os dois lados da comparação passariam a mostrar
+/// a mesma coisa.
 Future<void> loadFullVersionIntoDraft(
   BuildContext context, {
   required EditorCubit editorCubit,
-  required LoadedContentVersion candidate,
+  required VersionCompareModeCubit compareMode,
 }) async {
   final editorState = editorCubit.state;
   if (editorState is! EditorReady) return;
+  final compareState = compareMode.state;
+  if (compareState is! VersionCompareModeActive) return;
 
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (_) => LoadVersionIntoDraftConfirmDialog(
-      version: candidate.version,
+      version: compareState.candidate.version,
       isDirty: editorState.saveStatus == SaveStatus.dirty,
     ),
   );
   if (confirmed != true) return;
-  if (!context.mounted) return;
 
-  editorCubit.loadVersionIntoDraft(candidate.spec, version: candidate.version);
+  compareMode.applyCandidateToDraft();
 }

@@ -8,9 +8,17 @@ import 'package:sdui_core/sdui_core.dart';
 /// por categoria colapsável, com busca. Adicionar é só por drag-and-drop (o
 /// clique não adiciona — o usuário controla onde solta).
 class WidgetPalettePanel extends StatefulWidget {
-  const WidgetPalettePanel({required this.collapsedCategories, super.key});
+  const WidgetPalettePanel({
+    required this.collapsedCategories,
+    this.isReadOnly = false,
+    super.key,
+  });
 
   final ValueNotifier<Set<String>> collapsedCategories;
+
+  /// Rascunho congelado pelo modo de comparação: buscar e colapsar categoria
+  /// continuam — são leitura —, arrastar para o conteúdo não.
+  final bool isReadOnly;
 
   @override
   State<WidgetPalettePanel> createState() => _WidgetPalettePanelState();
@@ -74,6 +82,7 @@ class _WidgetPalettePanelState extends State<WidgetPalettePanel> {
                           isExpanded:
                               hasQuery ||
                               !collapsedCategories.contains(entry.key),
+                          isDraggable: !widget.isReadOnly,
                           onToggle: hasQuery
                               ? null
                               : () => _toggleCategory(entry.key),

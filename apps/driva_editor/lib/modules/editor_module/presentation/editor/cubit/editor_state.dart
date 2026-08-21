@@ -11,7 +11,12 @@ enum PublishStatus { idle, publishing, published, publishFailed }
 /// Motivo de [EditorReady.canPublish] estar falso — guia o tooltip do botão
 /// Publish: o motivo mostrado tem que ser verdadeiro (acessibilidade), não
 /// sempre "corrija os erros" mesmo quando só está ocupado salvando/publicando.
-enum PublishBlockReason { saving, publishing, documentErrors }
+enum PublishBlockReason {
+  comparingVersions,
+  saving,
+  publishing,
+  documentErrors,
+}
 
 sealed class EditorState extends Equatable {
   const EditorState();
@@ -43,6 +48,7 @@ final class EditorReady extends EditorState {
     this.canRedo = false,
     this.publication = const PublicationState(hasUnpublishedChanges: true),
     this.publishStatus = PublishStatus.idle,
+    this.isReadOnly = false,
   });
 
   /// Fonte de verdade única: preview, árvore e inspector derivam daqui.
@@ -73,12 +79,21 @@ final class EditorReady extends EditorState {
   /// Estado transiente da ação de publicar/despublicar em si.
   final PublishStatus publishStatus;
 
+  /// Congela o rascunho: enquanto ligado, nenhuma operação que muda o
+  /// documento ou o servidor passa pelo cubit — seleção, zoom e dispositivo
+  /// continuam. Ligado pelo modo de comparação de versões, que compara o
+  /// rascunho com uma versão do histórico e não pode ver o alvo se mexendo
+  /// por baixo; carregar a versão inteira é a única escrita que atravessa,
+  /// porque é a saída do modo.
+  final bool isReadOnly;
+
   /// Bloqueia publicar enquanto salva, enquanto publica, ou com diagnóstico
   /// de severidade erro no documento — hoje só `expanded`/`spacer` fora de
   /// flex (`sdui.diagnoseTree`); aviso não bloqueia. `null` quando pode
   /// publicar; a ordem decide qual motivo prevalece se mais de um for
   /// verdade.
   PublishBlockReason? get publishBlockReason {
+    if (isReadOnly) return PublishBlockReason.comparingVersions;
     if (publishStatus == PublishStatus.publishing) {
       return PublishBlockReason.publishing;
     }
@@ -117,6 +132,7 @@ final class EditorReady extends EditorState {
     bool? canRedo,
     PublicationState? publication,
     PublishStatus? publishStatus,
+    bool? isReadOnly,
   }) {
     return EditorReady(
       document: document ?? this.document,
@@ -132,6 +148,7 @@ final class EditorReady extends EditorState {
       canRedo: canRedo ?? this.canRedo,
       publication: publication ?? this.publication,
       publishStatus: publishStatus ?? this.publishStatus,
+      isReadOnly: isReadOnly ?? this.isReadOnly,
     );
   }
 
@@ -148,5 +165,6 @@ final class EditorReady extends EditorState {
     canRedo,
     publication,
     publishStatus,
+    isReadOnly,
   ];
 }

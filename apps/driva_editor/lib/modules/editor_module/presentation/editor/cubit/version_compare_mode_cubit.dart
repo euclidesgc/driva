@@ -14,20 +14,14 @@ part 'version_compare_mode_state.dart';
 /// A comparação é um **modo do editor** (plan_t5b, D1/D3), não mais um
 /// diálogo: escopado à página, criado uma vez acima de `EditorWorkspace` e
 /// vivo enquanto ela vive. Referencia `EditorCubit` de propósito — é quem
-/// muta o rascunho quando a versão inteira é carregada por
-/// `loadFullVersionIntoDraft` — e por isso acompanha `editorCubit.stream`
-/// para manter `baseSpec` igual ao rascunho ao vivo enquanto o modo está
-/// ativo.
+/// congela o rascunho enquanto o modo está aberto e quem o muta quando a
+/// versão inteira é aplicada, as duas únicas saídas do modo.
 class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
   VersionCompareModeCubit({
     required this.getContentVersionUseCase,
     required this.getContentVersionsUseCase,
     required this.editorCubit,
-  }) : _lastSaveStatus = switch (editorCubit.state) {
-         final EditorReady s => s.saveStatus,
-         _ => null,
-       },
-       super(const VersionCompareModeInactive()) {
+  }) : super(const VersionCompareModeInactive()) {
     _editorSubscription = editorCubit.stream.listen(_onEditorStateChanged);
   }
 
@@ -36,13 +30,6 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
   final EditorCubit editorCubit;
 
   late final StreamSubscription<EditorState> _editorSubscription;
-
-  /// Rastreado à parte porque o stream do editor entrega um estado por vez,
-  /// nunca o par (anterior, atual) — e a saída por salvamento depende da
-  /// **transição** `saving → saved` (D3), não do estado `saved` isolado: um
-  /// `Ctrl+Z` que devolva o documento ao último salvo também emite `saved`
-  /// e não pode fechar o modo.
-  SaveStatus? _lastSaveStatus;
 
   Future<void> enter(int candidateVersion) async {
     final editorState = editorCubit.state;
@@ -81,6 +68,7 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
       (_) => const ContentVersionsPage(items: []),
       (loadedPage) => loadedPage,
     );
+    editorCubit.setReadOnly(value: true);
     emit(
       VersionCompareModeActive(
         candidate: loadedCandidate,
@@ -195,7 +183,9 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
   /// D6: deixa o rascunho idêntico à versão publicada, em memória — uma
   /// entrada de undo, nada persiste até o próximo `Salvar`. Quando a
   /// candidata em tela já é a publicada, o spec dela é reusado sem nova
-  /// requisição.
+  /// requisição. Encerra o modo pelo mesmo motivo de
+  /// [applyCandidateToDraft]: é escrita no rascunho, e o modo não convive
+  /// com rascunho mudando.
   Future<bool> returnToPublished() async {
     final editorState = editorCubit.state;
     if (editorState is! EditorReady) return false;
@@ -205,6 +195,7 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
     final current = state;
     if (current is VersionCompareModeActive &&
         current.candidate.version == publishedVersion) {
+      exit();
       editorCubit.loadVersionIntoDraft(
         current.candidate.spec,
         version: publishedVersion,
@@ -218,30 +209,38 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
     );
     if (isClosed) return false;
     return result.fold((_) => false, (loaded) {
+      exit();
       editorCubit.loadVersionIntoDraft(loaded.spec, version: publishedVersion);
       return true;
     });
   }
 
-  /// D3: `Fechar comparação` só fecha, nada é revertido por baixo dos
-  /// panos — o que foi copiado continua no rascunho, desfazível um a um por
-  /// `Ctrl+Z` como qualquer edição manual.
+  /// A saída "aplica": traz a versão comparada inteira para o rascunho e
+  /// encerra o modo — com os dois lados idênticos não sobra o que comparar.
+  /// Sai antes de aplicar para o rascunho descongelar e o diff não ser
+  /// recalculado contra um estado que morre na linha seguinte.
+  void applyCandidateToDraft() {
+    final current = state;
+    if (current is! VersionCompareModeActive) return;
+    final candidate = current.candidate;
+    exit();
+    editorCubit.loadVersionIntoDraft(
+      candidate.spec,
+      version: candidate.version,
+    );
+  }
+
+  /// `Fechar comparação` é a saída limpa: o rascunho volta a ser editável
+  /// exatamente como entrou, porque o modo não deixa editar nada enquanto
+  /// está aberto — não há o que reverter.
   void exit() {
+    editorCubit.setReadOnly(value: false);
     if (state is VersionCompareModeInactive) return;
     emit(const VersionCompareModeInactive());
   }
 
   void _onEditorStateChanged(EditorState editorState) {
     if (isClosed || editorState is! EditorReady) return;
-
-    final previousStatus = _lastSaveStatus;
-    _lastSaveStatus = editorState.saveStatus;
-
-    if (previousStatus == SaveStatus.saving &&
-        editorState.saveStatus == SaveStatus.saved) {
-      exit();
-      return;
-    }
 
     final current = state;
     if (current is! VersionCompareModeActive ||

@@ -20,6 +20,7 @@ class WidgetTreePanel extends StatelessWidget {
     this.compareOnlyInBase = const {},
     this.compareGhostNodes = const [],
     this.pageDiffMarkers = const [],
+    this.isReadOnly = false,
     super.key,
   });
 
@@ -39,6 +40,12 @@ class WidgetTreePanel extends StatelessWidget {
 
   /// `safeArea` e metadados alterados — marcadores da linha fixa da página.
   final List<VersionCompareMarkerKind> pageDiffMarkers;
+
+  /// Rascunho congelado pelo modo de comparação: a árvore vira um mapa de
+  /// leitura — selecionar continua, arrastar e excluir saem de cena junto
+  /// com as faixas de soltura, que sem arraste nenhum só convidariam para
+  /// algo que não acontece.
+  final bool isReadOnly;
 
   /// `null` = a página (área segura) está no Inspector.
   final String? selectedNodeId;
@@ -78,19 +85,20 @@ class WidgetTreePanel extends StatelessWidget {
             children: rows,
           ),
         ),
-        DropZone(
-          label: root == null
-              ? 'Solte um widget aqui para começar'
-              : 'Soltar aqui adiciona ao fim do conteúdo',
-          onAccept: (payload) => switch (payload) {
-            PaletteDragPayload(:final type) => onDropNew(type, root?.id),
-            NodeDragPayload(:final nodeId) when root != null => onDropMove(
-              nodeId,
-              root.id,
-            ),
-            NodeDragPayload() => null,
-          },
-        ),
+        if (!isReadOnly)
+          DropZone(
+            label: root == null
+                ? 'Solte um widget aqui para começar'
+                : 'Soltar aqui adiciona ao fim do conteúdo',
+            onAccept: (payload) => switch (payload) {
+              PaletteDragPayload(:final type) => onDropNew(type, root?.id),
+              NodeDragPayload(:final nodeId) when root != null => onDropMove(
+                nodeId,
+                root.id,
+              ),
+              NodeDragPayload() => null,
+            },
+          ),
       ],
     );
   }
@@ -124,7 +132,8 @@ class WidgetTreePanel extends StatelessWidget {
         diagnostics: nodeDiagnostics[node.id] ?? const [],
         diffMarkerKind: _markerKindFor(node.id),
         onSelect: () => onSelect(node.id),
-        onRemove: () => onRemove(node.id),
+        onRemove: isReadOnly ? null : () => onRemove(node.id),
+        isDraggable: !isReadOnly,
         onAccept: (payload) => switch (payload) {
           PaletteDragPayload(:final type) => onDropNew(type, node.id),
           NodeDragPayload(:final nodeId) => onDropMove(nodeId, node.id),
@@ -138,7 +147,7 @@ class WidgetTreePanel extends StatelessWidget {
     final acceptsList =
         (descriptorFor(node.type)?.slot ?? SlotKind.none) == SlotKind.multi;
     for (var index = 0; index <= node.children.length; index++) {
-      if (acceptsList) {
+      if (acceptsList && !isReadOnly) {
         rows.add(
           TreeGapDropZone(
             key: ValueKey('gap_${node.id}_$index'),

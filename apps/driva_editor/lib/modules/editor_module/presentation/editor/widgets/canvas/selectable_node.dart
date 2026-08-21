@@ -22,6 +22,7 @@ class SelectableNode extends StatelessWidget {
     required this.onSelect,
     required this.onHover,
     required this.onAccept,
+    this.isDraggable = true,
     super.key,
   });
 
@@ -33,6 +34,10 @@ class SelectableNode extends StatelessWidget {
   final VoidCallback onSelect;
   final ValueChanged<bool> onHover;
   final ValueChanged<DragPayload> onAccept;
+
+  /// Falso enquanto o rascunho está congelado: o nó continua selecionável e
+  /// com a mesma pele — mover é edição, selecionar para ler o diff não é.
+  final bool isDraggable;
 
   bool get _isRawFlexParentDataWidget => switch (node.type) {
     'expanded' => built is Expanded,
@@ -56,7 +61,7 @@ class SelectableNode extends StatelessWidget {
           selected: isSelected,
           child: Draggable<DragPayload>(
             data: NodeDragPayload(node.id),
-            maxSimultaneousDrags: 1,
+            maxSimultaneousDrags: isDraggable ? 1 : 0,
             feedback: NodeDragFeedback(label: label),
             childWhenDragging: Opacity(
               opacity: 0.35,

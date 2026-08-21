@@ -64,6 +64,17 @@ class EditorCubit extends Cubit<EditorState> {
 
   static const int _maxHistory = 50;
 
+  /// Porta única por onde passa toda operação que muda o documento ou o
+  /// servidor: `null` quando não há documento pronto **ou** quando o rascunho
+  /// está congelado. Concentrar a guarda aqui é o que impede um caminho novo
+  /// de escrita nascer fora do congelamento — a UI desabilita o gesto, mas
+  /// quem garante a invariante é este getter.
+  EditorReady? get _editable {
+    final current = state;
+    if (current is! EditorReady || current.isReadOnly) return null;
+    return current;
+  }
+
   Future<void> loadContent(String id) async {
     emit(const EditorLoading());
     final result = await loadContentUseCase(id);
@@ -98,8 +109,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// Alvo que não recebe filhos não cancela o gesto: o kernel encaixa no
   /// primeiro ancestral que recebe e a barra de status conta o desvio.
   void addNode(String type, {String? targetId}) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
 
     if (root == null) {
@@ -153,8 +164,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// Move um nó existente para cima de [targetId] — a mesma resolução do
   /// [addNode], para árvore e canvas se comportarem igual.
   void moveNode(String nodeId, String targetId) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     if (root == null || nodeId == targetId) return;
     if (nodeId == root.id) {
@@ -209,8 +220,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// por pai que não aceita lista converge para [addNode], que resolve o
   /// mesmo gesto (redirect ou wrap) que os outros quatro pontos de drop.
   void addNodeAt(String type, String parentId, int index) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     if (root == null) return;
 
@@ -229,8 +240,8 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   void moveNodeAt(String nodeId, String parentId, int index) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     if (root == null) return;
     if (nodeId == root.id) {
@@ -253,8 +264,8 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   void removeNode(String id) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     if (root == null) return;
     // Excluir a raiz esvazia o conteúdo (volta ao estado-vazio): não é fixa.
@@ -274,8 +285,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// de outra versão — outra fatia. Não é limpa por [loadContent] de propósito:
   /// copiar num conteúdo e colar em outro, na mesma sessão, é desejável.
   void copySelected() {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final node = current.selectedNode;
     if (node == null) return;
     _clipboard = node;
@@ -287,8 +298,8 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   void duplicateSelected() {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     final node = current.selectedNode;
     if (root == null || node == null) return;
@@ -342,8 +353,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// Colar é um drop no nó selecionado — mesma regra de encaixe do arraste,
   /// inclusive o desvio para o ancestral quando o alvo não recebe filhos.
   void paste() {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final source = _clipboard;
     if (source == null) {
       _emitNotice(current, EditorNoticeKind.clipboardEmpty);
@@ -410,8 +421,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// Comando explícito de envolver (D6, item 38). Uma chamada de
   /// [sdui.wrapNode] + uma de [_emitRoot]: uma única entrada de undo (D4).
   void wrapSelected(String wrapperType) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     final nodeId = current.selectedNodeId;
     if (root == null || nodeId == null) return;
@@ -433,16 +444,16 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   void removeSelected() {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final selected = current.selectedNodeId;
     if (selected != null) removeNode(selected);
   }
 
   /// Merge nas props do nó; valor `null` remove a chave (volta ao default).
   void updateProps(String id, Map<String, dynamic> patch) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final root = current.document.root;
     if (root == null) return;
     _emitRoot(
@@ -454,8 +465,8 @@ class EditorCubit extends Cubit<EditorState> {
 
   /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
   void updateSafeAreaProps(Map<String, dynamic> patch) {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     final merged = {...current.document.safeArea, ...patch}
       ..removeWhere((_, value) => value == null);
     _emitDocument(
@@ -463,6 +474,13 @@ class EditorCubit extends Cubit<EditorState> {
       current.document.copyWith(safeArea: merged),
       coalesceKey: 'safeArea:${patch.keys.join(",")}',
     );
+  }
+
+  /// Congela ou libera o rascunho — ver [EditorReady.isReadOnly].
+  void setReadOnly({required bool value}) {
+    final current = state;
+    if (current is! EditorReady || current.isReadOnly == value) return;
+    emit(current.copyWith(isReadOnly: value));
   }
 
   void selectNode(String? id) {
@@ -498,8 +516,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// ao ar, e só publicar cria versão. Nota em branco é tratada como ausente:
   /// um ponto sem nota é indistinguível de qualquer outro save.
   Future<void> save({String? checkpointNote}) async {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     if (current.saveStatus == SaveStatus.saving) return;
     emit(current.copyWith(saveStatus: SaveStatus.saving));
 
@@ -523,8 +541,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// primeiro — publicar o que está na tela e não no servidor seria mentira.
   /// Falha do salvamento aborta sem chamar o publish.
   Future<void> publish({String? note}) async {
-    final current = state;
-    if (current is! EditorReady || !current.canPublish) return;
+    final current = _editable;
+    if (current == null || !current.canPublish) return;
     emit(current.copyWith(publishStatus: PublishStatus.publishing));
 
     if (current.saveStatus == SaveStatus.dirty) {
@@ -571,8 +589,8 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   Future<void> unpublish() async {
-    final current = state;
-    if (current is! EditorReady) return;
+    final current = _editable;
+    if (current == null) return;
     emit(current.copyWith(publishStatus: PublishStatus.publishing));
 
     final result = await unpublishContentUseCase(current.document.id);
@@ -605,8 +623,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// Devolve se restaurou: o diálogo de histórico só fecha em sucesso — em
   /// falha, o aviso aparece na barra de status e a lista continua aberta.
   Future<bool> restoreVersion(int version) async {
-    final current = state;
-    if (current is! EditorReady) return false;
+    final current = _editable;
+    if (current == null) return false;
 
     final result = await restoreContentVersionUseCase(
       current.document.id,
@@ -776,16 +794,16 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   void undo() {
-    final current = state;
-    if (current is! EditorReady || _past.isEmpty) return;
+    final current = _editable;
+    if (current == null || _past.isEmpty) return;
     final entry = _past.removeLast();
     _future.add(_entryFrom(current, entry.coalesceKey));
     emit(_restored(current, entry));
   }
 
   void redo() {
-    final current = state;
-    if (current is! EditorReady || _future.isEmpty) return;
+    final current = _editable;
+    if (current == null || _future.isEmpty) return;
     final entry = _future.removeLast();
     _past.add(_entryFrom(current, entry.coalesceKey));
     emit(_restored(current, entry));

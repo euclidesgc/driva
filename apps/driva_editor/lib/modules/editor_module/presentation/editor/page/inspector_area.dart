@@ -27,6 +27,7 @@ class InspectorArea extends StatelessWidget {
           safeArea: state.document.safeArea,
           contentName: state.document.name,
           contentSlug: state.document.slug,
+          isReadOnly: state.isReadOnly,
         );
       },
       builder: (context, vm) => vm == null
@@ -43,6 +44,7 @@ class InspectorArea extends StatelessWidget {
               onRemove: cubit.removeNode,
               onWrap: cubit.wrapSelected,
               collapsedSections: collapsedSections,
+              isReadOnly: vm.isReadOnly,
             ),
     );
   }

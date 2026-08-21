@@ -20,6 +20,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onWrap,
     this.collapsedSections,
     this.compareSection,
+    this.isReadOnly = false,
     super.key,
   });
 
@@ -40,6 +41,11 @@ class InspectorPanel extends StatelessWidget {
 
   /// Repassado a `InspectorPropList` — ver o doc lá para a decisão (Q2/P3).
   final ValueNotifier<Set<String>>? collapsedSections;
+
+  /// Rascunho congelado pelo modo de comparação: some o que edita — excluir,
+  /// envolver e os campos —, fica o que informa, inclusive [compareSection],
+  /// que é justamente o que se lê durante a comparação.
+  final bool isReadOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +71,7 @@ class InspectorPanel extends StatelessWidget {
               descriptor: safeAreaDescriptor,
               onUpdateProps: onUpdateSafeAreaProps,
               collapsedSections: collapsedSections,
+              isReadOnly: isReadOnly,
             ),
           ),
         ],
@@ -80,9 +87,9 @@ class InspectorPanel extends StatelessWidget {
           title: descriptor?.label ?? node.type,
           subtitle: 'id ${node.id}',
           iconType: node.type,
-          onRemove: () => onRemove(node.id),
+          onRemove: isReadOnly ? null : () => onRemove(node.id),
           removeLabel: isRoot ? clearContentLabel : removeNodeLabel,
-          onWrap: onWrap,
+          onWrap: isReadOnly ? null : onWrap,
         ),
         ?compareSection,
         Expanded(
@@ -102,6 +109,7 @@ class InspectorPanel extends StatelessWidget {
                   descriptor: descriptor,
                   onUpdateProps: (patch) => onUpdateProps(node.id, patch),
                   collapsedSections: collapsedSections,
+                  isReadOnly: isReadOnly,
                 ),
         ),
       ],
