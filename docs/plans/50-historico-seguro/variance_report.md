@@ -238,3 +238,37 @@ desnecessário.
 2026-08-21. Nenhum critério do DoD da T5b.12 nomeava esse arquivo — os DoD cobram o comportamento
 (seta presente em `%`, ausente com tipo mudado, ausente em chave não alterada), e todos foram
 provados por teste de widget.
+
+---
+
+## VR-50-12 — O restore volta a ser por versão inteira: a D1 (cópia por propriedade) é revertida
+
+**O plano dizia:** a **D1** do [`plan_t5b.md`](plan_t5b.md) — "O Inspector ganha, ao lado de **cada
+propriedade que difere** do nó selecionado, o botão que traz o valor da versão" — mais, pela emenda
+3 da mesma decisão, a ação de nó inteiro `Trazer todas as propriedades desta versão` no cabeçalho
+de comparação do Inspector, para cobrir as chaves que o `WidgetDescriptor` não expõe. A F3 entregou
+exatamente isso.
+
+**O que foi feito:** a cópia por propriedade e a de nó **foram removidas**, e no lugar das duas
+ficou **uma seta só** na barra da candidata (`VersionCompareCandidateBar`, tooltip
+`Carregar versão inteira no rascunho`), que carrega a versão inteira no rascunho reusando o
+`loadFullVersionIntoDraft` e a confirmação que já existiam. Saíram do editor: o widget
+`PropVersionCopyButton`, o `PropFieldCompareBinding` e o threading do botão por
+`PropFieldEditor` / `SelfChromedPropEditor` / `DimensionEditor` (a emenda 1 da D1 deixa de ter
+objeto), `EditorCubit.copyPropertyFromVersion`, `EditorCubit.applyComparedNodeProperties` e
+`VersionCompareModeCubit.copyNodeProperties`. O `InspectorCompareHeader` continua vivo, mas
+**puramente informativo**: contagem de propriedades que diferem e nomes das chaves sem campo no
+Inspector, sem ação nenhuma. O órfão `version_compare_full_load_banner.dart` foi apagado. O kernel
+**não** foi tocado: `changedPropertyKeys` segue alimentando a contagem do cabeçalho, e
+`copyComparableNodeProperties` fica sem chamador no editor (dívida registrada no
+`docs/roadmap.md`).
+
+**Por quê:** decisão do dono do produto, nas palavras dele — *"O restore é por versão completa, não
+por propriedade. O histórico é de versão, não de propriedades."* e *"Precisamos de apenas uma seta,
+ela é referente a tudo."* A unidade de restauração passa a ser a mesma unidade do histórico: a
+versão. Um restore por propriedade produz um rascunho que nunca existiu como versão publicada, e é
+essa mistura que o dono não quer oferecer.
+
+**Mudança de escopo decidida pelo humano, não correção de defeito.** A F3 estava correta em relação
+ao plano vigente e foi entregue, revisada e mergeada; o que mudou foi a exigência. Registrada em
+2026-08-21, depois da F3 mergeada, e aplicada no commit `d122747`.

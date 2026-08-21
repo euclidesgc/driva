@@ -31,6 +31,14 @@ como estão, com os testes que já as cobrem.
 
 ### D1 — Marcadores vão para a árvore; setas vão para o Inspector
 
+> **Revertida em 2026-08-21, por decisão do dono do produto.** A cópia por propriedade e a
+> ação de nó inteiro foram removidas do editor; a restauração passou a ser de **versão
+> inteira**, por uma seta única na barra da candidata. O texto abaixo fica como registro
+> histórico do que foi decidido e entregue na F3 — ver
+> [`variance_report.md` › VR-50-12](variance_report.md). A parte da D1 que **sobrevive** é a
+> primeira: os marcadores de diff na árvore de widgets, e o cabeçalho de comparação do
+> Inspector, agora só informativo.
+
 **Decidido: sim, como recomendado — com quatro emendas.** A árvore de widgets (aba
 `LeftPanelTab.tree`) ganha, por nó, o marcador `Propriedades alteradas` / `Somente no rascunho` /
 `Somente na versão` / `Tipo mudou`. O Inspector ganha, ao lado de **cada propriedade que difere**
@@ -72,6 +80,12 @@ fixa `PageTreeRow` no topo da árvore e para o Inspector em modo página (`node 
 somente leitura — a v1 continua não copiando esses três.
 
 ### D2 — Troca de versão: barra própria acima do mock da direita, e o Histórico continua sendo o seletor
+
+> **Confirmada, e entregue por inteiro só em 2026-08-21.** A barra sempre previu o
+> `Carregar versão inteira no rascunho`, mas ele só passou a existir nela quando a D1 foi
+> revertida — até então a restauração de versão inteira só aparecia no caminho de spec
+> inválido. Hoje é a **única** forma de trazer conteúdo da candidata para o rascunho
+> ([`variance_report.md` › VR-50-12](variance_report.md)).
 
 **Decidido: barra própria com `‹`/`›`, sem transformar o histórico em painel.**
 
@@ -568,6 +582,10 @@ Além da cobertura das tarefas acima, dois testes que eram passos do roteiro man
 ---
 
 ### F3 — Cópia por propriedade no Inspector
+
+> **Entregue e depois revertida em 2026-08-21** (decisão do dono, [`variance_report.md` ›
+> VR-50-12](variance_report.md)). O que sobrou desta fase é o cabeçalho de comparação do
+> Inspector, agora só informativo. As tarefas abaixo ficam como registro histórico.
 
 #### T5b.10 — `changedPropertyKeys` no kernel **[paralela: sim]**
 
