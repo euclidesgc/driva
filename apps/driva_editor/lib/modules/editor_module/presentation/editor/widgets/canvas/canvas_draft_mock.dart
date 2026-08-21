@@ -1,5 +1,5 @@
-import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_mock_viewport.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_frame.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_surface.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
@@ -33,27 +33,15 @@ class CanvasDraftMock extends StatelessWidget {
   Widget build(BuildContext context) {
     return DragTarget<DragPayload>(
       onAcceptWithDetails: (details) => onDropOnDevice(details.data),
-      builder: (context, candidates, _) => InteractiveViewer(
-        constrained: false,
-        boundaryMargin: const EdgeInsets.all(AppSpacing.s64),
-        minScale: 1,
-        maxScale: 1,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s32),
-          child: Transform.scale(
-            scale: effectiveScale,
-            alignment: Alignment.topCenter,
-            child: RepaintBoundary(
-              child: DeviceFrame(
-                device: device,
-                highlighted: candidates.isNotEmpty,
-                child: PreviewSurface(
-                  onSelect: onSelect,
-                  onDropOn: onDropOnNode,
-                  imageUrlResolver: imageUrlResolver,
-                ),
-              ),
-            ),
+      builder: (context, candidates, _) => CanvasMockViewport(
+        effectiveScale: effectiveScale,
+        child: DeviceFrame(
+          device: device,
+          highlighted: candidates.isNotEmpty,
+          child: PreviewSurface(
+            onSelect: onSelect,
+            onDropOn: onDropOnNode,
+            imageUrlResolver: imageUrlResolver,
           ),
         ),
       ),

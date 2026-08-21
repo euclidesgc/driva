@@ -161,6 +161,67 @@ void main() {
   );
 
   testWidgets(
+    'nenhum dos dois DeviceFrame sai espremido: a proporção larg/alt de '
+    'cada um bate com a do preset, e os dois tamanhos batem entre si',
+    (tester) async {
+      // Viewport deliberadamente estreito (mas acima do piso de
+      // AppSizes.canvasCompareMinSplitScale, então ainda cabem os dois
+      // mocks lado a lado): com espaço de sobra (1600×900, como no teste
+      // acima) a largura por painel folga bem além da largura natural do
+      // preset e o espremido não aparece — foi exatamente essa folga que
+      // deixou o bug escapar da bateria anterior.
+      const surface = Size(760, 900);
+      await tester.binding.setSurfaceSize(surface);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _harness(surface: surface, editorCubit: editorCubit),
+      );
+      await tester.pump();
+
+      final frames = find.byType(DeviceFrame);
+      expect(frames, findsNWidgets(2));
+
+      final presetRatio =
+          DevicePreset.smartphone.frameSize.width /
+          DevicePreset.smartphone.frameSize.height;
+      final draftSize = tester.getSize(frames.first);
+      final candidateSize = tester.getSize(frames.last);
+
+      expect(
+        draftSize.width / draftSize.height,
+        closeTo(presetRatio, 0.001),
+        reason:
+            'a moldura do rascunho precisa manter a proporção do preset do '
+            'device',
+      );
+      expect(
+        candidateSize.width / candidateSize.height,
+        closeTo(presetRatio, 0.001),
+        reason:
+            'a moldura da versão comparada não pode sair espremida — '
+            'regressão do bug em que o DeviceFrame da direita era forçado '
+            'a uma largura menor que a do preset, com a mesma altura do '
+            'rascunho',
+      );
+      expect(
+        draftSize.width,
+        closeTo(candidateSize.width, 0.5),
+        reason:
+            'os dois lados reusam a mesma cadeia de layout e não podem '
+            'divergir de tamanho',
+      );
+      expect(
+        draftSize.height,
+        closeTo(candidateSize.height, 0.5),
+        reason:
+            'os dois lados reusam a mesma cadeia de layout e não podem '
+            'divergir de tamanho',
+      );
+    },
+  );
+
+  testWidgets(
     'em janela estreita cai para um mock por vez, com alternador',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(440, 380));
