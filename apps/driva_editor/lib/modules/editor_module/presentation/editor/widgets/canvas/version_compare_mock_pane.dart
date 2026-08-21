@@ -1,5 +1,6 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_mock_viewport.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_frame.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_candidate_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_inert_preview.dart';
@@ -23,13 +24,12 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 /// mora em `VersionCompareModeBar`, não duplicada aqui. Continua ligada por
 /// padrão para o uso avulso (faixa estreita, um mock por vez).
 ///
-/// A moldura entra em [OverflowBox], sem teto de altura: um `Column` com
-/// `Expanded` daria altura **tight** ao filho, e o `SizedBox` interno de
-/// `DeviceFrame` seria forçado a essa altura em vez da própria — o
-/// `Transform.scale` escalaria uma moldura já errada, produzindo uma altura
-/// renderizada diferente da do rascunho mesmo com o mesmo `effectiveScale`.
-/// O rascunho evita isso com `InteractiveViewer(constrained: false)`; aqui, o
-/// papel equivalente é do `OverflowBox`.
+/// A moldura entra em [CanvasMockViewport], a mesma cadeia de layout do
+/// rascunho: um `Column` com `Expanded` daria constraints **tight** ao
+/// filho, e o `SizedBox` interno de `DeviceFrame` seria forçado a esse
+/// tamanho em vez do próprio, distorcendo a moldura mesmo com o mesmo
+/// `effectiveScale` do rascunho. Reusar o widget, em vez de uma variante
+/// própria, é o que impede o defeito de voltar de um lado só.
 class VersionCompareMockPane extends StatelessWidget {
   const VersionCompareMockPane({
     required this.device,
@@ -71,29 +71,22 @@ class VersionCompareMockPane extends StatelessWidget {
             onClose: onClose,
           ),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.s32),
-            child:
-                unsafeView ??
-                OverflowBox(
-                  alignment: Alignment.topCenter,
-                  maxHeight: double.infinity,
-                  child: Transform.scale(
-                    scale: effectiveScale,
-                    alignment: Alignment.topCenter,
-                    child: RepaintBoundary(
-                      child: DeviceFrame(
-                        device: device,
-                        highlighted: false,
-                        child: VersionCompareInertPreview(
-                          spec: spec,
-                          imageUrlResolver: imageUrlResolver,
-                        ),
-                      ),
+          child: unsafeView != null
+              ? Padding(
+                  padding: const EdgeInsets.all(AppSpacing.s32),
+                  child: unsafeView,
+                )
+              : CanvasMockViewport(
+                  effectiveScale: effectiveScale,
+                  child: DeviceFrame(
+                    device: device,
+                    highlighted: false,
+                    child: VersionCompareInertPreview(
+                      spec: spec,
+                      imageUrlResolver: imageUrlResolver,
                     ),
                   ),
                 ),
-          ),
         ),
       ],
     );
