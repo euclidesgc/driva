@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_prop_list.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_field_compare_binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,37 @@ const _descriptor = WidgetDescriptor(
       group: FieldGroups.content,
     ),
   ],
+);
+
+const _twoFieldDescriptor = WidgetDescriptor(
+  type: 'text',
+  label: 'Text',
+  iconName: 'text',
+  category: WidgetCategories.basics,
+  slot: SlotKind.none,
+  fields: [
+    PropField(
+      key: 'data',
+      kind: FieldKind.string,
+      label: 'Texto',
+      group: FieldGroups.content,
+    ),
+    PropField(
+      key: 'maxLines',
+      kind: FieldKind.intNum,
+      label: 'Máximo de linhas',
+      group: FieldGroups.content,
+      min: 1,
+      max: 20,
+    ),
+  ],
+);
+
+Finder _copyButtonOfField(String key) => find.descendant(
+  of: find.byWidgetPredicate(
+    (widget) => widget is PropFieldCompareBinding && widget.field.key == key,
+  ),
+  matching: find.byType(PropVersionCopyButton),
 );
 
 ContentSpec _specWithRoot(SduiNode? root) => ContentSpec(
@@ -120,6 +152,7 @@ void main() {
     Widget harness({
       required VersionCompareModeCubit compareCubit,
       required Map<String, dynamic> properties,
+      WidgetDescriptor descriptor = _descriptor,
     }) {
       return MaterialApp(
         theme: AppTheme.light,
@@ -133,7 +166,7 @@ void main() {
                 ownerKey: 'n_text',
                 nodeId: 'n_text',
                 properties: properties,
-                descriptor: _descriptor,
+                descriptor: descriptor,
                 onUpdateProps: (_) {},
               ),
             ),
@@ -210,6 +243,46 @@ void main() {
         await tester.pump();
 
         expect(find.byType(PropVersionCopyButton), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'num nó de duas propriedades, só o campo da chave alterada ganha a seta',
+      (tester) async {
+        final compareCubit = buildCompareCubit();
+        addTearDown(compareCubit.close);
+
+        compareCubit.emit(
+          _activeState(
+            baseSpec: _specWithRoot(
+              const SduiNode(
+                id: 'n_text',
+                type: 'text',
+                properties: {'data': 'Do rascunho', 'maxLines': 2},
+              ),
+            ),
+            candidateSpec: _specWithRoot(
+              const SduiNode(
+                id: 'n_text',
+                type: 'text',
+                properties: {'data': 'Do candidato', 'maxLines': 2},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpWidget(
+          harness(
+            compareCubit: compareCubit,
+            properties: const {'data': 'Do rascunho', 'maxLines': 2},
+            descriptor: _twoFieldDescriptor,
+          ),
+        );
+        await tester.pump();
+
+        expect(_copyButtonOfField('data'), findsOneWidget);
+        expect(_copyButtonOfField('maxLines'), findsNothing);
+        expect(find.byType(PropVersionCopyButton), findsOneWidget);
       },
     );
 
