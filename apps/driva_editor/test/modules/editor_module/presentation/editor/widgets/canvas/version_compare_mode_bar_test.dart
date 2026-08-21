@@ -6,6 +6,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/ver
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -40,7 +41,7 @@ const _draftSpec = ContentSpec(
   ),
 );
 
-const _candidateSpec = ContentSpec(
+const _candidateSpecV10 = ContentSpec(
   specVersion: kSpecVersion,
   id: 'ct_1',
   name: 'Home',
@@ -52,9 +53,43 @@ const _candidateSpec = ContentSpec(
   ),
 );
 
+const _candidateSpecV9 = ContentSpec(
+  specVersion: kSpecVersion,
+  id: 'ct_1',
+  name: 'Home',
+  slug: 'home',
+  root: SduiNode(
+    id: 'n_root',
+    type: 'text',
+    properties: {'text': 'como era na v9'},
+  ),
+);
+
 void main() {
   late EditorCubit editorCubit;
   late VersionCompareModeCubit compareCubit;
+  late _MockGetContentVersionUseCase getVersion;
+
+  final versionV10 = LoadedContentVersion(
+    version: 10,
+    spec: _candidateSpecV10,
+    createdAt: DateTime.utc(2026, 8, 16),
+  );
+  final versionV9 = LoadedContentVersion(
+    version: 9,
+    spec: _candidateSpecV9,
+    createdAt: DateTime.utc(2026, 8, 10),
+  );
+
+  VersionCompareModeActive activeAt(
+    LoadedContentVersion candidate, {
+    List<ContentVersion> versions = const [],
+  }) => VersionCompareModeActive(
+    candidate: candidate,
+    baseSpec: _draftSpec,
+    result: compareContentSpecs(_draftSpec, candidate.spec),
+    versions: versions,
+  );
 
   setUp(() {
     editorCubit = EditorCubit(
@@ -66,23 +101,19 @@ void main() {
       projectId: 'p1',
     )..emit(const EditorReady(document: _draftSpec));
 
-    compareCubit =
-        VersionCompareModeCubit(
-          getContentVersionUseCase: _MockGetContentVersionUseCase(),
-          getContentVersionsUseCase: _MockGetContentVersionsUseCase(),
-          editorCubit: editorCubit,
-        )..emit(
-          VersionCompareModeActive(
-            candidate: LoadedContentVersion(
-              version: 10,
-              spec: _candidateSpec,
-              createdAt: DateTime.utc(2026, 8, 16),
-            ),
-            baseSpec: _draftSpec,
-            result: compareContentSpecs(_draftSpec, _candidateSpec),
-            versions: const [],
-          ),
-        );
+    getVersion = _MockGetContentVersionUseCase();
+    when(
+      () => getVersion('ct_1', 9),
+    ).thenAnswer((_) async => Right(versionV9));
+    when(
+      () => getVersion('ct_1', 10),
+    ).thenAnswer((_) async => Right(versionV10));
+
+    compareCubit = VersionCompareModeCubit(
+      getContentVersionUseCase: getVersion,
+      getContentVersionsUseCase: _MockGetContentVersionsUseCase(),
+      editorCubit: editorCubit,
+    )..emit(activeAt(versionV10));
   });
 
   tearDown(() async {
@@ -132,24 +163,105 @@ void main() {
   );
 
   testWidgets(
-    'navegação entre versões, carregar versão inteira e fechar continuam '
-    'presentes e acionáveis',
+    'a seta de carregar versão inteira abre a confirmação com o número '
+    'certo',
     (tester) async {
       await pumpBar(tester);
 
-      expect(find.byTooltip('Versão mais nova'), findsOneWidget);
-      expect(find.byTooltip('Versão mais antiga'), findsOneWidget);
-      expect(
-        find.byTooltip('Carregar versão inteira no rascunho'),
-        findsOneWidget,
-      );
-      expect(find.byTooltip('Fechar comparação'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Fechar comparação'));
+      await tester.tap(find.byTooltip('Carregar versão inteira no rascunho'));
       await tester.pumpAndSettle();
 
-      final state = compareCubit.state;
-      expect(state, isA<VersionCompareModeInactive>());
+      expect(find.text('Carregar a versão 10 no rascunho?'), findsOneWidget);
+
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Carregar no rascunho'),
+      );
+      await tester.pumpAndSettle();
+
+      final state = editorCubit.state as EditorReady;
+      expect(state.document, _candidateSpecV10);
+    },
+  );
+
+  testWidgets(
+    '"Versão mais antiga" desce um índice na lista paginada e troca a '
+    'candidata de verdade',
+    (tester) async {
+      compareCubit.emit(
+        activeAt(
+          versionV10,
+          versions: [
+            ContentVersion(version: 10, createdAt: versionV10.createdAt),
+            ContentVersion(version: 9, createdAt: versionV9.createdAt),
+          ],
+        ),
+      );
+      await pumpBar(tester);
+
+      await tester.tap(find.byTooltip('Versão mais antiga'));
+      await tester.pumpAndSettle();
+
+      final state = compareCubit.state as VersionCompareModeActive;
+      expect(state.candidate.version, 9);
+      expect(find.text('Versão 9'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    '"Versão mais nova" sobe um índice na lista paginada e troca a '
+    'candidata de verdade',
+    (tester) async {
+      compareCubit.emit(
+        activeAt(
+          versionV9,
+          versions: [
+            ContentVersion(version: 10, createdAt: versionV10.createdAt),
+            ContentVersion(version: 9, createdAt: versionV9.createdAt),
+          ],
+        ),
+      );
+      await pumpBar(tester);
+
+      await tester.tap(find.byTooltip('Versão mais nova'));
+      await tester.pumpAndSettle();
+
+      final state = compareCubit.state as VersionCompareModeActive;
+      expect(state.candidate.version, 10);
+      expect(find.text('Versão 10'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Fechar comparação sai do modo', (tester) async {
+    await pumpBar(tester);
+
+    await tester.tap(find.byTooltip('Fechar comparação'));
+    await tester.pumpAndSettle();
+
+    expect(compareCubit.state, isA<VersionCompareModeInactive>());
+  });
+
+  testWidgets(
+    'nas pontas do histórico as setas continuam habilitadas — '
+    '`stepOlder`/`stepNewer` não têm para onde ir e não emitem, em vez de '
+    'a barra desabilitar o botão',
+    (tester) async {
+      await pumpBar(tester);
+
+      final older = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_right),
+      );
+      final newer = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_left),
+      );
+      expect(older.onPressed, isNotNull);
+      expect(newer.onPressed, isNotNull);
+
+      await tester.tap(find.byTooltip('Versão mais antiga'));
+      await tester.tap(find.byTooltip('Versão mais nova'));
+      await tester.pumpAndSettle();
+
+      final state = compareCubit.state as VersionCompareModeActive;
+      expect(state.candidate.version, 10);
     },
   );
 
