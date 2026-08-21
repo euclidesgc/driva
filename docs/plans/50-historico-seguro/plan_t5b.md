@@ -148,6 +148,34 @@ alteradas" sem nenhuma seta correspondente. O DoD da T5b.10 cobra que as duas fu
 `version_compare_base_phrases.dart` e a regra do `VR-50-02` (rótulo que nomeia a base exibida)
 deixam de existir: a base é sempre o rascunho, e o rótulo volta a ser `Somente no rascunho` fixo.
 
+### D6 — O rascunho ganha nome e porta de volta ao publicado (fecha o VR-50-06)
+
+**Decidido pelo dono (2026-08-20): a perda do toggle de base está confirmada** — o lado esquerdo
+é sempre o rascunho ao vivo. Em troca, o modo ganha duas coisas:
+
+1. **Legenda `Rascunho` no lado esquerdo.** A faixa estreita já nomeia os dois lados no
+   alternador; lado a lado, só o mock da direita tinha nome (`Versão N` na barra da candidata).
+   A `CanvasToolbar` passa a mostrar, **só durante o modo**, a legenda `Rascunho` na ponta
+   esquerda — e a esconde quando a barra colapsa as ações secundárias, porque nesse aperto a
+   faixa estreita com o alternador está logo adiante.
+2. **`Voltar à versão publicada`** — o reset pedido pelo dono: deixa o rascunho idêntico à
+   versão publicada. Vive na `CanvasToolbar` durante o modo, ao lado da legenda; existe apenas
+   quando há versão publicada (`publication.isPublished`) — botão que não pode agir não existe.
+   Nada de servidor: o fluxo busca o spec publicado por `GetContentVersionUseCase` (ou reusa
+   `candidate.spec` quando a candidata **é** a publicada) e aplica por
+   `EditorCubit.loadVersionIntoDraft`, que já produz **uma** entrada de undo e não marca
+   "não publicado" quando a versão é a do ar. Confirmação antes de aplicar, nomeando o que se
+   perde — em diálogo próprio, porque a pergunta é outra que a de carregar uma vN qualquer.
+
+**Nomenclatura, pela mesma régua da D3:** o botão não se chama `Reset` nem `Voltar à versão no
+ar`. O dono descartou o vocabulário "no ar" (2026-08-20): os pares oficiais da UI são
+**Publicar/Publicado/Despublicar** — e isso vira varredura própria nos rótulos existentes
+(T5b.19).
+
+Fora do modo, a mesma capacidade continua existindo pelo histórico — `Carregar no rascunho` na
+linha da versão publicada; o botão do modo é a porta de um clique no lugar onde a diferença está
+sendo olhada.
+
 ---
 
 ## Arquivos
@@ -233,13 +261,14 @@ Testes que caem junto: `apps/driva_editor/test/modules/editor_module/presentatio
 
 ## Fases e tarefas
 
-Precedência: `F1 → F2 → F3 → F4`. Uma fase = uma PR.
+Precedência: `F1 → F2 → F3 → F4`, com a `F2b` livre a partir da F1. Uma fase = uma PR.
 
 ```text
 F1 modo no editor (paridade + morte do modal)
- └ F2 marcadores na árvore
-     └ F3 cópia por propriedade no Inspector
-         └ F4 docs vivas + roteiro manual
+ ├ F2 marcadores na árvore
+ │   └ F3 cópia por propriedade no Inspector
+ │       └ F4 docs vivas
+ └ F2b legenda + volta ao publicado + vocabulário (paralela a F2/F3)
 ```
 
 F1 entrega paridade funcional com o modal antes de apagá-lo: os dois mocks, a troca de versão, a
@@ -450,6 +479,94 @@ existente na mesma linha.
 
 ---
 
+### F2b — Legenda, volta ao publicado e vocabulário (D6)
+
+Pode correr em paralelo à F2 e à F3: toca a barra do canvas, o cubit do modo e os rótulos de
+publicação — arquivos disjuntos dos marcadores da árvore e do Inspector. A numeração continua da
+última tarefa do plano porque a fase nasceu depois, da decisão que fechou o VR-50-06.
+
+#### T5b.17 — `VersionCompareModeCubit.returnToPublished` **[paralela: sim]**
+
+Acrescentar ao cubit do modo `Future<bool> returnToPublished()`: exige `EditorReady` com
+`publication.publishedVersion` não nulo; quando a candidata ativa **é** a publicada, aplica
+`candidate.spec` direto, sem nova requisição; senão busca o spec por
+`GetContentVersionUseCase(contentId, publishedVersion)`. Em sucesso aplica por
+`EditorCubit.loadVersionIntoDraft(spec, version: publishedVersion)` — que já produz **uma**
+entrada de undo e não marca "não publicado", porque a versão é a publicada — e devolve `true`.
+Em falha devolve `false` sem tocar o documento.
+
+**DoD**
+- `apps/driva_editor/lib/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart` declara `Future<bool> returnToPublished()`.
+- Teste em `apps/driva_editor/test/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit_test.dart` prova: com a candidata igual à versão publicada, o use case de buscar versão não é chamado de novo e o documento do `EditorCubit` passa a ser o spec da candidata; com candidata diferente, o use case é chamado com o número da versão publicada; sem versão publicada, devolve `false` e o documento não muda; com o use case falhando, devolve `false` e o documento não muda.
+- Teste prova que depois de `returnToPublished()` bem-sucedido, um único `undo()` no `EditorCubit` devolve o documento ao estado anterior à chamada.
+- `cd apps/driva_editor && dart format --set-exit-if-changed lib test && flutter analyze` sai verde.
+
+#### T5b.18 — Legenda `Rascunho` e botão `Voltar à versão publicada` na barra do canvas **[paralela: não — dep. T5b.17]**
+
+Três widgets novos, todos montados **só durante o modo de comparação**:
+
+- `CanvasCompareDraftLegend` — a legenda `Rascunho` na ponta esquerda da `CanvasToolbar`,
+  espelhando o `Versão N` da barra da candidata. Some quando a barra colapsa as ações
+  secundárias.
+- `ReturnToPublishedButton` — ao lado da legenda; rótulo `Voltar à versão publicada`, colapsa
+  para ícone com tooltip quando a barra colapsa as ações secundárias. Só é montado quando
+  existe versão publicada.
+- `ReturnToPublishedConfirmDialog` — a confirmação antes de aplicar, com os dois textos
+  (rascunho com e sem alterações não salvas), sempre dizendo que a mudança é local até `Salvar`
+  e que `Ctrl+Z` desfaz.
+
+A fiação desce por quem já monta a `CanvasToolbar` no modo — o mesmo caminho que hoje entrega
+`compareBuilder` ao painel do canvas —, sem tocar o `InspectorVm`.
+
+**DoD**
+- Os três arquivos existem, um widget público por arquivo: `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart`, `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/canvas/return_to_published_button.dart` e `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/versions/return_to_published_confirm_dialog.dart`.
+- Teste de widget prova: com o modo ativo e versão publicada existente, a legenda `Rascunho` e o botão `Voltar à versão publicada` aparecem na barra do canvas; com o modo inativo, nenhum dos dois é montado; com o modo ativo e sem versão publicada, a legenda aparece e o botão não.
+- Teste de widget prova que acionar o botão abre o diálogo; confirmar dispara a volta ao publicado e cancelar não dispara.
+- Teste de widget prova o colapso: abaixo da largura que colapsa as ações secundárias da barra do canvas, o botão vira ícone com tooltip `Voltar à versão publicada` e a legenda some.
+- `bash scripts/gates_guard.sh` sai com código 0.
+- `cd apps/driva_editor && dart format --set-exit-if-changed lib test && flutter analyze` sai verde.
+
+#### T5b.19 — O vocabulário da publicação: "no ar" sai, "publicado" entra **[paralela: sim]**
+
+Decisão de vocabulário do dono (2026-08-20): os rótulos da UI usam os pares
+**Publicar/Publicado/Despublicar** — "no ar" e "fora do ar" saem de todo texto visível ao
+usuário. Versão é feminino: o selo do histórico diz `Publicada`.
+
+| Onde | Antes | Depois |
+| --- | --- | --- |
+| Status da top bar | `No ar (v3)` | `Publicado (v3)` |
+| Status da top bar | `Fora do ar (última: v5)` | `Despublicado (última: v5)` |
+| Status da top bar | `Alterações não publicadas (no ar: v3)` | `Alterações não publicadas (publicada: v3)` |
+| Selo da lista de conteúdos | `No ar` / `Fora do ar` | `Publicado` / `Despublicado` |
+| Selo da linha do histórico | `No ar` | `Publicada` |
+| Diálogo de publicar | `…coloca ela no ar.` | `…ela passa a ser a versão publicada.` |
+
+Tooltips e textos longos dos mesmos widgets acompanham. Comentários que citam os rótulos
+literais são atualizados junto; prosa de dartdoc que usa "no ar" como expressão comum não é alvo
+desta tarefa.
+
+**DoD**
+- `grep -rn "No ar\|no ar\|do ar" apps/driva_editor/lib | grep -v "//"` não retorna nenhuma linha.
+- Os rótulos novos existem literalmente: `Publicado (v` e `Despublicado (última: v` em `apps/driva_editor/lib/modules/editor_module/presentation/editor/page/editor_top_registrar.dart`; `Publicada` em `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/versions/version_row.dart`.
+- `cd apps/driva_editor && flutter test -r compact test/core/widgets/app_shell/app_shell_top_bar_test.dart test/modules/editor_module/presentation/editor/page/editor_top_registrar_test.dart test/modules/editor_module/presentation/editor/widgets/publish/publish_dialog_test.dart test/modules/contents_module/presentation/project_detail/widgets/content_panel/publication_badge_test.dart` termina com 0 falhas.
+- `cd apps/driva_editor && dart format --set-exit-if-changed lib test && flutter analyze` sai verde.
+
+#### T5b.20 — Bateria da F2b, com os dois herdeiros do roteiro manual **[paralela: não — dep. T5b.18]**
+
+Além da cobertura das tarefas acima, dois testes que eram passos do roteiro manual suspenso:
+
+1. Montar a página do editor do zero começa com o modo inativo — o modo não vive na URL, e um
+   recarregamento cai no editor sem ele.
+2. Fechar a comparação depois de **duas** cópias de nó mantém as duas no rascunho, e dois
+   `Ctrl+Z` desfazem uma de cada vez, na ordem inversa.
+
+**DoD**
+- Teste de widget prova que a página do editor recém-montada não contém a barra da versão comparada nem a legenda `Rascunho`.
+- Teste prova a sequência: modo ativo → duas cópias de propriedades de nós diferentes → fechar comparação → os dois nós continuam com os valores copiados → o primeiro undo desfaz só a segunda cópia, o segundo undo desfaz a primeira.
+- `cd apps/driva_editor && flutter test -r compact` termina com 0 falhas.
+
+---
+
 ### F3 — Cópia por propriedade no Inspector
 
 #### T5b.10 — `changedPropertyKeys` no kernel **[paralela: sim]**
@@ -555,31 +672,23 @@ a adição de `changedPropertyKeys` ao arquivo do motor. Atualizar `CHANGELOG.md
 e `docs/roadmap.md`.
 
 **DoD**
-- `docs/50-historico-seguro/final_report.md` existe e cita o caminho de pelo menos uma evidência da rodada manual da T5b.16.
+- `docs/50-historico-seguro/final_report.md` existe e registra a suspensão do E2E do item (entrada `VR-50-09` do `variance_report.md`).
 - `docs/plans/50-historico-seguro/variance_report.md` ganha três entradas novas numeradas na sequência das existentes, cada uma com "o plano dizia / o que foi feito / por quê".
 - `CHANGELOG.md` tem, sob `## [Unreleased]`, uma linha descrevendo a comparação como modo do editor.
 - `docs/roadmap.md` marca o item 50 como `[x]`.
 
-#### T5b.16 — Roteiro manual curto **[paralela: sim]** *(textual — não lança supervisor)*
+#### T5b.16 — ~~Roteiro manual curto~~ **Suspensa** *(decisão do dono, 2026-08-20)*
 
-**Não há script de E2E novo nesta tarefa** — nem `e2e_hml.sh`, nem `e2e_shots.sh`, nem
-`e2e_drive.mjs`. A cobertura de widget e unit das quatro fases é o gate principal. O que sobra para o
-olho humano, em homologação, é só o que teste automatizado não alcança:
-
-1. Os dois `SduiView` reais desenham o mesmo spec com a mesma fidelidade e na mesma escala
-   (fonte, imagem via `imageUrlResolver`, quebra de texto) — golden em CI não usa a rede.
-2. Digitar no Inspector com o modo ativo continua instantâneo, com dois `SduiView` vivos na tela —
-   a regra de escopo mínimo de rebuild sob carga real, no Chrome, não no `flutter test`.
-3. Recarregar a página (F5) com o modo ativo cai no editor sem o modo, sem erro — o modo não vive
-   na URL, de propósito.
-4. `Fechar comparação` depois de duas cópias mantém as duas, e dois `Ctrl+Z` desfazem uma de cada
-   vez.
-
-Prints em `docs/50-historico-seguro/evidencias/rodada_01/`, atestados pelo dev humano.
+O dono suspendeu E2E no repositório inteiro — script **e** roteiro manual: a prova é unitário,
+widget e, no máximo, golden. Dos quatro passos que este roteiro cobria, dois migraram para a
+bateria da T5b.20 (recarregar a página cai no editor sem o modo; fechar depois de duas cópias
+mantém as duas, com `Ctrl+Z` desfazendo uma a uma). Os outros dois — fidelidade de fonte/imagem
+entre dois `SduiView` reais e digitação instantânea sob carga real de navegador — ficam sem
+cobertura: risco aceito, registrado no `variance_report.md` (VR-50-09).
 
 **DoD**
-- `docs/50-historico-seguro/roteiro_manual.md` existe, lista os quatro passos acima com o resultado esperado de cada um e nomeia o diretório de evidências.
-- `grep -rn "e2e_hml\|e2e_shots\|e2e_drive" docs/50-historico-seguro/` não retorna nenhuma linha.
+- `docs/50-historico-seguro/roteiro_manual.md` não existe, e `grep -rn "e2e_hml\|e2e_shots\|e2e_drive" docs/50-historico-seguro/` não retorna nenhuma linha.
+- `docs/plans/50-historico-seguro/variance_report.md` contém uma entrada `VR-50-09` registrando a suspensão.
 
 ---
 
@@ -596,14 +705,15 @@ Prints em `docs/50-historico-seguro/evidencias/rodada_01/`, atestados pelo dev h
 | `Ctrl+Z` depois de uma cópia desfaz demais | `copyPropertyFromVersion` emite sem `coalesceKey`; teste da sequência digitar → copiar → desfazer na T5b.11. |
 | Um `Ctrl+Z` fecha o modo sozinho | A saída só reage à transição `saving → saved`; dois `blocTest` na T5b.1. |
 | Dois mocks não cabem e o usuário vê dois mocks ilegíveis | Faixa por escala (D4) com piso igual a `EditorCubit.minZoom`; teste nas duas larguras na T5b.2. |
-| Perder a comparação contra a versão no ar | Perda consciente (D5); `Ver` no histórico e `Comparar` sobre a publicada continuam disponíveis. Se o dono discordar, é decisão dele e vira desvio registrado. |
+| Perder a comparação contra a versão publicada | Perda confirmada pelo dono (2026-08-20, VR-50-06); em troca, legenda `Rascunho` e `Voltar à versão publicada` (D6). `Ver` e `Comparar` no histórico continuam. |
+| `Voltar à versão publicada` sobrescreve rascunho sujo | Confirmação nomeando a perda + uma única entrada de undo; testes em T5b.17/T5b.18. |
 | Regressão entre PRs enquanto o modal morre | F1 entrega paridade antes do corte; o corte é a última tarefa da F1, na mesma PR. |
 
 ---
 
 ## Definition of Done do plano
 
-- [ ] T5b.1–T5b.16 satisfazem seus DoD; toda tarefa que muda comportamento passou pelo `supervisor-dod`.
+- [ ] T5b.1–T5b.20 satisfazem seus DoD (a T5b.16, suspensa, satisfaz por não-existência); toda tarefa que muda comportamento passou pelo `supervisor-dod`.
 - [ ] Comparar é um modo do editor: paleta, árvore e Inspector continuam utilizáveis com o modo ativo, e o mock da direita não aceita clique, foco por Tab nem drop.
 - [ ] Trocar de versão troca só o mock da direita; o da esquerda continua sendo o rascunho ao vivo.
 - [ ] `Fechar comparação` não reverte nada; `Salvar` encerra o modo; `Ctrl+Z` não encerra.
@@ -611,7 +721,8 @@ Prints em `docs/50-historico-seguro/evidencias/rodada_01/`, atestados pelo dev h
 - [ ] `git diff develop -- packages/sdui_core/lib/src/ops/compare_ops.dart` só tem linhas adicionadas, e `packages/sdui_core/test/ops/compare_ops_test.dart` está inalterado e verde.
 - [ ] `bash scripts/gates_guard.sh`, `dart format --set-exit-if-changed`, `flutter analyze`, `flutter test -r compact` (editor) e `dart test -r compact` (kernel) verdes.
 - [ ] Nenhum arquivo do modal de comparação restou em `lib/` ou `test/`.
-- [ ] O roteiro manual de quatro passos foi executado em homologação e **atestado pelo dev humano**, com prints em `docs/50-historico-seguro/evidencias/rodada_01/`.
+- [ ] `Voltar à versão publicada` existe só no modo e só com versão publicada, confirma antes de agir, e um único `Ctrl+Z` desfaz a volta inteira.
+- [ ] Nenhum rótulo de UI do editor contém "No ar"/"Fora do ar": os pares são Publicado/Despublicado (e `Publicada` para versão).
 - [ ] `docs/roadmap.md`, `CHANGELOG.md`, `variance_report.md` e `docs/50-historico-seguro/final_report.md` atualizados.
 
 ## Referências

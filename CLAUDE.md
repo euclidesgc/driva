@@ -43,7 +43,7 @@ Regra de desempate: **se algo contradiz uma regra deste arquivo, a regra ganha.*
 - Erros imprevistos: `runZonedGuarded` + `FlutterError.onError` + `PlatformDispatcher.onError` + `AppBlocObserver` no `bootstrap.dart`.
 - Flavors: `main_dev.dart`/`main_prod.dart` → `bootstrap(AppConfig)`; config via `--dart-define-from-file=config/<env>.json`; segredo nunca em dart-define.
 - **Zero build_runner** (nada de freezed, json_serializable, injectable, mockito, go_router_builder).
-- Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`. **A pirâmide é a regra — unitário e de widget primeiro, E2E por exceção**, e a bateria é escrita **junto da fase que ela cobre**, não guardada para o fim (ver _Método de trabalho_).
+- Testes: `test/` espelha `lib/`; `mocktail` (`MockX extends Mock implements X`) + `bloc_test`. **A pirâmide é a regra — unitário e de widget primeiro, golden onde o pixel importa; E2E está suspenso** _(decisão do dono, 2026-08-20 — ver Método de trabalho)_, e a bateria é escrita **junto da fase que ela cobre**, não guardada para o fim.
 - Acessibilidade: cor nunca é o único sinal de informação; controles com `Semantics`/tooltip.
 - Arquivos `snake_case`, classes `PascalCase`, **uma classe/widget por arquivo** (pública ou privada); código em inglês, UI e docs em pt-BR. Única exceção: o estado `sealed` do cubit mora na mesma **biblioteca** do cubit, num `<x>_state.dart` ligado por `part`/`part of` (ver o exemplar de cubit em "O gabarito").
 - **Zero comentário — o código se explica por nomes.** Vale para todo código do repo (Dart e TypeScript), em `//` e em dartdoc `///`. **Não escreva** comentário que diga o que a linha faz, que repita o nome do identificador logo abaixo, cabeçalho decorativo de seção, nem nota de autoria/histórico ("antes era X", "adicionado na F12") — para isso existe o git. Legibilidade se conquista **extraindo** variável/função/widget com nome descritivo, não com prosa ao lado. **Única exceção:** o **porquê** que o código não tem como mostrar — decisão de arquitetura, workaround de bug externo, restrição de plataforma ou invariante não óbvia; e aí o comentário explica a **razão**, nunca a mecânica. Ao editar um arquivo já comentado, limpe o que não passa nesse teste.
@@ -74,13 +74,19 @@ Valem em **`apps/driva_editor`, `apps/driva_demo_app` e `packages/sdui_flutter`*
 
 ## Método de trabalho (time de IA — cap. 22–23 do livro)
 
-O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-manager/`, que roda na própria conversa e orquestra os agentes de `.claude/agents/`; não é sub-agente) — o fluxo completo mora lá. Regras que valem sempre: 1 fase = 1 PR; **a bateria de unit/widget fecha a própria fase** e o E2E entra só onde a pirâmide não alcança; desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
+O usuário invoca **`/tech-manager <pedido>`** (skill em `.claude/skills/tech-manager/`, que roda na própria conversa e orquestra os agentes de `.claude/agents/`; não é sub-agente) — o fluxo completo mora lá. Regras que valem sempre: 1 fase = 1 PR; **a bateria de unit/widget fecha a própria fase** (E2E: suspenso desde 2026-08-20 — ver abaixo); desvio do plano só entra com aprovação do humano e registro em `variance_report.md`.
 
 **Todo plano termina num DoD — plano sem DoD não está pronto.** A última seção de toda `docs/NN-<nome>/plan.md` é a **Definition of Done**, com cada linha **verificável** (responde "como eu provo que isto está feito", não intenção genérica).
 
 **A prova padrão é teste automatizado; o E2E humano é a exceção cara.** _(decisão do dono, 2026-08-20 — substitui a regra anterior, que fazia todo plano terminar num E2E atestado.)_ A pirâmide, de baixo para cima: **unitário** (domínio, kernel, motor puro, model zard), **widget** (cubit + tela, `bloc_test`, golden onde o pixel importa), **contrato** (Jest no backend contra o schema real) e, no topo, **E2E**. Cada nível só sobe o que o nível abaixo não consegue provar — fluxo de UI, lógica de cubit, validação de spec e comparação de árvore **não são E2E**, são widget e unitário.
 
-**O E2E entra quando, e só quando, um destes for verdade:**
+**E2E suspenso** _(decisão do dono, 2026-08-20 — vale para o repositório inteiro, até segunda
+ordem)_: **nenhuma fase escreve E2E** — nem script, nem roteiro manual. A prova para no
+unitário + widget, com golden onde o pixel importa; o teste de contrato (Jest no backend)
+continua. Os dois blocos abaixo — critérios de admissão e formato de roteiro — ficam
+registrados para quando a suspensão cair, e **não autorizam E2E novo enquanto ela valer**.
+
+**O E2E entrava quando, e só quando, um destes fosse verdade:**
 
 1. **Integração real que nenhum fake reproduz** — Postgres/Prisma de verdade, transação, CORS, ETag, rate limit, deploy no Coolify.
 2. **Comportamento que só existe em runtime real** — renderização de fonte (o "tofu"), aparelho físico, permissão de plataforma, rede caindo.

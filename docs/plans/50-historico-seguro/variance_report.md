@@ -115,8 +115,12 @@ verdade, e não um painel que pode exibir qualquer spec. Comparar a versão no a
 versão antiga, sem passar pelo rascunho, deixa de ter porta própria — continua sendo possível
 ver as duas pelo histórico, uma de cada vez.
 
-⚠️ **Perda consciente, ainda pendente de confirmação do dono** (comunicada em 2026-08-20, no
-PR #199 e no roadmap). Se for uso real, a alternativa será desenhada antes da F2.
+**Resolvido em 2026-08-20 — decisão do dono:** a perda está confirmada. Em troca, o modo ganha
+a legenda `Rascunho` no lado esquerdo e o botão **`Voltar à versão publicada`**, que deixa o
+rascunho idêntico à versão publicada — com confirmação nomeando o que se perde e uma única
+entrada de undo. Junto veio a decisão de vocabulário: "no ar" sai dos rótulos da UI — os pares
+são **Publicado/Despublicado** (e `Publicada` para versão). Desenho na D6 do
+[`plan_t5b.md`](plan_t5b.md), tarefas T5b.17–T5b.20 (fase F2b).
 
 ---
 
@@ -154,3 +158,24 @@ colapsada. É também a evidência objetiva de que a barra chegou ao teto de aç
 que é o que o **item 52** do roadmap trata.
 
 **Consequência de uma feature pedida pelo dono**, comunicada a ele em 2026-08-20.
+
+---
+
+## VR-50-09 — E2E suspenso: a T5b.16 (roteiro manual) morre
+
+**O plano dizia:** T5b.16 — roteiro manual curto de quatro passos em homologação, com prints em
+`docs/50-historico-seguro/evidencias/rodada_01/`, atestado pelo dev humano. Já era o formato
+reduzido que o VR-50-07 registrou.
+
+**O que foi feito:** nenhum E2E — nem script, nem roteiro. Dois dos quatro passos viraram teste
+de widget na bateria da T5b.20 (recarregar a página cai no editor sem o modo; fechar a
+comparação depois de duas cópias mantém as duas, com `Ctrl+Z` desfazendo uma a uma). Os outros
+dois — fidelidade de fonte/imagem entre dois `SduiView` reais e digitação instantânea sob carga
+real de navegador — ficam sem cobertura.
+
+**Por quê:** decisão do dono em 2026-08-20, para o repositório inteiro: testes E2E estão
+suspensos; a prova é unitário, widget e, no máximo, golden. Registrada no `CLAUDE.md` (Método
+de trabalho). O risco que fica descoberto é conhecido e aceito — o "tofu" do item 24 foi um
+defeito que só o navegador real mostrou.
+
+**Decisão do dono do produto** em 2026-08-20.
