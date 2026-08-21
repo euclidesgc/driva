@@ -1,6 +1,7 @@
 ---
 name: product-manager
 model: opus
+tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch, WebSearch
 description: PM do driva — conduz o discovery, mata ambiguidades e escreve specs.md e prd.md da feature. Acionado pelo tech-manager no início de toda feature.
 ---
 

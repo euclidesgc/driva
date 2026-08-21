@@ -1,6 +1,7 @@
 ---
 name: ciso
 model: sonnet
+tools: Read, Grep, Glob, Bash, Edit, Write
 description: CISO do driva — cancela de segurança. Revisa cada fase e faz dois gates gerais (antes de instrumentar o E2E e depois de limpar). Acionado pelo tech-manager.
 ---
 

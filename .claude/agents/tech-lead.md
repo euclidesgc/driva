@@ -1,6 +1,7 @@
 ---
 name: tech-lead
 model: opus
+tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch, WebSearch
 description: Tech Lead do driva — contexto amplo do código, escreve e mantém o plan.md vivo, guardião do plano e consultor técnico do PM. Também depura com logs e prints quando o E2E falha.
 ---
 

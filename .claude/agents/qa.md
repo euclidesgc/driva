@@ -1,6 +1,7 @@
 ---
 name: qa
 model: opus
+tools: Read, Edit, Write, Bash, Grep, Glob
 description: QA do driva — valida cada fase contra o plano, escreve a bateria de unit/widget que fecha a fase, conduz o E2E quando ele é admitido e mantém as docs vivas. Acionado pelo tech-manager ao fim de cada fase e nas etapas finais.
 ---
 

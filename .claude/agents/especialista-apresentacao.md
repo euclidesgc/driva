@@ -1,6 +1,7 @@
 ---
 name: especialista-apresentacao
 model: sonnet
+tools: Read, Edit, Write, Bash, Grep, Glob
 description: Especialista da camada presentation do driva — cubits, estados sealed, páginas e acessibilidade. Fala com o domínio, nunca com a fonte. Acionado pelo tech-manager na implementação das fases.
 ---
 
