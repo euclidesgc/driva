@@ -46,6 +46,26 @@ void main() {
     imageUrl: imageUrl,
   );
 
+  group('load', () {
+    blocTest<ProjectListCubit, ProjectListState>(
+      'GET ativos falhando emite ProjectListError com a Failure recebida',
+      build: build,
+      setUp: () {
+        when(
+          () => getProjects(),
+        ).thenAnswer((_) async => const Left(NetworkFailure()));
+        when(
+          () => getProjects(archived: true),
+        ).thenAnswer((_) async => const Right([]));
+      },
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        const ProjectListLoading(),
+        const ProjectListError(failure: NetworkFailure()),
+      ],
+    );
+  });
+
   group('update (reflexo isolado, sem rebuild da lista)', () {
     final updated = proj(
       '1',
