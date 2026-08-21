@@ -1,9 +1,11 @@
 ---
 name: instrumentar-e2e
-description: Instrumenta o E2E por script (contrato por API + prints headless por CDP) quando o plano registrou que ele é necessário. NÃO é o default — o padrão hoje é roteiro manual curto; use esta skill só quando o plano justificar o script. Nada aqui vai para produção.
+description: PARADA — o E2E está suspenso no repositório desde 2026-08-20 (CLAUDE.md › Método de trabalho), e nenhuma fase escreve E2E, nem script nem roteiro manual. Não invoque enquanto a suspensão valer. Quando ela cair: instrumenta o E2E por script (contrato por API + prints headless por CDP) quando o plano registrou que ele é necessário, e mesmo aí não é o default — o padrão é roteiro manual curto. Nada aqui vai para produção.
 ---
 
 # Skill: instrumentar o E2E
+
+> ⚠️ **Skill parada: **E2E suspenso desde 2026-08-20** (`CLAUDE.md` › _Método de trabalho_).** Enquanto ela valer, nenhuma fase escreve E2E — nem script, nem roteiro manual —, e esta skill não deve ser invocada. O conteúdo abaixo fica registrado para quando a suspensão cair.
 
 > **Antes de usar esta skill, confirme que o plano admitiu o script.** _(decisão do dono, 2026-08-20 — `CLAUDE.md` › _Método de trabalho_.)_ O default do repositório passou a ser o **roteiro manual curto** em `docs/NN-<nome>/e2e_roteiro.md`: passos numerados que o dev humano executa em homologação, com print só do que a automação não prova. O par de scripts descrito abaixo continua válido e tem modelos no repo, mas é **escolha justificada no plano**, não a rota automática — e nunca substitui a cobertura de unit/widget da mesma tela, que fecha a própria fase. Se você chegou aqui sem essa justificativa escrita, volte ao tech-manager.
 

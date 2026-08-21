@@ -8,7 +8,7 @@ description: Fecha a documentação viva de uma feature do driva (final_report, 
 Objetivo: nada fica "na cabeça". A memória do que foi feito mora em arquivos versionados. Sem docs em dia, a DoD não fecha.
 
 Na pasta da feature (`docs/NN-<nome>/`):
-1. **final_report.md** — o relatório de entrega: roteiro cumprido, resultado de cada caso, links para os prints em `evidencias/`. Responde "isso foi testado mesmo?".
+1. **final_report.md** — o relatório de entrega: o que a bateria automatizada prova (unitário, widget, golden, contrato) e, com o **E2E suspenso desde 2026-08-20** (`CLAUDE.md` › _Método de trabalho_), uma seção dizendo **o que ficou sem verificação em hardware ou navegador real** — a mesma lista que vai para _Validações de campo pendentes_ no `docs/roadmap.md`, com o item de origem. Responde "isso foi testado mesmo?", inclusive quando a resposta é "isto não". Quando houver E2E: roteiro cumprido, resultado de cada caso e links para os prints em `evidencias/`.
 2. **specs.md / prd.md / plan.md** — conferir que dizem a verdade sobre o que existe. Desvio aprovado já deve estar refletido + registrado no **variance_report.md** (como estava, por que mudou, o que mudou). Documento que mente é pior que nenhum.
 
 Na raiz do repositório:
