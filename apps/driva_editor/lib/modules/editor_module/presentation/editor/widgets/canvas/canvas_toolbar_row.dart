@@ -6,7 +6,6 @@ import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell_actions_overflow_menu.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/return_to_published_button.dart';
 import 'package:flutter/material.dart';
 
@@ -81,10 +80,6 @@ class CanvasToolbarRow extends StatelessWidget {
     return Row(
       children: [
         if (isComparing) ...[
-          if (!collapseSecondary) ...[
-            const CanvasCompareDraftLegend(),
-            SizedBox(width: gap),
-          ],
           if (onReturnToPublished != null) ...[
             ReturnToPublishedButton(
               onPressed: onReturnToPublished!,

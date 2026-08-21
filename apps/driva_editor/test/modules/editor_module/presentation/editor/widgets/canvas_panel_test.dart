@@ -1,9 +1,13 @@
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_toolbar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/fit_scale.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_mode_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,6 +27,12 @@ class _MockUnpublishContentUseCase extends Mock
 
 class _MockRestoreContentVersionUseCase extends Mock
     implements RestoreContentVersionUseCase {}
+
+class _MockGetContentVersionUseCase extends Mock
+    implements GetContentVersionUseCase {}
+
+class _MockGetContentVersionsUseCase extends Mock
+    implements GetContentVersionsUseCase {}
 
 void main() {
   late EditorCubit cubit;
@@ -187,6 +197,126 @@ void main() {
 
         await tester.tap(find.byTooltip('Ajustar à janela'));
         expect(toggled, isTrue);
+      },
+    );
+  });
+
+  group('modo de comparação lado a lado', () {
+    testWidgets(
+      'compareModeBar atravessa toda a largura da área de comparação, não '
+      'só o pane da candidata',
+      (tester) async {
+        const viewport = Size(1600, 900);
+        const barKey = Key('compare-mode-bar-stub');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: BlocProvider<EditorCubit>.value(
+                value: cubit,
+                child: SizedBox(
+                  width: viewport.width,
+                  height: viewport.height,
+                  child: CanvasPanel(
+                    device: DevicePreset.smartphone,
+                    zoom: 0.9,
+                    fitToWindow: true,
+                    onSelect: (_) {},
+                    onChangeDevice: (_) {},
+                    onChangeZoom: (_) {},
+                    onToggleFitToWindow: () {},
+                    onDropOnDevice: (_) {},
+                    onDropOnNode: (_, _) {},
+                    isFullscreen: false,
+                    onToggleFullscreen: () {},
+                    compareBuilder: (scale, {required sideBySide}) =>
+                        const SizedBox(),
+                    compareModeBar: const ColoredBox(
+                      key: barKey,
+                      color: Colors.transparent,
+                      child: SizedBox(height: AppSizes.canvasToolbarHeight),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final panelWidth = tester.getSize(find.byType(CanvasPanel)).width;
+        final barWidth = tester.getSize(find.byKey(barKey)).width;
+        expect(
+          barWidth,
+          closeTo(panelWidth, 0.5),
+          reason:
+              'a barra do modo de comparação precisa atravessar a largura '
+              'inteira do canvas, não só a metade do pane da candidata',
+        );
+      },
+    );
+
+    testWidgets(
+      'a VersionCompareModeBar real, montada como a produção monta, cobre a '
+      'largura da área de comparação — não só o slot que a recebe',
+      (tester) async {
+        const width = 1200.0;
+        await tester.binding.setSurfaceSize(const Size(width, 700));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final compareCubit =
+            VersionCompareModeCubit(
+              getContentVersionUseCase: _MockGetContentVersionUseCase(),
+              getContentVersionsUseCase: _MockGetContentVersionsUseCase(),
+              editorCubit: cubit,
+            )..emit(
+              VersionCompareModeActive(
+                candidate: LoadedContentVersion(
+                  version: 3,
+                  spec: document,
+                  createdAt: DateTime.utc(2026, 8, 16),
+                ),
+                baseSpec: document,
+                result: compareContentSpecs(document, document),
+                versions: const [],
+              ),
+            );
+        addTearDown(compareCubit.close);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: SizedBox(
+                width: width,
+                height: AppSizes.canvasToolbarHeight,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: VersionCompareModeBar(
+                    cubit: compareCubit,
+                    editorCubit: cubit,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final barWidth = tester
+            .getSize(find.byType(VersionCompareModeBar))
+            .width;
+        expect(
+          barWidth,
+          closeTo(width, 0.5),
+          reason:
+              'a VersionCompareModeBar real precisa preencher sozinha a '
+              'largura disponível (Row com mainAxisSize.max) — sem o teto '
+              'sendo forçado de fora por um SizedBox tight, um encolhimento '
+              'interno (ex.: mainAxisSize.min, ou o conteúdo embrulhado '
+              'numa caixa de largura fixa) passaria batido',
+        );
       },
     );
   });

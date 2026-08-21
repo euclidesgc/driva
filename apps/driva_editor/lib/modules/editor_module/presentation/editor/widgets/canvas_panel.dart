@@ -34,6 +34,7 @@ class CanvasPanel extends StatelessWidget {
     required this.isFullscreen,
     required this.onToggleFullscreen,
     this.compareBuilder,
+    this.compareModeBar,
     this.onCompareSideChanged,
     this.compareSide = CanvasCompareSide.draft,
     this.imageUrlResolver,
@@ -66,7 +67,18 @@ class CanvasPanel extends StatelessWidget {
   /// É builder e não widget pronto porque a escala é **uma só** para os dois
   /// lados — mocks em tamanhos diferentes não se comparam a olho — e ela só
   /// existe depois de medir o viewport aqui dentro.
-  final Widget Function(double effectiveScale)? compareBuilder;
+  ///
+  /// `sideBySide` diz se o resultado vai para a `Row` dos dois mocks (lado a
+  /// lado, sem barra própria — a identificação vem de [compareModeBar]) ou
+  /// para `CanvasCompareSingleMock` (um mock por vez, com a própria barra,
+  /// já que ali não há segundo mock para alinhar).
+  final Widget Function(double effectiveScale, {required bool sideBySide})?
+  compareBuilder;
+
+  /// A barra única do modo de comparação lado a lado (rascunho identificado
+  /// à esquerda, candidata à direita) — some na faixa estreita de um mock
+  /// por vez, onde `CanvasCompareSideToggle` já cumpre esse papel.
+  final Widget? compareModeBar;
 
   /// D6: a volta à versão publicada, oferecida na barra do canvas só
   /// durante o modo — `null` também quando não há versão publicada.
@@ -84,15 +96,26 @@ class CanvasPanel extends StatelessWidget {
         final splitWidth = isComparing
             ? (constraints.maxWidth - AppSizes.canvasCompareGutter) / 2
             : constraints.maxWidth;
-        final viewport = Size(
+        final baseHeight =
+            constraints.maxHeight -
+            AppSizes.canvasToolbarHeight -
+            AppSpacing.s32 * 2;
+
+        // A barra única do modo lado a lado soma a própria altura à do
+        // `CanvasToolbar` — sem descontar as duas aqui, a escala calculada
+        // ignoraria o espaço que ela ocupa e a moldura vazaria por baixo
+        // dela (ou seria forçada a um tamanho menor que `effectiveScale`
+        // promete, quebrando a paridade de altura com o rascunho).
+        final compareModeBarHeight = isComparing && compareModeBar != null
+            ? AppSizes.canvasToolbarHeight
+            : 0.0;
+        final splitViewport = Size(
           splitWidth - AppSpacing.s32 * 2,
-          constraints.maxHeight -
-              AppSizes.canvasToolbarHeight -
-              AppSpacing.s32 * 2,
+          baseHeight - compareModeBarHeight,
         );
         final splitScale = fitScaleFor(
           frame: device.frameSize,
-          viewport: viewport,
+          viewport: splitViewport,
         );
 
         // Dois mocks só valem a pena enquanto cada um continua legível: abaixo
@@ -103,7 +126,7 @@ class CanvasPanel extends StatelessWidget {
 
         final fullViewport = Size(
           constraints.maxWidth - AppSpacing.s32 * 2,
-          viewport.height,
+          baseHeight,
         );
         final fullScale = fitScaleFor(
           frame: device.frameSize,
@@ -117,7 +140,7 @@ class CanvasPanel extends StatelessWidget {
           return CanvasCompareSingleMock(
             side: compareSide,
             onSideChanged: onCompareSideChanged ?? (_) {},
-            comparePane: compareBuilder!(effectiveScale),
+            comparePane: compareBuilder!(effectiveScale, sideBySide: false),
             draftPanel: CanvasPanelBody(
               device: device,
               effectiveScale: effectiveScale,
@@ -152,7 +175,8 @@ class CanvasPanel extends StatelessWidget {
           onOpenPreview: onOpenPreview,
           isFullscreen: isFullscreen,
           onToggleFullscreen: onToggleFullscreen,
-          comparePane: compareBuilder?.call(effectiveScale),
+          comparePane: compareBuilder?.call(effectiveScale, sideBySide: true),
+          compareModeBar: isComparing ? compareModeBar : null,
           isComparing: isComparing,
           onReturnToPublished: isComparing ? onReturnToPublished : null,
         );

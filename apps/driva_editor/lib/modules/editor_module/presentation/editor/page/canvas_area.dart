@@ -88,12 +88,19 @@ class CanvasArea extends StatelessWidget {
                       )
                     : null,
                 compareBuilder: isActive && compareCubit != null
-                    ? (scale) => CanvasComparePane(
+                    ? (scale, {required sideBySide}) => CanvasComparePane(
                         device: vm.device,
                         effectiveScale: scale,
                         cubit: compareCubit,
                         editorCubit: cubit,
+                        showBar: !sideBySide,
                         imageUrlResolver: imageUrlResolver,
+                      )
+                    : null,
+                compareModeBar: isActive && compareCubit != null
+                    ? VersionCompareModeBar(
+                        cubit: compareCubit,
+                        editorCubit: cubit,
                       )
                     : null,
               ),

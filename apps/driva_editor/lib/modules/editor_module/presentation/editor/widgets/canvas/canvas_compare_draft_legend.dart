@@ -3,11 +3,8 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-/// Nome do lado esquerdo durante o modo de comparação (D6): a barra da
-/// candidata já diz `Versão N`, e sem esta legenda o mock editável ficava
-/// sendo o único sem nome. Some junto com o colapso das ações secundárias —
-/// nesse aperto a faixa estreita com o alternador nomeando os lados está
-/// logo adiante.
+/// Conteúdo do lado esquerdo de `VersionCompareModeBar`: identifica o
+/// rascunho na barra única do modo de comparação lado a lado.
 class CanvasCompareDraftLegend extends StatelessWidget {
   const CanvasCompareDraftLegend({super.key});
 

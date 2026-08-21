@@ -102,6 +102,7 @@ class EditorWorkspace extends StatelessWidget {
         projectFuture: projectFuture,
         getContentVersionsUseCase: getContentVersionsUseCase,
         getContentVersionUseCase: getContentVersionUseCase,
+        getContentCheckpointsUseCase: getContentCheckpointsUseCase,
         imageUrlResolver: imageUrlResolver,
         child: workspace,
       ),

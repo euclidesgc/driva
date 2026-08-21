@@ -19,5 +19,7 @@ export 'selectable_node.dart';
 export 'selectable_node_surface.dart';
 export 'side_button.dart';
 export 'version_compare_candidate_bar.dart';
+export 'version_compare_draft_label.dart';
 export 'version_compare_inert_preview.dart';
 export 'version_compare_mock_pane.dart';
+export 'version_compare_mode_bar.dart';

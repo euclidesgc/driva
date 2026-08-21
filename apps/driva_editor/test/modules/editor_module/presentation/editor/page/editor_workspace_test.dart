@@ -3,21 +3,28 @@ import 'dart:ui' show Tristate;
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_scope.dart';
+import 'package:driva_editor/core/widgets/app_shell/app_shell_top_bar.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail.dart';
 import 'package:driva_editor/core/widgets/layout/panel_rail_button.dart';
 import 'package:driva_editor/core/widgets/layout/resize_handle.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/center_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_workspace.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/right_panel_rail.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_candidate_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_status_bar.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/checkpoint_row.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
@@ -27,6 +34,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sdui_core/sdui_core.dart';
+
+import '../../../../../support/app_fonts.dart';
 
 class _MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
 
@@ -46,6 +55,9 @@ class _MockGetContentVersionsUseCase extends Mock
 
 class _MockGetContentVersionUseCase extends Mock
     implements GetContentVersionUseCase {}
+
+class _MockGetContentCheckpointsUseCase extends Mock
+    implements GetContentCheckpointsUseCase {}
 
 class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
@@ -429,4 +441,167 @@ void main() {
       expect(find.byType(CanvasCompareDraftLegend), findsNothing);
     },
   );
+
+  group('Histórico — checkpoints chegam ao diálogo (bug 53)', () {
+    late _MockGetContentVersionsUseCase getContentVersions;
+    late _MockGetContentVersionUseCase getContentVersion;
+    late _MockGetContentCheckpointsUseCase getContentCheckpoints;
+
+    setUpAll(loadAppFonts);
+
+    setUp(() {
+      getContentVersions = _MockGetContentVersionsUseCase();
+      getContentVersion = _MockGetContentVersionUseCase();
+      getContentCheckpoints = _MockGetContentCheckpointsUseCase();
+    });
+
+    // O botão "Histórico" não vive dentro de `EditorWorkspace`: `AppShellSlot`
+    // só publica as ações no `AppShellController`, e é `AppShellTopBar` —
+    // montado ao lado, como na produção — quem de fato as desenha. Sem essa
+    // faixa aqui, o botão nunca existe na árvore para o teste tocar.
+    Future<void> pumpWorkspaceAndOpenHistory(
+      WidgetTester tester, {
+      required Either<Failure, ContentCheckpointsPage> checkpointsResult,
+      Either<Failure, ContentVersionsPage> versionsResult = const Right(
+        ContentVersionsPage(items: []),
+      ),
+    }) async {
+      when(
+        () => getContentVersions('ct_1'),
+      ).thenAnswer((_) async => versionsResult);
+      when(
+        () => getContentCheckpoints('ct_1'),
+      ).thenAnswer((_) async => checkpointsResult);
+
+      final compareModeCubit = VersionCompareModeCubit(
+        getContentVersionUseCase: getContentVersion,
+        getContentVersionsUseCase: getContentVersions,
+        editorCubit: cubit,
+      );
+      addTearDown(compareModeCubit.close);
+      final shellController = AppShellController();
+      addTearDown(shellController.dispose);
+
+      await tester.binding.setSurfaceSize(const Size(1600, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: AppShellScope(
+            controller: shellController,
+            child: BlocProvider<EditorCubit>.value(
+              value: cubit,
+              child: VersionCompareModeScope(
+                cubit: compareModeCubit,
+                child: Column(
+                  children: [
+                    const AppShellTopBar(
+                      homeRouteName: 'home',
+                      themeButton: SizedBox(
+                        width: kMinInteractiveDimension,
+                        height: kMinInteractiveDimension,
+                      ),
+                    ),
+                    Expanded(
+                      child: EditorWorkspace(
+                        projectFuture: Future<Either<Failure, Project>>.value(
+                          const Left(UnexpectedFailure()),
+                        ),
+                        layoutController: layoutController,
+                        getContentVersionsUseCase: getContentVersions,
+                        getContentVersionUseCase: getContentVersion,
+                        getContentCheckpointsUseCase: getContentCheckpoints,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Histórico de versões'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'o use case de checkpoints chega ao VersionHistoryCubit — é chamado '
+      'ao abrir o diálogo de Histórico',
+      (tester) async {
+        await pumpWorkspaceAndOpenHistory(
+          tester,
+          checkpointsResult: const Right(ContentCheckpointsPage(items: [])),
+        );
+
+        verify(() => getContentCheckpoints('ct_1')).called(1);
+      },
+    );
+
+    testWidgets(
+      'um checkpoint devolvido pelo dublê é renderizado como CheckpointRow, '
+      'com a nota visível',
+      (tester) async {
+        final checkpoint = ContentCheckpoint(
+          id: 'chk_1',
+          createdAt: DateTime.utc(2026, 8, 20),
+          note: 'Antes do reset de layout',
+        );
+
+        await pumpWorkspaceAndOpenHistory(
+          tester,
+          checkpointsResult: Right(
+            ContentCheckpointsPage(items: [checkpoint]),
+          ),
+        );
+
+        expect(find.byType(CheckpointRow), findsOneWidget);
+        expect(find.text('Antes do reset de layout'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'sem nenhuma versão publicada mas com um checkpoint, o diálogo mostra '
+      'o ponto salvo e não a mensagem de vazio',
+      (tester) async {
+        final checkpoint = ContentCheckpoint(
+          id: 'chk_2',
+          createdAt: DateTime.utc(2026, 8, 19),
+          note: 'Rascunho salvo antes do almoço',
+        );
+
+        await pumpWorkspaceAndOpenHistory(
+          tester,
+          checkpointsResult: Right(
+            ContentCheckpointsPage(items: [checkpoint]),
+          ),
+        );
+
+        expect(find.byType(CheckpointRow), findsOneWidget);
+        expect(
+          find.text('Nenhuma versão ou ponto salvo ainda.'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'sem versões e sem checkpoints, o diálogo continua mostrando a '
+      'mensagem de vazio',
+      (tester) async {
+        await pumpWorkspaceAndOpenHistory(
+          tester,
+          checkpointsResult: const Right(ContentCheckpointsPage(items: [])),
+        );
+
+        expect(find.byType(CheckpointRow), findsNothing);
+        expect(
+          find.text('Nenhuma versão ou ponto salvo ainda.'),
+          findsOneWidget,
+        );
+      },
+    );
+  });
 }
