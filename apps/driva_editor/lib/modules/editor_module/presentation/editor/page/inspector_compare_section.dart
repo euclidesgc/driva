@@ -29,7 +29,6 @@ class InspectorCompareSection extends StatelessWidget {
           (comparison) {
             final nodes = _correspondingNodes(state, nodeId);
             return InspectorCompareHeader(
-              nodeId: nodeId,
               diff: _diffFor(comparison, nodeId),
               isOnlyInDraft:
                   nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
@@ -45,7 +44,6 @@ class InspectorCompareSection extends StatelessWidget {
                   : changedPropertyKeys(nodes.base, nodes.candidate),
               descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
               candidateVersion: state.candidate.version,
-              onCopyNodeProperties: cubit.copyNodeProperties,
             );
           },
         );

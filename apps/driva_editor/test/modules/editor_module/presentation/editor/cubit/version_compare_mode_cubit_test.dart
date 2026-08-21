@@ -98,7 +98,6 @@ void main() {
 
     when(() => editorCubit.state).thenReturn(ready());
     whenListen(editorCubit, editorStates.stream);
-    when(() => editorCubit.applyComparedNodeProperties(any())).thenReturn(null);
 
     when(() => getVersion('ct_1', 3)).thenAnswer((_) async => Right(v3));
     when(() => getVersion('ct_1', 2)).thenAnswer((_) async => Right(v2));
@@ -129,10 +128,7 @@ void main() {
             .having((s) => s.baseSpec, 'baseSpec', draftSpec)
             .having((s) => s.versions.length, 'versions.length', 3),
       ],
-      verify: (_) {
-        verify(() => getVersion('ct_1', 3)).called(1);
-        verifyNever(() => editorCubit.applyComparedNodeProperties(any()));
-      },
+      verify: (_) => verify(() => getVersion('ct_1', 3)).called(1),
     );
 
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(
@@ -149,8 +145,6 @@ void main() {
           candidateVersion: 3,
         ),
       ],
-      verify: (_) =>
-          verifyNever(() => editorCubit.applyComparedNodeProperties(any())),
     );
 
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(
@@ -274,40 +268,6 @@ void main() {
     );
   });
 
-  group('copyNodeProperties', () {
-    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
-      'traz as propriedades para o rascunho pelo EditorCubit, sem salvar',
-      build: build,
-      act: (cubit) async {
-        await cubit.enter(3);
-        cubit.copyNodeProperties('n_root');
-      },
-      skip: 2,
-      expect: () => <VersionCompareModeState>[],
-      verify: (_) {
-        final captured =
-            verify(
-                  () => editorCubit.applyComparedNodeProperties(captureAny()),
-                ).captured.single
-                as ContentSpec;
-        expect(
-          captured.root!.properties['text'],
-          'como era na v3',
-          reason: 'a cópia precisa trazer a propriedade da candidata',
-        );
-      },
-    );
-
-    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
-      'fora do modo não copia nada',
-      build: build,
-      act: (cubit) => cubit.copyNodeProperties('n_root'),
-      expect: () => <VersionCompareModeState>[],
-      verify: (_) =>
-          verifyNever(() => editorCubit.applyComparedNodeProperties(any())),
-    );
-  });
-
   group('saída do modo', () {
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(
       'exit volta a Inactive sem reverter o documento do editor',
@@ -318,14 +278,11 @@ void main() {
       },
       skip: 2,
       expect: () => [const VersionCompareModeInactive()],
-      verify: (_) {
-        verifyNever(() => editorCubit.applyComparedNodeProperties(any()));
-        expect(
-          (editorCubit.state as EditorReady).document,
-          draftSpec,
-          reason: 'sair da comparação não pode desfazer o que foi copiado',
-        );
-      },
+      verify: (_) => expect(
+        (editorCubit.state as EditorReady).document,
+        draftSpec,
+        reason: 'sair da comparação não muta o documento do editor',
+      ),
     );
 
     blocTest<VersionCompareModeCubit, VersionCompareModeState>(

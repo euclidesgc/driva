@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_compare_section.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -110,8 +111,8 @@ void main() {
   tearDown(() => compareCubit.close());
 
   testWidgets(
-    'golden: painel direito em modo comparação — cabeçalho e setas por '
-    'propriedade',
+    'golden: painel direito em modo comparação — cabeçalho informativo, sem '
+    'controle de cópia por propriedade',
     (tester) async {
       tester.view.physicalSize = const Size(340, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -144,10 +145,44 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.byType(OutlinedButton),
+        findsNothing,
+        reason:
+            'a única ação de restauração é a seta da barra da candidata, '
+            'fora do Inspector — nenhum controle de cópia por propriedade '
+            'ou por nó é montado aqui',
+      );
+
+      expect(
+        find.descendant(
+          of: find.byType(InspectorPropList),
+          matching: find.byWidgetPredicate(_mentionsCopyFromVersion),
+        ),
+        findsNothing,
+        reason:
+            'nenhum controle acionável na lista de propriedades pode ter '
+            'tooltip ou rótulo semântico que fale em trazer/copiar o valor '
+            'da versão — a restauração é só a seta da barra da candidata, '
+            'fora do Inspector',
+      );
+
       await expectLater(
         find.byType(InspectorPanel),
         matchesGoldenFile('goldens/inspector_panel_compare_mode.png'),
       );
     },
   );
+}
+
+bool _mentionsCopyFromVersion(Widget widget) {
+  final text = switch (widget) {
+    Tooltip() => widget.message,
+    Semantics() => widget.properties.label,
+    _ => null,
+  };
+  if (text == null) return false;
+  final lower = text.toLowerCase();
+  return lower.contains('vers') &&
+      (lower.contains('traz') || lower.contains('copi'));
 }

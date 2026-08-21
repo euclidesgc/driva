@@ -8,12 +8,17 @@ import 'package:flutter/material.dart';
 /// Barra do mock da direita, na mesma altura da `CanvasToolbar` do lado
 /// esquerdo para os dois mocks começarem na mesma linha. Concentra o que é
 /// específico da versão comparada: qual é, que é somente leitura, como
-/// andar para a anterior/seguinte e como sair do modo.
+/// andar para a anterior/seguinte, a seta que restaura a versão inteira no
+/// rascunho e como sair do modo.
+///
+/// A restauração é sempre da versão inteira (decisão do dono: uma seta só,
+/// referente a tudo) — não existe mais cópia por propriedade nem por nó.
 class VersionCompareCandidateBar extends StatelessWidget {
   const VersionCompareCandidateBar({
     required this.candidateVersion,
     required this.onOlder,
     required this.onNewer,
+    required this.onLoadFullVersion,
     required this.onClose,
     super.key,
   });
@@ -26,6 +31,8 @@ class VersionCompareCandidateBar extends StatelessWidget {
 
   /// `null` na versão mais nova do histórico.
   final VoidCallback? onNewer;
+
+  final VoidCallback onLoadFullVersion;
 
   final VoidCallback onClose;
 
@@ -70,6 +77,11 @@ class VersionCompareCandidateBar extends StatelessWidget {
               tooltip: 'Versão mais antiga',
               icon: const Icon(Icons.chevron_right),
             ),
+            IconButton(
+              onPressed: onLoadFullVersion,
+              tooltip: _loadFullVersionLabel,
+              icon: const Icon(Icons.file_download_outlined),
+            ),
             if (constraints.maxWidth >=
                 AppSizes.versionCompareBarLabelsFitWidth)
               TextButton.icon(
@@ -89,3 +101,5 @@ class VersionCompareCandidateBar extends StatelessWidget {
     );
   }
 }
+
+const _loadFullVersionLabel = 'Carregar versão inteira no rascunho';

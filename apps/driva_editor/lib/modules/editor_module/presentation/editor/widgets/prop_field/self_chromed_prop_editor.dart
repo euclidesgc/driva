@@ -15,7 +15,6 @@ class SelfChromedPropEditor extends StatelessWidget {
     required this.onChanged,
     this.bindingButton,
     this.resetButton,
-    this.copyFromVersionButton,
     super.key,
   });
 
@@ -24,7 +23,6 @@ class SelfChromedPropEditor extends StatelessWidget {
   final ValueChanged<Object?> onChanged;
   final Widget? bindingButton;
   final Widget? resetButton;
-  final Widget? copyFromVersionButton;
 
   @override
   Widget build(BuildContext context) => switch (field.kind) {
@@ -34,7 +32,6 @@ class SelfChromedPropEditor extends StatelessWidget {
       onChanged: onChanged,
       bindingButton: bindingButton,
       resetButton: resetButton,
-      copyFromVersionButton: copyFromVersionButton,
     ),
     _ => const SizedBox.shrink(),
   };

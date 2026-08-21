@@ -7,9 +7,12 @@ import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart
 import 'package:driva_editor/modules/editor_module/domain/repositories/editor_repository.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_top_registrar.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,6 +37,12 @@ class _MockRestoreContentVersionUseCase extends Mock
     implements RestoreContentVersionUseCase {}
 
 class _MockEditorRepository extends Mock implements EditorRepository {}
+
+class _MockGetContentVersionsUseCase extends Mock
+    implements GetContentVersionsUseCase {}
+
+class _MockGetContentVersionUseCase extends Mock
+    implements GetContentVersionUseCase {}
 
 const ContentSpec _publishedDoc = ContentSpec(
   specVersion: kSpecVersion,
@@ -76,11 +85,14 @@ final _publicationStates = {
   ),
 };
 
-Future<void> _pumpBarAt(
+Future<EditorCubit> _pumpBarAt(
   WidgetTester tester,
   PublicationState publication,
-  double width,
-) async {
+  double width, {
+  bool withCompareModeScope = true,
+  GetContentVersionsUseCase? getContentVersionsUseCase,
+  GetContentVersionUseCase? getContentVersionUseCase,
+}) async {
   final cubit =
       EditorCubit(
         loadContentUseCase: _MockLoadContentUseCase(),
@@ -99,12 +111,38 @@ Future<void> _pumpBarAt(
       );
   final layoutController = EditorLayoutController();
   final shellController = AppShellController();
+  final versionsUseCase =
+      getContentVersionsUseCase ??
+      GetContentVersionsUseCase(repository: _MockEditorRepository());
+  final versionUseCase =
+      getContentVersionUseCase ??
+      GetContentVersionUseCase(repository: _MockEditorRepository());
+  // Reproduz `EditorWorkspaceHost`: quando os dois use cases de versão
+  // chegam, o soquete do modo de comparação é sempre instalado acima do
+  // topo do editor — sem ele o botão de Histórico nasce indisponível.
+  final compareModeCubit = withCompareModeScope
+      ? VersionCompareModeCubit(
+          getContentVersionUseCase: versionUseCase,
+          getContentVersionsUseCase: versionsUseCase,
+          editorCubit: cubit,
+        )
+      : null;
   addTearDown(cubit.close);
   addTearDown(layoutController.dispose);
   addTearDown(shellController.dispose);
+  addTearDown(() => compareModeCubit?.close());
 
   await tester.binding.setSurfaceSize(Size(width, 600));
   addTearDown(() => tester.binding.setSurfaceSize(null));
+
+  final registrar = EditorTopRegistrar(
+    projectFuture: Future<Either<Failure, Project>>.value(
+      const Left(UnexpectedFailure()),
+    ),
+    getContentVersionsUseCase: versionsUseCase,
+    getContentVersionUseCase: versionUseCase,
+    child: const SizedBox.shrink(),
+  );
 
   await tester.pumpWidget(
     MaterialApp(
@@ -122,18 +160,12 @@ Future<void> _pumpBarAt(
                 value: cubit,
                 child: EditorLayoutScope(
                   controller: layoutController,
-                  child: EditorTopRegistrar(
-                    projectFuture: Future<Either<Failure, Project>>.value(
-                      const Left(UnexpectedFailure()),
-                    ),
-                    getContentVersionsUseCase: GetContentVersionsUseCase(
-                      repository: _MockEditorRepository(),
-                    ),
-                    getContentVersionUseCase: GetContentVersionUseCase(
-                      repository: _MockEditorRepository(),
-                    ),
-                    child: const SizedBox.shrink(),
-                  ),
+                  child: compareModeCubit == null
+                      ? registrar
+                      : VersionCompareModeScope(
+                          cubit: compareModeCubit,
+                          child: registrar,
+                        ),
                 ),
               ),
             ),
@@ -143,6 +175,7 @@ Future<void> _pumpBarAt(
     ),
   );
   await tester.pump();
+  return cubit;
 }
 
 void main() {
@@ -221,4 +254,61 @@ void main() {
       },
     );
   }
+
+  group('clique em Histórico', () {
+    late _MockGetContentVersionsUseCase getContentVersionsUseCase;
+    late _MockGetContentVersionUseCase getContentVersionUseCase;
+
+    setUp(() {
+      getContentVersionsUseCase = _MockGetContentVersionsUseCase();
+      getContentVersionUseCase = _MockGetContentVersionUseCase();
+      when(
+        () => getContentVersionsUseCase('ct_1'),
+      ).thenAnswer((_) async => const Right(ContentVersionsPage(items: [])));
+    });
+
+    testWidgets(
+      'com o modo de comparação disponível no contexto, abre o '
+      'VersionHistoryDialog',
+      (tester) async {
+        await _pumpBarAt(
+          tester,
+          _publicationStates['no ar']!,
+          1600,
+          getContentVersionsUseCase: getContentVersionsUseCase,
+          getContentVersionUseCase: getContentVersionUseCase,
+        );
+
+        await tester.tap(find.byTooltip('Histórico de versões'));
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(VersionHistoryDialog), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'sem o modo de comparação no contexto, o botão nasce indisponível e o '
+      'clique não derruba a aplicação',
+      (tester) async {
+        await _pumpBarAt(
+          tester,
+          _publicationStates['no ar']!,
+          1600,
+          withCompareModeScope: false,
+          getContentVersionsUseCase: getContentVersionsUseCase,
+          getContentVersionUseCase: getContentVersionUseCase,
+        );
+
+        final button = find.byTooltip('Histórico de versões (indisponível)');
+        expect(button, findsOneWidget);
+
+        await tester.tap(button, warnIfMissed: false);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(VersionHistoryDialog), findsNothing);
+      },
+    );
+  });
 }

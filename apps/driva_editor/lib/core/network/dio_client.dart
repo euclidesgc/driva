@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:driva_editor/core/config/app_config.dart';
 import 'package:driva_editor/core/network/project_scope.dart';
+import 'package:driva_editor/core/network/retry_interceptor.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 /// Base URL comes from [AppConfig] (per flavor). Every repository receives
@@ -25,6 +26,7 @@ Dio createDio(AppConfig config, ProjectScope scope) {
       },
     ),
   );
+  dio.interceptors.add(RetryInterceptor(dio));
   if (!kReleaseMode) {
     dio.interceptors.add(LogInterceptor());
   }

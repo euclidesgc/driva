@@ -38,6 +38,13 @@ class CanvasComparePane extends StatelessWidget {
         if (state is! VersionCompareModeActive) {
           return const SizedBox.shrink();
         }
+        void loadFullVersion() => unawaited(
+          loadFullVersionIntoDraft(
+            context,
+            editorCubit: editorCubit,
+            candidate: state.candidate,
+          ),
+        );
         return VersionCompareMockPane(
           device: device,
           effectiveScale: effectiveScale,
@@ -46,17 +53,12 @@ class CanvasComparePane extends StatelessWidget {
           imageUrlResolver: imageUrlResolver,
           onOlder: cubit.stepOlder,
           onNewer: cubit.stepNewer,
+          onLoadFullVersion: loadFullVersion,
           onClose: cubit.exit,
           unsafeView: state.result.fold(
             (failure) => VersionCompareUnsafeView(
               failure: failure,
-              onLoadFullVersion: () => unawaited(
-                loadFullVersionIntoDraft(
-                  context,
-                  editorCubit: editorCubit,
-                  candidate: state.candidate,
-                ),
-              ),
+              onLoadFullVersion: loadFullVersion,
             ),
             (_) => null,
           ),

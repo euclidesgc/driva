@@ -8,6 +8,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/publish_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/save_checkpoint_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/publish/unpublish_confirm_dialog.dart';
@@ -55,6 +56,7 @@ class EditorTopRegistrar extends StatelessWidget {
     // D7: alcança o `EditorLayoutController` pelo soquete, não por um sexto
     // parâmetro de construtor a partir de `EditorWorkspace` (`VR-16-02`).
     final layoutController = EditorLayoutScope.of(context)!;
+    final compareModeCubit = VersionCompareModeScope.of(context);
     return FutureBuilder<Either<Failure, Project>>(
       future: projectFuture,
       builder: (context, snapshot) {
@@ -161,10 +163,12 @@ class EditorTopRegistrar extends StatelessWidget {
                     tooltip: _historyTooltip(
                       getContentVersionsUseCase,
                       getContentVersionUseCase,
+                      compareModeCubit,
                     ),
                     onPressed:
                         getContentVersionsUseCase == null ||
-                            getContentVersionUseCase == null
+                            getContentVersionUseCase == null ||
+                            compareModeCubit == null
                         ? null
                         : () => _openVersionHistory(
                             context,
@@ -173,6 +177,7 @@ class EditorTopRegistrar extends StatelessWidget {
                             getContentVersionUseCase,
                             getContentCheckpointsUseCase,
                             imageUrlResolver,
+                            compareModeCubit,
                           ),
                   ),
                 ],
@@ -229,16 +234,15 @@ Future<void> _openVersionHistory(
   GetContentVersionUseCase? getContentVersionUseCase,
   GetContentCheckpointsUseCase? getContentCheckpointsUseCase,
   SduiImageUrlResolver? imageUrlResolver,
+  VersionCompareModeCubit? compareModeCubit,
 ) async {
-  if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
+  if (getContentVersionsUseCase == null ||
+      getContentVersionUseCase == null ||
+      compareModeCubit == null) {
     return;
   }
   final state = cubit.state;
   if (state is! EditorReady) return;
-
-  // `showDialog` monta noutra subárvore, fora do alcance dos provedores da
-  // página: o cubit do modo é lido aqui e viaja por construtor.
-  final compareModeCubit = context.read<VersionCompareModeCubit>();
 
   final historyCubit = VersionHistoryCubit(
     getContentVersionsUseCase: getContentVersionsUseCase,
@@ -298,8 +302,11 @@ String _unpublishTooltip(PublicationState publication) {
 String _historyTooltip(
   GetContentVersionsUseCase? getContentVersionsUseCase,
   GetContentVersionUseCase? getContentVersionUseCase,
+  VersionCompareModeCubit? compareModeCubit,
 ) {
-  if (getContentVersionsUseCase == null || getContentVersionUseCase == null) {
+  if (getContentVersionsUseCase == null ||
+      getContentVersionUseCase == null ||
+      compareModeCubit == null) {
     return 'Histórico de versões (indisponível)';
   }
   return 'Histórico de versões';

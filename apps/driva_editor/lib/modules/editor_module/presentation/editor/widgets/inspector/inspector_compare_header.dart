@@ -10,15 +10,12 @@ import 'package:sdui_core/sdui_core.dart';
 /// Inspector — é aqui que a diferença encontra o usuário, ao lado do campo
 /// que ele editaria.
 ///
-/// Quando o nó só existe de um lado ou o tipo mudou, **não há botão**: trazer
-/// as propriedades exigiria mesmo id e mesmo tipo, e um botão desabilitado
-/// deixaria o usuário procurando o que destravaria — o cabeçalho explica e
-/// aponta a alternativa segura.
+/// Puramente informativo: a restauração é sempre da versão inteira, pela
+/// seta `Carregar versão inteira no rascunho` da barra da candidata — este
+/// cabeçalho não oferece nenhum controle de cópia por nó ou por propriedade.
 class InspectorCompareHeader extends StatelessWidget {
   const InspectorCompareHeader({
     required this.candidateVersion,
-    required this.onCopyNodeProperties,
-    this.nodeId,
     this.diff,
     this.isOnlyInDraft = false,
     this.isOnlyInVersion = false,
@@ -29,24 +26,19 @@ class InspectorCompareHeader extends StatelessWidget {
     super.key,
   });
 
-  /// `null` no modo página, em que o cabeçalho mostra só o que é da página:
-  /// safe area e metadados.
-  final String? nodeId;
-
   final NodeDiff? diff;
   final bool isOnlyInDraft;
   final bool isOnlyInVersion;
   final bool safeAreaChanged;
   final Set<String> changedMetadataFields;
 
-  /// Vem do kernel para não divergir do cálculo que decide, campo a campo,
-  /// se `PropFieldCompareBinding` oferece "trazer o valor desta versão".
+  /// Vem do kernel só para a contagem e para nomear as chaves sem campo no
+  /// Inspector — leitura, não gatilho de cópia.
   final Set<String> changedPropertyKeys;
 
   final WidgetDescriptor? descriptor;
 
   final int candidateVersion;
-  final ValueChanged<String> onCopyNodeProperties;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +47,6 @@ class InspectorCompareHeader extends StatelessWidget {
     final secondaryStyle = theme.textTheme.bodySmall?.copyWith(
       color: colors.inkSecondary,
     );
-    final id = nodeId;
 
     final chips = <VersionCompareMarkerKind>[
       if (isOnlyInDraft) VersionCompareMarkerKind.onlyInBase,
@@ -85,13 +76,6 @@ class InspectorCompareHeader extends StatelessWidget {
             for (final key in propertyKeysForDisplay)
               if (descriptor.fieldOf(key) == null) key,
           };
-
-    final canCopy =
-        id != null &&
-        !isOnlyInDraft &&
-        !isOnlyInVersion &&
-        (diff?.propertiesChanged ?? false) &&
-        !typeChanged;
 
     return Container(
       margin: const EdgeInsets.all(AppSpacing.s12),
@@ -126,22 +110,6 @@ class InspectorCompareHeader extends StatelessWidget {
               _unmappedPropertyKeysLabel(unmappedPropertyKeys),
               style: secondaryStyle,
             ),
-          if (canCopy)
-            OutlinedButton.icon(
-              onPressed: () => onCopyNodeProperties(id),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Trazer todas as propriedades desta versão'),
-            )
-          else if (id != null)
-            Text(
-              _whyNoButton(
-                isOnlyInDraft: isOnlyInDraft,
-                isOnlyInVersion: isOnlyInVersion,
-                typeChanged: typeChanged,
-                candidateVersion: candidateVersion,
-              ),
-              style: secondaryStyle,
-            ),
         ],
       ),
     );
@@ -154,32 +122,7 @@ String _propertyCountLabel(int count) => count == 1
 
 String _unmappedPropertyKeysLabel(Set<String> keys) {
   final sorted = keys.toList()..sort();
-  return 'Sem campo no Inspector para ${sorted.join(', ')} — só "Trazer '
-      'todas as propriedades desta versão" alcança essas.';
-}
-
-String _whyNoButton({
-  required bool isOnlyInDraft,
-  required bool isOnlyInVersion,
-  required bool typeChanged,
-  required int candidateVersion,
-}) {
-  if (isOnlyInDraft) {
-    return 'Este widget não existe na versão $candidateVersion, então não há '
-        'propriedades para trazer. Para ficar com a versão inteira, use '
-        'Carregar versão inteira no rascunho.';
-  }
-  if (isOnlyInVersion) {
-    return 'Este widget existe só na versão $candidateVersion. Trazer um '
-        'widget novo mudaria a estrutura da árvore — para isso, use Carregar '
-        'versão inteira no rascunho.';
-  }
-  if (typeChanged) {
-    return 'O tipo do widget mudou entre as duas versões, e propriedades de '
-        'tipos diferentes não se correspondem. Para ficar com a versão '
-        'inteira, use Carregar versão inteira no rascunho.';
-  }
-  return 'Eventos, safe area e metadados são somente leitura nesta versão do '
-      'Driva. Para ficar com a versão inteira, use Carregar versão inteira '
-      'no rascunho.';
+  return 'Sem campo no Inspector para ${sorted.join(', ')} — para trazer '
+      'essas mudanças, use a seta "Carregar versão inteira no rascunho" na '
+      'barra da versão comparada.';
 }

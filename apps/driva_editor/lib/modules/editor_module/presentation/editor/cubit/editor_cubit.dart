@@ -452,27 +452,6 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
-  /// Copia uma propriedade da candidata comparada para o nó do rascunho;
-  /// `value` nulo é o caso "a versão não tem essa propriedade" e remove a
-  /// chave, igual a [updateProps]. Não passa `coalesceKey`: fundir com uma
-  /// digitação anterior na mesma propriedade faria um único `Ctrl+Z`
-  /// desfazer as duas de uma vez.
-  void copyPropertyFromVersion(
-    String nodeId,
-    String propertyKey,
-    Object? value,
-  ) {
-    final current = state;
-    if (current is! EditorReady) return;
-    final root = current.document.root;
-    if (root == null) return;
-    if (sdui.findNode(root, nodeId) == null) return;
-    _emitRoot(
-      current,
-      sdui.updateNodeProps(root, nodeId, {propertyKey: value}),
-    );
-  }
-
   /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
   void updateSafeAreaProps(Map<String, dynamic> patch) {
     final current = state;
@@ -674,17 +653,6 @@ class EditorCubit extends Cubit<EditorState> {
     final current = state;
     if (current is! EditorReady) return;
     _emitNotice(current, EditorNoticeKind.loadPublishedFailed);
-  }
-
-  /// Aplica o resultado de `copyComparableNodeProperties` (motor puro do
-  /// `sdui_core`): [updatedDocument] já é o rascunho com só as `properties`
-  /// do nó copiado da candidata. Mesmo funil de [_emitDocument] de qualquer
-  /// edição comum — vira entrada de undo, marca sujo, nunca persiste ou toca
-  /// `restore` sozinho.
-  void applyComparedNodeProperties(ContentSpec updatedDocument) {
-    final current = state;
-    if (current is! EditorReady) return;
-    _emitDocument(current, updatedDocument);
   }
 
   EditorNoticeKind _kindOf(DropRefusal refusal) => switch (refusal) {

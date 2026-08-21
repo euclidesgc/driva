@@ -25,6 +25,7 @@ class VersionCompareMockPane extends StatelessWidget {
     required this.candidateVersion,
     required this.onOlder,
     required this.onNewer,
+    required this.onLoadFullVersion,
     required this.onClose,
     this.unsafeView,
     this.imageUrlResolver,
@@ -37,6 +38,7 @@ class VersionCompareMockPane extends StatelessWidget {
   final int candidateVersion;
   final VoidCallback? onOlder;
   final VoidCallback? onNewer;
+  final VoidCallback onLoadFullVersion;
   final VoidCallback onClose;
   final Widget? unsafeView;
   final SduiImageUrlResolver? imageUrlResolver;
@@ -49,6 +51,7 @@ class VersionCompareMockPane extends StatelessWidget {
           candidateVersion: candidateVersion,
           onOlder: onOlder,
           onNewer: onNewer,
+          onLoadFullVersion: onLoadFullVersion,
           onClose: onClose,
         ),
         Expanded(

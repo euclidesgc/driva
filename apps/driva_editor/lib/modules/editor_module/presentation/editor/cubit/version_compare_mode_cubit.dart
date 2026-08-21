@@ -14,9 +14,10 @@ part 'version_compare_mode_state.dart';
 /// A comparação é um **modo do editor** (plan_t5b, D1/D3), não mais um
 /// diálogo: escopado à página, criado uma vez acima de `EditorWorkspace` e
 /// vivo enquanto ela vive. Referencia `EditorCubit` de propósito — é quem
-/// muta o rascunho quando uma propriedade é trazida da candidata — e por
-/// isso acompanha `editorCubit.stream` para manter `baseSpec` igual ao
-/// rascunho ao vivo enquanto o modo está ativo.
+/// muta o rascunho quando a versão inteira é carregada por
+/// `loadFullVersionIntoDraft` — e por isso acompanha `editorCubit.stream`
+/// para manter `baseSpec` igual ao rascunho ao vivo enquanto o modo está
+/// ativo.
 class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
   VersionCompareModeCubit({
     required this.getContentVersionUseCase,
@@ -190,28 +191,6 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
       current.versions.indexWhere(
         (each) => each.version == current.candidate.version,
       );
-
-  /// A cópia sempre incide sobre o rascunho de verdade
-  /// (`editorCubit.state.document`): neste modo ele **é** `baseSpec`, os
-  /// dois nunca divergem (D5 — não há mais "base publicada" para trocar).
-  void copyNodeProperties(String nodeId) {
-    final current = state;
-    if (current is! VersionCompareModeActive) return;
-    final editorState = editorCubit.state;
-    if (editorState is! EditorReady) return;
-
-    copyComparableNodeProperties(
-      editorState.document,
-      current.candidate.spec,
-      nodeId,
-    ).fold(
-      // Só alcançável com um spec fora do contrato zard (dartdoc de
-      // `NonStringPropertyKeyForCopyFailure`), nunca vindo de
-      // `parseContentSpec` — inatingível pelo fluxo real deste modo.
-      (failure) {},
-      editorCubit.applyComparedNodeProperties,
-    );
-  }
 
   /// D6: deixa o rascunho idêntico à versão publicada, em memória — uma
   /// entrada de undo, nada persiste até o próximo `Salvar`. Quando a
