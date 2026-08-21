@@ -133,7 +133,7 @@ class WidgetTreePanel extends StatelessWidget {
         diffMarkerKind: _markerKindFor(node.id),
         onSelect: () => onSelect(node.id),
         onRemove: isReadOnly ? null : () => onRemove(node.id),
-        isDraggable: !isReadOnly,
+        isReadOnly: isReadOnly,
         onAccept: (payload) => switch (payload) {
           PaletteDragPayload(:final type) => onDropNew(type, node.id),
           NodeDragPayload(:final nodeId) => onDropMove(nodeId, node.id),

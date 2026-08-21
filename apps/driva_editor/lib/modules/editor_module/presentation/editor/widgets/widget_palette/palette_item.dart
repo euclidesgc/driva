@@ -1,4 +1,5 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/editing_lock.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette/palette_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -22,7 +23,7 @@ class PaletteItem extends StatelessWidget {
     final tile = PaletteTile(descriptor: descriptor);
     if (!isDraggable) {
       return Opacity(
-        opacity: 0.5,
+        opacity: EditingLock.lockedOpacity,
         child: Tooltip(
           message: 'Feche a comparação para editar',
           child: tile,

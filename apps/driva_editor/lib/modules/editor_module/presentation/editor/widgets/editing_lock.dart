@@ -8,7 +8,10 @@ import 'package:flutter/widgets.dart';
 class EditingLock extends StatelessWidget {
   const EditingLock({required this.locked, required this.child, super.key});
 
-  static const double _lockedOpacity = 0.5;
+  /// Público porque a paleta esmaece igual sem poder usar este widget: lá o
+  /// item precisa continuar recebendo hover para explicar por tooltip por que
+  /// não arrasta, e `IgnorePointer` mataria o tooltip junto com o gesto.
+  static const double lockedOpacity = 0.5;
 
   final bool locked;
   final Widget child;
@@ -18,7 +21,7 @@ class EditingLock extends StatelessWidget {
     if (!locked) return child;
     return ExcludeFocus(
       child: IgnorePointer(
-        child: Opacity(opacity: _lockedOpacity, child: child),
+        child: Opacity(opacity: lockedOpacity, child: child),
       ),
     );
   }

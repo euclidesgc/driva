@@ -462,8 +462,7 @@ void main() {
         unpublishContentUseCase: MockUnpublishContentUseCase(),
         restoreContentVersionUseCase: MockRestoreContentVersionUseCase(),
         projectId: 'p1',
-      );
-      realEditorCubit.emit(EditorReady(document: draftSpec));
+      )..emit(EditorReady(document: draftSpec));
     });
 
     tearDown(() => realEditorCubit.close());
@@ -490,9 +489,7 @@ void main() {
     });
 
     test('fora do modo não faz nada', () async {
-      final cubit = buildWithRealEditor();
-
-      cubit.applyCandidateToDraft();
+      final cubit = buildWithRealEditor()..applyCandidateToDraft();
 
       expect(cubit.state, isA<VersionCompareModeInactive>());
       expect((realEditorCubit.state as EditorReady).document, draftSpec);

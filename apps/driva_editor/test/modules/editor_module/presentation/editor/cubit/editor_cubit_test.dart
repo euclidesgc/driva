@@ -127,15 +127,41 @@ void main() {
       act: (cubit) async {
         cubit.updateProps('nd_text', {'data': 'antes de congelar'});
         final edited = (cubit.state as EditorReady).document;
-        cubit.setReadOnly(value: true);
         cubit
+          ..setReadOnly(value: true)
           ..undo()
           ..redo();
         expect((cubit.state as EditorReady).document, edited);
-        cubit.setReadOnly(value: false);
-        cubit.undo();
+        cubit
+          ..setReadOnly(value: false)
+          ..undo();
         expect((cubit.state as EditorReady).document, content);
       },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar não atravessa, e a área de transferência sobrevive ao modo',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..copySelected()
+          ..setReadOnly(value: true)
+          ..paste();
+        expect(
+          (cubit.state as EditorReady).document,
+          content,
+          reason: 'congelado, colar não muda o documento',
+        );
+        cubit
+          ..setReadOnly(value: false)
+          ..paste();
+      },
+      verify: (cubit) => expect(
+        (cubit.state as EditorReady).document,
+        isNot(content),
+        reason: 'descongelado, o mesmo colar volta a valer',
+      ),
     );
 
     blocTest<EditorCubit, EditorState>(

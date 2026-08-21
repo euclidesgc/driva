@@ -1,10 +1,9 @@
-import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_surface.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/editing_lock.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
@@ -124,7 +123,7 @@ void main() {
       expect(
         tester
             .widgetList<TreeRow>(find.byType(TreeRow))
-            .every((row) => row.onRemove == null && !row.isDraggable),
+            .every((row) => row.onRemove == null && row.isReadOnly),
         isTrue,
       );
     });

@@ -22,7 +22,7 @@ class TreeRow extends StatelessWidget {
     required this.onRemove,
     required this.onAccept,
     this.diffMarkerKind,
-    this.isDraggable = true,
+    this.isReadOnly = false,
     super.key,
   });
 
@@ -36,9 +36,11 @@ class TreeRow extends StatelessWidget {
   final VoidCallback? onRemove;
   final ValueChanged<DragPayload> onAccept;
 
-  /// Falso enquanto o rascunho está congelado: a linha continua selecionável
-  /// para leitura, mas reordenar por arraste é edição.
-  final bool isDraggable;
+  /// Rascunho congelado: a linha continua selecionável para leitura, mas não
+  /// arrasta nem recebe — deixar o `DragTarget` montado manteria vivo um
+  /// caminho de escrita que nada alcança hoje e alguma origem de arraste
+  /// nova alcançaria amanhã.
+  final bool isReadOnly;
 
   String get _label => treeNodeLabel(node, isRoot: isRoot);
 
@@ -47,6 +49,20 @@ class TreeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
+    final content = TreeRowContent(
+      isDragOver: false,
+      isSelected: isSelected,
+      label: _label,
+      nodeType: node.type,
+      depth: depth,
+      diagnostics: diagnostics,
+      diffMarkerKind: diffMarkerKind,
+      onSelect: onSelect,
+      onRemove: onRemove,
+      removeLabel: _removeLabel,
+    );
+    if (isReadOnly) return content;
+
     final row = DragTarget<DragPayload>(
       onWillAcceptWithDetails: (details) => switch (details.data) {
         NodeDragPayload(:final nodeId) => nodeId != node.id,
@@ -66,8 +82,6 @@ class TreeRow extends StatelessWidget {
         removeLabel: _removeLabel,
       ),
     );
-
-    if (!isDraggable) return row;
 
     return Draggable<DragPayload>(
       data: NodeDragPayload(node.id),
