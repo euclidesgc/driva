@@ -1,12 +1,13 @@
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/compare_aware_widget_tree.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/panel_collapse_button.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_palette_panel.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -115,17 +116,29 @@ class _LeftPanelState extends State<LeftPanel>
                     if (state is! EditorReady) {
                       return const SizedBox.shrink();
                     }
-                    return WidgetTreePanel(
-                      root: state.document.root,
-                      selectedNodeId: state.selectedNodeId,
-                      nodeDiagnostics: diagnosticsByNode(state.diagnostics),
-                      onSelect: cubit.selectNode,
-                      onRemove: cubit.removeNode,
-                      onDropNew: (type, targetId) =>
-                          cubit.addNode(type, targetId: targetId),
-                      onDropMove: cubit.moveNode,
-                      onDropNewAt: cubit.addNodeAt,
-                      onDropMoveAt: cubit.moveNodeAt,
+                    // A chave de estrutura do selector acima não enxerga o
+                    // diff: trocar a candidata não muda estrutura nem
+                    // seleção, e a árvore ficaria com marcadores da versão
+                    // anterior — daí o builder aninhado sobre o cubit do
+                    // modo.
+                    final compareCubit = VersionCompareModeScope.of(context);
+                    if (compareCubit == null) {
+                      return CompareAwareWidgetTree(
+                        state: state,
+                        cubit: cubit,
+                      );
+                    }
+                    return BlocBuilder<
+                      VersionCompareModeCubit,
+                      VersionCompareModeState
+                    >(
+                      bloc: compareCubit,
+                      builder: (context, compareState) =>
+                          CompareAwareWidgetTree(
+                            state: state,
+                            cubit: cubit,
+                            compareState: compareState,
+                          ),
                     );
                   },
                 ),

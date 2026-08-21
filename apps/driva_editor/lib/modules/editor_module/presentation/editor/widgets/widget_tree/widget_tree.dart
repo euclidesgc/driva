@@ -1,8 +1,11 @@
+export 'compare_ghost_tree_row.dart';
 export 'drop_zone.dart';
 export 'drop_zone_content.dart';
 export 'page_tree_row.dart';
 export 'tree_gap_drop_zone.dart';
 export 'tree_gap_indicator.dart';
+export 'tree_node_label.dart';
 export 'tree_row.dart';
 export 'tree_row_content.dart';
 export 'tree_row_diagnostic_icon.dart';
+export 'tree_row_diff_marker.dart';

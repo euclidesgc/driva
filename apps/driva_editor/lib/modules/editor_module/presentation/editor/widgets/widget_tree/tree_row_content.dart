@@ -3,7 +3,9 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/palette_icons.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diagnostic_icon.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diff_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -18,6 +20,7 @@ class TreeRowContent extends StatelessWidget {
     required this.onSelect,
     required this.onRemove,
     required this.removeLabel,
+    this.diffMarkerKind,
     super.key,
   });
 
@@ -27,6 +30,7 @@ class TreeRowContent extends StatelessWidget {
   final String nodeType;
   final int depth;
   final List<SpecDiagnostic> diagnostics;
+  final VersionCompareMarkerKind? diffMarkerKind;
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
   final String removeLabel;
@@ -74,6 +78,11 @@ class TreeRowContent extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (diffMarkerKind != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.s4),
+                  child: TreeRowDiffMarker(kind: diffMarkerKind!),
+                ),
               if (diagnostics.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(left: AppSpacing.s4),

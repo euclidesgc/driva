@@ -441,7 +441,7 @@ Numa linha da árvore o espaço é curto: o marcador é ícone + tooltip + `Sema
 chip. O texto por extenso continua existindo no Inspector (T5b.4), que é onde há largura.
 
 **DoD**
-- `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diff_marker.dart` existe com uma classe pública, e o arquivo contém `Tooltip`, `Semantics` (ou `semanticLabel`) e `IconData`.
+- `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diff_marker.dart` existe com uma classe pública, e o arquivo contém `Tooltip`, `Semantics` (ou `semanticLabel`) e um `Icon`.
 - `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_content.dart` declara um campo para o marcador e o posiciona antes de `TreeRowDiagnosticIcon` na `Row` — a ordem literal das linhas é a prova.
 - `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/widget_tree/page_tree_row.dart` aceita o mesmo marcador.
 - Teste de widget em `apps/driva_editor/test/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_diff_marker_test.dart` prova que os quatro rótulos `Propriedades alteradas`, `Somente no rascunho`, `Somente na versão` e `Tipo mudou` aparecem como `Tooltip.message` e como rótulo semântico, cada um com `IconData` distinto do dos outros três.
