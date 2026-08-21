@@ -98,6 +98,7 @@ class InspectorPanel extends StatelessWidget {
                 )
               : InspectorPropList(
                   ownerKey: node.id,
+                  nodeId: node.id,
                   properties: node.properties,
                   descriptor: descriptor,
                   onUpdateProps: (patch) => onUpdateProps(node.id, patch),

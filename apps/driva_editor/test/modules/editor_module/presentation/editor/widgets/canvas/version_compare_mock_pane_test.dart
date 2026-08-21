@@ -64,7 +64,6 @@ Widget _harness({
           isFullscreen: false,
           onToggleFullscreen: () {},
           compareSide: side,
-          compareCandidateVersion: 3,
           onCompareSideChanged: (_) {},
           compareBuilder: comparing
               ? (scale) => VersionCompareMockPane(

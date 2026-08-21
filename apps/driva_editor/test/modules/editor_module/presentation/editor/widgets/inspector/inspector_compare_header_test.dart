@@ -1,11 +1,28 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_compare_header.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_version_copy_button.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_marker_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 const _copyLabel = 'Trazer todas as propriedades desta versão';
+
+const _textDescriptor = WidgetDescriptor(
+  type: 'text',
+  label: 'Text',
+  iconName: 'text',
+  category: WidgetCategories.basics,
+  slot: SlotKind.none,
+  fields: [
+    PropField(
+      key: 'data',
+      kind: FieldKind.string,
+      label: 'Texto',
+      group: FieldGroups.content,
+    ),
+  ],
+);
 
 NodeDiff _diff({
   String baseType = 'text',
@@ -147,4 +164,91 @@ void main() {
 
     expect(find.textContaining('Comparando com a versão'), findsNothing);
   });
+
+  testWidgets(
+    'tipo mudou: mesmo com changedPropertyKeys/descriptor preenchidos, não '
+    'renderiza a contagem nem a linha "Sem campo no Inspector" — '
+    'comparar propriedades de tipos diferentes não tem significado',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          InspectorCompareHeader(
+            nodeId: 'nd_1',
+            diff: _diff(candidateType: 'container'),
+            candidateVersion: 3,
+            changedPropertyKeys: const {'data', 'shape'},
+            descriptor: _textDescriptor,
+            onCopyNodeProperties: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('propriedades alteradas'), findsNothing);
+      expect(find.textContaining('propriedade alterada'), findsNothing);
+      expect(find.textContaining('Sem campo no Inspector'), findsNothing);
+      expect(find.textContaining('shape'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'chave alterada sem PropField no descriptor aparece nomeada, avisando '
+    'que só a ação de nó inteiro alcança',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          InspectorCompareHeader(
+            nodeId: 'nd_1',
+            diff: _diff(),
+            candidateVersion: 3,
+            changedPropertyKeys: const {'data', 'shape'},
+            descriptor: _textDescriptor,
+            onCopyNodeProperties: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('shape'), findsOneWidget);
+      expect(find.textContaining('data'), findsNothing);
+      expect(find.textContaining(_copyLabel), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'a contagem exibida vem de changedPropertyKeys, não da lista de botões '
+    'de cópia por campo montada ao lado',
+    (tester) async {
+      final changedKeys = {'data', 'shape', 'color'};
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  InspectorCompareHeader(
+                    nodeId: 'nd_1',
+                    diff: _diff(),
+                    candidateVersion: 3,
+                    changedPropertyKeys: changedKeys,
+                    descriptor: _textDescriptor,
+                    onCopyNodeProperties: (_) {},
+                  ),
+                  PropVersionCopyButton(onPressed: () {}),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PropVersionCopyButton), findsNWidgets(1));
+      expect(
+        find.textContaining('${changedKeys.length} propriedades alteradas'),
+        findsOneWidget,
+      );
+    },
+  );
 }

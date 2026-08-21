@@ -159,6 +159,12 @@ que é o que o **item 52** do roadmap trata.
 
 **Consequência de uma feature pedida pelo dono**, comunicada a ele em 2026-08-20.
 
+**Situação em 2026-08-21:** o token **não existe mais**. O item 52 substituiu a constante pela soma
+de `AppSizes.topBarChromeWidth` com a largura estimada das próprias ações — a razão está escrita na
+lápide, em `apps/driva_editor/lib/core/theme/app_sizes.dart:127-133`: "precisou ser recalibrado duas
+vezes em dois dias […] porque uma constante não sabe quantas ações a barra tem". Este desvio, então,
+não sobreviveu ao próprio item; fica registrado porque foi ele que expôs o teto.
+
 ---
 
 ## VR-50-09 — E2E suspenso: a T5b.16 (roteiro manual) morre
@@ -179,3 +185,56 @@ de trabalho). O risco que fica descoberto é conhecido e aceito — o "tofu" do 
 defeito que só o navegador real mostrou.
 
 **Decisão do dono do produto** em 2026-08-20.
+
+---
+
+## VR-50-10 — O motor puro de comparação ganhou uma função nova
+
+**O plano dizia:** o Objetivo do [`plan_t5b.md`](plan_t5b.md) (linhas 24-26) abre afirmando que
+`packages/sdui_core/lib/src/ops/compare_ops.dart` **não muda** — "as duas funções continuam byte a
+byte como estão, com os testes que já as cobrem".
+
+**O que foi feito:** o arquivo **ganhou** `Set<String> changedPropertyKeys(SduiNode base, SduiNode
+candidate)` (`packages/sdui_core/lib/src/ops/compare_ops.dart:404`), exportada pelo barrel
+(`packages/sdui_core/lib/sdui_core.dart:15` reexporta o arquivo inteiro). `compareContentSpecs`,
+`copyComparableNodeProperties`, `NodeDiff` e `SpecComparisonResult` saíram idênticos do diff, e
+`packages/sdui_core/test/ops/compare_ops_test.dart` ficou inalterado — o desvio é **só de adição**.
+
+**Por quê:** a D1, emenda 2, do `plan_t5b.md` descobriu que o diff existente é por nó e booleano
+(`NodeDiff.propertiesChanged` é um `bool`): não há conjunto de chaves alteradas, e
+`copyComparableNodeProperties` copia todas as props do nó de uma vez. Um botão **por propriedade**
+precisa saber quais chaves diferem. A alternativa era duplicar a igualdade profunda `_deepEquals`
+— que é privada do próprio arquivo — na camada de apresentação, e essa cópia produziria a
+divergência mais cara possível: um nó marcado "propriedades alteradas" sem nenhuma seta
+correspondente ao lado da propriedade que mudou. A D5 registrou a decisão antes da execução; esta
+entrada existe porque o Objetivo do plano, no topo, continuava prometendo o arquivo intacto.
+
+**Decidido pelo tech-lead no próprio `plan_t5b.md` (D5)**, executado na T5b.10.
+
+---
+
+## VR-50-11 — `inspector_node_comparison.dart` não foi criado; o desenho virou `PropFieldCompareBinding`
+
+**O plano dizia:** a tabela "Editor — novos" do [`plan_t5b.md`](plan_t5b.md) (linha 224) lista
+`.../presentation/editor/widgets/inspector/inspector_node_comparison.dart` — "objeto de valor com
+`changedKeys`, `candidateProperties`, `typeChanged`, `exclusiveSide`".
+
+**O que foi feito:** o arquivo **não existe**. No lugar dele nasceu
+`apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/inspector/prop_field_compare_binding.dart`,
+um `BlocSelector` sobre o `VersionCompareModeCubit` escopado ao par **(nodeId, chave do campo)**,
+que devolve apenas `(bool canCopy, Object? candidateValue)` para aquele campo e monta o
+`PropFieldEditor` com — ou sem — a seta.
+
+**Por quê:** um objeto de valor com as quatro propriedades do nó inteiro teria de ser recalculado e
+comparado a cada emissão do cubit do modo, e o `BlocSelector` que o carregasse reconstruiria a
+**lista inteira** de propriedades quando qualquer uma delas mudasse. Escopar ao par nodeId+chave é
+o que a **emenda 4 da D1** (`plan_t5b.md:66-68`) pedia por escrito — "dado de comparação **não**
+entra no `InspectorVm`, que tem `==`/`hashCode` escritos à mão; vai num `BlocSelector` aninhado,
+sobre o cubit do modo" — levado ao menor grão possível. O que a entrega contradiz é a **tabela de
+arquivos**, não a decisão: a tabela nomeava um objeto de valor que a emenda 4 já tornava
+desnecessário.
+
+**Desvio de execução, sem mudança de exigência**, comunicado ao dono no fechamento da T5b em
+2026-08-21. Nenhum critério do DoD da T5b.12 nomeava esse arquivo — os DoD cobram o comportamento
+(seta presente em `%`, ausente com tipo mudado, ausente em chave não alterada), e todos foram
+provados por teste de widget.

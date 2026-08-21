@@ -17,6 +17,7 @@ class DimensionEditor extends StatefulWidget {
     required this.onChanged,
     this.bindingButton,
     this.resetButton,
+    this.copyFromVersionButton,
     super.key,
   });
 
@@ -25,6 +26,10 @@ class DimensionEditor extends StatefulWidget {
   final ValueChanged<Object?> onChanged;
   final Widget? bindingButton;
   final Widget? resetButton;
+
+  /// Ao contrário de [bindingButton], vale nas duas unidades: width/height
+  /// em `%` são exatamente as props que o comparador quer trazer de volta.
+  final Widget? copyFromVersionButton;
 
   @override
   State<DimensionEditor> createState() => _DimensionEditorState();
@@ -201,6 +206,7 @@ class _DimensionEditorState extends State<DimensionEditor> {
       actions: [
         if (acceptsInfinite) ?widget.bindingButton,
         ?widget.resetButton,
+        ?widget.copyFromVersionButton,
       ],
       body: NumberTextField(
         controller: _controller,

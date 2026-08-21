@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_binding.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/version_compare_node_lookup.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_compare_header.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -25,21 +26,28 @@ class InspectorCompareSection extends StatelessWidget {
         }
         return state.result.fold(
           (_) => const SizedBox.shrink(),
-          (comparison) => InspectorCompareHeader(
-            nodeId: nodeId,
-            diff: _diffFor(comparison, nodeId),
-            isOnlyInDraft:
-                nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
-            isOnlyInVersion:
-                nodeId != null &&
-                comparison.nodesOnlyInCandidate.contains(nodeId),
-            safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
-            changedMetadataFields: nodeId == null
-                ? comparison.changedContentMetadataFields
-                : const {},
-            candidateVersion: state.candidate.version,
-            onCopyNodeProperties: cubit.copyNodeProperties,
-          ),
+          (comparison) {
+            final nodes = _correspondingNodes(state, nodeId);
+            return InspectorCompareHeader(
+              nodeId: nodeId,
+              diff: _diffFor(comparison, nodeId),
+              isOnlyInDraft:
+                  nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
+              isOnlyInVersion:
+                  nodeId != null &&
+                  comparison.nodesOnlyInCandidate.contains(nodeId),
+              safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
+              changedMetadataFields: nodeId == null
+                  ? comparison.changedContentMetadataFields
+                  : const {},
+              changedPropertyKeys: nodes == null
+                  ? const {}
+                  : changedPropertyKeys(nodes.base, nodes.candidate),
+              descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
+              candidateVersion: state.candidate.version,
+              onCopyNodeProperties: cubit.copyNodeProperties,
+            );
+          },
         );
       },
     );
@@ -52,4 +60,18 @@ NodeDiff? _diffFor(SpecComparisonResult comparison, String? nodeId) {
     if (diff.nodeId == nodeId) return diff;
   }
   return null;
+}
+
+typedef _NodePair = ({SduiNode base, SduiNode candidate});
+
+_NodePair? _correspondingNodes(
+  VersionCompareModeActive state,
+  String? nodeId,
+) {
+  if (nodeId == null) return null;
+  final base = nodeById(state.baseSpec.root, nodeId);
+  final candidate = nodeById(state.candidate.spec.root, nodeId);
+  if (base == null || candidate == null) return null;
+  if (base.type != candidate.type) return null;
+  return (base: base, candidate: candidate);
 }

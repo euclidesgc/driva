@@ -1,7 +1,7 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_side.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_side_toggle.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_side_toggle_binding.dart';
 import 'package:flutter/material.dart';
 
 /// A faixa estreita do modo de comparação: um mock por vez, com alternador.
@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 class CanvasCompareSingleMock extends StatelessWidget {
   const CanvasCompareSingleMock({
     required this.side,
-    required this.candidateVersion,
     required this.onSideChanged,
     required this.draftPanel,
     required this.comparePane,
@@ -21,7 +20,6 @@ class CanvasCompareSingleMock extends StatelessWidget {
   });
 
   final CanvasCompareSide side;
-  final int candidateVersion;
   final ValueChanged<CanvasCompareSide> onSideChanged;
   final Widget draftPanel;
   final Widget comparePane;
@@ -36,9 +34,8 @@ class CanvasCompareSingleMock extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.s8),
           color: colors.panelAlt,
           child: Center(
-            child: CanvasCompareSideToggle(
+            child: CanvasCompareSideToggleBinding(
               side: side,
-              candidateVersion: candidateVersion,
               onChanged: onSideChanged,
             ),
           ),

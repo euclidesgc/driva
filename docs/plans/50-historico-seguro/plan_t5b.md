@@ -604,7 +604,7 @@ a cópia se fundir na mesma entrada de undo de uma digitação anterior na mesma
 
 **DoD**
 - `apps/driva_editor/lib/modules/editor_module/presentation/editor/cubit/editor_cubit.dart` declara `void copyPropertyFromVersion(` e a chamada de emissão nesse método **não** passa `coalesceKey`.
-- Teste em `apps/driva_editor/test/modules/editor_module/presentation/editor/cubit/editor_cubit_test.dart` prova a sequência: editar a propriedade `text` do nó por `updateProps`, depois chamar `copyPropertyFromVersion` na **mesma** propriedade, depois `undo()` — e o documento volta ao valor digitado, não ao valor anterior à digitação.
+- Teste em `apps/driva_editor/test/modules/editor_module/presentation/editor/cubit/editor_cubit_test.dart` prova a sequência: editar por `updateProps` a chave `data` de um nó do tipo `text` (o `WidgetDescriptor` de `text` expõe `data`, não `text`), depois chamar `copyPropertyFromVersion` na **mesma** chave, depois `undo()` — e o documento volta ao valor digitado, não ao valor anterior à digitação.
 - Teste prova que `copyPropertyFromVersion(nodeId, key, null)` remove a chave de `properties` do nó e deixa `saveStatus` em `SaveStatus.dirty`.
 - Teste prova que `copyPropertyFromVersion` num `nodeId` inexistente não altera `document` e não empilha entrada de undo (`canUndo` permanece como estava).
 - `cd apps/driva_editor && dart format --set-exit-if-changed lib test && flutter analyze` sai verde.

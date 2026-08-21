@@ -24,6 +24,8 @@ class InspectorCompareHeader extends StatelessWidget {
     this.isOnlyInVersion = false,
     this.safeAreaChanged = false,
     this.changedMetadataFields = const {},
+    this.changedPropertyKeys = const {},
+    this.descriptor,
     super.key,
   });
 
@@ -36,12 +38,23 @@ class InspectorCompareHeader extends StatelessWidget {
   final bool isOnlyInVersion;
   final bool safeAreaChanged;
   final Set<String> changedMetadataFields;
+
+  /// Vem do kernel para não divergir do cálculo que decide, campo a campo,
+  /// se `PropFieldCompareBinding` oferece "trazer o valor desta versão".
+  final Set<String> changedPropertyKeys;
+
+  final WidgetDescriptor? descriptor;
+
   final int candidateVersion;
   final ValueChanged<String> onCopyNodeProperties;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<EditorColors>()!;
+    final theme = Theme.of(context);
+    final colors = theme.extension<EditorColors>()!;
+    final secondaryStyle = theme.textTheme.bodySmall?.copyWith(
+      color: colors.inkSecondary,
+    );
     final id = nodeId;
 
     final chips = <VersionCompareMarkerKind>[
@@ -57,12 +70,28 @@ class InspectorCompareHeader extends StatelessWidget {
     ];
     if (chips.isEmpty) return const SizedBox.shrink();
 
+    final typeChanged = diff?.typeChanged ?? false;
+
+    // Propriedades de tipos diferentes não se correspondem — comparar suas
+    // chaves não tem significado, então o cabeçalho ignora o que veio mesmo
+    // se o chamador as passar por engano.
+    final propertyKeysForDisplay = typeChanged
+        ? const <String>{}
+        : changedPropertyKeys;
+    final descriptor = typeChanged ? null : this.descriptor;
+    final unmappedPropertyKeys = descriptor == null
+        ? const <String>{}
+        : {
+            for (final key in propertyKeysForDisplay)
+              if (descriptor.fieldOf(key) == null) key,
+          };
+
     final canCopy =
         id != null &&
         !isOnlyInDraft &&
         !isOnlyInVersion &&
         (diff?.propertiesChanged ?? false) &&
-        !(diff?.typeChanged ?? false);
+        !typeChanged;
 
     return Container(
       margin: const EdgeInsets.all(AppSpacing.s12),
@@ -78,7 +107,7 @@ class InspectorCompareHeader extends StatelessWidget {
         children: [
           Text(
             'Comparando com a versão $candidateVersion',
-            style: TextStyle(color: colors.inkSecondary),
+            style: secondaryStyle,
           ),
           Wrap(
             spacing: AppSpacing.s8,
@@ -87,6 +116,16 @@ class InspectorCompareHeader extends StatelessWidget {
               for (final kind in chips) VersionCompareMarkerChip(kind: kind),
             ],
           ),
+          if (propertyKeysForDisplay.isNotEmpty)
+            Text(
+              _propertyCountLabel(propertyKeysForDisplay.length),
+              style: secondaryStyle,
+            ),
+          if (unmappedPropertyKeys.isNotEmpty)
+            Text(
+              _unmappedPropertyKeysLabel(unmappedPropertyKeys),
+              style: secondaryStyle,
+            ),
           if (canCopy)
             OutlinedButton.icon(
               onPressed: () => onCopyNodeProperties(id),
@@ -98,15 +137,25 @@ class InspectorCompareHeader extends StatelessWidget {
               _whyNoButton(
                 isOnlyInDraft: isOnlyInDraft,
                 isOnlyInVersion: isOnlyInVersion,
-                typeChanged: diff?.typeChanged ?? false,
+                typeChanged: typeChanged,
                 candidateVersion: candidateVersion,
               ),
-              style: TextStyle(color: colors.inkSecondary),
+              style: secondaryStyle,
             ),
         ],
       ),
     );
   }
+}
+
+String _propertyCountLabel(int count) => count == 1
+    ? '1 propriedade alterada nesta versão'
+    : '$count propriedades alteradas nesta versão';
+
+String _unmappedPropertyKeysLabel(Set<String> keys) {
+  final sorted = keys.toList()..sort();
+  return 'Sem campo no Inspector para ${sorted.join(', ')} — só "Trazer '
+      'todas as propriedades desta versão" alcança essas.';
 }
 
 String _whyNoButton({
