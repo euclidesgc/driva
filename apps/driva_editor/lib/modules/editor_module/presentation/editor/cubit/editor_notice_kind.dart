@@ -15,4 +15,5 @@ enum EditorNoticeKind {
   publishFailed,
   unpublishFailed,
   restoreFailed,
+  loadPublishedFailed,
 }

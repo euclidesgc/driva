@@ -546,7 +546,7 @@ literais são atualizados junto; prosa de dartdoc que usa "no ar" como expressã
 desta tarefa.
 
 **DoD**
-- `grep -rn "No ar\|no ar\|do ar" apps/driva_editor/lib | grep -v "//"` não retorna nenhuma linha.
+- `grep -rnE "(No|no|do) ar\b" apps/driva_editor/lib | grep -v "//"` não retorna nenhuma linha.
 - Os rótulos novos existem literalmente: `Publicado (v` e `Despublicado (última: v` em `apps/driva_editor/lib/modules/editor_module/presentation/editor/page/editor_top_registrar.dart`; `Publicada` em `apps/driva_editor/lib/modules/editor_module/presentation/editor/widgets/versions/version_row.dart`.
 - `cd apps/driva_editor && flutter test -r compact test/core/widgets/app_shell/app_shell_top_bar_test.dart test/modules/editor_module/presentation/editor/page/editor_top_registrar_test.dart test/modules/editor_module/presentation/editor/widgets/publish/publish_dialog_test.dart test/modules/contents_module/presentation/project_detail/widgets/content_panel/publication_badge_test.dart` termina com 0 falhas.
 - `cd apps/driva_editor && dart format --set-exit-if-changed lib test && flutter analyze` sai verde.

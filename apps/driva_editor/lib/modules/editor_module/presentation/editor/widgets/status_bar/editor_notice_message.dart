@@ -37,6 +37,8 @@ abstract final class EditorNoticeMessage {
         'Falha ao despublicar. Tente novamente.',
       EditorNoticeKind.restoreFailed =>
         'Falha ao restaurar essa versão. Tente novamente.',
+      EditorNoticeKind.loadPublishedFailed =>
+        'Falha ao buscar a versão publicada. Tente novamente.',
     };
   }
 
@@ -45,7 +47,8 @@ abstract final class EditorNoticeMessage {
   static bool isFailure(EditorNoticeKind kind) => switch (kind) {
     EditorNoticeKind.publishFailed ||
     EditorNoticeKind.unpublishFailed ||
-    EditorNoticeKind.restoreFailed => true,
+    EditorNoticeKind.restoreFailed ||
+    EditorNoticeKind.loadPublishedFailed => true,
     _ => false,
   };
 }

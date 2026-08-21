@@ -19,6 +19,18 @@ class MockGetContentVersionsUseCase extends Mock
 
 class MockEditorCubit extends MockCubit<EditorState> implements EditorCubit {}
 
+class MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
+
+class MockSaveDraftUseCase extends Mock implements SaveDraftUseCase {}
+
+class MockPublishContentUseCase extends Mock implements PublishContentUseCase {}
+
+class MockUnpublishContentUseCase extends Mock
+    implements UnpublishContentUseCase {}
+
+class MockRestoreContentVersionUseCase extends Mock
+    implements RestoreContentVersionUseCase {}
+
 ContentSpec _specWithText(String text) => ContentSpec(
   specVersion: kSpecVersion,
   id: 'ct_1',
@@ -350,6 +362,125 @@ void main() {
       build: build,
       act: (cubit) => cubit.exit(),
       expect: () => <VersionCompareModeState>[],
+    );
+  });
+
+  group('returnToPublished', () {
+    late EditorCubit realEditorCubit;
+
+    EditorReady readyPublished({int? publishedVersion = 2}) => EditorReady(
+      document: draftSpec,
+      publication: PublicationState(
+        hasUnpublishedChanges: true,
+        publishedVersion: publishedVersion,
+      ),
+    );
+
+    setUp(() {
+      realEditorCubit = EditorCubit(
+        loadContentUseCase: MockLoadContentUseCase(),
+        saveDraftUseCase: MockSaveDraftUseCase(),
+        publishContentUseCase: MockPublishContentUseCase(),
+        unpublishContentUseCase: MockUnpublishContentUseCase(),
+        restoreContentVersionUseCase: MockRestoreContentVersionUseCase(),
+        projectId: 'p1',
+      );
+    });
+
+    tearDown(() => realEditorCubit.close());
+
+    VersionCompareModeCubit buildWithRealEditor() => VersionCompareModeCubit(
+      getContentVersionUseCase: getVersion,
+      getContentVersionsUseCase: getVersions,
+      editorCubit: realEditorCubit,
+    );
+
+    VersionCompareModeActive activeWith(LoadedContentVersion candidate) =>
+        VersionCompareModeActive(
+          candidate: candidate,
+          baseSpec: draftSpec,
+          result: compareContentSpecs(draftSpec, candidate.spec),
+          versions: page.items,
+        );
+
+    test('candidata já é a publicada: aplica o spec dela sem nova '
+        'requisição', () async {
+      realEditorCubit.emit(readyPublished());
+      final cubit = buildWithRealEditor()..emit(activeWith(v2));
+
+      final ok = await cubit.returnToPublished();
+
+      expect(ok, isTrue);
+      final state = realEditorCubit.state as EditorReady;
+      expect(state.document, v2Spec);
+      verifyNever(() => getVersion(any(), any()));
+      await cubit.close();
+    });
+
+    test(
+      'candidata diferente da publicada: busca a publicada e aplica',
+      () async {
+        realEditorCubit.emit(readyPublished());
+        final cubit = buildWithRealEditor()..emit(activeWith(v3));
+
+        final ok = await cubit.returnToPublished();
+
+        expect(ok, isTrue);
+        verify(() => getVersion('ct_1', 2)).called(1);
+        final state = realEditorCubit.state as EditorReady;
+        expect(state.document, v2Spec);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'sem versão publicada: devolve false e o documento não muda',
+      () async {
+        realEditorCubit.emit(readyPublished(publishedVersion: null));
+        final cubit = buildWithRealEditor()..emit(activeWith(v3));
+
+        final ok = await cubit.returnToPublished();
+
+        expect(ok, isFalse);
+        final state = realEditorCubit.state as EditorReady;
+        expect(state.document, draftSpec);
+        verifyNever(() => getVersion(any(), any()));
+        await cubit.close();
+      },
+    );
+
+    test(
+      'falha ao buscar a publicada: devolve false e o documento não muda',
+      () async {
+        realEditorCubit.emit(readyPublished());
+        when(
+          () => getVersion('ct_1', 2),
+        ).thenAnswer((_) async => const Left(UnexpectedFailure()));
+        final cubit = buildWithRealEditor()..emit(activeWith(v3));
+
+        final ok = await cubit.returnToPublished();
+
+        expect(ok, isFalse);
+        final state = realEditorCubit.state as EditorReady;
+        expect(state.document, draftSpec);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'um único undo devolve o documento ao estado anterior à volta',
+      () async {
+        realEditorCubit.emit(readyPublished());
+        final cubit = buildWithRealEditor()..emit(activeWith(v3));
+
+        await cubit.returnToPublished();
+        expect((realEditorCubit.state as EditorReady).document, v2Spec);
+
+        realEditorCubit.undo();
+
+        expect((realEditorCubit.state as EditorReady).document, draftSpec);
+        await cubit.close();
+      },
     );
   });
 }

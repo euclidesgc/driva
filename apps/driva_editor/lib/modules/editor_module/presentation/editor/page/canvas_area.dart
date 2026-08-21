@@ -9,6 +9,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/c
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_full_version_into_draft.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/return_to_published.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_unsafe_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +30,13 @@ class CanvasArea extends StatelessWidget {
     return BlocSelector<
       EditorCubit,
       EditorState,
-      ({DevicePreset device, double zoom, bool fitToWindow, bool ready})
+      ({
+        DevicePreset device,
+        double zoom,
+        bool fitToWindow,
+        bool ready,
+        bool isPublished,
+      })
     >(
       selector: (state) => state is EditorReady
           ? (
@@ -37,12 +44,14 @@ class CanvasArea extends StatelessWidget {
               zoom: state.zoom,
               fitToWindow: state.fitToWindow,
               ready: true,
+              isPublished: state.publication.isPublished,
             )
           : (
               device: DevicePreset.smartphone,
               zoom: 0.9,
               fitToWindow: true,
               ready: false,
+              isPublished: false,
             ),
       builder: (context, vm) => ValueListenableBuilder<bool>(
         valueListenable: layoutController.isFullscreen,
@@ -69,6 +78,17 @@ class CanvasArea extends StatelessWidget {
             },
             onDropOnNode: (payload, targetId) =>
                 _dispatch(cubit, payload, targetId),
+            onReturnToPublished: switch (compareState) {
+              VersionCompareModeActive() when mode != null && vm.isPublished =>
+                () => unawaited(
+                  returnToPublishedFlow(
+                    context,
+                    compareCubit: mode,
+                    editorCubit: cubit,
+                  ),
+                ),
+              _ => null,
+            },
             compareCandidateVersion: switch (compareState) {
               final VersionCompareModeActive s => s.candidate.version,
               _ => null,
