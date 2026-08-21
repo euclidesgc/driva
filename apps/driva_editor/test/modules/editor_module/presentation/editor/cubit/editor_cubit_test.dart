@@ -356,48 +356,6 @@ void main() {
     );
   });
 
-  group('copyPropertyFromVersion (T5b.11, item 50)', () {
-    blocTest<EditorCubit, EditorState>(
-      'undo depois da cópia volta ao valor digitado, não ao anterior a ele',
-      build: buildLoaded,
-      act: (cubit) {
-        cubit
-          ..updateProps('nd_text', {'data': 'Digitado'})
-          ..copyPropertyFromVersion('nd_text', 'data', 'Da versão')
-          ..undo();
-      },
-      verify: (cubit) {
-        final state = cubit.state as EditorReady;
-        final text = findNode(state.document.root!, 'nd_text')!;
-        expect(text.properties['data'], 'Digitado');
-      },
-    );
-
-    blocTest<EditorCubit, EditorState>(
-      'valor null remove a chave e marca o rascunho sujo',
-      build: buildLoaded,
-      act: (cubit) => cubit.copyPropertyFromVersion('nd_text', 'data', null),
-      verify: (cubit) {
-        final state = cubit.state as EditorReady;
-        final text = findNode(state.document.root!, 'nd_text')!;
-        expect(text.properties.containsKey('data'), isFalse);
-        expect(state.saveStatus, SaveStatus.dirty);
-      },
-    );
-
-    blocTest<EditorCubit, EditorState>(
-      'nodeId inexistente não altera o documento nem empilha undo',
-      build: buildLoaded,
-      act: (cubit) => cubit.copyPropertyFromVersion('nd_fantasma', 'data', 'x'),
-      expect: () => <EditorState>[],
-      verify: (cubit) {
-        final state = cubit.state as EditorReady;
-        expect(state.document, content);
-        expect(state.canUndo, isFalse);
-      },
-    );
-  });
-
   group('diagnósticos derivados do documento', () {
     blocTest<EditorCubit, EditorState>(
       'spacer solto fora de um flex aparece como erro',

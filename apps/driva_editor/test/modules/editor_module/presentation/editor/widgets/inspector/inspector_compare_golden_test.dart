@@ -110,8 +110,8 @@ void main() {
   tearDown(() => compareCubit.close());
 
   testWidgets(
-    'golden: painel direito em modo comparação — cabeçalho e setas por '
-    'propriedade',
+    'golden: painel direito em modo comparação — cabeçalho informativo, sem '
+    'controle de cópia por propriedade',
     (tester) async {
       tester.view.physicalSize = const Size(340, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -143,6 +143,15 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+
+      expect(
+        find.byType(OutlinedButton),
+        findsNothing,
+        reason:
+            'a única ação de restauração é a seta da barra da candidata, '
+            'fora do Inspector — nenhum controle de cópia por propriedade '
+            'ou por nó é montado aqui',
+      );
 
       await expectLater(
         find.byType(InspectorPanel),

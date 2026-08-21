@@ -11,18 +11,12 @@ class PropFieldEditor extends StatelessWidget {
     required this.field,
     required this.value,
     required this.onChanged,
-    this.onCopyFromVersion,
     super.key,
   });
 
   final PropField field;
   final Object? value;
   final ValueChanged<Object?> onChanged;
-
-  /// Não nulo só quando o modo de comparação está ativo e este campo tem
-  /// valor diferente na candidata — quem decide é `PropFieldCompareBinding`,
-  /// de propósito fora deste widget.
-  final VoidCallback? onCopyFromVersion;
 
   /// Kinds cujo editor monta a própria moldura: precisam de um controle na
   /// linha do rótulo que compartilha estado com o corpo (a unidade do campo de
@@ -56,9 +50,6 @@ class PropFieldEditor extends StatelessWidget {
     final resetButton = value != null && !field.isRequired && !_isBound
         ? PropResetButton(onPressed: () => onChanged(null))
         : null;
-    final copyButton = onCopyFromVersion != null
-        ? PropVersionCopyButton(onPressed: onCopyFromVersion!)
-        : null;
 
     if (expression == null && _selfChromed.contains(field.kind)) {
       return SelfChromedPropEditor(
@@ -67,7 +58,6 @@ class PropFieldEditor extends StatelessWidget {
         onChanged: onChanged,
         bindingButton: bindingButton,
         resetButton: resetButton,
-        copyFromVersionButton: copyButton,
       );
     }
 
@@ -75,7 +65,7 @@ class PropFieldEditor extends StatelessWidget {
       label: field.label,
       isRequired: field.isRequired,
       helpText: field.helpText,
-      actions: [?bindingButton, ?resetButton, ?copyButton],
+      actions: [?bindingButton, ?resetButton],
       body: expression != null
           ? PropBindingEditor(
               expression: expression,

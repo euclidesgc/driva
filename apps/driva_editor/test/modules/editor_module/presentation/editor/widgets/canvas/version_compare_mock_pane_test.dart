@@ -73,6 +73,7 @@ Widget _harness({
                   candidateVersion: 3,
                   onOlder: () {},
                   onNewer: () {},
+                  onLoadFullVersion: () {},
                   onClose: () {},
                 )
               : null,
@@ -240,6 +241,7 @@ void _paneEdgeTests() {
               candidateVersion: 3,
               onOlder: () {},
               onNewer: () {},
+              onLoadFullVersion: () {},
               onClose: () {},
               unsafeView: const VersionCompareUnsafeView(
                 failure: DuplicateNodeIdComparisonFailure(
@@ -282,6 +284,7 @@ void _paneEdgeTests() {
               candidateVersion: 3,
               onOlder: null,
               onNewer: null,
+              onLoadFullVersion: () {},
               onClose: () {},
             ),
           ),

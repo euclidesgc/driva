@@ -2,10 +2,10 @@ import 'package:driva_editor/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-/// ID duplicado bloqueia a comparação inteira (T5, item 50, item 4): nenhuma
-/// seta é exibida, o documento não é mutado, e a única saída é carregar a
-/// versão inteira — a mesma alternativa segura de qualquer diferença que a
-/// cópia seletiva não alcança.
+/// ID duplicado bloqueia a comparação inteira (T5, item 50, item 4): o
+/// documento não é mutado automaticamente, e a única saída é a mesma seta
+/// que restaura a versão inteira — comparar propriedade a propriedade não
+/// existe mais neste modo.
 class VersionCompareUnsafeView extends StatelessWidget {
   const VersionCompareUnsafeView({
     required this.failure,
@@ -22,9 +22,8 @@ class VersionCompareUnsafeView extends StatelessWidget {
     final message = switch (failure) {
       DuplicateNodeIdComparisonFailure() =>
         'Esta versão não pode ser comparada com segurança: há um ID '
-            'duplicado numa das árvores, o que tornaria qualquer cópia '
-            'ambígua. Nenhuma seta é exibida, e nada foi alterado no '
-            'rascunho.',
+            'duplicado numa das árvores. Nada foi alterado no rascunho — '
+            'use a seta abaixo para carregar a versão inteira mesmo assim.',
       _ => 'Esta versão não pode ser comparada com segurança.',
     };
 
