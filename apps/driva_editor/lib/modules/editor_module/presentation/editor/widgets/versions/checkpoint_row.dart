@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 /// A linha de um ponto marcado ao salvar, na mesma lista das publicações.
 ///
-/// Não tem número: `vN` é o que o usuário lê como "no ar (v3)", e só
+/// Não tem número: `vN` é o que o usuário lê como "publicada (v3)", e só
 /// publicação o consome. O que identifica um ponto é a nota que o autor
 /// escreveu — por isso ela vem no lugar de destaque, onde a versão põe o
 /// número.

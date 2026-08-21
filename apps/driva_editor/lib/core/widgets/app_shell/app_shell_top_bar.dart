@@ -53,8 +53,8 @@ class AppShellTopBar extends StatelessWidget {
                   onTap: () => context.goNamed(homeRouteName),
                 ),
                 // O status precede o `Spacer` porque seu texto muda de
-                // largura com o estado de publicação ("No ar (v3)" ×
-                // "Alterações não publicadas (no ar: v3)"). Depois do
+                // largura com o estado de publicação ("Publicado (v3)" ×
+                // "Alterações não publicadas (publicada: v3)"). Depois do
                 // `Spacer`, cada troca deslocava horizontalmente todos os
                 // botões. `Expanded` (fit tight) é obrigatório aqui — um
                 // `Flexible` (fit loose) encolhe até o conteúdo, então a

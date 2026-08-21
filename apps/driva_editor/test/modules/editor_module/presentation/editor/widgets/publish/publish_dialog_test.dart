@@ -65,7 +65,7 @@ void main() {
       await openDialog(tester, publication: publishedWithChanges);
 
       expect(
-        find.text('Isso cria a versão 3 e coloca ela no ar.'),
+        find.text('Isso cria a versão 3 e ela passa a ser a versão publicada.'),
         findsOneWidget,
       );
     });
@@ -74,18 +74,18 @@ void main() {
       await openDialog(tester, publication: neverPublished);
 
       expect(
-        find.text('Isso cria a versão 1 e coloca ela no ar.'),
+        find.text('Isso cria a versão 1 e ela passa a ser a versão publicada.'),
         findsOneWidget,
       );
     });
 
-    testWidgets('sem mudança: confirma manter a versão que já está no ar', (
+    testWidgets('sem mudança: confirma manter a versão já publicada', (
       tester,
     ) async {
       await openDialog(tester, publication: publishedUpToDate);
 
       expect(find.textContaining('Sem mudança'), findsOneWidget);
-      expect(find.textContaining('a v5 no ar'), findsOneWidget);
+      expect(find.textContaining('a v5 publicada'), findsOneWidget);
       expect(find.textContaining('Isso cria a versão'), findsNothing);
     });
   });

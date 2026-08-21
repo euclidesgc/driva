@@ -292,7 +292,7 @@ String _publishTooltip(PublishBlockReason? reason) => switch (reason) {
 String _unpublishTooltip(PublicationState publication) {
   if (publication.isPublished) return 'Despublicar';
   if (!publication.everPublished) return 'Despublicar (nunca foi publicado)';
-  return 'Despublicar (já está fora do ar)';
+  return 'Despublicar (já está despublicado)';
 }
 
 String _historyTooltip(
@@ -333,7 +333,7 @@ AppBarStatus _statusFor(SaveStatus status, PublicationState publication) {
   if (!publication.isPublished) {
     return AppBarStatus(
       icon: Icons.unpublished_outlined,
-      label: 'Fora do ar (última: v${publication.latestVersion})',
+      label: 'Despublicado (última: v${publication.latestVersion})',
       tone: AppBarStatusTone.danger,
     );
   }
@@ -341,13 +341,14 @@ AppBarStatus _statusFor(SaveStatus status, PublicationState publication) {
     return AppBarStatus(
       icon: Icons.edit_outlined,
       label:
-          'Alterações não publicadas (no ar: v${publication.publishedVersion})',
+          'Alterações não publicadas '
+          '(publicada: v${publication.publishedVersion})',
       tone: AppBarStatusTone.neutral,
     );
   }
   return AppBarStatus(
     icon: Icons.check_circle,
-    label: 'No ar (v${publication.publishedVersion})',
+    label: 'Publicado (v${publication.publishedVersion})',
     tone: AppBarStatusTone.success,
   );
 }
