@@ -17,6 +17,19 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 /// [unsafeView] substitui a moldura quando a comparação não pôde ser feita
 /// com segurança (IDs duplicados): o lugar do mock é onde o usuário procura
 /// a resposta, então a explicação mora ali, não numa faixa distante.
+///
+/// [showBar] desliga [VersionCompareCandidateBar] quando a identificação já
+/// vem de uma barra externa que atravessa os dois lados — lado a lado, ela
+/// mora em `VersionCompareModeBar`, não duplicada aqui. Continua ligada por
+/// padrão para o uso avulso (faixa estreita, um mock por vez).
+///
+/// A moldura entra em [OverflowBox], sem teto de altura: um `Column` com
+/// `Expanded` daria altura **tight** ao filho, e o `SizedBox` interno de
+/// `DeviceFrame` seria forçado a essa altura em vez da própria — o
+/// `Transform.scale` escalaria uma moldura já errada, produzindo uma altura
+/// renderizada diferente da do rascunho mesmo com o mesmo `effectiveScale`.
+/// O rascunho evita isso com `InteractiveViewer(constrained: false)`; aqui, o
+/// papel equivalente é do `OverflowBox`.
 class VersionCompareMockPane extends StatelessWidget {
   const VersionCompareMockPane({
     required this.device,
@@ -27,6 +40,7 @@ class VersionCompareMockPane extends StatelessWidget {
     required this.onNewer,
     required this.onLoadFullVersion,
     required this.onClose,
+    this.showBar = true,
     this.unsafeView,
     this.imageUrlResolver,
     super.key,
@@ -40,6 +54,7 @@ class VersionCompareMockPane extends StatelessWidget {
   final VoidCallback? onNewer;
   final VoidCallback onLoadFullVersion;
   final VoidCallback onClose;
+  final bool showBar;
   final Widget? unsafeView;
   final SduiImageUrlResolver? imageUrlResolver;
 
@@ -47,28 +62,33 @@ class VersionCompareMockPane extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        VersionCompareCandidateBar(
-          candidateVersion: candidateVersion,
-          onOlder: onOlder,
-          onNewer: onNewer,
-          onLoadFullVersion: onLoadFullVersion,
-          onClose: onClose,
-        ),
+        if (showBar)
+          VersionCompareCandidateBar(
+            candidateVersion: candidateVersion,
+            onOlder: onOlder,
+            onNewer: onNewer,
+            onLoadFullVersion: onLoadFullVersion,
+            onClose: onClose,
+          ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.s32),
             child:
                 unsafeView ??
-                Transform.scale(
-                  scale: effectiveScale,
+                OverflowBox(
                   alignment: Alignment.topCenter,
-                  child: RepaintBoundary(
-                    child: DeviceFrame(
-                      device: device,
-                      highlighted: false,
-                      child: VersionCompareInertPreview(
-                        spec: spec,
-                        imageUrlResolver: imageUrlResolver,
+                  maxHeight: double.infinity,
+                  child: Transform.scale(
+                    scale: effectiveScale,
+                    alignment: Alignment.topCenter,
+                    child: RepaintBoundary(
+                      child: DeviceFrame(
+                        device: device,
+                        highlighted: false,
+                        child: VersionCompareInertPreview(
+                          spec: spec,
+                          imageUrlResolver: imageUrlResolver,
+                        ),
                       ),
                     ),
                   ),

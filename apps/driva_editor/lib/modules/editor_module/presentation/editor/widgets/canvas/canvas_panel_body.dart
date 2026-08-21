@@ -18,6 +18,7 @@ class CanvasPanelBody extends StatelessWidget {
     required this.isFullscreen,
     required this.onToggleFullscreen,
     this.comparePane,
+    this.compareModeBar,
     this.imageUrlResolver,
     this.onOpenPreview,
     this.isComparing = false,
@@ -56,6 +57,11 @@ class CanvasPanelBody extends StatelessWidget {
   /// widget da paleta sobre a versão histórica não altera o rascunho.
   final Widget? comparePane;
 
+  /// A barra única do modo de comparação lado a lado, acima da `Row` dos
+  /// dois mocks — `null` fora do modo ou na faixa estreita de um mock por
+  /// vez, onde `CanvasCompareSideToggle` já identifica os lados.
+  final Widget? compareModeBar;
+
   final bool isComparing;
   final VoidCallback? onReturnToPublished;
 
@@ -76,6 +82,8 @@ class CanvasPanelBody extends StatelessWidget {
           isComparing: isComparing,
           onReturnToPublished: onReturnToPublished,
         ),
+        if (compareModeBar case final bar?)
+          SizedBox(width: double.infinity, child: bar),
         Expanded(
           child: CanvasMockArea(
             device: device,

@@ -20,6 +20,7 @@ class CanvasComparePane extends StatelessWidget {
     required this.effectiveScale,
     required this.cubit,
     required this.editorCubit,
+    this.showBar = true,
     this.imageUrlResolver,
     super.key,
   });
@@ -28,6 +29,7 @@ class CanvasComparePane extends StatelessWidget {
   final double effectiveScale;
   final VersionCompareModeCubit cubit;
   final EditorCubit editorCubit;
+  final bool showBar;
   final SduiImageUrlResolver? imageUrlResolver;
 
   @override
@@ -50,6 +52,7 @@ class CanvasComparePane extends StatelessWidget {
           effectiveScale: effectiveScale,
           spec: state.candidate.spec,
           candidateVersion: state.candidate.version,
+          showBar: showBar,
           imageUrlResolver: imageUrlResolver,
           onOlder: cubit.stepOlder,
           onNewer: cubit.stepNewer,

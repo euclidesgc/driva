@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
@@ -66,17 +67,19 @@ Widget _harness({
           compareSide: side,
           onCompareSideChanged: (_) {},
           compareBuilder: comparing
-              ? (scale) => VersionCompareMockPane(
+              ? (scale, {required sideBySide}) => VersionCompareMockPane(
                   device: DevicePreset.smartphone,
                   effectiveScale: scale,
                   spec: _candidateSpec,
                   candidateVersion: 3,
+                  showBar: !sideBySide,
                   onOlder: () {},
                   onNewer: () {},
                   onLoadFullVersion: () {},
                   onClose: () {},
                 )
               : null,
+          compareModeBar: comparing ? const _StubCompareModeBar() : null,
         ),
       ),
     ),
@@ -122,7 +125,7 @@ void main() {
 
   testWidgets(
     'com espaço de sobra, comparar mostra os dois mocks lado a lado, na '
-    'mesma escala',
+    'mesma escala e na mesma altura',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(1600, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -141,6 +144,13 @@ void main() {
         draftRect.width,
         closeTo(candidateRect.width, 0.5),
         reason: 'mocks de tamanhos diferentes não se comparam a olho',
+      );
+      expect(
+        draftRect.height,
+        closeTo(candidateRect.height, 1),
+        reason:
+            'a moldura do rascunho e a da candidata precisam da mesma '
+            'proporção — escalas diferentes enganam a comparação',
       );
       expect(
         draftRect.right,
@@ -315,3 +325,11 @@ void _paneEdgeTests() {
 }
 
 void _noop() {}
+
+class _StubCompareModeBar extends StatelessWidget {
+  const _StubCompareModeBar();
+
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox(height: AppSizes.canvasToolbarHeight);
+}

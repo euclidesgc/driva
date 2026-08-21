@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
@@ -187,6 +188,63 @@ void main() {
 
         await tester.tap(find.byTooltip('Ajustar à janela'));
         expect(toggled, isTrue);
+      },
+    );
+  });
+
+  group('modo de comparação lado a lado', () {
+    testWidgets(
+      'compareModeBar atravessa toda a largura da área de comparação, não '
+      'só o pane da candidata',
+      (tester) async {
+        const viewport = Size(1600, 900);
+        const barKey = Key('compare-mode-bar-stub');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: BlocProvider<EditorCubit>.value(
+                value: cubit,
+                child: SizedBox(
+                  width: viewport.width,
+                  height: viewport.height,
+                  child: CanvasPanel(
+                    device: DevicePreset.smartphone,
+                    zoom: 0.9,
+                    fitToWindow: true,
+                    onSelect: (_) {},
+                    onChangeDevice: (_) {},
+                    onChangeZoom: (_) {},
+                    onToggleFitToWindow: () {},
+                    onDropOnDevice: (_) {},
+                    onDropOnNode: (_, _) {},
+                    isFullscreen: false,
+                    onToggleFullscreen: () {},
+                    compareBuilder: (scale, {required sideBySide}) =>
+                        const SizedBox(),
+                    compareModeBar: const ColoredBox(
+                      key: barKey,
+                      color: Colors.transparent,
+                      child: SizedBox(height: AppSizes.canvasToolbarHeight),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final panelWidth = tester.getSize(find.byType(CanvasPanel)).width;
+        final barWidth = tester.getSize(find.byKey(barKey)).width;
+        expect(
+          barWidth,
+          closeTo(panelWidth, 0.5),
+          reason:
+              'a barra do modo de comparação precisa atravessar a largura '
+              'inteira do canvas, não só a metade do pane da candidata',
+        );
       },
     );
   });
