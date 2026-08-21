@@ -130,8 +130,9 @@ class VersionHistoryDialog extends StatelessWidget {
             VersionHistoryLoadFailure() => const Center(
               child: Text('Não foi possível carregar o histórico.'),
             ),
-            final VersionHistoryLoaded s when s.versions.isEmpty =>
-              const Center(child: Text('Nenhuma versão publicada ainda.')),
+            final VersionHistoryLoaded s when s.entries.isEmpty => const Center(
+              child: Text('Nenhuma versão ou ponto salvo ainda.'),
+            ),
             final VersionHistoryLoaded s =>
               NotificationListener<ScrollNotification>(
                 onNotification: (notification) =>
