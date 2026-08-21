@@ -18,6 +18,7 @@ export 'prop_binding_dialog.dart';
 export 'prop_binding_editor.dart';
 export 'prop_field_shell.dart';
 export 'prop_reset_button.dart';
+export 'prop_version_copy_button.dart';
 export 'self_chromed_prop_editor.dart';
 export 'string_editor.dart';
 export 'typed_prop_editor.dart';

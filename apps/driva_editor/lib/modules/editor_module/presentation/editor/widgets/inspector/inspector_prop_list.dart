@@ -2,9 +2,9 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/widgets/input/search_field.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_field_compare_binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_group_summary.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/prop_section.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -16,6 +16,7 @@ class InspectorPropList extends StatefulWidget {
     required this.properties,
     required this.descriptor,
     required this.onUpdateProps,
+    this.nodeId,
     this.collapsedSections,
     super.key,
   });
@@ -23,6 +24,11 @@ class InspectorPropList extends StatefulWidget {
   /// Identidade de quem é dono das props (id do nó, ou `page`): entra nas
   /// `ValueKey` dos editores para trocar de dono não reaproveitar o campo.
   final String ownerKey;
+
+  /// `null` no modo página (safe area): só um nó de verdade tem
+  /// correspondente na candidata comparada, então só ele oferece "trazer o
+  /// valor desta versão" por campo.
+  final String? nodeId;
 
   final Map<String, dynamic> properties;
   final WidgetDescriptor descriptor;
@@ -140,10 +146,12 @@ class _InspectorPropListState extends State<InspectorPropList> {
                             _toggleSection(group, expanded: expanded),
                         children: [
                           for (final field in _fieldsOf(group))
-                            PropFieldEditor(
+                            PropFieldCompareBinding(
                               key: ValueKey(
                                 '${widget.ownerKey}_${field.key}',
                               ),
+                              ownerKey: widget.ownerKey,
+                              nodeId: widget.nodeId,
                               field: field,
                               value: widget.properties[field.key],
                               onChanged: (value) =>
