@@ -452,11 +452,11 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
-  /// Copia uma propriedade da candidata comparada (T5b, item 50) para o
-  /// nó do rascunho; `value` nulo é o caso "a versão não tem essa
-  /// propriedade" e remove a chave, igual a [updateProps]. Não passa
-  /// `coalesceKey`: fundir com uma digitação anterior na mesma propriedade
-  /// faria um único `Ctrl+Z` desfazer as duas de uma vez.
+  /// Copia uma propriedade da candidata comparada para o nó do rascunho;
+  /// `value` nulo é o caso "a versão não tem essa propriedade" e remove a
+  /// chave, igual a [updateProps]. Não passa `coalesceKey`: fundir com uma
+  /// digitação anterior na mesma propriedade faria um único `Ctrl+Z`
+  /// desfazer as duas de uma vez.
   void copyPropertyFromVersion(
     String nodeId,
     String propertyKey,
@@ -655,11 +655,10 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
-  /// Aplica em memória o spec de uma versão já lida por GET (T3, item 50):
-  /// nunca chama o endpoint remoto `restore` — só o próximo [save] persiste.
-  /// Passa pelo mesmo [_emitDocument] de [restoreVersion], então vira uma
-  /// entrada de undo e marca o rascunho sujo, salvo quando a versão já é a
-  /// publicada.
+  /// Aplica em memória o spec de uma versão já lida por GET: nunca chama o
+  /// endpoint remoto `restore` — só o próximo [save] persiste. Passa pelo
+  /// mesmo [_emitDocument] de [restoreVersion], então vira uma entrada de
+  /// undo e marca o rascunho sujo, salvo quando a versão já é a publicada.
   void loadVersionIntoDraft(ContentSpec spec, {required int version}) {
     final current = state;
     if (current is! EditorReady) return;
@@ -678,10 +677,10 @@ class EditorCubit extends Cubit<EditorState> {
   }
 
   /// Aplica o resultado de `copyComparableNodeProperties` (motor puro do
-  /// `sdui_core`, T5 do item 50): [updatedDocument] já é o rascunho com só
-  /// as `properties` do nó copiado da candidata. Mesmo funil de
-  /// [_emitDocument] de qualquer edição comum — vira entrada de undo, marca
-  /// sujo, nunca persiste ou toca `restore` sozinho.
+  /// `sdui_core`): [updatedDocument] já é o rascunho com só as `properties`
+  /// do nó copiado da candidata. Mesmo funil de [_emitDocument] de qualquer
+  /// edição comum — vira entrada de undo, marca sujo, nunca persiste ou toca
+  /// `restore` sozinho.
   void applyComparedNodeProperties(ContentSpec updatedDocument) {
     final current = state;
     if (current is! EditorReady) return;

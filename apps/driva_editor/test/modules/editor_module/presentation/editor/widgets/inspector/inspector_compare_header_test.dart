@@ -166,6 +166,32 @@ void main() {
   });
 
   testWidgets(
+    'tipo mudou: mesmo com changedPropertyKeys/descriptor preenchidos, não '
+    'renderiza a contagem nem a linha "Sem campo no Inspector" — '
+    'comparar propriedades de tipos diferentes não tem significado',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          InspectorCompareHeader(
+            nodeId: 'nd_1',
+            diff: _diff(candidateType: 'container'),
+            candidateVersion: 3,
+            changedPropertyKeys: const {'data', 'shape'},
+            descriptor: _textDescriptor,
+            onCopyNodeProperties: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('propriedades alteradas'), findsNothing);
+      expect(find.textContaining('propriedade alterada'), findsNothing);
+      expect(find.textContaining('Sem campo no Inspector'), findsNothing);
+      expect(find.textContaining('shape'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'chave alterada sem PropField no descriptor aparece nomeada, avisando '
     'que só a ação de nó inteiro alcança',
     (tester) async {

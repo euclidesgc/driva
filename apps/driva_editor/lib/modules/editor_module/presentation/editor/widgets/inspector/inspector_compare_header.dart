@@ -70,11 +70,19 @@ class InspectorCompareHeader extends StatelessWidget {
     ];
     if (chips.isEmpty) return const SizedBox.shrink();
 
-    final descriptor = this.descriptor;
+    final typeChanged = diff?.typeChanged ?? false;
+
+    // Propriedades de tipos diferentes não se correspondem — comparar suas
+    // chaves não tem significado, então o cabeçalho ignora o que veio mesmo
+    // se o chamador as passar por engano.
+    final propertyKeysForDisplay = typeChanged
+        ? const <String>{}
+        : changedPropertyKeys;
+    final descriptor = typeChanged ? null : this.descriptor;
     final unmappedPropertyKeys = descriptor == null
         ? const <String>{}
         : {
-            for (final key in changedPropertyKeys)
+            for (final key in propertyKeysForDisplay)
               if (descriptor.fieldOf(key) == null) key,
           };
 
@@ -83,7 +91,7 @@ class InspectorCompareHeader extends StatelessWidget {
         !isOnlyInDraft &&
         !isOnlyInVersion &&
         (diff?.propertiesChanged ?? false) &&
-        !(diff?.typeChanged ?? false);
+        !typeChanged;
 
     return Container(
       margin: const EdgeInsets.all(AppSpacing.s12),
@@ -108,9 +116,9 @@ class InspectorCompareHeader extends StatelessWidget {
               for (final kind in chips) VersionCompareMarkerChip(kind: kind),
             ],
           ),
-          if (changedPropertyKeys.isNotEmpty)
+          if (propertyKeysForDisplay.isNotEmpty)
             Text(
-              _propertyCountLabel(changedPropertyKeys.length),
+              _propertyCountLabel(propertyKeysForDisplay.length),
               style: secondaryStyle,
             ),
           if (unmappedPropertyKeys.isNotEmpty)
@@ -129,7 +137,7 @@ class InspectorCompareHeader extends StatelessWidget {
               _whyNoButton(
                 isOnlyInDraft: isOnlyInDraft,
                 isOnlyInVersion: isOnlyInVersion,
-                typeChanged: diff?.typeChanged ?? false,
+                typeChanged: typeChanged,
                 candidateVersion: candidateVersion,
               ),
               style: secondaryStyle,

@@ -1,13 +1,14 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/version_compare_node_lookup.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 /// Decide, campo a campo, se o Inspector oferece "trazer o valor desta
-/// versão" (T5b.12, item 50) — de propósito fora do `InspectorVm` (mesma
-/// razão do `InspectorCompareSection`): o dado de comparação não tem `==`
+/// versão" — de propósito fora do `InspectorVm` (mesma razão do
+/// `InspectorCompareSection`): o dado de comparação não tem `==`
 /// escrito à mão, então mora num `BlocSelector` escopado ao par
 /// (nodeId, field.key), reconstruindo só este campo quando a candidata muda.
 class PropFieldCompareBinding extends StatelessWidget {
@@ -82,8 +83,8 @@ _Copyable _copyableFrom(
 }) {
   if (state is! VersionCompareModeActive) return _notCopyable;
 
-  final baseNode = _nodeById(state.baseSpec.root, nodeId);
-  final candidateNode = _nodeById(state.candidate.spec.root, nodeId);
+  final baseNode = nodeById(state.baseSpec.root, nodeId);
+  final candidateNode = nodeById(state.candidate.spec.root, nodeId);
   if (baseNode == null || candidateNode == null) return _notCopyable;
   if (baseNode.type != candidateNode.type) return _notCopyable;
   if (!changedPropertyKeys(baseNode, candidateNode).contains(propertyKey)) {
@@ -92,6 +93,3 @@ _Copyable _copyableFrom(
 
   return (canCopy: true, candidateValue: candidateNode.properties[propertyKey]);
 }
-
-SduiNode? _nodeById(SduiNode? root, String id) =>
-    root == null ? null : findNode(root, id);

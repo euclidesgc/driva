@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_binding.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/version_compare_node_lookup.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_compare_header.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -68,11 +69,9 @@ _NodePair? _correspondingNodes(
   String? nodeId,
 ) {
   if (nodeId == null) return null;
-  final base = _nodeById(state.baseSpec.root, nodeId);
-  final candidate = _nodeById(state.candidate.spec.root, nodeId);
+  final base = nodeById(state.baseSpec.root, nodeId);
+  final candidate = nodeById(state.candidate.spec.root, nodeId);
   if (base == null || candidate == null) return null;
+  if (base.type != candidate.type) return null;
   return (base: base, candidate: candidate);
 }
-
-SduiNode? _nodeById(SduiNode? root, String id) =>
-    root == null ? null : findNode(root, id);

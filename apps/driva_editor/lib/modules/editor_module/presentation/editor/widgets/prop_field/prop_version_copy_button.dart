@@ -3,8 +3,8 @@ import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
 /// A versão por-propriedade de "Trazer todas as propriedades desta versão"
-/// do cabeçalho do Inspector (T5b.12, item 50): traz só o valor deste campo
-/// da candidata comparada para o rascunho.
+/// do cabeçalho do Inspector: traz só o valor deste campo da candidata
+/// comparada para o rascunho.
 class PropVersionCopyButton extends StatelessWidget {
   const PropVersionCopyButton({required this.onPressed, super.key});
 

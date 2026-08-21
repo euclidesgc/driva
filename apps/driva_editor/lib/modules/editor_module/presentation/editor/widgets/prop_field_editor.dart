@@ -20,8 +20,8 @@ class PropFieldEditor extends StatelessWidget {
   final ValueChanged<Object?> onChanged;
 
   /// Não nulo só quando o modo de comparação está ativo e este campo tem
-  /// valor diferente na candidata (T5b.12, item 50) — quem decide é
-  /// `PropFieldCompareBinding`, de propósito fora deste widget.
+  /// valor diferente na candidata — quem decide é `PropFieldCompareBinding`,
+  /// de propósito fora deste widget.
   final VoidCallback? onCopyFromVersion;
 
   /// Kinds cujo editor monta a própria moldura: precisam de um controle na
