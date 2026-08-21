@@ -20,6 +20,8 @@ class CanvasPanelBody extends StatelessWidget {
     this.comparePane,
     this.imageUrlResolver,
     this.onOpenPreview,
+    this.isComparing = false,
+    this.onReturnToPublished,
     super.key,
   });
 
@@ -54,6 +56,9 @@ class CanvasPanelBody extends StatelessWidget {
   /// widget da paleta sobre a versão histórica não altera o rascunho.
   final Widget? comparePane;
 
+  final bool isComparing;
+  final VoidCallback? onReturnToPublished;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -68,6 +73,8 @@ class CanvasPanelBody extends StatelessWidget {
           onOpenPreview: onOpenPreview,
           isFullscreen: isFullscreen,
           onToggleFullscreen: onToggleFullscreen,
+          isComparing: isComparing,
+          onReturnToPublished: onReturnToPublished,
         ),
         Expanded(
           child: CanvasMockArea(

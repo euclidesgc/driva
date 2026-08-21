@@ -178,9 +178,9 @@ AppShellController _controllerWithStatus(String label) {
 /// Os três rótulos que o editor alterna de verdade, do mais curto ao mais
 /// longo — a largura entre eles varia em dezenas de pixels.
 const _statusLabels = [
-  'No ar (v3)',
+  'Publicado (v3)',
   'Nunca publicado',
-  'Alterações não publicadas (no ar: v3)',
+  'Alterações não publicadas (publicada: v3)',
 ];
 
 void _regressionTests() {

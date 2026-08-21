@@ -213,6 +213,37 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
     );
   }
 
+  /// D6: deixa o rascunho idêntico à versão publicada, em memória — uma
+  /// entrada de undo, nada persiste até o próximo `Salvar`. Quando a
+  /// candidata em tela já é a publicada, o spec dela é reusado sem nova
+  /// requisição.
+  Future<bool> returnToPublished() async {
+    final editorState = editorCubit.state;
+    if (editorState is! EditorReady) return false;
+    final publishedVersion = editorState.publication.publishedVersion;
+    if (publishedVersion == null) return false;
+
+    final current = state;
+    if (current is VersionCompareModeActive &&
+        current.candidate.version == publishedVersion) {
+      editorCubit.loadVersionIntoDraft(
+        current.candidate.spec,
+        version: publishedVersion,
+      );
+      return true;
+    }
+
+    final result = await getContentVersionUseCase(
+      editorState.document.id,
+      publishedVersion,
+    );
+    if (isClosed) return false;
+    return result.fold((_) => false, (loaded) {
+      editorCubit.loadVersionIntoDraft(loaded.spec, version: publishedVersion);
+      return true;
+    });
+  }
+
   /// D3: `Fechar comparação` só fecha, nada é revertido por baixo dos
   /// panos — o que foi copiado continua no rascunho, desfazível um a um por
   /// `Ctrl+Z` como qualquer edição manual.

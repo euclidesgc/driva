@@ -4,7 +4,7 @@ import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:flutter/material.dart';
 
-/// "No ar" / "Fora do ar" / "Rascunho" — ícone + texto, nunca só cor. O
+/// "Publicado" / "Despublicado" / "Rascunho" — ícone + texto, nunca só cor. O
 /// tooltip carrega a nuance que o rótulo curto omite (publicado com alterações
 /// pendentes de republicar, ou despublicado com histórico ainda guardado).
 class PublicationBadge extends StatelessWidget {
@@ -22,22 +22,24 @@ class PublicationBadge extends StatelessWidget {
   bool get _isPublished => publishedAt != null;
   bool get _everPublished => latestVersion != null;
 
-  String get _tooltip =>
-      switch ((_isPublished, hasUnpublishedChanges, _everPublished)) {
-        (true, true, _) => 'No ar, com alterações ainda não publicadas',
-        (true, false, _) => 'No ar — o que está publicado bate com o rascunho',
-        (false, _, true) =>
-          'Fora do ar — despublicado, o histórico de versões continua '
-              'guardado',
-        (false, _, false) => 'Nunca publicado',
-      };
+  String get _tooltip => switch ((
+    _isPublished,
+    hasUnpublishedChanges,
+    _everPublished,
+  )) {
+    (true, true, _) => 'Publicado, com alterações ainda não publicadas',
+    (true, false, _) => 'Publicado — a versão publicada bate com o rascunho',
+    (false, _, true) =>
+      'Despublicado — o histórico de versões continua guardado',
+    (false, _, false) => 'Nunca publicado',
+  };
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
     final label = switch ((_isPublished, _everPublished)) {
-      (true, _) => 'No ar',
-      (false, true) => 'Fora do ar',
+      (true, _) => 'Publicado',
+      (false, true) => 'Despublicado',
       (false, false) => 'Rascunho',
     };
     final icon = switch ((_isPublished, _everPublished)) {

@@ -1,0 +1,37 @@
+import 'package:driva_editor/core/theme/app_icon_sizes.dart';
+import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
+import 'package:flutter/material.dart';
+
+/// Nome do lado esquerdo durante o modo de comparação (D6): a barra da
+/// candidata já diz `Versão N`, e sem esta legenda o mock editável ficava
+/// sendo o único sem nome. Some junto com o colapso das ações secundárias —
+/// nesse aperto a faixa estreita com o alternador nomeando os lados está
+/// logo adiante.
+class CanvasCompareDraftLegend extends StatelessWidget {
+  const CanvasCompareDraftLegend({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<EditorColors>()!;
+    return Tooltip(
+      message: 'Rascunho — o lado editável da comparação',
+      child: Semantics(
+        label: 'Rascunho — o lado editável da comparação',
+        excludeSemantics: true,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.edit_outlined,
+              size: AppIconSizes.s16,
+              color: colors.inkSecondary,
+            ),
+            const SizedBox(width: AppSpacing.s4),
+            Text('Rascunho', style: TextStyle(color: colors.inkPrimary)),
+          ],
+        ),
+      ),
+    );
+  }
+}

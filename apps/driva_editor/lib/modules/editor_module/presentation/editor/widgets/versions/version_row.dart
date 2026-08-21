@@ -4,7 +4,8 @@ import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row_actions.dart';
 import 'package:flutter/material.dart';
 
-/// Uma linha do histórico: versão, data, nota (se houver), selo "No ar" e as
+/// Uma linha do histórico: versão, data, nota (se houver), selo "Publicada"
+/// e as
 /// três ações da T3 (item 50) — `Ver`, `Comparar` e `Carregar no rascunho`.
 /// Selecionar a linha em si não faz nada: só um botão explícito age.
 class VersionRow extends StatelessWidget {
@@ -59,7 +60,7 @@ class VersionRow extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.s4),
                 Text(
-                  'No ar',
+                  'Publicada',
                   style: TextStyle(
                     fontSize: AppTypography.sm,
                     color: colors.success,

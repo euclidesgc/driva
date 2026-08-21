@@ -1,7 +1,12 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +25,12 @@ class _MockUnpublishContentUseCase extends Mock
 
 class _MockRestoreContentVersionUseCase extends Mock
     implements RestoreContentVersionUseCase {}
+
+class _MockGetContentVersionUseCase extends Mock
+    implements GetContentVersionUseCase {}
+
+class _MockGetContentVersionsUseCase extends Mock
+    implements GetContentVersionsUseCase {}
 
 void main() {
   late EditorCubit cubit;
@@ -44,12 +55,21 @@ void main() {
 
   tearDown(() => cubit.close());
 
-  Widget harness() => MaterialApp(
+  Widget harness({VersionCompareModeCubit? compareCubit}) => MaterialApp(
     theme: AppTheme.light,
     home: Scaffold(
       body: BlocProvider<EditorCubit>.value(
         value: cubit,
-        child: const SizedBox(width: 280, height: 600, child: LeftPanel()),
+        child: SizedBox(
+          width: 280,
+          height: 600,
+          child: compareCubit == null
+              ? const LeftPanel()
+              : VersionCompareModeScope(
+                  cubit: compareCubit,
+                  child: const LeftPanel(),
+                ),
+        ),
       ),
     ),
   );
@@ -84,6 +104,108 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('marcadores de diff do modo de comparação (T5b.8)', () {
+    const rootedDocument = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_1',
+      name: 'Home',
+      slug: 'home',
+      root: SduiNode(id: 'n_root', type: 'text', properties: {'data': 'Olá'}),
+    );
+
+    VersionCompareModeActive activeAgainst(
+      ContentSpec candidateSpec,
+      int version,
+    ) {
+      return VersionCompareModeActive(
+        candidate: LoadedContentVersion(
+          version: version,
+          spec: candidateSpec,
+          createdAt: DateTime.utc(2026, 8, 16),
+        ),
+        baseSpec: rootedDocument,
+        result: compareContentSpecs(rootedDocument, candidateSpec),
+        versions: const [],
+      );
+    }
+
+    VersionCompareModeCubit buildCompareCubit() => VersionCompareModeCubit(
+      getContentVersionUseCase: _MockGetContentVersionUseCase(),
+      getContentVersionsUseCase: _MockGetContentVersionsUseCase(),
+      editorCubit: cubit,
+    );
+
+    Future<void> openTree(WidgetTester tester) async {
+      await tester.tap(find.text('Árvore'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('trocar a candidata troca o marcador da mesma linha', (
+      tester,
+    ) async {
+      cubit.emit(const EditorReady(document: rootedDocument));
+      final compareCubit = buildCompareCubit();
+      addTearDown(compareCubit.close);
+
+      const propsChangedSpec = ContentSpec(
+        specVersion: kSpecVersion,
+        id: 'ct_1',
+        name: 'Home',
+        slug: 'home',
+        root: SduiNode(
+          id: 'n_root',
+          type: 'text',
+          properties: {'data': 'Outro texto'},
+        ),
+      );
+      const typeChangedSpec = ContentSpec(
+        specVersion: kSpecVersion,
+        id: 'ct_1',
+        name: 'Home',
+        slug: 'home',
+        root: SduiNode(id: 'n_root', type: 'button'),
+      );
+
+      compareCubit.emit(activeAgainst(propsChangedSpec, 3));
+      await tester.pumpWidget(harness(compareCubit: compareCubit));
+      await openTree(tester);
+
+      final rowFinder = find.ancestor(
+        of: find.textContaining('Olá'),
+        matching: find.byType(TreeRowContent),
+      );
+      TreeRowDiffMarker markerInRow() => tester.widget<TreeRowDiffMarker>(
+        find.descendant(
+          of: rowFinder,
+          matching: find.byType(TreeRowDiffMarker),
+        ),
+      );
+
+      expect(
+        markerInRow().kind,
+        VersionCompareMarkerKind.propertiesChanged,
+      );
+
+      compareCubit.emit(activeAgainst(typeChangedSpec, 2));
+      await tester.pumpAndSettle();
+
+      expect(markerInRow().kind, VersionCompareMarkerKind.typeChanged);
+    });
+
+    testWidgets('modo inativo: nenhuma linha da árvore tem marcador', (
+      tester,
+    ) async {
+      cubit.emit(const EditorReady(document: rootedDocument));
+      final compareCubit = buildCompareCubit();
+      addTearDown(compareCubit.close);
+
+      await tester.pumpWidget(harness(compareCubit: compareCubit));
+      await openTree(tester);
+
+      expect(find.byType(TreeRowDiffMarker), findsNothing);
     });
   });
 }

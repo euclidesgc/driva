@@ -39,6 +39,7 @@ class CanvasPanel extends StatelessWidget {
     this.compareCandidateVersion,
     this.imageUrlResolver,
     this.onOpenPreview,
+    this.onReturnToPublished,
     super.key,
   });
 
@@ -67,6 +68,10 @@ class CanvasPanel extends StatelessWidget {
   /// lados — mocks em tamanhos diferentes não se comparam a olho — e ela só
   /// existe depois de medir o viewport aqui dentro.
   final Widget Function(double effectiveScale)? compareBuilder;
+
+  /// D6: a volta à versão publicada, oferecida na barra do canvas só
+  /// durante o modo — `null` também quando não há versão publicada.
+  final VoidCallback? onReturnToPublished;
 
   /// Qual mock está visível quando a janela não comporta os dois.
   final CanvasCompareSide compareSide;
@@ -130,6 +135,8 @@ class CanvasPanel extends StatelessWidget {
               onOpenPreview: onOpenPreview,
               isFullscreen: isFullscreen,
               onToggleFullscreen: onToggleFullscreen,
+              isComparing: true,
+              onReturnToPublished: onReturnToPublished,
             ),
           );
         }
@@ -149,6 +156,8 @@ class CanvasPanel extends StatelessWidget {
           isFullscreen: isFullscreen,
           onToggleFullscreen: onToggleFullscreen,
           comparePane: compareBuilder?.call(effectiveScale),
+          isComparing: isComparing,
+          onReturnToPublished: isComparing ? onReturnToPublished : null,
         );
       },
     );

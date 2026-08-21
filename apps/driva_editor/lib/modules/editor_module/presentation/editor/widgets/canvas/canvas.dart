@@ -1,4 +1,5 @@
 export 'camera_cutout.dart';
+export 'canvas_compare_draft_legend.dart';
 export 'canvas_compare_side.dart';
 export 'canvas_compare_side_toggle.dart';
 export 'canvas_compare_single_mock.dart';
@@ -13,6 +14,7 @@ export 'node_drag_feedback.dart';
 export 'node_tag.dart';
 export 'preview_share_dialog.dart';
 export 'preview_surface.dart';
+export 'return_to_published_button.dart';
 export 'selectable_node.dart';
 export 'selectable_node_surface.dart';
 export 'side_button.dart';

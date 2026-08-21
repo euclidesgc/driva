@@ -158,6 +158,16 @@ abstract final class AppSizes {
   /// zoom — os controles sem os quais um canvas estreito não é utilizável.
   static const double canvasToolbarActionsFitWidth = 580;
 
+  /// Largura somada da legenda `Rascunho` e do botão `Voltar à versão
+  /// publicada` por extenso, com os respiros — os itens que o modo de
+  /// comparação acrescenta à barra do canvas. É descontada da largura medida
+  /// antes de classificá-la contra os limiares acima, para que eles
+  /// continuem significando "espaço que sobra para os controles de sempre":
+  /// sem o desconto, a barra estourava no modo em qualquer janela comum,
+  /// porque os limiares foram calibrados sem os itens do modo (a mesma lição
+  /// da top bar no item 52 — a barra decide contando as próprias ações).
+  static const double canvasToolbarCompareExtrasWidth = 400;
+
   /// O piso da barra: abaixo desta largura sobram só os presets de device e
   /// os botões +/- de zoom, com o ajuste à janela indo para o menu, o
   /// percentual saindo (o mock já mostra a escala) e os respiros caindo para
@@ -185,8 +195,12 @@ abstract final class AppSizes {
 
   /// Abaixo desta largura **disponível para a barra da versão comparada**, os
   /// rótulos saem e sobram os ícones: na faixa estreita o mock já ocupa a
-  /// largura inteira e a barra tem de caber junto dele.
-  static const double versionCompareBarLabelsFitWidth = 520;
+  /// largura inteira e a barra tem de caber junto dele. Recalibrado de 520
+  /// para 720 na F2b: com selo e rótulo por extenso a barra mede ~681
+  /// (medido por teste de widget em 2026-08-20, estouro de 43px aos 638),
+  /// então o limiar antigo mostrava rótulos numa faixa larga em que não
+  /// cabiam. 720 = 681 + a folga de ~40 usada nas outras cercas de barra.
+  static const double versionCompareBarLabelsFitWidth = 720;
 
   // F3 — status bar do mock (D29).
   /// Largura da cápsula do indicador de home do mock — cabe sem colidir com

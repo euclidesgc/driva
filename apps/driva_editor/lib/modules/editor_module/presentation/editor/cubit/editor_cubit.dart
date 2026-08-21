@@ -647,6 +647,15 @@ class EditorCubit extends Cubit<EditorState> {
     _emitDocument(current, spec, markUnpublished: !loadsPublishedVersion);
   }
 
+  /// A volta à versão publicada mora no cubit do modo de comparação, que
+  /// não tem canal próprio para a barra de status — a falha dele aparece
+  /// aqui, no mesmo lugar das falhas de publicar/restaurar.
+  void notifyLoadPublishedFailed() {
+    final current = state;
+    if (current is! EditorReady) return;
+    _emitNotice(current, EditorNoticeKind.loadPublishedFailed);
+  }
+
   /// Aplica o resultado de `copyComparableNodeProperties` (motor puro do
   /// `sdui_core`, T5 do item 50): [updatedDocument] já é o rascunho com só
   /// as `properties` do nó copiado da candidata. Mesmo funil de
@@ -724,7 +733,8 @@ class EditorCubit extends Cubit<EditorState> {
   /// histórico. Um `emit` que troque `document` por fora abre buraco silencioso
   /// no desfazer.
   ///
-  /// Também é aqui que a top bar deixa de mentir "No ar (vN)" depois de uma
+  /// Também é aqui que a top bar deixa de mentir "Publicado (vN)" depois de
+  /// uma
   /// edição: se [EditorReady.publication] ainda estava "publicado e sem
   /// pendência", a mutação marca `hasUnpublishedChanges`. O valor definitivo
   /// (versão/data) só volta do servidor no próximo [publish]/[loadContent];

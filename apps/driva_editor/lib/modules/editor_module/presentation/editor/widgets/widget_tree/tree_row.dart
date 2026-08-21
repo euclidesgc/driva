@@ -5,6 +5,8 @@ import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/remove_node_labels.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_node_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_content.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -19,6 +21,7 @@ class TreeRow extends StatelessWidget {
     required this.onSelect,
     required this.onRemove,
     required this.onAccept,
+    this.diffMarkerKind,
     super.key,
   });
 
@@ -27,23 +30,12 @@ class TreeRow extends StatelessWidget {
   final bool isRoot;
   final bool isSelected;
   final List<SpecDiagnostic> diagnostics;
+  final VersionCompareMarkerKind? diffMarkerKind;
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
   final ValueChanged<DragPayload> onAccept;
 
-  String get _label {
-    final descriptor = descriptorFor(node.type);
-    final base = descriptor?.label ?? node.type;
-    final text = node.properties['data'];
-    if (node.type == 'text' && text is String && text.isNotEmpty) {
-      return '$base — “$text”';
-    }
-    final buttonLabel = node.properties['label'];
-    if (node.type == 'button' && buttonLabel is String) {
-      return '$base — “$buttonLabel”';
-    }
-    return isRoot ? 'Conteúdo ($base)' : base;
-  }
+  String get _label => treeNodeLabel(node, isRoot: isRoot);
 
   String get _removeLabel => isRoot ? clearContentLabel : removeNodeLabel;
 
@@ -63,6 +55,7 @@ class TreeRow extends StatelessWidget {
         nodeType: node.type,
         depth: depth,
         diagnostics: diagnostics,
+        diffMarkerKind: diffMarkerKind,
         onSelect: onSelect,
         onRemove: onRemove,
         removeLabel: _removeLabel,

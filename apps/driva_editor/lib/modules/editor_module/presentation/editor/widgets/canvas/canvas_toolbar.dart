@@ -16,6 +16,8 @@ class CanvasToolbar extends StatelessWidget {
     required this.onOpenPreview,
     required this.isFullscreen,
     required this.onToggleFullscreen,
+    this.isComparing = false,
+    this.onReturnToPublished,
     super.key,
   });
 
@@ -43,6 +45,11 @@ class CanvasToolbar extends StatelessWidget {
   final bool isFullscreen;
   final VoidCallback onToggleFullscreen;
 
+  final bool isComparing;
+
+  /// `null` fora do modo ou sem versão publicada — o botão nem é montado.
+  final VoidCallback? onReturnToPublished;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
@@ -51,7 +58,9 @@ class CanvasToolbar extends StatelessWidget {
     // garante barra larga.
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
+        final width =
+            constraints.maxWidth -
+            (isComparing ? AppSizes.canvasToolbarCompareExtrasWidth : 0);
         final dense = width < AppSizes.canvasToolbarDenseFitWidth;
         return Container(
           height: AppSizes.canvasToolbarHeight,
@@ -75,6 +84,8 @@ class CanvasToolbar extends StatelessWidget {
             onOpenPreview: onOpenPreview,
             isFullscreen: isFullscreen,
             onToggleFullscreen: onToggleFullscreen,
+            isComparing: isComparing,
+            onReturnToPublished: onReturnToPublished,
           ),
         );
       },

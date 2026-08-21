@@ -15,6 +15,8 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/edit
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/inspector_area.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/left_panel.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/right_panel_rail.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/version_compare_candidate_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/status_bar/editor_status_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
 import 'package:driva_editor/modules/preferences_module/preferences_module.dart';
@@ -38,6 +40,12 @@ class _MockUnpublishContentUseCase extends Mock
 
 class _MockRestoreContentVersionUseCase extends Mock
     implements RestoreContentVersionUseCase {}
+
+class _MockGetContentVersionsUseCase extends Mock
+    implements GetContentVersionsUseCase {}
+
+class _MockGetContentVersionUseCase extends Mock
+    implements GetContentVersionUseCase {}
 
 class _MockThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 
@@ -390,4 +398,35 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'página recém-montada começa fora do modo de comparação — nem barra da '
+    'candidata, nem legenda Rascunho (T5b.20)',
+    (tester) async {
+      enlarge(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<EditorCubit>.value(value: cubit),
+              BlocProvider<ThemeCubit>.value(value: themeCubit),
+            ],
+            child: EditorPage(
+              projectFuture: Future<Either<Failure, Project>>.value(
+                const Left(UnexpectedFailure()),
+              ),
+              layoutController: layoutController,
+              getContentVersionsUseCase: _MockGetContentVersionsUseCase(),
+              getContentVersionUseCase: _MockGetContentVersionUseCase(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(VersionCompareCandidateBar), findsNothing);
+      expect(find.byType(CanvasCompareDraftLegend), findsNothing);
+    },
+  );
 }

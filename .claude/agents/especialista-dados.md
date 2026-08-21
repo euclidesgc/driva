@@ -1,6 +1,7 @@
 ---
 name: especialista-dados
 model: sonnet
+tools: Read, Edit, Write, Bash, Grep, Glob
 description: Especialista da camada data do driva — models com validação zard e implementações de repositório atrás do contrato. Único dono do try/catch. Acionado pelo tech-manager na implementação das fases.
 ---
 

@@ -6,6 +6,8 @@ import 'package:driva_editor/core/widgets/app_shell/app_bar_action.dart';
 import 'package:driva_editor/core/widgets/app_shell/app_shell_actions_overflow_menu.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_draft_legend.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/return_to_published_button.dart';
 import 'package:flutter/material.dart';
 
 /// A faixa de controles do canvas numa largura já classificada pela
@@ -27,6 +29,8 @@ class CanvasToolbarRow extends StatelessWidget {
     required this.onOpenPreview,
     required this.isFullscreen,
     required this.onToggleFullscreen,
+    this.isComparing = false,
+    this.onReturnToPublished,
     super.key,
   });
 
@@ -42,6 +46,8 @@ class CanvasToolbarRow extends StatelessWidget {
   final VoidCallback? onOpenPreview;
   final bool isFullscreen;
   final VoidCallback onToggleFullscreen;
+  final bool isComparing;
+  final VoidCallback? onReturnToPublished;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +80,19 @@ class CanvasToolbarRow extends StatelessWidget {
 
     return Row(
       children: [
+        if (isComparing) ...[
+          if (!collapseSecondary) ...[
+            const CanvasCompareDraftLegend(),
+            SizedBox(width: gap),
+          ],
+          if (onReturnToPublished != null) ...[
+            ReturnToPublishedButton(
+              onPressed: onReturnToPublished!,
+              collapsed: collapseSecondary,
+            ),
+            SizedBox(width: gap),
+          ],
+        ],
         SegmentedButton<DevicePreset>(
           segments: [
             for (final preset in DevicePreset.values)

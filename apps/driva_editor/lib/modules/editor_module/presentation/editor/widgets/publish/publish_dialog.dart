@@ -61,9 +61,10 @@ class _PublishDialogState extends State<PublishDialog> {
           children: [
             Text(
               widget.publication.hasUnpublishedChanges
-                  ? 'Isso cria a versão $nextVersion e coloca ela no ar.'
+                  ? 'Isso cria a versão $nextVersion e ela passa a ser '
+                        'a versão publicada.'
                   : 'Sem mudança desde a última publicação — confirma manter '
-                        'a v${widget.publication.publishedVersion} no ar.',
+                        'a v${widget.publication.publishedVersion} publicada.',
             ),
             if (widget.warningsCount > 0) ...[
               const SizedBox(height: AppSpacing.s12),

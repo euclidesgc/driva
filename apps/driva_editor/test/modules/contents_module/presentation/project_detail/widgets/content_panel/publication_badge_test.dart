@@ -24,7 +24,7 @@ void main() {
     );
   }
 
-  testWidgets('publicado e em dia: "No ar" com ícone e tooltip', (
+  testWidgets('publicado e em dia: "Publicado" com ícone e tooltip', (
     tester,
   ) async {
     await pumpBadge(
@@ -33,10 +33,10 @@ void main() {
       hasUnpublishedChanges: false,
     );
 
-    expect(find.text('No ar'), findsOneWidget);
+    expect(find.text('Publicado'), findsOneWidget);
     expect(find.byIcon(Icons.public), findsOneWidget);
     expect(
-      find.byTooltip('No ar — o que está publicado bate com o rascunho'),
+      find.byTooltip('Publicado — a versão publicada bate com o rascunho'),
       findsOneWidget,
     );
   });
@@ -50,10 +50,10 @@ void main() {
       hasUnpublishedChanges: true,
     );
 
-    expect(find.text('No ar'), findsOneWidget);
+    expect(find.text('Publicado'), findsOneWidget);
     expect(find.byIcon(Icons.public), findsOneWidget);
     expect(
-      find.byTooltip('No ar, com alterações ainda não publicadas'),
+      find.byTooltip('Publicado, com alterações ainda não publicadas'),
       findsOneWidget,
     );
   });
@@ -68,7 +68,7 @@ void main() {
     );
 
     expect(find.text('Rascunho'), findsOneWidget);
-    expect(find.text('No ar'), findsNothing);
+    expect(find.text('Publicado'), findsNothing);
     expect(find.byIcon(Icons.edit_note_outlined), findsOneWidget);
     expect(find.byIcon(Icons.public), findsNothing);
     expect(find.byTooltip('Nunca publicado'), findsOneWidget);
@@ -86,7 +86,7 @@ void main() {
 
       expect(
         find.bySemanticsLabel(
-          'No ar: No ar, com alterações ainda não publicadas',
+          'Publicado: Publicado, com alterações ainda não publicadas',
         ),
         findsOneWidget,
       );
