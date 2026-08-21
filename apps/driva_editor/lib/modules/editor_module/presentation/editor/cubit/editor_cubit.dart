@@ -452,6 +452,27 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  /// Copia uma propriedade da candidata comparada (T5b, item 50) para o
+  /// nó do rascunho; `value` nulo é o caso "a versão não tem essa
+  /// propriedade" e remove a chave, igual a [updateProps]. Não passa
+  /// `coalesceKey`: fundir com uma digitação anterior na mesma propriedade
+  /// faria um único `Ctrl+Z` desfazer as duas de uma vez.
+  void copyPropertyFromVersion(
+    String nodeId,
+    String propertyKey,
+    Object? value,
+  ) {
+    final current = state;
+    if (current is! EditorReady) return;
+    final root = current.document.root;
+    if (root == null) return;
+    if (sdui.findNode(root, nodeId) == null) return;
+    _emitRoot(
+      current,
+      sdui.updateNodeProps(root, nodeId, {propertyKey: value}),
+    );
+  }
+
   /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
   void updateSafeAreaProps(Map<String, dynamic> patch) {
     final current = state;
