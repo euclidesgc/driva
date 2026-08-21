@@ -86,6 +86,17 @@ unitário + widget, com golden onde o pixel importa; o teste de contrato (Jest n
 continua. Os dois blocos abaixo — critérios de admissão e formato de roteiro — ficam
 registrados para quando a suspensão cair, e **não autorizam E2E novo enquanto ela valer**.
 
+**A régua de conclusão, com o E2E suspenso** _(decisão do dono, 2026-08-21)_: **um item fecha
+`[x]` com a pirâmide automatizada verde** — unitário, widget, golden onde o pixel importa e o
+teste de contrato. Não espera validação em aparelho, porque ela não pode ser escrita enquanto a
+suspensão valer. O que **só o hardware ou o navegador real provam** não vira fase bloqueante nem
+`[-]` eterno: vai para a seção **_Validações de campo pendentes_** do `docs/roadmap.md`, com o
+item de origem e o que exatamente ficou sem verificação, e o dono roda quando tiver o aparelho na
+mão. **A lista é obrigação de quem fecha o item** — fechar sem registrar o que ficou de fora é o
+que transforma troca consciente em esquecimento. O risco assumido tem nome e precedente: o
+`android.permission.INTERNET` que faltava no manifest release do app de demonstração era invisível
+para `analyze`, para a suíte inteira e para todo build de debug, e só apareceu num aparelho.
+
 **O E2E entrava quando, e só quando, um destes fosse verdade:**
 
 1. **Integração real que nenhum fake reproduz** — Postgres/Prisma de verdade, transação, CORS, ETag, rate limit, deploy no Coolify.
