@@ -41,4 +41,9 @@ abstract final class AppSpacing {
   static const double s180 = 180;
 
   static const double s320 = 320;
+
+  // Largura do diálogo "Ver no celular" (item 51): 320 quebrava os três
+  // parágrafos do bloco de download do APK em muitas linhas, empurrando o
+  // botão para fora da área visível sem indício de scroll.
+  static const double s420 = 420;
 }

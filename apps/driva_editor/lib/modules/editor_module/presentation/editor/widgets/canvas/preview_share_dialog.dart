@@ -51,7 +51,7 @@ class PreviewShareDialog extends StatelessWidget {
       // conteúdo, e o `QrImageView` usa `LayoutBuilder` — que não responde a
       // intrínsecas e derruba o layout do diálogo inteiro.
       content: SizedBox(
-        width: AppSpacing.s320,
+        width: AppSpacing.s420,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
