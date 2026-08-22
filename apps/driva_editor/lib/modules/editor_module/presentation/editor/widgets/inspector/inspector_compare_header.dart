@@ -15,7 +15,7 @@ import 'package:sdui_core/sdui_core.dart';
 /// cabeçalho não oferece nenhum controle de cópia por nó ou por propriedade.
 class InspectorCompareHeader extends StatelessWidget {
   const InspectorCompareHeader({
-    required this.candidateVersion,
+    required this.candidateLabel,
     this.diff,
     this.isOnlyInDraft = false,
     this.isOnlyInVersion = false,
@@ -38,7 +38,9 @@ class InspectorCompareHeader extends StatelessWidget {
 
   final WidgetDescriptor? descriptor;
 
-  final int candidateVersion;
+  /// Já formatado por `historyEntryPhraseReference` — "a versão N" ou "o
+  /// ponto salvo […]".
+  final String candidateLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +91,7 @@ class InspectorCompareHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: AppSpacing.s8,
         children: [
-          Text(
-            'Comparando com a versão $candidateVersion',
-            style: secondaryStyle,
-          ),
+          Text('Comparando com $candidateLabel', style: secondaryStyle),
           Wrap(
             spacing: AppSpacing.s8,
             runSpacing: AppSpacing.s8,

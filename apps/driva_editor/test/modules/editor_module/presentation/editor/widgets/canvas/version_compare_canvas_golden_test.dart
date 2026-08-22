@@ -1,4 +1,5 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,12 @@ const _candidateSpec = ContentSpec(
   ),
 );
 
+final _candidate = LoadedContentVersion(
+  version: 3,
+  spec: _candidateSpec,
+  createdAt: DateTime.utc(2026, 8, 16),
+);
+
 void main() {
   setUpAll(() async {
     await loadAppFonts();
@@ -50,7 +57,7 @@ void main() {
             device: DevicePreset.smartphone,
             effectiveScale: 0.55,
             spec: _candidateSpec,
-            candidateVersion: 3,
+            candidate: _candidate,
             onOlder: () {},
             onNewer: () {},
             onLoadFullVersion: () {},
@@ -79,7 +86,7 @@ void main() {
           theme: AppTheme.light,
           home: Scaffold(
             body: VersionCompareCandidateBar(
-              candidateVersion: 3,
+              candidate: _candidate,
               onOlder: () {},
               onNewer: () {},
               onLoadFullVersion: () {},

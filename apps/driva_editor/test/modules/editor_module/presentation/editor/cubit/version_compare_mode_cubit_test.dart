@@ -17,6 +17,12 @@ class MockGetContentVersionUseCase extends Mock
 class MockGetContentVersionsUseCase extends Mock
     implements GetContentVersionsUseCase {}
 
+class MockGetContentCheckpointUseCase extends Mock
+    implements GetContentCheckpointUseCase {}
+
+class MockGetContentCheckpointsUseCase extends Mock
+    implements GetContentCheckpointsUseCase {}
+
 class MockEditorCubit extends MockCubit<EditorState> implements EditorCubit {}
 
 class MockLoadContentUseCase extends Mock implements LoadContentUseCase {}
@@ -46,12 +52,15 @@ ContentSpec _specWithText(String text) => ContentSpec(
 void main() {
   late MockGetContentVersionUseCase getVersion;
   late MockGetContentVersionsUseCase getVersions;
+  late MockGetContentCheckpointUseCase getCheckpoint;
+  late MockGetContentCheckpointsUseCase getCheckpoints;
   late MockEditorCubit editorCubit;
   late StreamController<EditorState> editorStates;
 
   final draftSpec = _specWithText('rascunho ao vivo');
   final v3Spec = _specWithText('como era na v3');
   final v2Spec = _specWithText('como era na v2');
+  final cp1Spec = _specWithText('como era no ponto salvo');
 
   final v3 = LoadedContentVersion(
     version: 3,
@@ -70,11 +79,30 @@ void main() {
     createdAt: DateTime.utc(2026, 8, 14),
   );
 
+  // Entre v3 (16/08) e v2 (15/08 00h): a linha do tempo mesclada fica
+  // v3, cp1, v2, v1 — o vizinho de cada espécie é sempre o outro tipo.
+  final cp1 = LoadedContentCheckpoint(
+    id: 'cp_1',
+    spec: cp1Spec,
+    createdAt: DateTime.utc(2026, 8, 15, 18),
+    note: 'Antes do lançamento',
+  );
+
   final page = ContentVersionsPage(
     items: [
       ContentVersion(version: 3, createdAt: DateTime.utc(2026, 8, 16)),
       ContentVersion(version: 2, createdAt: DateTime.utc(2026, 8, 15)),
       ContentVersion(version: 1, createdAt: DateTime.utc(2026, 8, 14)),
+    ],
+  );
+
+  final checkpointsPage = ContentCheckpointsPage(
+    items: [
+      ContentCheckpoint(
+        id: 'cp_1',
+        createdAt: DateTime.utc(2026, 8, 15, 18),
+        note: 'Antes do lançamento',
+      ),
     ],
   );
 
@@ -93,6 +121,8 @@ void main() {
   setUp(() {
     getVersion = MockGetContentVersionUseCase();
     getVersions = MockGetContentVersionsUseCase();
+    getCheckpoint = MockGetContentCheckpointUseCase();
+    getCheckpoints = MockGetContentCheckpointsUseCase();
     editorCubit = MockEditorCubit();
     editorStates = StreamController<EditorState>.broadcast();
 
@@ -105,6 +135,12 @@ void main() {
     when(
       () => getVersions('ct_1', cursor: any(named: 'cursor')),
     ).thenAnswer((_) async => Right(page));
+    when(
+      () => getCheckpoint('ct_1', 'cp_1'),
+    ).thenAnswer((_) async => Right(cp1));
+    when(
+      () => getCheckpoints('ct_1', cursor: any(named: 'cursor')),
+    ).thenAnswer((_) async => Right(checkpointsPage));
   });
 
   tearDown(() => editorStates.close());
@@ -112,6 +148,14 @@ void main() {
   VersionCompareModeCubit build() => VersionCompareModeCubit(
     getContentVersionUseCase: getVersion,
     getContentVersionsUseCase: getVersions,
+    editorCubit: editorCubit,
+  );
+
+  VersionCompareModeCubit buildWithCheckpoints() => VersionCompareModeCubit(
+    getContentVersionUseCase: getVersion,
+    getContentVersionsUseCase: getVersions,
+    getContentCheckpointUseCase: getCheckpoint,
+    getContentCheckpointsUseCase: getCheckpoints,
     editorCubit: editorCubit,
   );
 
@@ -124,7 +168,7 @@ void main() {
       expect: () => [
         const VersionCompareModeLoading(candidateVersion: 3),
         isA<VersionCompareModeActive>()
-            .having((s) => s.candidate.version, 'candidate.version', 3)
+            .having((s) => s.candidate, 'candidate', v3)
             .having((s) => s.baseSpec, 'baseSpec', draftSpec)
             .having((s) => s.versions.length, 'versions.length', 3),
       ],
@@ -157,7 +201,7 @@ void main() {
       expect: () => [
         const VersionCompareModeLoading(candidateVersion: 3),
         isA<VersionCompareModeActive>()
-            .having((s) => s.candidate.version, 'candidate.version', 3)
+            .having((s) => s.candidate, 'candidate', v3)
             .having((s) => s.versions, 'versions', isEmpty),
       ],
     );
@@ -174,7 +218,7 @@ void main() {
       skip: 2,
       expect: () => [
         isA<VersionCompareModeActive>()
-            .having((s) => s.candidate.version, 'candidate.version', 2)
+            .having((s) => s.candidate, 'candidate', v2)
             .having((s) => s.candidate.spec, 'candidate.spec', v2Spec)
             .having((s) => s.baseSpec, 'baseSpec', draftSpec),
       ],
@@ -204,9 +248,9 @@ void main() {
       skip: 2,
       expect: () => [
         isA<VersionCompareModeActive>().having(
-          (s) => s.candidate.version,
-          'candidate.version',
-          2,
+          (s) => s.candidate,
+          'candidate',
+          v2,
         ),
       ],
     );
@@ -235,12 +279,116 @@ void main() {
       skip: 3,
       expect: () => [
         isA<VersionCompareModeActive>().having(
-          (s) => s.candidate.version,
-          'candidate.version',
-          1,
+          (s) => s.candidate,
+          'candidate',
+          v1,
         ),
       ],
       verify: (_) => verify(() => getVersion('ct_1', 1)).called(1),
+    );
+  });
+
+  group('enterCheckpoint', () {
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'sucesso: Loading e depois Active com o spec do checkpoint e o diff '
+      'contra o rascunho',
+      build: buildWithCheckpoints,
+      act: (cubit) => cubit.enterCheckpoint('cp_1'),
+      expect: () => [
+        const VersionCompareModeLoading(candidateCheckpointId: 'cp_1'),
+        isA<VersionCompareModeActive>()
+            .having((s) => s.candidate, 'candidate', cp1)
+            .having((s) => s.baseSpec, 'baseSpec', draftSpec)
+            .having(
+              (s) => s.result,
+              'result',
+              compareContentSpecs(draftSpec, cp1Spec),
+            ),
+      ],
+      verify: (_) => verify(() => getCheckpoint('ct_1', 'cp_1')).called(1),
+    );
+
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'sem GetContentCheckpointUseCase, entrar com um checkpoint não faz '
+      'nada — comparar ponto salvo simplesmente não é oferecido',
+      build: build,
+      act: (cubit) => cubit.enterCheckpoint('cp_1'),
+      expect: () => <VersionCompareModeState>[],
+      verify: (_) => verifyZeroInteractions(getVersions),
+    );
+  });
+
+  group('navegação entre publicação e ponto salvo', () {
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'stepOlder de uma publicação anda para o ponto salvo vizinho mais '
+      'antigo da linha do tempo mesclada',
+      build: buildWithCheckpoints,
+      act: (cubit) async {
+        await cubit.enter(3);
+        await cubit.stepOlder();
+      },
+      skip: 2,
+      expect: () => [
+        isA<VersionCompareModeActive>().having(
+          (s) => s.candidate,
+          'candidate',
+          cp1,
+        ),
+      ],
+    );
+
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'stepOlder de um ponto salvo anda para a publicação vizinha mais '
+      'antiga',
+      build: buildWithCheckpoints,
+      act: (cubit) async {
+        await cubit.enterCheckpoint('cp_1');
+        await cubit.stepOlder();
+      },
+      skip: 2,
+      expect: () => [
+        isA<VersionCompareModeActive>().having(
+          (s) => s.candidate,
+          'candidate',
+          v2,
+        ),
+      ],
+    );
+
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'stepNewer de um ponto salvo volta para a publicação vizinha mais '
+      'nova',
+      build: buildWithCheckpoints,
+      act: (cubit) async {
+        await cubit.enterCheckpoint('cp_1');
+        await cubit.stepNewer();
+      },
+      skip: 2,
+      expect: () => [
+        isA<VersionCompareModeActive>().having(
+          (s) => s.candidate,
+          'candidate',
+          v3,
+        ),
+      ],
+    );
+
+    blocTest<VersionCompareModeCubit, VersionCompareModeState>(
+      'checkpoint sem a lista de pontos salvos carregada não aparece na '
+      'linha do tempo — ‹ › ficam sem para onde ir, em vez de virar botão '
+      'morto',
+      build: () => VersionCompareModeCubit(
+        getContentVersionUseCase: getVersion,
+        getContentVersionsUseCase: getVersions,
+        getContentCheckpointUseCase: getCheckpoint,
+        editorCubit: editorCubit,
+      ),
+      act: (cubit) => cubit.enterCheckpoint('cp_1'),
+      skip: 1,
+      verify: (cubit) {
+        final state = cubit.state as VersionCompareModeActive;
+        expect(state.canNavigateHistory, isFalse);
+      },
     );
   });
 
@@ -263,7 +411,7 @@ void main() {
               'texto da base',
               'acabei de digitar',
             )
-            .having((s) => s.candidate.version, 'candidate.version', 3),
+            .having((s) => s.candidate, 'candidate', v3),
       ],
     );
   });
@@ -506,5 +654,57 @@ void main() {
       expect((realEditorCubit.state as EditorReady).document, draftSpec);
       await cubit.close();
     });
+  });
+
+  group('aplicar um ponto salvo', () {
+    late EditorCubit realEditorCubit;
+
+    setUp(() {
+      realEditorCubit =
+          EditorCubit(
+            loadContentUseCase: MockLoadContentUseCase(),
+            saveDraftUseCase: MockSaveDraftUseCase(),
+            publishContentUseCase: MockPublishContentUseCase(),
+            unpublishContentUseCase: MockUnpublishContentUseCase(),
+            restoreContentVersionUseCase: MockRestoreContentVersionUseCase(),
+            projectId: 'p1',
+          )..emit(
+            EditorReady(
+              document: draftSpec,
+              publication: const PublicationState(
+                hasUnpublishedChanges: false,
+                publishedVersion: 3,
+              ),
+            ),
+          );
+    });
+
+    tearDown(() => realEditorCubit.close());
+
+    VersionCompareModeCubit buildWithRealEditor() => VersionCompareModeCubit(
+      getContentVersionUseCase: getVersion,
+      getContentVersionsUseCase: getVersions,
+      getContentCheckpointUseCase: getCheckpoint,
+      getContentCheckpointsUseCase: getCheckpoints,
+      editorCubit: realEditorCubit,
+    );
+
+    test(
+      'escreve o spec do checkpoint no rascunho e marca como não publicado, '
+      'mesmo havendo uma versão publicada',
+      () async {
+        final cubit = buildWithRealEditor();
+        await cubit.enterCheckpoint('cp_1');
+
+        cubit.applyCandidateToDraft();
+
+        expect(cubit.state, isA<VersionCompareModeInactive>());
+        final state = realEditorCubit.state as EditorReady;
+        expect(state.document, cp1Spec);
+        expect(state.publication.hasUnpublishedChanges, isTrue);
+        expect(state.isReadOnly, isFalse);
+        await cubit.close();
+      },
+    );
   });
 }

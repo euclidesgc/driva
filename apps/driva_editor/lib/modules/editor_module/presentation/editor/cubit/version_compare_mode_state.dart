@@ -11,12 +11,16 @@ final class VersionCompareModeInactive extends VersionCompareModeState {
 }
 
 final class VersionCompareModeLoading extends VersionCompareModeState {
-  const VersionCompareModeLoading({required this.candidateVersion});
+  const VersionCompareModeLoading({
+    this.candidateVersion,
+    this.candidateCheckpointId,
+  });
 
-  final int candidateVersion;
+  final int? candidateVersion;
+  final String? candidateCheckpointId;
 
   @override
-  List<Object?> get props => [candidateVersion];
+  List<Object?> get props => [candidateVersion, candidateCheckpointId];
 }
 
 final class VersionCompareModeActive extends VersionCompareModeState {
@@ -24,13 +28,16 @@ final class VersionCompareModeActive extends VersionCompareModeState {
     required this.candidate,
     required this.baseSpec,
     required this.result,
-    required this.versions,
+    this.versions = const [],
+    this.checkpoints = const [],
     this.nextCursor,
+    this.checkpointsCursor,
     this.isLoadingMore = false,
   });
 
-  /// A versão histórica escolhida, inerte no mock da direita.
-  final LoadedContentVersion candidate;
+  /// A entrada histórica escolhida, inerte no mock da direita — publicação
+  /// ou ponto salvo.
+  final LoadedHistoryEntry candidate;
 
   /// O rascunho ao vivo, sincronizado pelo `editorCubit.stream` a cada
   /// mudança — nunca a versão publicada: escolher entre rascunho e versão no
@@ -40,18 +47,51 @@ final class VersionCompareModeActive extends VersionCompareModeState {
 
   final Either<ComparisonFailure, SpecComparisonResult> result;
 
-  /// Página(s) já carregadas do histórico, mais nova no índice 0 — o
-  /// `‹`/`›` da barra da candidata navega por aqui antes de pedir mais.
+  /// Publicações e pontos salvos já carregados, cada lista com o próprio
+  /// cursor — as duas espécies paginam por chaves diferentes (número vs.
+  /// data), igual a `VersionHistoryLoaded`. [entries] é quem os mescla na
+  /// ordem que o `‹`/`›` da barra da candidata percorre.
   final List<ContentVersion> versions;
+  final List<ContentCheckpoint> checkpoints;
   final String? nextCursor;
+  final String? checkpointsCursor;
   final bool isLoadingMore;
 
+  List<ContentHistoryEntry> get entries =>
+      mergeHistoryEntries(versions: versions, checkpoints: checkpoints);
+
+  bool get hasMoreHistory => nextCursor != null || checkpointsCursor != null;
+
+  int get _candidateIndex => entries.indexWhere(
+    (entry) => switch ((entry, candidate)) {
+      (
+        PublishedVersionEntry(version: final v),
+        LoadedContentVersion(:final version),
+      ) =>
+        v.version == version,
+      (
+        CheckpointEntry(checkpoint: final c),
+        LoadedContentCheckpoint(:final id),
+      ) =>
+        c.id == id,
+      _ => false,
+    },
+  );
+
+  /// `‹`/`›` só navegam quando a candidata aparece na linha do tempo já
+  /// carregada — sem ela (ex.: um checkpoint revisado sem a lista de pontos
+  /// salvos ter chegado), não há vizinho para achar, e um botão que nunca
+  /// reage é pior que um botão desabilitado.
+  bool get canNavigateHistory => _candidateIndex >= 0;
+
   VersionCompareModeActive copyWith({
-    LoadedContentVersion? candidate,
+    LoadedHistoryEntry? candidate,
     ContentSpec? baseSpec,
     Either<ComparisonFailure, SpecComparisonResult>? result,
     List<ContentVersion>? versions,
+    List<ContentCheckpoint>? checkpoints,
     String? Function()? nextCursor,
+    String? Function()? checkpointsCursor,
     bool? isLoadingMore,
   }) {
     return VersionCompareModeActive(
@@ -59,7 +99,11 @@ final class VersionCompareModeActive extends VersionCompareModeState {
       baseSpec: baseSpec ?? this.baseSpec,
       result: result ?? this.result,
       versions: versions ?? this.versions,
+      checkpoints: checkpoints ?? this.checkpoints,
       nextCursor: nextCursor != null ? nextCursor() : this.nextCursor,
+      checkpointsCursor: checkpointsCursor != null
+          ? checkpointsCursor()
+          : this.checkpointsCursor,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
@@ -70,7 +114,9 @@ final class VersionCompareModeActive extends VersionCompareModeState {
     baseSpec,
     result,
     versions,
+    checkpoints,
     nextCursor,
+    checkpointsCursor,
     isLoadingMore,
   ];
 }
@@ -78,12 +124,18 @@ final class VersionCompareModeActive extends VersionCompareModeState {
 final class VersionCompareModeFailure extends VersionCompareModeState {
   const VersionCompareModeFailure({
     required this.failure,
-    required this.candidateVersion,
+    this.candidateVersion,
+    this.candidateCheckpointId,
   });
 
   final Failure failure;
-  final int candidateVersion;
+  final int? candidateVersion;
+  final String? candidateCheckpointId;
 
   @override
-  List<Object?> get props => [failure, candidateVersion];
+  List<Object?> get props => [
+    failure,
+    candidateVersion,
+    candidateCheckpointId,
+  ];
 }

@@ -51,7 +51,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         _harness(
-          InspectorCompareHeader(diff: _diff(), candidateVersion: 3),
+          InspectorCompareHeader(diff: _diff(), candidateLabel: 'a versão 3'),
         ),
       );
       await tester.pumpAndSettle();
@@ -73,7 +73,7 @@ void main() {
       _harness(
         InspectorCompareHeader(
           diff: _diff(candidateType: 'container'),
-          candidateVersion: 3,
+          candidateLabel: 'a versão 3',
         ),
       ),
     );
@@ -88,7 +88,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        const InspectorCompareHeader(isOnlyInDraft: true, candidateVersion: 3),
+        const InspectorCompareHeader(
+          isOnlyInDraft: true,
+          candidateLabel: 'a versão 3',
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -104,7 +107,7 @@ void main() {
       _harness(
         const InspectorCompareHeader(
           safeAreaChanged: true,
-          candidateVersion: 3,
+          candidateLabel: 'a versão 3',
         ),
       ),
     );
@@ -125,7 +128,7 @@ void main() {
       _harness(
         InspectorCompareHeader(
           diff: _diff(propertiesChanged: false),
-          candidateVersion: 3,
+          candidateLabel: 'a versão 3',
         ),
       ),
     );
@@ -143,7 +146,7 @@ void main() {
         _harness(
           InspectorCompareHeader(
             diff: _diff(candidateType: 'container'),
-            candidateVersion: 3,
+            candidateLabel: 'a versão 3',
             changedPropertyKeys: const {'data', 'shape'},
             descriptor: _textDescriptor,
           ),
@@ -166,7 +169,7 @@ void main() {
         _harness(
           InspectorCompareHeader(
             diff: _diff(),
-            candidateVersion: 3,
+            candidateLabel: 'a versão 3',
             changedPropertyKeys: const {'data', 'shape'},
             descriptor: _textDescriptor,
           ),
@@ -189,7 +192,7 @@ void main() {
         _harness(
           InspectorCompareHeader(
             diff: _diff(),
-            candidateVersion: 3,
+            candidateLabel: 'a versão 3',
             changedPropertyKeys: changedKeys,
             descriptor: _textDescriptor,
           ),

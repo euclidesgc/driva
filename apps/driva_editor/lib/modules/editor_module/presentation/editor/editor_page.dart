@@ -30,6 +30,7 @@ class EditorPage extends StatefulWidget {
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
     this.getContentCheckpointsUseCase,
+    this.getContentCheckpointUseCase,
     super.key,
   });
 
@@ -74,6 +75,11 @@ class EditorPage extends StatefulWidget {
   /// outros use cases de versão.
   final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
 
+  /// Repassado até `VersionHistoryDialog` e `VersionCompareModeCubit` (item
+  /// 53), pelas três ações (`Ver`/`Comparar`/`Carregar no rascunho`) de um
+  /// ponto salvo — mesma opcionalidade dos outros use cases de versão.
+  final GetContentCheckpointUseCase? getContentCheckpointUseCase;
+
   static Widget pageBuilder(BuildContext context, GoRouterState state) {
     final projectId = state.pathParameters['projectId'];
     final id = state.pathParameters['id'];
@@ -112,6 +118,7 @@ class EditorPage extends StatefulWidget {
         getContentVersionsUseCase: getIt<GetContentVersionsUseCase>(),
         getContentVersionUseCase: getIt<GetContentVersionUseCase>(),
         getContentCheckpointsUseCase: getIt<GetContentCheckpointsUseCase>(),
+        getContentCheckpointUseCase: getIt<GetContentCheckpointUseCase>(),
       ),
     );
   }
@@ -169,6 +176,8 @@ class _EditorPageState extends State<EditorPage> {
                     getContentVersionUseCase: widget.getContentVersionUseCase,
                     getContentCheckpointsUseCase:
                         widget.getContentCheckpointsUseCase,
+                    getContentCheckpointUseCase:
+                        widget.getContentCheckpointUseCase,
                   )
                 : _editorBootScaffold,
           ),

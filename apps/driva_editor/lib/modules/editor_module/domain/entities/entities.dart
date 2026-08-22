@@ -5,6 +5,5 @@ export 'content_version.dart';
 export 'content_versions_page.dart';
 export 'editor_layout_snapshot.dart';
 export 'loaded_content.dart';
-export 'loaded_content_checkpoint.dart';
-export 'loaded_content_version.dart';
+export 'loaded_history_entry.dart';
 export 'publication_state.dart';

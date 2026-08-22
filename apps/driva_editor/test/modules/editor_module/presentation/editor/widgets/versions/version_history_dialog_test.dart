@@ -34,6 +34,12 @@ class MockGetContentVersionsUseCase extends Mock
 class MockGetContentVersionUseCase extends Mock
     implements GetContentVersionUseCase {}
 
+class MockGetContentCheckpointsUseCase extends Mock
+    implements GetContentCheckpointsUseCase {}
+
+class MockGetContentCheckpointUseCase extends Mock
+    implements GetContentCheckpointUseCase {}
+
 void main() {
   late MockLoadContentUseCase loadContent;
   late MockSaveDraftUseCase saveDraft;
@@ -42,6 +48,8 @@ void main() {
   late MockRestoreContentVersionUseCase restoreContentVersion;
   late MockGetContentVersionsUseCase getContentVersions;
   late MockGetContentVersionUseCase getContentVersion;
+  late MockGetContentCheckpointsUseCase getContentCheckpoints;
+  late MockGetContentCheckpointUseCase getContentCheckpoint;
 
   const document = ContentSpec(
     specVersion: kSpecVersion,
@@ -74,6 +82,35 @@ void main() {
     items: [ContentVersion(version: 3, createdAt: DateTime.utc(2026, 8, 16))],
   );
 
+  const checkpointSpec = ContentSpec(
+    specVersion: kSpecVersion,
+    id: 'ct_1',
+    name: 'Home',
+    slug: 'home',
+    root: SduiNode(
+      id: 'nd_root',
+      type: 'text',
+      properties: {'data': 'como era no ponto salvo'},
+    ),
+  );
+
+  final loadedCheckpoint = LoadedContentCheckpoint(
+    id: 'cp_1',
+    spec: checkpointSpec,
+    createdAt: DateTime.utc(2026, 8, 15),
+    note: 'Antes do lançamento',
+  );
+
+  final checkpointsPage = ContentCheckpointsPage(
+    items: [
+      ContentCheckpoint(
+        id: 'cp_1',
+        createdAt: DateTime.utc(2026, 8, 15),
+        note: 'Antes do lançamento',
+      ),
+    ],
+  );
+
   setUp(() {
     loadContent = MockLoadContentUseCase();
     saveDraft = MockSaveDraftUseCase();
@@ -82,10 +119,18 @@ void main() {
     restoreContentVersion = MockRestoreContentVersionUseCase();
     getContentVersions = MockGetContentVersionsUseCase();
     getContentVersion = MockGetContentVersionUseCase();
+    getContentCheckpoints = MockGetContentCheckpointsUseCase();
+    getContentCheckpoint = MockGetContentCheckpointUseCase();
 
     when(
       () => getContentVersions('ct_1'),
     ).thenAnswer((_) async => Right(page));
+    when(
+      () => getContentCheckpoints('ct_1'),
+    ).thenAnswer((_) async => Right(checkpointsPage));
+    when(
+      () => getContentCheckpoint('ct_1', 'cp_1'),
+    ).thenAnswer((_) async => Right(loadedCheckpoint));
   });
 
   EditorCubit buildEditorCubit({bool dirty = false}) =>
@@ -155,6 +200,64 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  VersionCompareModeCubit buildCompareModeWithCheckpoints(
+    EditorCubit editorCubit,
+  ) => VersionCompareModeCubit(
+    getContentVersionUseCase: getContentVersion,
+    getContentVersionsUseCase: getContentVersions,
+    getContentCheckpointUseCase: getContentCheckpoint,
+    getContentCheckpointsUseCase: getContentCheckpoints,
+    editorCubit: editorCubit,
+  );
+
+  Future<void> openHistoryWithCheckpoint(
+    WidgetTester tester,
+    EditorCubit editorCubit, {
+    VersionCompareModeCubit? compareMode,
+  }) async {
+    tester.view.physicalSize = const Size(1600, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final historyCubit = VersionHistoryCubit(
+      getContentVersionsUseCase: getContentVersions,
+      contentId: 'ct_1',
+      getContentCheckpointsUseCase: getContentCheckpoints,
+    );
+    unawaited(historyCubit.load());
+    addTearDown(historyCubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => BlocProvider.value(
+                  value: historyCubit,
+                  child: VersionHistoryDialog(
+                    editorCubit: editorCubit,
+                    compareModeCubit:
+                        compareMode ??
+                        buildCompareModeWithCheckpoints(editorCubit),
+                    getContentVersionUseCase: getContentVersion,
+                    getContentCheckpointUseCase: getContentCheckpoint,
+                  ),
+                ),
+              ),
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+  }
+
   group('Comparar', () {
     testWidgets(
       'liga o modo de comparação com a versão da linha e fecha o histórico — '
@@ -176,9 +279,9 @@ void main() {
         expect(
           compareMode.state,
           isA<VersionCompareModeActive>().having(
-            (s) => s.candidate.version,
-            'candidate.version',
-            3,
+            (s) => s.candidate,
+            'candidate',
+            loadedVersion,
           ),
         );
       },
@@ -234,9 +337,9 @@ void main() {
         expect(
           compareMode.state,
           isA<VersionCompareModeActive>().having(
-            (s) => s.candidate.version,
-            'candidate.version',
-            2,
+            (s) => s.candidate,
+            'candidate',
+            olderVersion,
           ),
         );
         expect(
@@ -402,6 +505,99 @@ void main() {
       );
       expect(editorCubit.state, before);
       expect(find.text('Histórico de versões'), findsOneWidget);
+    });
+  });
+
+  group('Ponto salvo (checkpoint)', () {
+    testWidgets('a linha do checkpoint mostra as três ações', (tester) async {
+      final editorCubit = buildEditorCubit();
+      addTearDown(editorCubit.close);
+
+      await openHistoryWithCheckpoint(tester, editorCubit);
+
+      expect(find.text('Antes do lançamento'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Ver'), findsNWidgets(2));
+      expect(
+        find.widgetWithText(OutlinedButton, 'Comparar'),
+        findsNWidgets(2),
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
+        findsNWidgets(2),
+      );
+    });
+
+    testWidgets(
+      'Comparar liga o modo de comparação com aquele checkpoint',
+      (tester) async {
+        final editorCubit = buildEditorCubit();
+        addTearDown(editorCubit.close);
+        final compareMode = buildCompareModeWithCheckpoints(editorCubit);
+        addTearDown(compareMode.close);
+
+        await openHistoryWithCheckpoint(
+          tester,
+          editorCubit,
+          compareMode: compareMode,
+        );
+        await tester.tap(find.widgetWithText(OutlinedButton, 'Comparar').last);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(VersionHistoryDialog), findsNothing);
+        expect(
+          compareMode.state,
+          isA<VersionCompareModeActive>().having(
+            (s) => s.candidate,
+            'candidate',
+            loadedCheckpoint,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'Carregar no rascunho pede confirmação nomeando o ponto salvo e, '
+      'confirmada, carrega o spec dele',
+      (tester) async {
+        final editorCubit = buildEditorCubit();
+        addTearDown(editorCubit.close);
+
+        await openHistoryWithCheckpoint(tester, editorCubit);
+        await tester.tap(
+          find.widgetWithText(OutlinedButton, 'Carregar no rascunho').last,
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('ponto salvo'),
+          findsWidgets,
+          reason: 'a confirmação nomeia o ponto salvo, nunca "versão"',
+        );
+
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'Carregar no rascunho'),
+        );
+        await tester.pumpAndSettle();
+
+        final state = editorCubit.state as EditorReady;
+        expect(state.document, checkpointSpec);
+        expect(state.saveStatus, SaveStatus.dirty);
+        expect(find.text('Histórico de versões'), findsNothing);
+      },
+    );
+
+    testWidgets('Ver abre a revisão com o cabeçalho do ponto salvo', (
+      tester,
+    ) async {
+      final editorCubit = buildEditorCubit();
+      addTearDown(editorCubit.close);
+
+      await openHistoryWithCheckpoint(tester, editorCubit);
+      await tester.tap(find.widgetWithText(FilledButton, 'Ver').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Antes do lançamento'), findsWidgets);
+      expect(find.text('Somente leitura'), findsOneWidget);
     });
   });
 }

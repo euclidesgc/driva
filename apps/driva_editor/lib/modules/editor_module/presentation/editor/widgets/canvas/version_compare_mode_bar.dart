@@ -49,9 +49,9 @@ class VersionCompareModeBar extends StatelessWidget {
             const SizedBox(width: AppSizes.canvasCompareGutter),
             Expanded(
               child: VersionCompareCandidateBar(
-                candidateVersion: state.candidate.version,
-                onOlder: cubit.stepOlder,
-                onNewer: cubit.stepNewer,
+                candidate: state.candidate,
+                onOlder: state.canNavigateHistory ? cubit.stepOlder : null,
+                onNewer: state.canNavigateHistory ? cubit.stepNewer : null,
                 onLoadFullVersion: loadFullVersion,
                 onClose: cubit.exit,
               ),

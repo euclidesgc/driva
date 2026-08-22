@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +25,7 @@ Future<void> loadFullVersionIntoDraft(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (_) => LoadVersionIntoDraftConfirmDialog(
-      version: compareState.candidate.version,
+      entryLabel: historyEntryPhraseReference(compareState.candidate),
       isDirty: editorState.saveStatus == SaveStatus.dirty,
     ),
   );

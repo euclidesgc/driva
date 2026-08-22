@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
@@ -39,6 +40,12 @@ const _candidateSpec = ContentSpec(
   ),
 );
 
+final _candidate = LoadedContentVersion(
+  version: 3,
+  spec: _candidateSpec,
+  createdAt: DateTime.utc(2026, 8, 16),
+);
+
 Widget _harness({
   required Size surface,
   required EditorCubit editorCubit,
@@ -71,7 +78,7 @@ Widget _harness({
                   device: DevicePreset.smartphone,
                   effectiveScale: scale,
                   spec: _candidateSpec,
-                  candidateVersion: 3,
+                  candidate: _candidate,
                   showBar: !sideBySide,
                   onOlder: () {},
                   onNewer: () {},
@@ -248,7 +255,7 @@ void _paneEdgeTests() {
               device: DevicePreset.smartphone,
               effectiveScale: 0.8,
               spec: _candidateSpec,
-              candidateVersion: 3,
+              candidate: _candidate,
               onOlder: () {},
               onNewer: () {},
               onLoadFullVersion: () {},
@@ -291,7 +298,7 @@ void _paneEdgeTests() {
               device: DevicePreset.smartphone,
               effectiveScale: 0.8,
               spec: _candidateSpec,
-              candidateVersion: 3,
+              candidate: _candidate,
               onOlder: null,
               onNewer: null,
               onLoadFullVersion: () {},
