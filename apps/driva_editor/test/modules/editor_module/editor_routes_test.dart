@@ -76,6 +76,7 @@ void main() {
       apiBaseUrl: 'https://api.test',
       defaultProjectId: bootProjectId,
       useFakeData: false,
+      demoApkUrl: '',
     );
 
     final dio = createDio(config, scope)

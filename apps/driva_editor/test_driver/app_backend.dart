@@ -14,6 +14,7 @@ void main() {
         apiBaseUrl: 'http://localhost:3000',
         defaultProjectId: 'default',
         useFakeData: false,
+        demoApkUrl: '',
       ),
     ),
   );

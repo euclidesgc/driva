@@ -8,6 +8,7 @@ final class AppConfig extends Equatable {
     required this.apiBaseUrl,
     required this.defaultProjectId,
     required this.useFakeData,
+    required this.demoApkUrl,
   });
 
   const AppConfig.fromEnvironment({required String environment})
@@ -25,6 +26,7 @@ final class AppConfig extends Equatable {
           'USE_FAKE_DATA',
           defaultValue: true,
         ),
+        demoApkUrl: const String.fromEnvironment('DEMO_APK_URL'),
       );
 
   final String environment;
@@ -38,11 +40,15 @@ final class AppConfig extends Equatable {
   /// e para o QA instrumentar o E2E sem servidor).
   final bool useFakeData;
 
+  /// URL do APK de demonstração; vazia esconde o botão de preview.
+  final String demoApkUrl;
+
   @override
   List<Object?> get props => [
     environment,
     apiBaseUrl,
     defaultProjectId,
     useFakeData,
+    demoApkUrl,
   ];
 }

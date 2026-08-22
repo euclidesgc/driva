@@ -75,6 +75,7 @@ void main() {
           apiBaseUrl: 'https://api.test',
           defaultProjectId: projectId,
           useFakeData: true,
+          demoApkUrl: '',
         ),
       )
       ..registerSingleton<ProjectScope>(
