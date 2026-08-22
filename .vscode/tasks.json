@@ -65,6 +65,60 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "// demo-app: resolve chave (local)": "N\u00e3o usa ${input:demoProjectTitle} \u2014 localhost s\u00f3 tem os projetos do seed local, ent\u00e3o pega o 1\u00ba.",
+      "label": "demo-app: resolve chave (local)",
+      "type": "shell",
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/resolve-demo-key.sh\" \"${workspaceFolder}/apps/driva_demo_app/config/dev.json\" \"${workspaceFolder}/apps/driva_demo_app/config/dev.local.json\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "demo-app: resolve chave (hml)",
+      "type": "shell",
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/resolve-demo-key.sh\" \"${workspaceFolder}/apps/driva_demo_app/config/hml.json\" \"${workspaceFolder}/apps/driva_demo_app/config/hml.local.json\" \"${input:demoProjectTitle}\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "demo-app: resolve chave (prod)",
+      "type": "shell",
+      "command": "bash \"${workspaceFolder}/.vscode/scripts/resolve-demo-key.sh\" \"${workspaceFolder}/apps/driva_demo_app/config/prod.json\" \"${workspaceFolder}/apps/driva_demo_app/config/prod.local.json\" \"${input:demoProjectTitle}\"",
+      "problemMatcher": []
+    },
+    {
+      "// demo-app: local (backend + chave)": "preLaunchTask do 'demo app \u25b6 local': sobe o backend (mesma task do editor) e s\u00f3 depois resolve a chave, porque a chave vem de GET /v1/projects \u2014 precisa do Nest de p\u00e9.",
+      "label": "demo-app: local (backend + chave)",
+      "dependsOrder": "sequence",
+      "dependsOn": ["backend up (bg)", "demo-app: resolve chave (local)"],
+      "problemMatcher": []
+    },
+    {
+      "// demo-app: build apk (hml/prod)": "Empacota o mesmo tool/run_demo.sh do README em vez de reescrever a l\u00f3gica \u2014 'Tasks: Run Task' no lugar de decorar o comando com env vars.",
+      "label": "demo-app: build apk (hml)",
+      "type": "shell",
+      "command": "MODE=apk TARGET=lib/main_hml.dart API=https://api-hml.driva.duckdns.org PROJECT_TITLE=\"${input:demoProjectTitle}\" ./tool/run_demo.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/apps/driva_demo_app"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "demo-app: build apk (prod)",
+      "type": "shell",
+      "command": "MODE=apk TARGET=lib/main_prod.dart API=https://api.driva.duckdns.org PROJECT_TITLE=\"${input:demoProjectTitle}\" ./tool/run_demo.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/apps/driva_demo_app"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "// demoProjectTitle": "GET /v1/projects pode listar mais de um projeto por ambiente (hoje em hml: 'E2E item 46 \u2014 projeto B', 'Portal da RE', 'Megazord - App RE' \u2014 s\u00f3 o \u00faltimo tem o slug 'home' publicado). Vazio pega o 1\u00ba da lista, o que j\u00e1 causou 404 no app.",
+      "id": "demoProjectTitle",
+      "type": "promptString",
+      "description": "T\u00edtulo do projeto do driva (GET /v1/projects) \u2014 vazio pega o 1\u00ba da lista",
+      "default": "Megazord - App RE"
     }
   ]
 }

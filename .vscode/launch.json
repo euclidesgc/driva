@@ -40,6 +40,34 @@
       "toolArgs": ["--dart-define-from-file=config/prod.json"]
     },
     {
+      "name": "demo app ▶ local (dev · sobe backend + API localhost)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_demo_app",
+      "program": "lib/main_dev.dart",
+      "preLaunchTask": "demo-app: local (backend + chave)",
+      "postDebugTask": "backend down (bg)",
+      "toolArgs": ["--dart-define-from-file=config/dev.local.json"]
+    },
+    {
+      "name": "demo app ▶ hml (API homologação)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_demo_app",
+      "program": "lib/main_hml.dart",
+      "preLaunchTask": "demo-app: resolve chave (hml)",
+      "toolArgs": ["--dart-define-from-file=config/hml.local.json"]
+    },
+    {
+      "name": "demo app ▶ prod (API produção)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/driva_demo_app",
+      "program": "lib/main_prod.dart",
+      "preLaunchTask": "demo-app: resolve chave (prod)",
+      "toolArgs": ["--dart-define-from-file=config/prod.local.json"]
+    },
+    {
       "name": "backend ▶ local (Nest watch · debug)",
       "type": "node",
       "request": "launch",
