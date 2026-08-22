@@ -83,7 +83,6 @@ void main() {
             ),
             baseSpec: _draftSpec,
             result: compareContentSpecs(_draftSpec, _candidateSpec),
-            versions: const [],
           ),
         );
   });

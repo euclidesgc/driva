@@ -279,7 +279,6 @@ void main() {
                 ),
                 baseSpec: document,
                 result: compareContentSpecs(document, document),
-                versions: const [],
               ),
             );
         addTearDown(compareCubit.close);

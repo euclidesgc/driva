@@ -128,7 +128,6 @@ void main() {
         ),
         baseSpec: rootedDocument,
         result: compareContentSpecs(rootedDocument, candidateSpec),
-        versions: const [],
       );
     }
 
