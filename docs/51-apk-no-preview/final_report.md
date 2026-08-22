@@ -45,8 +45,9 @@ por completo quando a URL está vazia — nem botão morto, nem espaço em branc
   conteúdo publicado e faz o job falhar) e `DEMO_SLUG` (vazia = `home`, o default). Configuradas
   via `gh variable set` nesta sessão.
 - **A Build Variable `DEMO_APK_URL` no recurso de homologação do Coolify** é passo manual do
-  dono, fora do alcance da CI — ver `docs/roadmap.md` § _O que ainda precisa do humano_. Sem
-  ela, o editor implantado em hml não mostra o botão mesmo com as duas PRs mergeadas.
+  dono, fora do alcance da CI — ver `plan.md` § _7. O que ainda precisa do humano_ e
+  `docs/deploy/coolify.md`. Sem ela, o editor implantado em hml não mostra o botão mesmo com as
+  duas PRs mergeadas.
 
 ## Como isto foi provado
 
@@ -63,6 +64,12 @@ trabalho_) — nenhuma linha de E2E, script ou roteiro, nasceu neste item.
   preenchida/vazia nos três tamanhos já cobertos.
 - `scripts/gates_guard.sh`, `dart format`, `flutter analyze` e a suíte completa do editor e do
   app de demonstração, verdes.
+
+**Desvio registrado (VR-51-01).** Escrever o teste de fio real exigiu corrigir um bug de
+testabilidade pré-existente em `canvas_area.dart` (`Uri.base.origin` lança fora de http/https,
+o que a VM de `flutter test` sempre é) — sem ele, o critério de "montar a árvore a partir da
+rota" seria impossível de provar. Fix de 8 linhas, sem efeito em produção, aprovado pelo dono.
+Detalhe completo em `variance_report.md`.
 
 ## Validações de campo pendentes
 
