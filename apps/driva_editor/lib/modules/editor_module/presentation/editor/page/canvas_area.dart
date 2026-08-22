@@ -131,7 +131,14 @@ class CanvasArea extends StatelessWidget {
         'id': state.document.id,
       },
     );
-    final url = '${Uri.base.origin}$location';
+    // `Uri.origin` só aceita http/https; fora do navegador real — a VM de
+    // `flutter test` enxerga `file://` — ele lança, e nenhum teste de
+    // widget alcançaria este diálogo pela árvore de rota real.
+    final base = Uri.base;
+    final origin = base.scheme == 'http' || base.scheme == 'https'
+        ? base.origin
+        : base.toString();
+    final url = '$origin$location';
     unawaited(
       showDialog<void>(
         context: context,
