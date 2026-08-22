@@ -2,6 +2,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/ver
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/version_compare_mode_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_side.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_side_toggle.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_label.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,19 +26,23 @@ class CanvasCompareSideToggleBinding extends StatelessWidget {
     if (cubit == null) {
       return CanvasCompareSideToggle(
         side: side,
-        candidateVersion: 0,
+        candidateLabel: '',
         onChanged: onChanged,
       );
     }
-    return BlocSelector<VersionCompareModeCubit, VersionCompareModeState, int>(
+    return BlocSelector<
+      VersionCompareModeCubit,
+      VersionCompareModeState,
+      String
+    >(
       bloc: cubit,
       selector: (state) => switch (state) {
-        final VersionCompareModeActive s => s.candidate.version,
-        _ => 0,
+        final VersionCompareModeActive s => historyEntryTitle(s.candidate),
+        _ => '',
       },
-      builder: (context, candidateVersion) => CanvasCompareSideToggle(
+      builder: (context, candidateLabel) => CanvasCompareSideToggle(
         side: side,
-        candidateVersion: candidateVersion,
+        candidateLabel: candidateLabel,
         onChanged: onChanged,
       ),
     );

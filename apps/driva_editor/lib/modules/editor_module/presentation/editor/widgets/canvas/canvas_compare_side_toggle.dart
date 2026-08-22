@@ -7,13 +7,16 @@ import 'package:flutter/material.dart';
 class CanvasCompareSideToggle extends StatelessWidget {
   const CanvasCompareSideToggle({
     required this.side,
-    required this.candidateVersion,
+    required this.candidateLabel,
     required this.onChanged,
     super.key,
   });
 
   final CanvasCompareSide side;
-  final int candidateVersion;
+
+  /// Título curto da candidata ("Versão N" ou nota-ou-"Ponto salvo") —
+  /// `historyEntryTitle`.
+  final String candidateLabel;
   final ValueChanged<CanvasCompareSide> onChanged;
 
   @override
@@ -30,8 +33,8 @@ class CanvasCompareSideToggle extends StatelessWidget {
         ButtonSegment(
           value: CanvasCompareSide.candidate,
           icon: const Icon(Icons.history),
-          label: Text('Versão $candidateVersion'),
-          tooltip: 'Ver como estava na versão $candidateVersion',
+          label: Text(candidateLabel),
+          tooltip: 'Ver como estava: $candidateLabel',
         ),
       ],
       selected: {side},

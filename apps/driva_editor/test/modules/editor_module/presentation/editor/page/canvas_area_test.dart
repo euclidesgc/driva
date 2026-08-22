@@ -62,7 +62,6 @@ void main() {
     ),
     baseSpec: _document,
     result: compareContentSpecs(_document, _candidateSpec),
-    versions: const [],
   );
 
   EditorReady ready({int? publishedVersion = 2}) => EditorReady(

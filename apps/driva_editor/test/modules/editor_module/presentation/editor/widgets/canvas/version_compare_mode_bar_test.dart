@@ -65,6 +65,9 @@ const _candidateSpecV9 = ContentSpec(
   ),
 );
 
+const _olderTooltip = 'Item mais antigo do histórico';
+const _newerTooltip = 'Item mais novo do histórico';
+
 void main() {
   late EditorCubit editorCubit;
   late VersionCompareModeCubit compareCubit;
@@ -184,7 +187,7 @@ void main() {
   );
 
   testWidgets(
-    '"Versão mais antiga" desce um índice na lista paginada e troca a '
+    '“Item mais antigo” desce um índice na lista paginada e troca a '
     'candidata de verdade',
     (tester) async {
       compareCubit.emit(
@@ -198,17 +201,17 @@ void main() {
       );
       await pumpBar(tester);
 
-      await tester.tap(find.byTooltip('Versão mais antiga'));
+      await tester.tap(find.byTooltip(_olderTooltip));
       await tester.pumpAndSettle();
 
       final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate.version, 9);
+      expect(state.candidate, versionV9);
       expect(find.text('Versão 9'), findsOneWidget);
     },
   );
 
   testWidgets(
-    '"Versão mais nova" sobe um índice na lista paginada e troca a '
+    '“Item mais novo” sobe um índice na lista paginada e troca a '
     'candidata de verdade',
     (tester) async {
       compareCubit.emit(
@@ -222,12 +225,29 @@ void main() {
       );
       await pumpBar(tester);
 
-      await tester.tap(find.byTooltip('Versão mais nova'));
+      await tester.tap(find.byTooltip(_newerTooltip));
       await tester.pumpAndSettle();
 
       final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate.version, 10);
+      expect(state.candidate, versionV10);
       expect(find.text('Versão 10'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'candidata fora da linha do tempo já carregada: ‹ › ficam desabilitados '
+    'em vez de virarem botão morto',
+    (tester) async {
+      await pumpBar(tester);
+
+      final older = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_right),
+      );
+      final newer = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.chevron_left),
+      );
+      expect(older.onPressed, isNull);
+      expect(newer.onPressed, isNull);
     },
   );
 
@@ -245,6 +265,14 @@ void main() {
     '`stepOlder`/`stepNewer` não têm para onde ir e não emitem, em vez de '
     'a barra desabilitar o botão',
     (tester) async {
+      compareCubit.emit(
+        activeAt(
+          versionV10,
+          versions: [
+            ContentVersion(version: 10, createdAt: versionV10.createdAt),
+          ],
+        ),
+      );
       await pumpBar(tester);
 
       final older = tester.widget<IconButton>(
@@ -256,12 +284,12 @@ void main() {
       expect(older.onPressed, isNotNull);
       expect(newer.onPressed, isNotNull);
 
-      await tester.tap(find.byTooltip('Versão mais antiga'));
-      await tester.tap(find.byTooltip('Versão mais nova'));
+      await tester.tap(find.byTooltip(_olderTooltip));
+      await tester.tap(find.byTooltip(_newerTooltip));
       await tester.pumpAndSettle();
 
       final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate.version, 10);
+      expect(state.candidate, versionV10);
     },
   );
 

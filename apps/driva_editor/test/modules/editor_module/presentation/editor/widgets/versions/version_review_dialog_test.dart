@@ -3,6 +3,7 @@ import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_target.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_fullscreen_shell.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_windowed_shell.dart';
@@ -39,7 +40,7 @@ void main() {
   VersionReviewCubit buildCubit() => VersionReviewCubit(
     getContentVersionUseCase: getContentVersion,
     contentId: 'ct_1',
-    version: 5,
+    target: const PublishedVersionTarget(5),
   );
 
   Future<void> pumpDialog(WidgetTester tester, VersionReviewCubit cubit) =>

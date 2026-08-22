@@ -4,7 +4,8 @@ import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row_actions.dart';
 import 'package:flutter/material.dart';
 
-/// A linha de um ponto marcado ao salvar, na mesma lista das publicações.
+/// A linha de um ponto marcado ao salvar, na mesma lista das publicações —
+/// com as mesmas três ações (`Ver`, `Comparar`, `Carregar no rascunho`).
 ///
 /// Não tem número: `vN` é o que o usuário lê como "publicada (v3)", e só
 /// publicação o consome. O que identifica um ponto é a nota que o autor
@@ -17,19 +18,15 @@ import 'package:flutter/material.dart';
 class CheckpointRow extends StatelessWidget {
   const CheckpointRow({
     required this.checkpoint,
-    this.onView,
-    this.onLoadToDraft,
+    required this.onView,
+    required this.onLoadToDraft,
     this.onCompare,
     super.key,
   });
 
   final ContentCheckpoint checkpoint;
-
-  /// Nulos enquanto ver e carregar um ponto marcado não existirem: botão que
-  /// não faz nada é pior que botão ausente, porque promete algo que não
-  /// acontece.
-  final ValueChanged<String>? onView;
-  final ValueChanged<String>? onLoadToDraft;
+  final ValueChanged<String> onView;
+  final ValueChanged<String> onLoadToDraft;
   final ValueChanged<String>? onCompare;
 
   @override
@@ -37,8 +34,6 @@ class CheckpointRow extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
     final note = checkpoint.note;
-    final view = onView;
-    final loadToDraft = onLoadToDraft;
     final compare = onCompare;
 
     return Container(
@@ -86,14 +81,12 @@ class CheckpointRow extends StatelessWidget {
             DateFormatUtil.dayMonthYearHourMinute(checkpoint.createdAt),
             style: theme.textTheme.bodySmall?.copyWith(color: colors.inkMuted),
           ),
-          if (view != null && loadToDraft != null) ...[
-            const SizedBox(height: AppSpacing.s8),
-            VersionRowActions(
-              onView: () => view(checkpoint.id),
-              onLoadToDraft: () => loadToDraft(checkpoint.id),
-              onCompare: compare == null ? null : () => compare(checkpoint.id),
-            ),
-          ],
+          const SizedBox(height: AppSpacing.s8),
+          VersionRowActions(
+            onView: () => onView(checkpoint.id),
+            onLoadToDraft: () => onLoadToDraft(checkpoint.id),
+            onCompare: compare == null ? null : () => compare(checkpoint.id),
+          ),
         ],
       ),
     );

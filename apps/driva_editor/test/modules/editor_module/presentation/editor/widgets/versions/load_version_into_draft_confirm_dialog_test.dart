@@ -10,7 +10,7 @@ void main() {
 
   Future<void> openDialog(
     WidgetTester tester, {
-    required int version,
+    required String entryLabel,
     required bool isDirty,
   }) async {
     await tester.pumpWidget(
@@ -23,7 +23,7 @@ void main() {
                 result = await showDialog<bool>(
                   context: context,
                   builder: (_) => LoadVersionIntoDraftConfirmDialog(
-                    version: version,
+                    entryLabel: entryLabel,
                     isDirty: isDirty,
                   ),
                 );
@@ -42,7 +42,7 @@ void main() {
     testWidgets('oferece só Descartar e Cancelar — nunca Salvar antes', (
       tester,
     ) async {
-      await openDialog(tester, version: 4, isDirty: true);
+      await openDialog(tester, entryLabel: 'a versão 4', isDirty: true);
 
       expect(
         find.widgetWithText(
@@ -58,7 +58,7 @@ void main() {
     });
 
     testWidgets('descartar devolve true', (tester) async {
-      await openDialog(tester, version: 4, isDirty: true);
+      await openDialog(tester, entryLabel: 'a versão 4', isDirty: true);
 
       await tester.tap(
         find.widgetWithText(
@@ -72,7 +72,7 @@ void main() {
     });
 
     testWidgets('cancelar devolve false', (tester) async {
-      await openDialog(tester, version: 4, isDirty: true);
+      await openDialog(tester, entryLabel: 'a versão 4', isDirty: true);
 
       await tester.tap(find.widgetWithText(TextButton, 'Cancelar'));
       await tester.pumpAndSettle();
@@ -85,13 +85,33 @@ void main() {
     testWidgets('confirma com Carregar no rascunho, sem falar em descartar', (
       tester,
     ) async {
-      await openDialog(tester, version: 4, isDirty: false);
+      await openDialog(tester, entryLabel: 'a versão 4', isDirty: false);
 
       expect(
         find.widgetWithText(FilledButton, 'Carregar no rascunho'),
         findsOneWidget,
       );
       expect(find.textContaining('Descartar'), findsNothing);
+    });
+  });
+
+  group('ponto salvo', () {
+    testWidgets('o título usa o rótulo do checkpoint, não "versão"', (
+      tester,
+    ) async {
+      await openDialog(
+        tester,
+        entryLabel: 'o ponto salvo "Ponto salvo — 15/08/2026 18:00"',
+        isDirty: false,
+      );
+
+      expect(
+        find.text(
+          'Carregar o ponto salvo "Ponto salvo — 15/08/2026 18:00" no '
+          'rascunho?',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

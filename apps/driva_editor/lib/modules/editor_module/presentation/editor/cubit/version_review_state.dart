@@ -18,8 +18,8 @@ final class VersionReviewLoadFailure extends VersionReviewState {
 }
 
 final class VersionReviewLoaded extends VersionReviewState {
-  const VersionReviewLoaded({required this.version});
-  final LoadedContentVersion version;
+  const VersionReviewLoaded({required this.entry});
+  final LoadedHistoryEntry entry;
   @override
-  List<Object?> get props => [version];
+  List<Object?> get props => [entry];
 }

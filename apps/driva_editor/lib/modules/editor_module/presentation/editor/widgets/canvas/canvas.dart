@@ -5,6 +5,7 @@ export 'canvas_compare_side_toggle.dart';
 export 'canvas_compare_single_mock.dart';
 export 'canvas_draft_mock.dart';
 export 'canvas_mock_area.dart';
+export 'canvas_mock_viewport.dart';
 export 'canvas_panel_body.dart';
 export 'canvas_toolbar.dart';
 export 'device_frame.dart';
