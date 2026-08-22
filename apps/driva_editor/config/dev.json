@@ -1,5 +1,6 @@
 {
   "API_BASE_URL": "http://localhost:3000",
   "DEFAULT_PROJECT_ID": "default",
-  "USE_FAKE_DATA": false
+  "USE_FAKE_DATA": false,
+  "DEMO_APK_URL": "https://github.com/euclidesgc/driva/releases/download/demo-app-latest/driva-demo-hml.apk"
 }

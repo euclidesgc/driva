@@ -10,6 +10,7 @@
 #   API=https://api-hml.driva.duckdns.org ./tool/run_demo.sh
 #   DEVICE=chrome PROJECT_TITLE="Meu projeto" ./tool/run_demo.sh
 #   MODE=apk TARGET=lib/main_hml.dart API=https://api-hml.driva.duckdns.org ./tool/run_demo.sh
+#   SLUG=outro-slug MODE=apk API=https://api-hml.driva.duckdns.org ./tool/run_demo.sh
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -19,6 +20,7 @@ API="${API:-http://localhost:3000}"
 DEVICE="${DEVICE:-chrome}"
 TARGET="${TARGET:-lib/main_dev.dart}"
 PROJECT_TITLE="${PROJECT_TITLE:-}"
+SLUG="${SLUG:-home}"
 
 if [[ "$MODE" != run && "$MODE" != apk ]]; then
   echo "MODE desconhecido: '$MODE' (use run ou apk)" >&2
@@ -52,12 +54,20 @@ case "$MODE" in
   run)
     exec flutter run -d "$DEVICE" --target "$TARGET" \
       --dart-define=API_BASE_URL="$API" \
-      --dart-define=PUBLISHABLE_KEY="$key"
+      --dart-define=PUBLISHABLE_KEY="$key" \
+      --dart-define=DEFAULT_SLUG="$SLUG"
     ;;
   apk)
+    status=$(curl -sS -o /dev/null -w '%{http_code}' -H "x-driva-key: $key" "$API/v1/public/contents/$SLUG")
+    if [[ "$status" != 200 ]]; then
+      echo "conteúdo '$SLUG' inacessível em $API (HTTP $status): confira o slug antes de gerar o APK" >&2
+      exit 1
+    fi
+
     flutter build apk --release --target "$TARGET" \
       --dart-define=API_BASE_URL="$API" \
-      --dart-define=PUBLISHABLE_KEY="$key"
+      --dart-define=PUBLISHABLE_KEY="$key" \
+      --dart-define=DEFAULT_SLUG="$SLUG"
     echo "APK: $PWD/build/app/outputs/flutter-apk/app-release.apk"
     ;;
 esac

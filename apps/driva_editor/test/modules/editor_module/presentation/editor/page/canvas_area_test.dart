@@ -112,7 +112,7 @@ void main() {
               controller: layoutController,
               child: VersionCompareModeScope(
                 cubit: compareCubit,
-                child: const CanvasArea(),
+                child: const CanvasArea(demoApkUrl: ''),
               ),
             ),
           ),

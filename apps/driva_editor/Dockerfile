@@ -15,6 +15,7 @@ COPY . .
 # prod conforme API_BASE_URL, sem trocar código.
 ARG API_BASE_URL
 ARG DEFAULT_PROJECT_ID=default
+ARG DEMO_APK_URL
 
 RUN flutter pub get
 WORKDIR /workspace/apps/driva_editor
@@ -29,6 +30,7 @@ RUN flutter build web --release \
     --dart-define=API_BASE_URL=${API_BASE_URL} \
     --dart-define=DEFAULT_PROJECT_ID=${DEFAULT_PROJECT_ID} \
     --dart-define=USE_FAKE_DATA=false \
+    --dart-define=DEMO_APK_URL=${DEMO_APK_URL} \
     --pwa-strategy=none \
     --no-tree-shake-icons
 RUN deploy/version_web_build.sh build/web

@@ -9,16 +9,12 @@ import 'package:driva_editor/modules/editor_module/data/repositories/editor_repo
 import 'package:driva_editor/modules/editor_module/domain/repositories/repositories.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
 import 'package:driva_editor/modules/editor_module/editor_routes.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/editor_page.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/checkpoint_row.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_history_dialog.dart';
-import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_review_header.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/demo_apk_download_block.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_share_dialog.dart';
 import 'package:driva_editor/modules/projects_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/projects_module/domain/repositories/projects_repository.dart';
 import 'package:driva_editor/modules/projects_module/domain/use_cases/get_project_use_case.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
@@ -29,19 +25,13 @@ class _MockProjectsRepository extends Mock implements ProjectsRepository {}
 class _MockEditorLayoutRepository extends Mock
     implements EditorLayoutRepository {}
 
-/// Prova a fiação ponta a ponta do item 53: `GetContentCheckpointUseCase`
-/// resolvido só em `EditorPage.pageBuilder` chegando até `VersionHistoryDialog`
-/// e as três ações de um ponto salvo funcionando de verdade, na árvore real
-/// montada a partir da rota do editor — não um harness sintético que já
-/// monta os widgets soltos com o use case passado à mão.
-///
-/// O checkpoint nasce por uma chamada direta ao repositório fake (o mesmo
-/// que o app usa), não pela UI de "Salvar e marcar": a existência do ponto
-/// salvo é o cenário, não o que este teste prova.
+/// Prova a fiação ponta a ponta do item 51: `AppConfig.demoApkUrl` resolvido
+/// só em `EditorPage.pageBuilder` chegando até `PreviewShareDialog` na árvore
+/// real montada a partir da rota do editor — não um harness sintético que já
+/// monta o diálogo solto com o valor passado à mão.
 void main() {
   const projectId = 'proj_1';
   const contentId = 'ct_exemplo';
-  const checkpointNote = 'Antes do lançamento';
 
   final project = Project(
     id: projectId,
@@ -52,11 +42,9 @@ void main() {
     categoryCount: 1,
   );
 
-  setUp(() async {
+  void registerCommonFakes(String demoApkUrl) {
     final store = FakeContentsStore();
     final repository = EditorRepositoryFake(store);
-    final seed = store.find(contentId)!;
-    await repository.saveDraft(seed, checkpointNote: checkpointNote);
 
     final projectsRepository = _MockProjectsRepository();
     when(
@@ -70,12 +58,12 @@ void main() {
 
     getIt
       ..registerSingleton<AppConfig>(
-        const AppConfig(
+        AppConfig(
           environment: 'test',
           apiBaseUrl: 'https://api.test',
           defaultProjectId: projectId,
           useFakeData: true,
-          demoApkUrl: '',
+          demoApkUrl: demoApkUrl,
         ),
       )
       ..registerSingleton<ProjectScope>(
@@ -127,7 +115,7 @@ void main() {
       ..registerFactory(
         () => GetProjectUseCase(repository: getIt<ProjectsRepository>()),
       );
-  });
+  }
 
   tearDown(getIt.reset);
 
@@ -138,6 +126,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/projects/$projectId/contents/$contentId/edit',
       routes: [
+        EditorRoutes.previewRoute,
         ShellRoute(
           builder: (context, state, child) => AppShell(
             homeRouteName: 'home',
@@ -155,99 +144,42 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> openHistory(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Histórico'));
+  Future<void> openPreviewDialog(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Ver no celular'));
     await tester.pumpAndSettle();
   }
 
   testWidgets(
-    'GetContentCheckpointUseCase chega do getIt até VersionHistoryDialog',
+    'AppConfig.demoApkUrl chega, pela rota real, ao PreviewShareDialog',
     (tester) async {
+      registerCommonFakes('https://exemplo.test/driva-demo-hml.apk');
       await pumpEditor(tester);
-      await openHistory(tester);
+      await openPreviewDialog(tester);
 
-      final dialog = tester.widget<VersionHistoryDialog>(
-        find.byType(VersionHistoryDialog),
+      final dialog = tester.widget<PreviewShareDialog>(
+        find.byType(PreviewShareDialog),
       );
       expect(
-        dialog.getContentCheckpointUseCase,
-        isNotNull,
+        dialog.demoApkUrl,
+        'https://exemplo.test/driva-demo-hml.apk',
         reason:
-            'sem ele chegando aqui, as três ações de um ponto salvo '
-            'resolveriam vazias em silêncio — o mesmo bug já visto neste item',
+            'sem ele chegando aqui, o bloco de download resolveria vazio '
+            'em silêncio, mesmo com a URL configurada no AppConfig',
       );
+      expect(find.text('Baixar APK de teste'), findsOneWidget);
     },
   );
 
   testWidgets(
-    'na árvore real, a linha do ponto salvo chega com as três ações '
-    'habilitadas — não são botões inertes',
+    'sem URL configurada no AppConfig, o bloco de download não aparece',
     (tester) async {
+      registerCommonFakes('');
       await pumpEditor(tester);
-      await openHistory(tester);
+      await openPreviewDialog(tester);
 
-      expect(find.byType(CheckpointRow), findsOneWidget);
-      expect(find.text(checkpointNote), findsOneWidget);
-
-      final ver = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Ver'),
-      );
-      final comparar = tester.widget<OutlinedButton>(
-        find.widgetWithText(OutlinedButton, 'Comparar'),
-      );
-      final carregar = tester.widget<OutlinedButton>(
-        find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
-      );
-      expect(ver.onPressed, isNotNull);
-      expect(comparar.onPressed, isNotNull);
-      expect(carregar.onPressed, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'Ver, na árvore real, abre a revisão com o cabeçalho do ponto salvo',
-    (tester) async {
-      await pumpEditor(tester);
-      await openHistory(tester);
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Ver'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(VersionReviewHeader), findsOneWidget);
-      expect(find.text('Somente leitura'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'Carregar no rascunho, na árvore real, escreve o spec do ponto salvo '
-    'e marca o documento como não publicado',
-    (tester) async {
-      await pumpEditor(tester);
-      await openHistory(tester);
-
-      await tester.tap(
-        find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.textContaining('Carregar o ponto salvo "$checkpointNote'),
-        findsOneWidget,
-        reason: 'a confirmação nomeia o ponto salvo, nunca "versão"',
-      );
-
-      await tester.tap(
-        find.widgetWithText(FilledButton, 'Carregar no rascunho'),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(VersionHistoryDialog), findsNothing);
-      final editorCubit = tester
-          .element(find.byType(EditorPage))
-          .read<EditorCubit>();
-      final state = editorCubit.state as EditorReady;
-      expect(state.saveStatus, SaveStatus.dirty);
-      expect(state.publication.hasUnpublishedChanges, isTrue);
+      expect(find.byType(PreviewShareDialog), findsOneWidget);
+      expect(find.byType(DemoApkDownloadBlock), findsNothing);
+      expect(find.text('Baixar APK de teste'), findsNothing);
     },
   );
 }

@@ -509,6 +509,7 @@ void main() {
                           const Left(UnexpectedFailure()),
                         ),
                         layoutController: layoutController,
+                        demoApkUrl: '',
                         getContentVersionsUseCase: getContentVersions,
                         getContentVersionUseCase: getContentVersion,
                         getContentCheckpointsUseCase: getContentCheckpoints,

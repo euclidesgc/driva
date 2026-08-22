@@ -61,6 +61,7 @@ No projeto **Driva**, entre no ambiente (`hml` ou `prod`) e crie **três recurso
    - **Ports Exposes**: `80`
 4. **Build Variable** (build-time — a URL da API é compilada no bundle do Flutter Web):
    - `API_BASE_URL` = `https://api-hml.driva.duckdns.org` (hml) / `https://api.driva.duckdns.org` (prod).
+   - `DEMO_APK_URL` = `https://github.com/euclidesgc/driva/releases/download/demo-app-latest/driva-demo-hml.apk` (hml) / **deixe ausente/vazia em produção** — sem valor, o botão de preview do APK some da tela.
 5. **Domains**: `https://hml.driva.duckdns.org` (hml) / `https://driva.duckdns.org` (prod).
 6. **Watch Paths** (Configuration → General), uma por linha — o front builda da raiz e depende do workspace Dart inteiro:
    ```

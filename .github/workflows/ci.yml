@@ -25,10 +25,14 @@ on:
   push:
     branches: [develop, main]
 
-# Nenhum job usa `secrets.*` nem escreve no repositório, e o job de Android baixa
-# e executa código de plugin de terceiros (AGP, Kotlin, o loader do Flutter) —
-# sem isto, esse código roda com o `GITHUB_TOKEN` no default do repositório, que
-# pode ser read/write.
+# Nenhum job usa segredo guardado (a sintaxe `secrets`), e o job de Android
+# baixa e executa código de plugin de terceiros (AGP, Kotlin, o loader do
+# Flutter) — sem isto, esse código roda com o `GITHUB_TOKEN` no default do
+# repositório, que pode ser read/write. Só o job `publish-demo-apk` escreve no
+# repositório (ele publica o APK de homologação no release
+# `demo-app-latest`), e escopa a permissão extra localmente com seu próprio
+# bloco `permissions:` — o token que ele usa é o automático do Actions
+# (`github.token`), não um segredo guardado.
 permissions:
   contents: read
 
@@ -193,3 +197,63 @@ jobs:
       # `pnpm install --frozen-lockfile`.
       - name: Testes e2e (proxy de mídia — matriz de segurança SSRF)
         run: pnpm test:e2e
+
+  publish-demo-apk:
+    name: APK de demonstração — publica no tag demo-app-latest
+    needs: flutter
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-demo-apk
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+          cache-dependency-path: |
+            apps/driva_demo_app/android/**/*.gradle*
+            apps/driva_demo_app/android/**/gradle.properties
+            apps/driva_demo_app/android/gradle/wrapper/gradle-wrapper.properties
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Dependências (pub workspace)
+        run: dart pub get
+
+      - name: Build APK release (chave e conteúdo resolvidos na API de homologação)
+        working-directory: apps/driva_demo_app
+        env:
+          MODE: apk
+          TARGET: lib/main_hml.dart
+          API: https://api-hml.driva.duckdns.org
+          PROJECT_TITLE: ${{ vars.DEMO_PROJECT_TITLE }}
+          SLUG: ${{ vars.DEMO_SLUG }}
+        run: |
+          ./tool/run_demo.sh
+          mv build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/driva-demo-hml.apk
+
+      - name: Publica no tag fixo demo-app-latest
+        working-directory: apps/driva_demo_app
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view demo-app-latest >/dev/null 2>&1 || \
+            gh release create demo-app-latest \
+              --target "$GITHUB_SHA" --prerelease \
+              --title 'App de demonstração (homologação)' \
+              --notes 'Asset rolante: sempre o último build de develop.'
+          gh release upload demo-app-latest \
+            build/app/outputs/flutter-apk/driva-demo-hml.apk --clobber
+          gh release edit demo-app-latest \
+            --notes "Build de homologação · commit $GITHUB_SHA · $(date -u '+%Y-%m-%d %H:%M UTC')"
