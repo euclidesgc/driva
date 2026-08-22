@@ -1,4 +1,5 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_mock_viewport.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/device_frame.dart';
@@ -35,7 +36,7 @@ class VersionCompareMockPane extends StatelessWidget {
     required this.device,
     required this.effectiveScale,
     required this.spec,
-    required this.candidateVersion,
+    required this.candidate,
     required this.onOlder,
     required this.onNewer,
     required this.onLoadFullVersion,
@@ -49,7 +50,7 @@ class VersionCompareMockPane extends StatelessWidget {
   final DevicePreset device;
   final double effectiveScale;
   final ContentSpec spec;
-  final int candidateVersion;
+  final LoadedHistoryEntry candidate;
   final VoidCallback? onOlder;
   final VoidCallback? onNewer;
   final VoidCallback onLoadFullVersion;
@@ -64,7 +65,7 @@ class VersionCompareMockPane extends StatelessWidget {
       children: [
         if (showBar)
           VersionCompareCandidateBar(
-            candidateVersion: candidateVersion,
+            candidate: candidate,
             onOlder: onOlder,
             onNewer: onNewer,
             onLoadFullVersion: onLoadFullVersion,

@@ -2,25 +2,26 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/util/date_format.dart';
 import 'package:driva_editor/modules/editor_module/domain/entities/entities.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_readonly_badge.dart';
 import 'package:flutter/material.dart';
 
-/// Cabeçalho de `VersionReviewDialog`: número, data e nota da versão, com o
-/// selo de somente leitura sempre visível ao lado do número — o plano exige
-/// os três dados nesta tela (item 50, T3).
+/// Cabeçalho de `VersionReviewDialog`: título, data e nota, com o selo de
+/// somente leitura sempre visível ao lado do título (item 50/53, T3). O
+/// título já é a nota do ponto salvo quando a entrada é um checkpoint — por
+/// isso ela não repete como linha extra, ao contrário de uma publicação.
 class VersionReviewHeader extends StatelessWidget {
-  const VersionReviewHeader({required this.version, super.key});
+  const VersionReviewHeader({required this.entry, super.key});
 
-  final LoadedContentVersion version;
+  final LoadedHistoryEntry entry;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.extension<EditorColors>()!;
-    final formatted = DateFormatUtil.dayMonthYearHourMinute(
-      version.createdAt,
-    );
-    final note = version.note;
+    final formatted = DateFormatUtil.dayMonthYearHourMinute(entry.createdAt);
+    final note = entry.note;
+    final showNoteSeparately = entry is LoadedContentVersion;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +30,7 @@ class VersionReviewHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Versão ${version.version}',
+              historyEntryTitle(entry),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -43,7 +44,7 @@ class VersionReviewHeader extends StatelessWidget {
           formatted,
           style: theme.textTheme.bodySmall?.copyWith(color: colors.inkMuted),
         ),
-        if (note != null && note.isNotEmpty) ...[
+        if (showNoteSeparately && note != null && note.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.s6),
           Text(
             note,

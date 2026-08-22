@@ -652,15 +652,16 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
-  /// Aplica em memória o spec de uma versão já lida por GET: nunca chama o
-  /// endpoint remoto `restore` — só o próximo [save] persiste. Passa pelo
-  /// mesmo [_emitDocument] de [restoreVersion], então vira uma entrada de
-  /// undo e marca o rascunho sujo, salvo quando a versão já é a publicada.
-  void loadVersionIntoDraft(ContentSpec spec, {required int version}) {
+  /// Aplica em memória o spec de uma versão ou de um ponto salvo já lido por
+  /// GET: nunca chama o endpoint remoto `restore` — só o próximo [save]
+  /// persiste. Passa pelo mesmo [_emitDocument] de [restoreVersion], então
+  /// vira uma entrada de undo. [version] ausente é sempre um ponto salvo —
+  /// ele nunca é a publicada, então marca o rascunho sujo incondicionalmente.
+  void loadVersionIntoDraft(ContentSpec spec, {int? version}) {
     final current = state;
     if (current is! EditorReady) return;
     final loadsPublishedVersion =
-        version == current.publication.publishedVersion;
+        version != null && version == current.publication.publishedVersion;
     _emitDocument(current, spec, markUnpublished: !loadsPublishedVersion);
   }
 

@@ -2,6 +2,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/ver
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/version_compare_node_lookup.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector/inspector_compare_header.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_label.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -43,7 +44,7 @@ class InspectorCompareSection extends StatelessWidget {
                   ? const {}
                   : changedPropertyKeys(nodes.base, nodes.candidate),
               descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
-              candidateVersion: state.candidate.version,
+              candidateLabel: historyEntryPhraseReference(state.candidate),
             );
           },
         );

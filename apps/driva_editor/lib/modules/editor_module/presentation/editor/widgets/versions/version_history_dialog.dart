@@ -6,6 +6,8 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_history_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_review_target.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/history_entry_row.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/load_version_into_draft_confirm_dialog.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_failure_message.dart';
@@ -14,16 +16,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
-/// A lista paginada de versões (padrão de scroll infinito do item 16:
-/// `NotificationListener` + rodapé "Carregando mais…"). `editorCubit` é quem
-/// de fato troca o documento ao carregar uma versão ou aplicar uma cópia
-/// seletiva; este diálogo só lista e delega `Ver`/`Comparar`/`Carregar no
-/// rascunho` (item 50).
+/// A lista paginada de versões e pontos salvos (padrão de scroll infinito do
+/// item 16: `NotificationListener` + rodapé "Carregando mais…"). `editorCubit`
+/// é quem de fato troca o documento ao carregar uma entrada ou aplicar uma
+/// cópia seletiva; este diálogo só lista e delega `Ver`/`Comparar`/`Carregar
+/// no rascunho` (item 50/53) para as duas espécies.
 class VersionHistoryDialog extends StatelessWidget {
   const VersionHistoryDialog({
     required this.editorCubit,
     required this.compareModeCubit,
     required this.getContentVersionUseCase,
+    this.getContentCheckpointUseCase,
     this.imageUrlResolver,
     super.key,
   });
@@ -34,6 +37,10 @@ class VersionHistoryDialog extends StatelessWidget {
   /// monta noutra subárvore, fora do alcance dos provedores da página.
   final VersionCompareModeCubit compareModeCubit;
   final GetContentVersionUseCase getContentVersionUseCase;
+
+  /// Ausente, as três ações de um ponto salvo não funcionam: sem ele não há
+  /// como buscar o spec do checkpoint.
+  final GetContentCheckpointUseCase? getContentCheckpointUseCase;
   final SduiImageUrlResolver? imageUrlResolver;
 
   static const _prefetchExtent = 200.0;
@@ -42,8 +49,34 @@ class VersionHistoryDialog extends StatelessWidget {
     final contentId = context.read<VersionHistoryCubit>().contentId;
     final reviewCubit = VersionReviewCubit(
       getContentVersionUseCase: getContentVersionUseCase,
+      getContentCheckpointUseCase: getContentCheckpointUseCase,
       contentId: contentId,
-      version: version,
+      target: PublishedVersionTarget(version),
+    );
+    unawaited(reviewCubit.load());
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: reviewCubit,
+        child: VersionReviewDialog(imageUrlResolver: imageUrlResolver),
+      ),
+    );
+    await reviewCubit.close();
+  }
+
+  Future<void> _viewCheckpoint(
+    BuildContext context,
+    String checkpointId,
+  ) async {
+    final checkpointUseCase = getContentCheckpointUseCase;
+    if (checkpointUseCase == null) return;
+    final contentId = context.read<VersionHistoryCubit>().contentId;
+    final reviewCubit = VersionReviewCubit(
+      getContentVersionUseCase: getContentVersionUseCase,
+      getContentCheckpointUseCase: checkpointUseCase,
+      contentId: contentId,
+      target: CheckpointTarget(checkpointId),
     );
     unawaited(reviewCubit.load());
 
@@ -79,7 +112,7 @@ class VersionHistoryDialog extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => LoadVersionIntoDraftConfirmDialog(
-        version: version,
+        entryLabel: historyEntryPhraseReference(loaded),
         isDirty: editorState.saveStatus == SaveStatus.dirty,
       ),
     );
@@ -90,11 +123,49 @@ class VersionHistoryDialog extends StatelessWidget {
     Navigator.of(context).pop();
   }
 
+  Future<void> _loadCheckpointToDraft(
+    BuildContext context,
+    String checkpointId,
+  ) async {
+    final checkpointUseCase = getContentCheckpointUseCase;
+    if (checkpointUseCase == null) return;
+    final contentId = context.read<VersionHistoryCubit>().contentId;
+    final result = await checkpointUseCase(contentId, checkpointId);
+    if (!context.mounted) return;
+
+    final loaded = result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(versionFailureMessage(failure))),
+        );
+        return null;
+      },
+      (loadedCheckpoint) => loadedCheckpoint,
+    );
+    if (loaded == null) return;
+
+    final editorState = editorCubit.state;
+    if (editorState is! EditorReady) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => LoadVersionIntoDraftConfirmDialog(
+        entryLabel: historyEntryPhraseReference(loaded),
+        isDirty: editorState.saveStatus == SaveStatus.dirty,
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    editorCubit.loadVersionIntoDraft(loaded.spec);
+    Navigator.of(context).pop();
+  }
+
   /// Comparar deixou de abrir um segundo diálogo: liga o modo de comparação
-  /// do editor, onde a versão aparece num mock ao lado do rascunho ao vivo.
-  /// O histórico fecha porque o lugar de olhar a comparação passou a ser o
-  /// canvas atrás dele — e continua sendo o seletor: com o modo já ativo,
-  /// escolher outra linha troca a candidata sem sair e voltar.
+  /// do editor, onde a candidata aparece num mock ao lado do rascunho ao
+  /// vivo. O histórico fecha porque o lugar de olhar a comparação passou a
+  /// ser o canvas atrás dele — e continua sendo o seletor: com o modo já
+  /// ativo, escolher outra linha troca a candidata sem sair e voltar.
   void _compare(BuildContext context, int candidateVersion) {
     if (editorCubit.state is! EditorReady) return;
     final mode = compareModeCubit;
@@ -102,6 +173,17 @@ class VersionHistoryDialog extends StatelessWidget {
       unawaited(mode.enter(candidateVersion));
     } else {
       unawaited(mode.selectVersion(candidateVersion));
+    }
+    Navigator.of(context).pop();
+  }
+
+  void _compareCheckpoint(BuildContext context, String checkpointId) {
+    if (editorCubit.state is! EditorReady) return;
+    final mode = compareModeCubit;
+    if (mode.state is VersionCompareModeInactive) {
+      unawaited(mode.enterCheckpoint(checkpointId));
+    } else {
+      unawaited(mode.selectCheckpoint(checkpointId));
     }
     Navigator.of(context).pop();
   }
@@ -152,6 +234,12 @@ class VersionHistoryDialog extends StatelessWidget {
                         onViewVersion: (v) => _view(context, v),
                         onLoadVersionToDraft: (v) => _loadToDraft(context, v),
                         onCompareVersion: (v) => _compare(context, v),
+                        onViewCheckpoint: (id) => _viewCheckpoint(context, id),
+                        onLoadCheckpointToDraft: (id) =>
+                            _loadCheckpointToDraft(context, id),
+                        onCompareCheckpoint: getContentCheckpointUseCase == null
+                            ? null
+                            : (id) => _compareCheckpoint(context, id),
                       ),
                     ),
                     if (s.isLoadingMore)

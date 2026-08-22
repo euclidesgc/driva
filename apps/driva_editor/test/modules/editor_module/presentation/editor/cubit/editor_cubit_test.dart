@@ -1672,5 +1672,27 @@ void main() {
         expect(state.publication.hasUnpublishedChanges, isFalse);
       },
     );
+
+    blocTest<EditorCubit, EditorState>(
+      'carregar sem número de versão (um ponto salvo) sempre marca como não '
+      'publicado, mesmo com uma versão publicada',
+      build: () => build()
+        ..emit(
+          EditorReady(
+            document: content,
+            publication: PublicationState(
+              publishedVersion: 2,
+              publishedAt: DateTime.utc(2026, 8, 16, 12),
+              hasUnpublishedChanges: false,
+            ),
+          ),
+        ),
+      act: (cubit) => cubit.loadVersionIntoDraft(loaded),
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, loaded);
+        expect(state.publication.hasUnpublishedChanges, isTrue);
+      },
+    );
   });
 }

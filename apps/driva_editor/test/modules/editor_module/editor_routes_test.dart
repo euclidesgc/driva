@@ -127,6 +127,10 @@ void main() {
             GetContentCheckpointsUseCase(repository: getIt<EditorRepository>()),
       )
       ..registerFactory(
+        () =>
+            GetContentCheckpointUseCase(repository: getIt<EditorRepository>()),
+      )
+      ..registerFactory(
         () => GetEditorLayoutUseCase(
           repository: getIt<EditorLayoutRepository>(),
         ),

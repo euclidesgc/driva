@@ -29,11 +29,11 @@ class VersionReviewBody extends StatelessWidget {
         final VersionReviewLoaded s => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            VersionReviewHeader(version: s.version),
+            VersionReviewHeader(entry: s.entry),
             const SizedBox(height: AppSpacing.s12),
             Expanded(
               child: VersionSnapshotPreview(
-                spec: s.version.spec,
+                spec: s.entry.spec,
                 imageUrlResolver: imageUrlResolver,
               ),
             ),

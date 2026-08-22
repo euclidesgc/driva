@@ -3,18 +3,18 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/v
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_row.dart';
 import 'package:flutter/material.dart';
 
-/// Escolhe a linha certa para cada espécie da linha do tempo.
-///
-/// As ações de um ponto marcado ainda não existem — ver e comparar um
-/// checkpoint são o passo seguinte —, e por isso chegam nulas: botão que não
-/// faz nada é pior que botão ausente, porque promete algo que não acontece.
+/// Escolhe a linha certa para cada espécie da linha do tempo — publicação e
+/// ponto salvo têm as mesmas três ações (item 53).
 class HistoryEntryRow extends StatelessWidget {
   const HistoryEntryRow({
     required this.entry,
     required this.onViewVersion,
     required this.onLoadVersionToDraft,
+    required this.onViewCheckpoint,
+    required this.onLoadCheckpointToDraft,
     this.publishedVersion,
     this.onCompareVersion,
+    this.onCompareCheckpoint,
     super.key,
   });
 
@@ -23,6 +23,9 @@ class HistoryEntryRow extends StatelessWidget {
   final ValueChanged<int> onViewVersion;
   final ValueChanged<int> onLoadVersionToDraft;
   final ValueChanged<int>? onCompareVersion;
+  final ValueChanged<String> onViewCheckpoint;
+  final ValueChanged<String> onLoadCheckpointToDraft;
+  final ValueChanged<String>? onCompareCheckpoint;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +39,9 @@ class HistoryEntryRow extends StatelessWidget {
       ),
       CheckpointEntry(:final checkpoint) => CheckpointRow(
         checkpoint: checkpoint,
+        onView: onViewCheckpoint,
+        onLoadToDraft: onLoadCheckpointToDraft,
+        onCompare: onCompareCheckpoint,
       ),
     };
   }

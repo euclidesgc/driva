@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-import 'package:sdui_core/sdui_core.dart';
+part of 'loaded_history_entry.dart';
 
-class LoadedContentVersion extends Equatable {
+class LoadedContentVersion extends LoadedHistoryEntry {
   const LoadedContentVersion({
     required this.version,
     required this.spec,
@@ -11,8 +10,11 @@ class LoadedContentVersion extends Equatable {
   });
 
   final int version;
+  @override
   final ContentSpec spec;
+  @override
   final DateTime createdAt;
+  @override
   final String? note;
   final String? createdBy;
 

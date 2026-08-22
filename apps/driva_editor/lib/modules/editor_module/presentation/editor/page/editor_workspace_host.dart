@@ -28,6 +28,7 @@ class EditorWorkspaceHost extends StatefulWidget {
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
     this.getContentCheckpointsUseCase,
+    this.getContentCheckpointUseCase,
     super.key,
   });
 
@@ -37,6 +38,7 @@ class EditorWorkspaceHost extends StatefulWidget {
   final GetContentVersionsUseCase? getContentVersionsUseCase;
   final GetContentVersionUseCase? getContentVersionUseCase;
   final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
+  final GetContentCheckpointUseCase? getContentCheckpointUseCase;
 
   @override
   State<EditorWorkspaceHost> createState() => _EditorWorkspaceHostState();
@@ -54,6 +56,8 @@ class _EditorWorkspaceHostState extends State<EditorWorkspaceHost> {
     _compareMode = VersionCompareModeCubit(
       getContentVersionUseCase: version,
       getContentVersionsUseCase: versions,
+      getContentCheckpointUseCase: widget.getContentCheckpointUseCase,
+      getContentCheckpointsUseCase: widget.getContentCheckpointsUseCase,
       editorCubit: context.read<EditorCubit>(),
     );
   }
@@ -73,6 +77,7 @@ class _EditorWorkspaceHostState extends State<EditorWorkspaceHost> {
       getContentVersionsUseCase: widget.getContentVersionsUseCase,
       getContentVersionUseCase: widget.getContentVersionUseCase,
       getContentCheckpointsUseCase: widget.getContentCheckpointsUseCase,
+      getContentCheckpointUseCase: widget.getContentCheckpointUseCase,
     );
     final mode = _compareMode;
     if (mode == null) return workspace;

@@ -27,6 +27,7 @@ class EditorTopRegistrar extends StatelessWidget {
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
     this.getContentCheckpointsUseCase,
+    this.getContentCheckpointUseCase,
     this.imageUrlResolver,
     super.key,
   });
@@ -44,6 +45,10 @@ class EditorTopRegistrar extends StatelessWidget {
   /// [getContentVersionsUseCase].
   final GetContentVersionUseCase? getContentVersionUseCase;
   final GetContentCheckpointsUseCase? getContentCheckpointsUseCase;
+
+  /// Repassado a `VersionHistoryDialog` (item 53) para as três ações de um
+  /// ponto salvo — sem ele elas não funcionam.
+  final GetContentCheckpointUseCase? getContentCheckpointUseCase;
 
   /// Repassado ao snapshot de `VersionReviewDialog` (T3, item 50) — mesmo
   /// resolvedor de imagens do canvas principal, para o preview histórico não
@@ -186,6 +191,7 @@ class EditorTopRegistrar extends StatelessWidget {
                             getContentVersionsUseCase,
                             getContentVersionUseCase,
                             getContentCheckpointsUseCase,
+                            getContentCheckpointUseCase,
                             imageUrlResolver,
                             compareModeCubit,
                           ),
@@ -243,6 +249,7 @@ Future<void> _openVersionHistory(
   GetContentVersionsUseCase? getContentVersionsUseCase,
   GetContentVersionUseCase? getContentVersionUseCase,
   GetContentCheckpointsUseCase? getContentCheckpointsUseCase,
+  GetContentCheckpointUseCase? getContentCheckpointUseCase,
   SduiImageUrlResolver? imageUrlResolver,
   VersionCompareModeCubit? compareModeCubit,
 ) async {
@@ -270,6 +277,7 @@ Future<void> _openVersionHistory(
         editorCubit: cubit,
         compareModeCubit: compareModeCubit,
         getContentVersionUseCase: getContentVersionUseCase,
+        getContentCheckpointUseCase: getContentCheckpointUseCase,
         imageUrlResolver: imageUrlResolver,
       ),
     ),
