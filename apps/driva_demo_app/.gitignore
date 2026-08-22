@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Config com chave publicável real, gerado pelo launch.json a partir de
+# config/<env>.json (placeholder) — ver .vscode/scripts/resolve-demo-key.sh.
+config/*.local.json
+
 # Symbolication related
 app.*.symbols
 

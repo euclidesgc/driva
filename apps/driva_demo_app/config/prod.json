@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "https://api.driva.duckdns.org",
+  "PUBLISHABLE_KEY": "cole-aqui-a-chave-do-projeto",
+  "DEFAULT_SLUG": "home"
+}
