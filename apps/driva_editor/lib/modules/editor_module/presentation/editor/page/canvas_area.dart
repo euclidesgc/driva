@@ -15,8 +15,13 @@ import 'package:go_router/go_router.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 class CanvasArea extends StatelessWidget {
-  const CanvasArea({this.imageUrlResolver, super.key});
+  const CanvasArea({
+    required this.demoApkUrl,
+    this.imageUrlResolver,
+    super.key,
+  });
 
+  final String demoApkUrl;
   final SduiImageUrlResolver? imageUrlResolver;
 
   @override
@@ -65,7 +70,7 @@ class CanvasArea extends StatelessWidget {
                 onToggleFitToWindow: cubit.toggleFitToWindow,
                 imageUrlResolver: imageUrlResolver,
                 onOpenPreview: vm.ready
-                    ? () => _openPreviewDialog(context, cubit)
+                    ? () => _openPreviewDialog(context, cubit, demoApkUrl)
                     : null,
                 isFullscreen: isFullscreen,
                 onToggleFullscreen: layoutController.toggleFullscreen,
@@ -112,7 +117,11 @@ class CanvasArea extends StatelessWidget {
   /// A URL vem da própria origem do editor (`Uri.base`), não de `AppConfig`
   /// (que aponta para a API, não para este front). O caminho é o mesmo que
   /// [EditorRoutes.previewRoute] resolve — nada de string de rota duplicada.
-  void _openPreviewDialog(BuildContext context, EditorCubit cubit) {
+  void _openPreviewDialog(
+    BuildContext context,
+    EditorCubit cubit,
+    String demoApkUrl,
+  ) {
     final state = cubit.state;
     if (state is! EditorReady) return;
     final location = GoRouter.of(context).namedLocation(
@@ -126,7 +135,7 @@ class CanvasArea extends StatelessWidget {
     unawaited(
       showDialog<void>(
         context: context,
-        builder: (_) => PreviewShareDialog(url: url),
+        builder: (_) => PreviewShareDialog(url: url, demoApkUrl: demoApkUrl),
       ),
     );
   }

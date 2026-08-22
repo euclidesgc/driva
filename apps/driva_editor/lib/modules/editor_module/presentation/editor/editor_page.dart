@@ -24,6 +24,7 @@ class EditorPage extends StatefulWidget {
     required this.projectFuture,
     this.imageUrlResolver,
     this.contentId = '',
+    this.demoApkUrl = '',
     this.layoutController,
     this.getEditorLayoutUseCase,
     this.saveEditorLayoutUseCase,
@@ -47,6 +48,11 @@ class EditorPage extends StatefulWidget {
   /// Opcional (D19): `editor_perf_test.dart` e `canvas_panel_golden_test.dart`
   /// montam `EditorPage` sem DI e sempre em largura acima de `compact`.
   final String contentId;
+
+  /// URL do APK de demonstração (`AppConfig.demoApkUrl`), repassada até
+  /// `PreviewShareDialog`. Opcional (D19): mesmo motivo dos outros campos
+  /// resolvidos do `get_it` — vazio esconde o bloco de download.
+  final String demoApkUrl;
 
   /// Opcional (D19): ausente, a página cria e possui um controller em
   /// memória com os padrões — o mesmo motivo do [contentId] opcional, para
@@ -113,6 +119,7 @@ class EditorPage extends StatefulWidget {
         projectFuture: getIt<GetProjectUseCase>()(projectId),
         imageUrlResolver: imageUrlResolverFor(getIt<AppConfig>()),
         contentId: id,
+        demoApkUrl: getIt<AppConfig>().demoApkUrl,
         getEditorLayoutUseCase: getIt<GetEditorLayoutUseCase>(),
         saveEditorLayoutUseCase: getIt<SaveEditorLayoutUseCase>(),
         getContentVersionsUseCase: getIt<GetContentVersionsUseCase>(),
@@ -171,6 +178,7 @@ class _EditorPageState extends State<EditorPage> {
                 ? EditorWorkspaceHost(
                     projectFuture: widget.projectFuture,
                     imageUrlResolver: widget.imageUrlResolver,
+                    demoApkUrl: widget.demoApkUrl,
                     layoutController: _layoutController,
                     getContentVersionsUseCase: widget.getContentVersionsUseCase,
                     getContentVersionUseCase: widget.getContentVersionUseCase,

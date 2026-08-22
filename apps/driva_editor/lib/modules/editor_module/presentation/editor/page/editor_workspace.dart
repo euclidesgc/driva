@@ -21,6 +21,7 @@ class EditorWorkspace extends StatelessWidget {
   const EditorWorkspace({
     required this.projectFuture,
     required this.layoutController,
+    required this.demoApkUrl,
     this.imageUrlResolver,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
@@ -44,6 +45,8 @@ class EditorWorkspace extends StatelessWidget {
   /// passageiro no repasse por construtor do `VR-16-02`.
   final EditorLayoutController layoutController;
 
+  final String demoApkUrl;
+
   final SduiImageUrlResolver? imageUrlResolver;
 
   @override
@@ -63,11 +66,17 @@ class EditorWorkspace extends StatelessWidget {
               child: ValueListenableBuilder<bool>(
                 valueListenable: layoutController.isFullscreen,
                 builder: (context, isFullscreen, _) => isFullscreen
-                    ? CenterArea(imageUrlResolver: imageUrlResolver)
+                    ? CenterArea(
+                        imageUrlResolver: imageUrlResolver,
+                        demoApkUrl: demoApkUrl,
+                      )
                     : ResizableSplitView(
                         left: const LeftPanel(),
                         leftPanelRail: const LeftPanelRail(),
-                        center: CenterArea(imageUrlResolver: imageUrlResolver),
+                        center: CenterArea(
+                          imageUrlResolver: imageUrlResolver,
+                          demoApkUrl: demoApkUrl,
+                        ),
                         right: ColoredBox(
                           color: colors.panel,
                           child: const InspectorArea(),

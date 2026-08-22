@@ -4,6 +4,7 @@ import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_typography.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/core/util/new_tab_launcher.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/demo_apk_download_block.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/preview_install_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,9 +14,21 @@ import 'package:qr_flutter/qr_flutter.dart';
 /// pedido explícito do humano. O diálogo é do editor (desktop); a URL leva à
 /// vista de preview, sem chrome, no celular.
 class PreviewShareDialog extends StatelessWidget {
-  const PreviewShareDialog({required this.url, super.key});
+  const PreviewShareDialog({
+    required this.url,
+    this.demoApkUrl = '',
+    this.launcher = const NewTabLauncher(),
+    super.key,
+  });
 
   final String url;
+
+  /// Opcional (D19): mesmo motivo de opcionalidade do `contentId` em
+  /// `EditorPage` — testes que montam este diálogo sem DI continuam
+  /// funcionando, só sem o bloco de download do APK.
+  final String demoApkUrl;
+
+  final NewTabLauncher launcher;
 
   Future<void> _copy(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: url));
@@ -130,13 +143,17 @@ class PreviewShareDialog extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.s16),
               const PreviewInstallHint(),
+              if (demoApkUrl.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.s16),
+                DemoApkDownloadBlock(url: demoApkUrl, launcher: launcher),
+              ],
             ],
           ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => const NewTabLauncher().open(url),
+          onPressed: () => launcher.open(url),
           child: const Text('Abrir em nova aba'),
         ),
         FilledButton(

@@ -6,8 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 class CenterArea extends StatelessWidget {
-  const CenterArea({this.imageUrlResolver, super.key});
+  const CenterArea({
+    required this.demoApkUrl,
+    this.imageUrlResolver,
+    super.key,
+  });
 
+  final String demoApkUrl;
   final SduiImageUrlResolver? imageUrlResolver;
 
   @override
@@ -42,7 +47,10 @@ class CenterArea extends StatelessWidget {
               children: [
                 ColoredBox(
                   color: colors.canvasBackdrop,
-                  child: CanvasArea(imageUrlResolver: imageUrlResolver),
+                  child: CanvasArea(
+                    imageUrlResolver: imageUrlResolver,
+                    demoApkUrl: demoApkUrl,
+                  ),
                 ),
                 const JsonPreviewPanel(),
               ],

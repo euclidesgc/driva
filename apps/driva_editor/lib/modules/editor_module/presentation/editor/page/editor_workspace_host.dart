@@ -24,6 +24,7 @@ class EditorWorkspaceHost extends StatefulWidget {
   const EditorWorkspaceHost({
     required this.projectFuture,
     required this.layoutController,
+    required this.demoApkUrl,
     this.imageUrlResolver,
     this.getContentVersionsUseCase,
     this.getContentVersionUseCase,
@@ -34,6 +35,7 @@ class EditorWorkspaceHost extends StatefulWidget {
 
   final Future<Either<Failure, Project>> projectFuture;
   final EditorLayoutController layoutController;
+  final String demoApkUrl;
   final SduiImageUrlResolver? imageUrlResolver;
   final GetContentVersionsUseCase? getContentVersionsUseCase;
   final GetContentVersionUseCase? getContentVersionUseCase;
@@ -73,6 +75,7 @@ class _EditorWorkspaceHostState extends State<EditorWorkspaceHost> {
     final workspace = EditorWorkspace(
       projectFuture: widget.projectFuture,
       imageUrlResolver: widget.imageUrlResolver,
+      demoApkUrl: widget.demoApkUrl,
       layoutController: widget.layoutController,
       getContentVersionsUseCase: widget.getContentVersionsUseCase,
       getContentVersionUseCase: widget.getContentVersionUseCase,
