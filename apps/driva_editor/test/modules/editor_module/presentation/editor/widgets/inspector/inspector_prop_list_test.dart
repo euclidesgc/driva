@@ -105,12 +105,16 @@ void main() {
     testWidgets('resumo só aparece com a seção fechada', (tester) async {
       await _pumpList(tester, properties: {'fontSize': 18.0});
 
-      expect(find.text('18'), findsNothing);
+      final resumo = find.descendant(
+        of: find.byType(PropSectionHeader),
+        matching: find.text('18'),
+      );
+      expect(resumo, findsNothing);
 
       await tester.tap(find.text('ESTILO'));
       await tester.pumpAndSettle();
 
-      expect(find.text('18'), findsOneWidget);
+      expect(resumo, findsOneWidget);
     });
   });
 
