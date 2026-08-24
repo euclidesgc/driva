@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/alignment_axis_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/alignment_grid.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/numeric_clamp.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -37,11 +38,7 @@ class _AlignmentEditorState extends State<AlignmentEditor> {
 
   ({double x, double y})? get _pair => AlignmentValue.parse(widget.value);
 
-  static String _textOf(double? axis) {
-    if (axis == null) return '';
-    final rounded = axis.roundToDouble();
-    return axis == rounded ? rounded.toInt().toString() : axis.toString();
-  }
+  static String _textOf(double? axis) => axis == null ? '' : formatNumber(axis);
 
   static double? _parse(String text) {
     final trimmed = text.trim();

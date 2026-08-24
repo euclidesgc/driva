@@ -20,8 +20,12 @@ class PropFieldEditor extends StatelessWidget {
 
   /// Kinds cujo editor monta a própria moldura: precisam de um controle na
   /// linha do rótulo que compartilha estado com o corpo (a unidade do campo de
-  /// dimensão, por exemplo), e o wrapper não tem como entregar isso de fora.
-  static const Set<FieldKind> _selfChromed = {FieldKind.dimension};
+  /// dimensão, o modo uniforme/lado a lado do espaçamento), e o wrapper não
+  /// tem como entregar isso de fora.
+  static const Set<FieldKind> _selfChromed = {
+    FieldKind.dimension,
+    FieldKind.edgeInsets,
+  };
 
   bool get _isBound => SduiBinding.isBinding(value);
 

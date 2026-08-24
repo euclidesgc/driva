@@ -46,18 +46,11 @@ class _DimensionEditorState extends State<DimensionEditor> {
       : DimensionUnit.pixels;
 
   static String _textOf(Object? value) => switch (DimensionValue.parse(value)) {
-    PixelDimension(:final pixels) => _trimZero(pixels),
-    PercentDimension(:final fraction) => _trimZero(fraction * 100),
+    PixelDimension(:final pixels) => formatNumber(pixels),
+    PercentDimension(:final fraction) => formatNumber(fraction * 100),
     InfiniteDimension() => DimensionValue.infiniteToken,
     null => '',
   };
-
-  static String _trimZero(double value) {
-    final rounded = value.roundToDouble();
-    return value == rounded
-        ? rounded.toInt().toString()
-        : value.toStringAsFixed(2);
-  }
 
   bool get _isInfinite =>
       DimensionValue.parse(widget.value) is InfiniteDimension;

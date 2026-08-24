@@ -230,6 +230,38 @@ void main() {
       expect(find.text('Valor inválido'), findsOneWidget);
       expect(find.text('Ajustado para o mínimo (8)'), findsNothing);
     });
+
+    testWidgets('valor com muitas casas é exibido com duas', (tester) async {
+      const semFaixa = PropField(
+        key: 'opacity',
+        kind: FieldKind.doubleNum,
+        label: 'Opacidade',
+        group: FieldGroups.style,
+      );
+
+      await _pumpEditor(tester, field: semFaixa, value: 12.3456789012);
+
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '12.35',
+      );
+    });
+
+    testWidgets('valor inteiro é exibido sem casas decimais', (tester) async {
+      const semFaixa = PropField(
+        key: 'opacity',
+        kind: FieldKind.doubleNum,
+        label: 'Opacidade',
+        group: FieldGroups.style,
+      );
+
+      await _pumpEditor(tester, field: semFaixa, value: 12.0);
+
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '12',
+      );
+    });
   });
 
   group('PropResetButton', () {
@@ -268,6 +300,17 @@ void main() {
       await _pumpEditor(tester, field: obrigatorio, value: 'Oi');
 
       expect(find.byType(PropResetButton), findsNothing);
+    });
+
+    testWidgets('botão de canto fica encostado na margem direita', (
+      tester,
+    ) async {
+      await _pumpEditor(tester, field: opcional, value: 120.0);
+
+      final painel = tester.getRect(find.byType(PropFieldEditor));
+      final botao = tester.getRect(find.byType(PropResetButton));
+
+      expect(painel.right - botao.right, lessThan(16.0));
     });
   });
 

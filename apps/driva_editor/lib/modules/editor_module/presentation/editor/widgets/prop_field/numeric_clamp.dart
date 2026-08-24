@@ -26,6 +26,8 @@ String? clampMessageFor(num raw, num clamped, {required num? min}) {
       : 'Ajustado para o máximo (${formatClampedNumber(clamped)})';
 }
 
-String formatClampedNumber(num value) => value == value.roundToDouble()
+String formatClampedNumber(num value) => formatNumber(value);
+
+String formatNumber(num value) => value == value.roundToDouble()
     ? value.toInt().toString()
-    : value.toString();
+    : value.toStringAsFixed(2);
