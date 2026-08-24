@@ -26,8 +26,11 @@ class _NumberEditorState extends State<NumberEditor> {
   static const _sliderWidth = 72.0;
 
   late final TextEditingController _controller = TextEditingController(
-    text: widget.value?.toString() ?? '',
+    text: _formatValue(widget.value),
   );
+
+  String _formatValue(Object? value) =>
+      value is num ? formatNumber(value) : value?.toString() ?? '';
 
   bool _hasError = false;
   String? _clampMessage;
@@ -63,7 +66,7 @@ class _NumberEditorState extends State<NumberEditor> {
     // Ressincroniza só em mudança externa; comparar por texto moveria o cursor.
     if (widget.value != oldWidget.value &&
         widget.value != _committedValueOf(_controller.text)) {
-      _controller.text = widget.value?.toString() ?? '';
+      _controller.text = _formatValue(widget.value);
       _hasError = false;
       _clampMessage = null;
     }
@@ -104,7 +107,7 @@ class _NumberEditorState extends State<NumberEditor> {
 
   void _onSliderChanged(double raw) {
     final value = widget.isInt ? raw.round() : raw;
-    _controller.text = value.toString();
+    _controller.text = formatNumber(value);
     _setSignal(hasError: false);
     widget.onChanged(value);
   }

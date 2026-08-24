@@ -1,6 +1,8 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_mode_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_side_field.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/numeric_clamp.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -11,12 +13,16 @@ class EdgeInsetsEditor extends StatefulWidget {
     required this.field,
     required this.value,
     required this.onChanged,
+    this.bindingButton,
+    this.resetButton,
     super.key,
   });
 
   final PropField field;
   final Object? value;
   final ValueChanged<Object?> onChanged;
+  final Widget? bindingButton;
+  final Widget? resetButton;
 
   @override
   State<EdgeInsetsEditor> createState() => _EdgeInsetsEditorState();
@@ -35,12 +41,14 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
 
   late final Map<String, TextEditingController> _controllers = {
     for (final side in _sides)
-      side: TextEditingController(text: _side(side)?.toString() ?? ''),
+      side: TextEditingController(text: _format(_side(side))),
   };
 
   late final TextEditingController _uniformController = TextEditingController(
-    text: _uniformValue()?.toString() ?? '',
+    text: _format(_uniformValue()),
   );
+
+  String _format(double? value) => value == null ? '' : formatNumber(value);
 
   static bool _readsAsUniform(Object? value) {
     if (value is! Map) return true;
@@ -81,12 +89,12 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
     for (final side in _sides) {
       final external = _side(side);
       if (external != _parse(_controllers[side]!.text)) {
-        _controllers[side]!.text = external?.toString() ?? '';
+        _controllers[side]!.text = _format(external);
       }
     }
     final uniform = _uniformValue();
     if (uniform != _parse(_uniformController.text)) {
-      _uniformController.text = uniform?.toString() ?? '';
+      _uniformController.text = _format(uniform);
     }
   }
 
@@ -129,38 +137,41 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        EdgeInsetsModeBar(
-          isUniform: _isUniform,
-          onChanged: (isUniform) => _changeMode(isUniform: isUniform),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        if (_isUniform)
-          Row(
-            children: [
-              EdgeInsetsSideField(
-                controller: _uniformController,
-                label: 'Todos',
-                onChanged: (text) => _updateUniform(_parse(text)),
-              ),
-            ],
-          )
-        else
-          Row(
-            children: [
-              for (final side in _sides) ...[
-                if (side != _sides.first) const SizedBox(width: AppSpacing.s4),
+    return PropFieldShell(
+      label: widget.field.label,
+      isRequired: widget.field.isRequired,
+      helpText: widget.field.helpText,
+      headerTrailing: EdgeInsetsModeBar(
+        isUniform: _isUniform,
+        onChanged: (isUniform) => _changeMode(isUniform: isUniform),
+      ),
+      actions: [
+        ?widget.bindingButton,
+        ?widget.resetButton,
+      ],
+      body: _isUniform
+          ? Row(
+              children: [
                 EdgeInsetsSideField(
-                  controller: _controllers[side],
-                  label: _sideLabels[side]!,
-                  onChanged: (text) => _updateSide(side, _parse(text)),
+                  controller: _uniformController,
+                  label: 'Todos',
+                  onChanged: (text) => _updateUniform(_parse(text)),
                 ),
               ],
-            ],
-          ),
-      ],
+            )
+          : Row(
+              children: [
+                for (final side in _sides) ...[
+                  if (side != _sides.first)
+                    const SizedBox(width: AppSpacing.s4),
+                  EdgeInsetsSideField(
+                    controller: _controllers[side],
+                    label: _sideLabels[side]!,
+                    onChanged: (text) => _updateSide(side, _parse(text)),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 }

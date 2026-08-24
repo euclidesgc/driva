@@ -43,7 +43,7 @@ class PropFieldShell extends StatelessWidget {
         children: [
           Row(
             children: [
-              Flexible(
+              Expanded(
                 child: Tooltip(
                   message: label,
                   child: Text(
@@ -58,7 +58,6 @@ class PropFieldShell extends StatelessWidget {
               ),
               if (isRequired)
                 const Text(' *', style: TextStyle(color: AppTheme.primary)),
-              const Spacer(),
               ?headerTrailing,
               ...actions,
             ],

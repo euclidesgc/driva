@@ -1,4 +1,5 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/dimension_editor.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -27,6 +28,13 @@ class SelfChromedPropEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) => switch (field.kind) {
     FieldKind.dimension => DimensionEditor(
+      field: field,
+      value: value,
+      onChanged: onChanged,
+      bindingButton: bindingButton,
+      resetButton: resetButton,
+    ),
+    FieldKind.edgeInsets => EdgeInsetsEditor(
       field: field,
       value: value,
       onChanged: onChanged,
