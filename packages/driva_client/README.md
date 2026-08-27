@@ -71,7 +71,15 @@ arquivo versionado leva um placeholder.
   diante a tela aparece na hora, e a revalidação acontece em background
   (*stale-while-revalidate*, com `ETag`/`304`).
 - **Nunca derruba a tela do seu app.** Se tudo falhar, a ordem é fallback
-  embarcado → `errorBuilder` → nada, com log. Nenhuma exceção sobe.
+  embarcado → `errorBuilder` → nada, com log. Quem usa `DrivaContent` não vê
+  exceção nenhuma subir.
+- **Quando falha, diz por quê.** O objeto entregue ao `errorBuilder` é um
+  `DrivaLoadFailure` com `slug` e `cause` (`network`, `notFound`, `invalidSpec`,
+  `serverError`) — dá para dizer "esta tela não existe" em vez de "sem conexão".
+  ⚠️ **Se você consome `Driva.instance.repository.load(slug)` direto**, em vez do
+  widget, saiba que desde a `0.2.0` esse `Stream` **fecha pelo canal de erro**
+  com `DrivaLoadFailure` quando nada pôde ser servido (antes ele completava em
+  silêncio): trate o `onError`, senão vira erro assíncrono não capturado.
 - **Só desenha spec validado pelo kernel.** JSON corrompido ou `specVersion`
   mais nova que a do app é tratado como falha de parse, não como conteúdo.
 
