@@ -21,6 +21,29 @@
 | `ValidationFailure` | `parseContentSpec` (kernel), models zard, 400 do backend | Spec/payload fora do schema (inclui `slug` fora de `^[a-z][a-z0-9-]*$`) | Mensagem descritiva; save barrado pela trava do `SaveDraftUseCase` |
 | `UnexpectedFailure` | Repositórios | O resto | "Algo deu errado." |
 
+## Runtime do app cliente (`packages/driva_client`, 0.2.0+) e o app de demonstração
+
+`DrivaContentRepository.load(slug)` resolve **memória → disco → rede**. Enquanto
+alguma fonte serve conteúdo **não há falha**: rede caída com cache local vira só
+uma linha de log. `DrivaLoadFailure {slug, cause}` nasce apenas quando nada,
+absolutamente nada, pôde ser desenhado — sem cache, sem 200 válido, sem fallback
+embarcado — e fecha o **canal de erro** do `Stream<ContentSpec>`. Quem usa
+`DrivaContent` recebe o objeto no `errorBuilder` (nenhuma exceção sobe para a
+árvore); quem consome o repositório direto precisa tratar o `onError`.
+
+| `DrivaLoadCause` | Quem dispara | Situação | UX no app de demonstração |
+|---|---|---|---|
+| `network` | `_fetchAndValidate` | O `http.Client` lançou — sem conexão, DNS, timeout; nunca houve resposta HTTP | `ContentErrorView` (nuvem cortada): "pode ser sua conexão ou o servidor" + tentar de novo |
+| `notFound` | idem | `404` da rota pública: slug sem publicação **ou** chave publicável inválida — a API não distingue os dois, de propósito | `ContentNotFoundView` (lupa cortada), nomeando as **duas** causas possíveis + tentar de novo |
+| `invalidSpec` | idem | Corpo indecodificável, envelope sem `spec`, ou `parseContentSpec` devolvendo `Left` — inclusive `specVersion` mais novo que o do app instalado | `ContentErrorView` (é falha do servidor do ponto de vista do usuário; tentar de novo não resolve, e é a única causa em que não resolve) |
+| `serverError` | idem | Qualquer outro status ≠ 200/304, inclusive um `304` chegando sem cache local para revalidar | `ContentErrorView` |
+
+Fora da família tipada, e **antes** de qualquer rede: chave publicável fora do
+formato `pk_...` (o placeholder que os `config/*.json` versionam) não vira
+`DrivaLoadFailure` nenhum — a `ContentPage` mostra `ContentKeyMissingView` e nem
+monta o `DrivaContent`. Todos os caminhos acima também escrevem
+`log(name: 'driva_client')`.
+
 ## Backend (`backend/`)
 
 - 400 — DTO inválido (class-validator, inclui `slug` fora de `^[a-z][a-z0-9-]*$`) ou `spec.specVersion` não suportada.
