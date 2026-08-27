@@ -271,7 +271,7 @@ aberta**: nesta fase, nenhuma rota existente muda de comportamento.
 
 **DoD**
 - `backend/test/auth.e2e-spec.ts` existe e cobre: login bom (200 + cookie), login ruim (401, mensagem única), throttle do login (requisições acima do limite → 429), `me` com/sem cookie, logout matando a sessão, e TTL deslizante (request autenticada avança `expiresAt` — asserção via leitura do banco de teste).
-- O mesmo spec prova a regressão: `GET /v1/contents` e `GET /v1/projects` **sem sessão** continuam respondendo como hoje (nada protegido na F1).
+- O mesmo spec prova a regressão: `GET /v1/contents` e `GET /v1/projects` **sem sessão** respondem **200** nesta fase (nada protegido na F1) — asserção de status e de corpo não-vazio, não comparação com estado anterior.
 - `cd backend && pnpm test:e2e` verde, incluindo os specs pré-existentes (`media-proxy.e2e-spec.ts`, `public-rate-limit.e2e-spec.ts`) sem alteração.
 
 #### T1.5 — Textual: CHANGELOG + parecer CISO da F1 **[paralela: sim]** **[textual — sem supervisor, lote da fase]**
@@ -284,7 +284,7 @@ login; `requireEnv`; seed e log de adoção. **Sem parecer, a F1 não mergeia.**
 
 **DoD**
 - `CHANGELOG.md` (`Unreleased`) cita a F1 (sessão server-side, seed, nada protegido ainda).
-- `docs/26-auth-multi-tenant/pareceres/parecer_f1.md` existe com veredito explícito (aprovado/aprovado-com-ressalvas) cobrindo os pontos listados acima.
+- `docs/26-auth-multi-tenant/pareceres/parecer_f1.md` existe com veredito explícito (aprovado/aprovado-com-ressalvas) e nomeia, um a um: schema das quatro tabelas, forma do cookie (host-only/`Lax`/`Secure`), hash SHA-256 sem pepper, TTLs 7d/30d, parâmetros do argon2id, mensagem única de login, throttle do login, conjunto do `requireEnv` e seed idempotente com log de adoção.
 
 ### F3 — Editor: `auth_module` domain/data, sem UI e sem mudança de comportamento **(1 PR)**
 
@@ -305,6 +305,13 @@ Gabarito: `preferences_module` (o módulo pequeno do repo).
 - `AuthRepository` declara exatamente `login`, `logout` e `me`, todos devolvendo `Future<Either<Failure, ...>>` (fpdart).
 - `cd apps/driva_editor && flutter analyze && flutter test -r compact test/modules/auth_module` verdes.
 
+> **DoD verificado e aprovado em 2026-08-27** (supervisor cego). Registro do veredito
+> para leitura futura: a linha do espelho lê-se como **espelho de layout**
+> (`CLAUDE.md:46`) — os testes moram sob
+> `apps/driva_editor/test/modules/auth_module/domain/`, e **não** há um `_test.dart`
+> por arquivo de produção; o contrato `abstract interface class`, sem comportamento,
+> não ganha teste próprio.
+
 #### T3.2 — Data + fake + `UnauthorizedFailure` no sealed **[paralela: não — dep. T3.1]** **[sub-agente: especialista-dados]**
 
 `data/models/authenticated_user_model.dart` (zard `safeParse`, gabarito
@@ -321,7 +328,7 @@ registrando só repositório e use cases.
 - `auth_repository_impl.dart` traduz `DioException` com status 401 em `UnauthorizedFailure` — provado por teste com adapter/cliente fake.
 - `auth_repository_fake.dart` devolve usuário logado sem rede — teste prova que `me()` no fake resolve `Right` imediato.
 - O model valida com zard: payload sem `email` → `Left(ValidationFailure)` em teste.
-- `cd apps/driva_editor && flutter test -r compact` verde; nenhum comportamento visível do app mudou (nenhuma rota, página ou cubit existente foi tocado além dos switches de `Failure`).
+- `cd apps/driva_editor && flutter test -r compact` verde; e o `git diff --name-only` da tarefa só contém arquivos sob `apps/driva_editor/lib/modules/auth_module/`, `apps/driva_editor/test/`, o `apps/driva_editor/lib/core/error/failure.dart` e arquivos cujo diff se resume a um `case` novo em `switch` sobre `Failure` — nenhuma rota, página ou cubit ganhou/perdeu outra linha.
 
 ### F2 — Guard global, tenant no path e as superfícies novas (backend) **(1 PR)** **[gate CISO #2 — a fase perigosa]**
 
@@ -362,7 +369,7 @@ atualizados para as URLs novas. **Services de contents/categories intactos.**
 - As 12 rotas de conteúdo e as 4 de categoria respondem sob `/v1/projects/:projectId/...` — teste de contrato cobre uma leitura e uma escrita de cada controller com membership válida (200) e com projeto alheio (404).
 - `GET /v1/projects` com sessão de usuário B devolve só os projetos com membership de B — teste com dois usuários.
 - Criar projeto autenticado deixa o criador com `Membership(owner)` na mesma transação — teste força falha após o insert do projeto e prova rollback conjunto.
-- Os specs pré-existentes de `backend/test/` foram atualizados e `cd backend && pnpm test && pnpm test:e2e` verdes.
+- `cd backend && pnpm test && pnpm test:e2e` verdes — incluindo os specs pré-existentes de `backend/test/` (`media-proxy.e2e-spec.ts`, `public-rate-limit.e2e-spec.ts`, `auth.e2e-spec.ts`), ajustados onde citavam as URLs antigas, sem caso removido (contagem de `it(` por arquivo ≥ a de antes da tarefa).
 
 #### T2.3 — `rotate-key`, `POST /v1/users` e os dois `createdBy` **[paralela: sim — ∥ T2.4; arquivos distintos]** **[sub-agente: especialista-infra]** _(dep. T2.1)_
 
@@ -403,7 +410,8 @@ esperada é literal no teste: health, `public/*`, auth, `media/proxy`,
 intocada.
 
 **DoD**
-- `backend/test/route-sweep.e2e-spec.ts` enumera as rotas em runtime (não lista de memória) e falha se qualquer rota fora da allowlist responder ≠ 401 sem sessão — provado invertendo: remover `@Public()` de `health` no teste faz a varredura acusar.
+- `backend/test/route-sweep.e2e-spec.ts` enumera as rotas em runtime (não lista de memória), asserta que o total varrido é **≥ 25** (prova de que a enumeração não veio vazia) e falha se qualquer rota fora da allowlist responder ≠ 401 sem sessão.
+- O mesmo arquivo registra um controller-fixture de teste **sem** `@Public()` e prova que a varredura o acusa — a garantia de que o sweep pega violação, sem depender de mutação manual do código de produção.
 - A allowlist literal no teste tem exatamente: `GET /health`, `GET /v1/public/contents`, `GET /v1/public/contents/:slug`, `POST /v1/auth/login`, `GET /v1/media/proxy`, `GET /v1/preview/:token` (logout/me exigem sessão).
 - O spec de contrato do item 25 (`backend/test/public-rate-limit.e2e-spec.ts`) segue verde **sem modificação nesta fase**.
 - `cd backend && pnpm test:e2e` verde.
@@ -418,7 +426,7 @@ ela só mergeia com F4, o parecer trava o evento de deploy inteiro).
 
 **DoD**
 - `CHANGELOG.md` (`Unreleased`) cita a F2 (guard global, tenant no path, rotate-key, users, token do QR).
-- `docs/26-auth-multi-tenant/pareceres/parecer_f2.md` existe com veredito explícito sobre T5, T6 e T8 — se T6 sair "sessão", há entrada correspondente no `variance_report.md` e a D26.7 é revisada antes do merge.
+- `docs/26-auth-multi-tenant/pareceres/parecer_f2.md` existe com veredito explícito sobre três pontos nomeados: a regex `localhost` no CORS com `credentials: true` inclusive em produção (T5), o destino de `GET /v1/media/proxy` sob o guard (T6) e o token de visualização do QR — TTL, hash, escopo, 404 indistinguível, revogação (T8). Se o veredito do proxy for "exige sessão", há entrada nova em `docs/plans/26-auth-multi-tenant/variance_report.md` e a D26.7 deste plano está revisada antes do merge.
 
 ### F4 — Editor: login, sessão, tenant explícito e QR **(1 PR — mergeia junto com a F2)**
 
@@ -443,7 +451,7 @@ sem caso especial no router.
 - Widget test prova o F5: com `me()` resolvendo usuário, abrir qualquer rota **não** passa pelo `/login`.
 - Widget test prova o fake (A6): `useFakeData` abre a home sem tela de login.
 - A rota `/preview/t/abc` renderiza sem sessão (redirect não a intercepta) — teste dedicado.
-- `cd apps/driva_editor && flutter analyze && flutter test -r compact test/modules/auth_module test/app_router_test.dart` verdes (criar o arquivo de teste do router se não existir).
+- `apps/driva_editor/test/app_router_test.dart` existe (nasce nesta tarefa, se ainda não existir) e `cd apps/driva_editor && flutter analyze && flutter test -r compact test/modules/auth_module test/app_router_test.dart` saem verdes.
 
 #### T4.2 — LoginPage fora do shell **[paralela: sim — ∥ T4.3; arquivos disjuntos]** **[sub-agente: especialista-apresentacao]** _(dep. T4.1)_
 
@@ -530,6 +538,7 @@ gere um novo QR no editor"** — sem formulário de login, sem nome de projeto/c
 
 **DoD**
 - `CHANGELOG.md` (`Unreleased`) cita: login/logout no editor, morte do `ProjectScope`/`DEFAULT_PROJECT_ID`, URLs aninhadas, capa via provider autenticado e o QR por token.
+- `docs/26-auth-multi-tenant/prd.md` corrigido conforme a **VR-26-01** (`docs/plans/26-auth-multi-tenant/variance_report.md`): o caminho feliz nº 5 e a linha "Capa de projeto sob o guard" da tabela de exceções passam a citar o `SessionImageProvider` no lugar de "sem código novo", com referência à VR-26-01 — é a obrigação de fechamento da F4 registrada na própria entrada.
 
 ### F5 — Encerramento **(1 PR, topo da pilha — é o PR cujo merge leva F2+F4+F5 juntas)**
 
@@ -559,7 +568,7 @@ neste `plan.md`.
 **DoD**
 - `docs/roadmap.md` com o 26 `[x]`, as duas linhas de vigilância fechadas e a linha nova em _Validações de campo pendentes_ nomeando: QR em Android físico, cookie/sessão em Safari/iOS, contagem da migração no log de deploy do hml.
 - `docs/09-crud-projeto/variance_report.md` tem a nota de fechamento do débito de 2026-07-09 apontando para `docs/26-auth-multi-tenant/`.
-- `final_report.md` e `variance_report.md` existem em `docs/26-auth-multi-tenant/`, o segundo com a entrada da D26.4 (capa: "sem código novo" → provider autenticado).
+- `docs/26-auth-multi-tenant/final_report.md` existe, citando as cinco fases e os dois pareceres; `docs/plans/26-auth-multi-tenant/variance_report.md` (criado em 2026-08-27 com a VR-26-01) contém os desvios da execução; e o PRD já está corrigido conforme a VR-26-01 — conferência do que a T4.7 fez, não trabalho novo desta tarefa.
 
 ## 5. Ordem de despacho
 
