@@ -6,33 +6,11 @@ import 'package:driva_client/src/cache/prefs_cache_store.dart';
 import 'package:driva_client/src/cached_content.dart';
 import 'package:driva_client/src/driva_config.dart';
 import 'package:driva_client/src/driva_load_failure.dart';
+import 'package:driva_client/src/fetch_outcome.dart';
 import 'package:http/http.dart' as http;
 import 'package:sdui_core/sdui_core.dart';
 
 typedef _Entry = ({ContentSpec spec, CachedContent cached});
-
-/// Resultado interno de uma tentativa de busca na rede — preserva a causa
-/// de falha em vez de colapsar tudo em `null` (a raiz do R9: ver plano do
-/// item 25, D-R10.1).
-sealed class _FetchOutcome {
-  const _FetchOutcome();
-}
-
-class _FetchOk extends _FetchOutcome {
-  const _FetchOk(this.entry);
-  final _Entry entry;
-}
-
-/// 304: o cache já servido continua válido. Não é sucesso (nada novo para
-/// gravar) nem falha (o servidor respondeu normalmente).
-class _FetchNotModified extends _FetchOutcome {
-  const _FetchNotModified();
-}
-
-class _FetchFailed extends _FetchOutcome {
-  const _FetchFailed(this.cause);
-  final DrivaLoadCause cause;
-}
 
 class DrivaContentRepository {
   DrivaContentRepository({required DrivaConfig config, http.Client? httpClient})
@@ -60,17 +38,18 @@ class DrivaContentRepository {
       ifNoneMatch: entry?.cached.etag,
     );
 
-    if (outcome is _FetchOk) {
-      final fetched = outcome.entry;
-      _memory[cacheKey] = fetched;
-      await _cache.write(cacheKey, fetched.cached);
-      yield fetched.spec;
-      return;
+    DrivaLoadCause? failureCause;
+    switch (outcome) {
+      case FetchOk(entry: final fetched):
+        _memory[cacheKey] = fetched;
+        await _cache.write(cacheKey, fetched.cached);
+        yield fetched.spec;
+        return;
+      case FetchNotModified():
+        if (entry != null) return;
+      case FetchFailed(cause: final cause):
+        failureCause = cause;
     }
-
-    // 304 com cache em memória/disco: o cache já foi servido acima, e
-    // continua válido — nada mais a fazer.
-    if (outcome is _FetchNotModified && entry != null) return;
 
     if (entry != null) return;
 
@@ -80,13 +59,7 @@ class DrivaContentRepository {
       return;
     }
 
-    // Nada serviu: sem cache, sem 200 válido, sem fallback embarcado. A
-    // conclusão silenciosa daqui era exatamente a falha silenciosa que o
-    // R9 existe para matar — fecha o canal de erro do Stream em vez de
-    // completar sem avisar (D-R10.1 do plano do item 25).
-    final cause = outcome is _FetchFailed
-        ? outcome.cause
-        : DrivaLoadCause.serverError;
+    final cause = failureCause ?? DrivaLoadCause.serverError;
     log(
       'Nenhum conteúdo disponível para "$slug": sem cache, sem rede, sem '
       'fallback (causa: $cause).',
@@ -109,7 +82,7 @@ class DrivaContentRepository {
     return (spec: parsed.getRight().toNullable()!, cached: onDisk);
   }
 
-  Future<_FetchOutcome> _fetchAndValidate(
+  Future<FetchOutcome> _fetchAndValidate(
     String slug, {
     String? ifNoneMatch,
   }) async {
@@ -124,14 +97,14 @@ class DrivaContentRepository {
       );
     } on Object catch (error) {
       log('Falha de rede ao buscar "$slug": $error', name: 'driva_client');
-      return const _FetchFailed(DrivaLoadCause.network);
+      return const FetchFailed(DrivaLoadCause.network);
     }
 
-    if (response.statusCode == 304) return const _FetchNotModified();
+    if (response.statusCode == 304) return const FetchNotModified();
 
     if (response.statusCode == 404) {
       log('Conteúdo "$slug" não encontrado (404)', name: 'driva_client');
-      return const _FetchFailed(DrivaLoadCause.notFound);
+      return const FetchFailed(DrivaLoadCause.notFound);
     }
 
     if (response.statusCode != 200) {
@@ -139,7 +112,7 @@ class DrivaContentRepository {
         'Resposta ${response.statusCode} ao buscar "$slug"',
         name: 'driva_client',
       );
-      return const _FetchFailed(DrivaLoadCause.serverError);
+      return const FetchFailed(DrivaLoadCause.serverError);
     }
 
     final dynamic envelope;
@@ -147,11 +120,11 @@ class DrivaContentRepository {
       envelope = jsonDecode(response.body);
     } on Object catch (error) {
       log('Corpo inválido ao buscar "$slug": $error', name: 'driva_client');
-      return const _FetchFailed(DrivaLoadCause.invalidSpec);
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
     if (envelope is! Map || envelope['spec'] is! Map) {
       log('Envelope inesperado ao buscar "$slug"', name: 'driva_client');
-      return const _FetchFailed(DrivaLoadCause.invalidSpec);
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
 
     final specJson = Map<String, dynamic>.from(envelope['spec'] as Map);
@@ -159,10 +132,10 @@ class DrivaContentRepository {
     if (parsed.isLeft()) {
       final reason = parsed.getLeft().toNullable()?.message;
       log('Spec inválido ao buscar "$slug": $reason', name: 'driva_client');
-      return const _FetchFailed(DrivaLoadCause.invalidSpec);
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
 
-    return _FetchOk((
+    return FetchOk((
       spec: parsed.getRight().toNullable()!,
       cached: CachedContent(
         specJson: specJson,
