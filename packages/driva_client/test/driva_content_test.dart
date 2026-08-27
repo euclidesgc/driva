@@ -66,8 +66,6 @@ void main() {
           ),
         );
 
-        // Antes da resposta HTTP chegar, o stream ainda não emitiu nada: só
-        // o loadingBuilder está na árvore.
         expect(find.byKey(const Key('driva-loading')), findsOneWidget);
         expect(find.byKey(const ValueKey('home-text')), findsNothing);
 
@@ -76,8 +74,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Depois da emissão, o nó raiz do spec (achado pela chave do nó,
-        // não por texto de log) substitui o loadingBuilder.
         expect(find.byKey(const ValueKey('home-text')), findsOneWidget);
         expect(find.byKey(const Key('driva-loading')), findsNothing);
       },

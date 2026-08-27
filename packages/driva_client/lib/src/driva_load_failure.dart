@@ -18,7 +18,10 @@ enum DrivaLoadCause {
   /// pelo app instalado.
   invalidSpec,
 
-  /// Qualquer outro status HTTP além de 200 e 304.
+  /// Qualquer outro status HTTP além de 200 e 304 — inclusive um 304 que
+  /// chega sem cache local para revalidar (o servidor não deveria confirmar
+  /// "não mudou" para quem não mandou `If-None-Match`; tratado como falha
+  /// de servidor, não como causa própria).
   serverError,
 }
 
@@ -31,10 +34,7 @@ enum DrivaLoadCause {
 class DrivaLoadFailure implements Exception {
   const DrivaLoadFailure({required this.slug, required this.cause});
 
-  /// O slug que estava sendo carregado.
   final String slug;
-
-  /// Por que nenhuma fonte serviu conteúdo para [slug].
   final DrivaLoadCause cause;
 
   @override
