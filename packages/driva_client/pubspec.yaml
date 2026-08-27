@@ -1,6 +1,6 @@
 name: driva_client
 description: Runtime do driva para apps clientes — resolve ContentSpec publicado por slug, com cache em disco, stale-while-revalidate e fallback embarcado.
-version: 0.1.0
+version: 0.2.0
 resolution: workspace
 
 environment:
