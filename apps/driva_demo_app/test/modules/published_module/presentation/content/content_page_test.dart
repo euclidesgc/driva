@@ -31,6 +31,10 @@ void main() {
 
         expect(find.byType(ContentKeyMissingView), findsOneWidget);
         expect(find.byType(DrivaContent), findsNothing);
+        expect(
+          find.bySemanticsLabel('Chave publicável ausente'),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -56,6 +60,12 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(ContentNotFoundView), findsOneWidget);
+        // O ícone e o título compartilham o texto — o rótulo aparece duas
+        // vezes na árvore de semântica (ícone + texto visível).
+        expect(
+          find.bySemanticsLabel('Conteúdo não encontrado'),
+          findsWidgets,
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -83,6 +93,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(ContentErrorView), findsOneWidget);
+        expect(
+          find.bySemanticsLabel('Falha de conexão ou servidor'),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
       },
     );

@@ -59,8 +59,7 @@ void main() {
         _harness(currentSlug: 'home', onSubmit: (_) => called = true),
       );
 
-      // O controller já inicia preenchido com o slug atual — reenviar sem
-      // editar não deve disparar onSubmit.
+      // O controller já inicia preenchido com o slug atual.
       await tester.tap(find.byTooltip('Abrir slug'));
       await tester.pump();
 
