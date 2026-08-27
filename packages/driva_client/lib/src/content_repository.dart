@@ -5,6 +5,8 @@ import 'package:driva_client/src/cache/driva_cache_store.dart';
 import 'package:driva_client/src/cache/prefs_cache_store.dart';
 import 'package:driva_client/src/cached_content.dart';
 import 'package:driva_client/src/driva_config.dart';
+import 'package:driva_client/src/driva_load_failure.dart';
+import 'package:driva_client/src/fetch_outcome.dart';
 import 'package:http/http.dart' as http;
 import 'package:sdui_core/sdui_core.dart';
 
@@ -31,15 +33,22 @@ class DrivaContentRepository {
       yield entry.spec;
     }
 
-    final revalidated = await _fetchAndValidate(
+    final outcome = await _fetchAndValidate(
       slug,
       ifNoneMatch: entry?.cached.etag,
     );
-    if (revalidated != null) {
-      _memory[cacheKey] = revalidated;
-      await _cache.write(cacheKey, revalidated.cached);
-      yield revalidated.spec;
-      return;
+
+    DrivaLoadCause? failureCause;
+    switch (outcome) {
+      case FetchOk(entry: final fetched):
+        _memory[cacheKey] = fetched;
+        await _cache.write(cacheKey, fetched.cached);
+        yield fetched.spec;
+        return;
+      case FetchNotModified():
+        if (entry != null) return;
+      case FetchFailed(cause: final cause):
+        failureCause = cause;
     }
 
     if (entry != null) return;
@@ -50,11 +59,13 @@ class DrivaContentRepository {
       return;
     }
 
+    final cause = failureCause ?? DrivaLoadCause.serverError;
     log(
       'Nenhum conteúdo disponível para "$slug": sem cache, sem rede, sem '
-      'fallback.',
+      'fallback (causa: $cause).',
       name: 'driva_client',
     );
+    throw DrivaLoadFailure(slug: slug, cause: cause);
   }
 
   void dispose() => _httpClient.close();
@@ -71,7 +82,10 @@ class DrivaContentRepository {
     return (spec: parsed.getRight().toNullable()!, cached: onDisk);
   }
 
-  Future<_Entry?> _fetchAndValidate(String slug, {String? ifNoneMatch}) async {
+  Future<FetchOutcome> _fetchAndValidate(
+    String slug, {
+    String? ifNoneMatch,
+  }) async {
     final http.Response response;
     try {
       response = await _httpClient.get(
@@ -83,16 +97,22 @@ class DrivaContentRepository {
       );
     } on Object catch (error) {
       log('Falha de rede ao buscar "$slug": $error', name: 'driva_client');
-      return null;
+      return const FetchFailed(DrivaLoadCause.network);
     }
 
-    if (response.statusCode == 304) return null;
+    if (response.statusCode == 304) return const FetchNotModified();
+
+    if (response.statusCode == 404) {
+      log('Conteúdo "$slug" não encontrado (404)', name: 'driva_client');
+      return const FetchFailed(DrivaLoadCause.notFound);
+    }
+
     if (response.statusCode != 200) {
       log(
         'Resposta ${response.statusCode} ao buscar "$slug"',
         name: 'driva_client',
       );
-      return null;
+      return const FetchFailed(DrivaLoadCause.serverError);
     }
 
     final dynamic envelope;
@@ -100,11 +120,11 @@ class DrivaContentRepository {
       envelope = jsonDecode(response.body);
     } on Object catch (error) {
       log('Corpo inválido ao buscar "$slug": $error', name: 'driva_client');
-      return null;
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
     if (envelope is! Map || envelope['spec'] is! Map) {
       log('Envelope inesperado ao buscar "$slug"', name: 'driva_client');
-      return null;
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
 
     final specJson = Map<String, dynamic>.from(envelope['spec'] as Map);
@@ -112,17 +132,17 @@ class DrivaContentRepository {
     if (parsed.isLeft()) {
       final reason = parsed.getLeft().toNullable()?.message;
       log('Spec inválido ao buscar "$slug": $reason', name: 'driva_client');
-      return null;
+      return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
 
-    return (
+    return FetchOk((
       spec: parsed.getRight().toNullable()!,
       cached: CachedContent(
         specJson: specJson,
         etag: response.headers['etag'],
         fetchedAt: DateTime.now(),
       ),
-    );
+    ));
   }
 
   ContentSpec? _fallbackFor(String slug) {

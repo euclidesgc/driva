@@ -1,5 +1,6 @@
 import 'package:driva_client/src/content_repository.dart';
 import 'package:driva_client/src/driva_config.dart';
+import 'package:http/http.dart' as http;
 
 class Driva {
   Driva._(this.config, this.repository);
@@ -9,9 +10,15 @@ class Driva {
   final DrivaConfig config;
   final DrivaContentRepository repository;
 
-  static Future<void> init(DrivaConfig config) async {
+  static Future<void> init(
+    DrivaConfig config, {
+    http.Client? httpClient,
+  }) async {
     if (_instance != null) return;
-    _instance = Driva._(config, DrivaContentRepository(config: config));
+    _instance = Driva._(
+      config,
+      DrivaContentRepository(config: config, httpClient: httpClient),
+    );
   }
 
   static Driva get instance {

@@ -23,7 +23,7 @@ workspace do pub:
 
 ```yaml
 dependencies:
-  driva_client: ^0.1.0
+  driva_client: ^0.2.0
 ```
 
 com o package listado no `workspace:` do `pubspec.yaml` da raiz e o
@@ -38,11 +38,21 @@ dependencies:
     git:
       url: https://github.com/<org>/driva.git
       path: packages/driva_client
-      ref: v0.1.0
+      ref: <tag-de-release-do-driva>
 ```
 
 Fixe sempre uma `ref`. Sem ela o `pub get` segue o branch padrão, e a sua build
-muda de comportamento sem você ter mexido em nada.
+muda de comportamento sem você ter mexido em nada. Atenção a uma confusão fácil:
+a `ref` é uma **tag de release do repositório** (`v0.3.0`, `v0.4.0`, …), que não
+é a mesma numeração da **versão do package**. Para saber qual versão do
+`driva_client` uma tag carrega, olhe o `version:` de
+`packages/driva_client/pubspec.yaml` naquela tag.
+
+> **A versão atual do package é `0.2.0`.** Ela traz uma mudança de
+> comportamento — não de assinatura — em relação à `0.1.0`: a falha de
+> carregamento passou a ter **causa tipada** (§4) e `load()` deixou de terminar
+> em silêncio quando nada pôde ser servido (§5). Nenhuma assinatura pública
+> mudou, então atualizar não quebra compilação.
 
 O package traz `sdui_core` e `sdui_flutter` junto — você não precisa declará-los
 para renderizar. Só declare `sdui_flutter` explicitamente se for montar um
@@ -106,6 +116,25 @@ Duas coisas que continuam valendo mesmo assim:
 flutter run --dart-define-from-file=config/hml.json
 ```
 
+### O prefixo `pk_` — e por que ele poupa você de um bug caro
+
+Toda chave publicável real começa com **`pk_`** (é `pk_` mais 32 bytes
+aleatórios em base64url, gerado pelo backend na criação do projeto). O
+placeholder do arquivo versionado, não.
+
+Isso te dá uma verificação **local, antes de qualquer chamada de rede**: se a
+chave que chegou por `--dart-define` não começa com `pk_`, ela não é uma chave —
+é o placeholder que ninguém substituiu no build. Trate esse caso como um estado
+próprio da tela ("falta a chave, veja como obtê-la"), sem montar `DrivaContent`.
+
+Não é preciosismo. A API responde **`404`** para chave inexistente, exatamente
+como responde para slug não publicado (é decisão de segurança, §Apêndice), então
+sem essa verificação um binário com o placeholder embarcado abre com a mesma
+"tela vazia" de um slug que ninguém publicou, e ninguém consegue dizer qual dos
+dois é. Já custou uma tarde de investigação neste projeto — e a lição virou
+código: `apps/driva_demo_app/tool/run_demo.sh` aborta o build quando a chave não
+vem no formato `pk_`, em vez de assar o placeholder dentro do APK.
+
 > **Rotação de chave ainda não existe.** Não há endpoint para trocar a chave de
 > um projeto. Se a sua precisar mudar, hoje isso é operação de banco. Está
 > registrado como pendência do item 25.
@@ -158,6 +187,74 @@ e o texto `Tipo desconhecido: "<type>"` na tela — o renderer não deixa a tela
 inteira cair por causa de um nó, mas também não esconde o buraco. Na dúvida, não
 passe `registry` nenhum.
 
+### Testar o seu app sem rede de verdade: o `httpClient`
+
+`Driva.init` aceita um segundo parâmetro, **nomeado e opcional**, fora do
+`DrivaConfig`:
+
+```dart
+static Future<void> init(DrivaConfig config, {http.Client? httpClient})
+```
+
+Ele é repassado ao repositório interno. É o que permite ao **seu** teste de
+widget simular a rede — responder `200` com um spec de mentira, devolver `404`,
+ou lançar como se o aparelho estivesse offline — sem servidor no ar e sem
+depender de homologação. Em produção não passe nada: sem `httpClient`, o package
+cria o seu próprio `http.Client`.
+
+Duas coisas que o teste precisa saber:
+
+- **`Driva.init` é idempotente** — se já houve um `init`, o segundo é ignorado
+  **inteiro**, inclusive o `httpClient` novo. Por isso todo teste começa (ou
+  termina) com `Driva.resetForTesting()`, que zera o singleton;
+- **passe `cache: MemoryCacheStore()`** — o cache padrão persiste em disco por
+  um canal de plataforma, que não existe no ambiente do `flutter test`.
+
+```dart
+import 'package:driva_client/driva_client.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+void main() {
+  setUp(Driva.resetForTesting);
+  tearDown(Driva.resetForTesting);
+
+  testWidgets('a tela mostra o aviso quando o conteúdo não existe', (
+    tester,
+  ) async {
+    await Driva.init(
+      DrivaConfig(
+        baseUrl: 'https://api.example.com',
+        publishableKey: 'pk_test',
+        cache: MemoryCacheStore(),
+      ),
+      httpClient: MockClient((request) async => http.Response('', 404)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DrivaContent(
+            slug: 'home',
+            errorBuilder: (context, error) =>
+                const Text('Conteúdo indisponível'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conteúdo indisponível'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
+```
+
+`MockClient` vem de `package:http/testing.dart` — declare `http` em
+`dev_dependencies` do seu app.
+
 ---
 
 ## 4. Desenhar o conteúdo: `DrivaContent`
@@ -186,10 +283,65 @@ DrivaContent(
   entre "o usuário vê um aviso e um botão de tentar de novo" e "a tela fica em
   branco e ninguém sabe por quê".
 
-O `error` entregue ao `errorBuilder` serve para diagnóstico — mandar para o seu
-Crashlytics/Sentry, escrever no log. Não construa lógica de negócio em cima do
-tipo dele: o package resolve as falhas por dentro e não expõe a hierarquia de
-erros interna como contrato público.
+### O que o `errorBuilder` recebe: `DrivaLoadFailure` e a causa
+
+**A partir da `0.2.0`** o objeto entregue ao `errorBuilder` é um
+`DrivaLoadFailure`, e ele diz **por que** falhou:
+
+```dart
+class DrivaLoadFailure implements Exception {
+  const DrivaLoadFailure({required this.slug, required this.cause});
+  final String slug;
+  final DrivaLoadCause cause;
+}
+
+enum DrivaLoadCause { network, notFound, invalidSpec, serverError }
+```
+
+Antes disso o `errorBuilder` recebia sempre o mesmo `StateError` genérico, e não
+havia como o seu app distinguir "o celular está sem rede" de "esse slug não
+existe" — as duas coisas viravam a mesma tela. **A assinatura não mudou**:
+`DrivaErrorBuilder` continua sendo `Widget Function(BuildContext, Object)`, então
+um app que ignora o tipo do erro continua compilando e funcionando igual. Quem
+quiser a causa faz um `is`/`switch`.
+
+| `cause` | O que aconteceu | O que costuma ser | O que mostrar ao usuário |
+| --- | --- | --- | --- |
+| `network` | o `http.Client` lançou; nunca chegou a existir uma resposta HTTP | celular offline, DNS, timeout, API fora do ar | "sem conexão" + **tentar de novo** |
+| `notFound` | o servidor respondeu `404` | slug sem publicação **ou** chave publicável inválida — as duas, indistinguíveis (ver abaixo) | "esta tela não está disponível", nomeando as duas causas |
+| `invalidSpec` | veio `200`, mas o corpo não virou um `ContentSpec` válido | `specVersion` publicada mais nova que a do app instalado (§7), widget fora do catálogo desta versão, JSON corrompido | "atualize o app" — tentar de novo não resolve |
+| `serverError` | qualquer outro status ≠ `200`/`304` — e o balde do que o package não conseguiu classificar | `500`, `502`, gateway do seu proxy | "instabilidade momentânea" + **tentar de novo** |
+
+```dart
+DrivaContent(
+  slug: 'home',
+  errorBuilder: (context, error) => switch (error) {
+    DrivaLoadFailure(cause: DrivaLoadCause.notFound) => const MyContentMissingView(),
+    DrivaLoadFailure(cause: DrivaLoadCause.invalidSpec) => const MyAppOutdatedView(),
+    _ => const MyConnectionErrorView(),
+  },
+)
+```
+
+Três cuidados que valem a pena:
+
+1. **`404` não separa "chave errada" de "slug não publicado", e não vai
+   separar.** É decisão de segurança da rota pública (§Apêndice): distinguir as
+   duas coisas entregaria a quem sonda a API de fora um jeito de descobrir quais
+   projetos existem. Consequência para você: o texto do estado `notFound` deve
+   nomear **as duas** possibilidades, e o caso "esqueci de substituir o
+   placeholder da chave" você resolve **antes**, pelo prefixo `pk_` (§2), sem
+   chamada de rede nenhuma.
+2. **Mantenha um caminho `default`.** O parâmetro é tipado como `Object` de
+   propósito: hoje o package só emite `DrivaLoadFailure`, mas o contrato não
+   promete que nunca chegará outra coisa, e um `switch` sem saída derruba o seu
+   `errorBuilder` — que é justamente a tela que existe para nada cair.
+3. **Instrumente.** `DrivaLoadFailure` carrega o `slug`, e `toString()` já sai
+   como `DrivaLoadFailure(slug: home, cause: DrivaLoadCause.notFound)` — mande
+   para o seu Crashlytics/Sentry. Com a causa separada, `invalidSpec` subindo na
+   base inteira é o alerta de que alguém publicou conteúdo à frente da versão
+   que está nas lojas (§7), e você só descobre isso do lado do app: o servidor
+   devolveu `200` para todo mundo.
 
 `DrivaContent` cabe em qualquer lugar da árvore — dentro de um `Scaffold`, de
 uma aba, de um `ListView`. Ele desenha o conteúdo do spec e mais nada; a
@@ -246,20 +398,57 @@ pela validação do kernel — arquivo corrompido, formato inesperado —, ela �
 **apagada** e o fluxo segue para a rede ou para o fallback. O package nunca
 desenha um spec que não foi validado.
 
-### Os três casos, e o que o usuário final vê
+### Os casos, e o que o usuário final vê
 
 | Situação | O que o package faz | O que o usuário vê |
 | --- | --- | --- |
-| **Sem cache e sem fallback** (primeira abertura, offline) | memória vazia → disco vazio → rede falha → não há o que desenhar | o seu `errorBuilder`. Sem `errorBuilder`: **nada** — um espaço vazio, e uma linha no log. Nunca uma exceção, nunca a tela vermelha do Flutter |
+| **Sem cache e sem fallback** (primeira abertura, offline) | memória vazia → disco vazio → rede falha → não há o que desenhar: `load()` fecha o stream com `DrivaLoadFailure(cause: DrivaLoadCause.network)` | o seu `errorBuilder`, agora sabendo a causa. Sem `errorBuilder`: **nada** — um espaço vazio, e uma linha no log. Nunca uma exceção na sua árvore de widgets, nunca a tela vermelha do Flutter |
+| **Slug que não existe (ou chave inválida)** | a rede responde `404` → `DrivaLoadFailure(cause: DrivaLoadCause.notFound)` | o seu `errorBuilder`, e desta vez dá para dizer "esta tela não existe" em vez de "sem conexão" |
+| **Spec que o app não entende** (`specVersion` nova, widget fora do catálogo) | o parse recusa → cai no fallback se houver; senão, `DrivaLoadFailure(cause: DrivaLoadCause.invalidSpec)` | a tela do fallback ou o seu `errorBuilder`. Nunca uma tela meio-desenhada (§7) |
 | **Com cache** (já abriu antes, agora offline) | o disco entrega na hora; a revalidação falha em background e vira log | a **última versão publicada que o app chegou a baixar**, imediata. Ele nem percebe que está offline |
 | **Com fallback** (primeira abertura, offline, fallback embarcado) | memória e disco vazios, rede falha → cai no fallback do `Driva.init` | a tela do fallback — a que estava valendo no dia em que você gerou o binário |
 
-Quando há cache **e** fallback, o cache ganha: ele é mais novo.
+Quando há cache **e** fallback, o cache ganha: ele é mais novo. E vale a regra
+que atravessa a tabela inteira: **enquanto alguma fonte serviu conteúdo, não há
+falha.** `DrivaLoadFailure` só nasce no caso em que nada, absolutamente nada,
+pôde ser desenhado.
 
 Nada disso interrompe o seu app. É a garantia central do runtime: **o
 `driva_client` nunca derruba a tela do cliente.** Falha de rede, timeout, JSON
-malformado, servidor fora do ar — tudo termina em um dos três degraus acima, e o
-pior deles é um `SizedBox.shrink()` com log.
+malformado, servidor fora do ar — tudo termina em um dos degraus acima, e o pior
+deles é um `SizedBox.shrink()` com log.
+
+### Se você usa o repositório direto, sem o `DrivaContent`
+
+`Driva.instance.repository.load(slug)` devolve um `Stream<ContentSpec>`, e isso
+é superfície pública — dá para consumi-lo à mão, num cubit ou num
+`StreamBuilder` seu, em vez de usar o widget pronto. **Aqui houve mudança de
+comportamento na `0.2.0`, e ela pede atenção:**
+
+- **antes:** na falha total o stream simplesmente **completava sem emitir
+  nada**. Um `StreamBuilder` ficava para sempre no estado de carregando, e
+  ninguém era avisado de nada. Era falha silenciosa, e foi por isso que mudou;
+- **agora:** o stream **fecha pelo canal de erro**, com `DrivaLoadFailure`.
+
+Ou seja: se você escuta esse stream por conta própria, **trate o erro**. Um
+`Stream` que fecha com erro sem `onError` (ou um `await for` sem `try`) vira
+erro assíncrono não capturado — no seu `runZonedGuarded`, no console, e em nada
+de útil na tela.
+
+```dart
+Driva.instance.repository.load('home').listen(
+  (spec) => emit(ContentLoaded(spec)),
+  onError: (Object error) => emit(
+    ContentFailed(
+      error is DrivaLoadFailure ? error.cause : DrivaLoadCause.serverError,
+    ),
+  ),
+);
+```
+
+Quem usa `DrivaContent` não precisa fazer nada: o widget já escuta o `onError` e
+entrega o objeto ao seu `errorBuilder` — é exatamente essa a diferença entre as
+duas superfícies.
 
 ---
 
@@ -356,6 +545,12 @@ O runtime trata isso como **falha de parse** — exatamente como trataria um JSO
 corrompido. Ou seja: não renderiza, apaga a entrada do cache, e desce os degraus
 da §5 — **fallback → `errorBuilder` → `SizedBox.shrink()` com log.** Não sobe
 exceção, o app não quebra, nenhuma tela meio-desenhada aparece.
+
+Se não houver fallback, a causa que chega ao seu `errorBuilder` é
+`DrivaLoadCause.invalidSpec` — e é **a única das quatro em que "tentar de novo"
+não adianta nada**: o servidor vai devolver o mesmo `200` com o mesmo spec na
+próxima tentativa. O caminho de saída honesto para o usuário é pedir a
+atualização do app, não um botão de recarregar.
 
 ### O mesmo buraco tem uma entrada mais larga: widget novo no catálogo
 
@@ -491,7 +686,9 @@ x-driva-key: <chave publicável>
 - **`404`** para: slug inexistente, conteúdo sem versão publicada, chave
   ausente, chave inválida, chave de outro projeto e projeto arquivado. É um
   `404` só, de propósito — a resposta não conta a quem sonda se o problema foi a
-  chave ou o conteúdo.
+  chave ou o conteúdo. No package, todos esses casos chegam ao `errorBuilder`
+  como `DrivaLoadCause.notFound` (§4); a única forma de separar o caso "a chave
+  nem é uma chave" é a checagem local do prefixo `pk_`, da §2.
 
 **A lista do que está publicado**
 
@@ -516,6 +713,11 @@ forma mais fácil de derrubar o serviço para todos os projetos.
 ## Referências
 
 - `packages/driva_client/README.md` — a versão curta, com o exemplo mínimo.
+- `packages/driva_client/lib/src/driva_load_failure.dart` — `DrivaLoadFailure` e
+  `DrivaLoadCause`, a fonte da verdade da tabela de causas da §4.
+- `packages/driva_client/test/driva_content_test.dart` — o `Driva.init(...,
+  httpClient:)` da §3 exercitado de verdade, incluindo o `404` que entrega
+  `DrivaLoadCause.notFound` ao `errorBuilder`.
 - `apps/driva_demo_app/` — app real que consome a rota pública; o `README.md`
   dele mostra o padrão de `--dart-define-from-file` e o script que descobre a
   chave.

@@ -156,7 +156,9 @@ distintos, um único estado visual** — exatamente o que a regra de E2E do proj
 proíbe, e o que já custou uma tarde na fatia 1 (o APK release que abria com a
 vitrine vazia por causa do placeholder). Quem executar a F4 corrige isto antes de
 rodar o roteiro, senão o primeiro erro do E2E será indistinguível de falta de
-internet.
+internet. **[Superado em 2026-08-27: a F4 saiu do caminho crítico com a suspensão
+do E2E; o conserto do R9 virou as Fases A e B do §3c (R10), provado por teste de
+widget em vez de roteiro.]**
 
 **R6 — O mapa do §5 fica assim** (o P1 sai; F1 e F3 são as duas frentes que
 correm juntas, e tocam arquivos disjuntos — `packages/driva_client/lib` × `docs/`
@@ -166,6 +168,231 @@ e `README.md`):
 F1 (runtime) ─┬─► F2 (demo app migra) ─► F4 (E2E) ─► F5 (bateria)
 F3 (docs) ────┘
 ```
+
+## 3c. R10 — Fechamento da fatia 2 (revisão de 2026-08-27): conserto do R9 + F5 sob a pirâmide
+
+Escrita depois de duas decisões do dono que superam a P5 do §4 e as fases F4/F5 do R5 —
+isto é **correção de forma por decisão já registrada, não desvio novo** (sem entrada de
+variance): **(a) 2026-08-20** — E2E suspenso no repositório inteiro e revogação da regra
+"bateria por último" (a F5 deixou de depender da F4, que saiu do caminho crítico — ver
+`docs/roadmap.md` › Marco 5, item 25, e `CLAUDE.md` › _Método de trabalho_);
+**(b) 2026-08-21** — régua de conclusão: **a pirâmide automatizada verde fecha o item**; o
+ciclo em aparelho já está registrado na linha do item 25 em _Validações de campo
+pendentes_ do `docs/roadmap.md`. **Onde o §3b (R5, R9), o §4 P5 e o §7 contradizem esta
+seção, ela ganha.**
+
+**Estado verificado em 2026-08-27 (develop):**
+
+- `packages/driva_client/test/` tem **só** `content_repository_test.dart` — o widget test
+  `driva_content_test.dart` previsto na P5 não existe.
+- `apps/driva_demo_app/test/` tem **só** `android_manifest_test.dart`; `ContentPage`,
+  `ContentSlugBar` e `ContentErrorView`
+  (`lib/modules/published_module/presentation/content/`) não têm cobertura de widget.
+- **Os 4 testes que a F2 apagou não voltam literais** (`published_content_model_test`,
+  `catalog_cubit_test`, `content_cubit_test`, `rendered_content_view_test` — commit
+  `396fd9a`): cobriam camadas que deixaram de existir (`data/`, cubits, catálogo). A
+  cobertura equivalente é a desta seção — repositório e widget no package, widget no app.
+- **A raiz técnica do R9, confirmada no código:** `_fetchAndValidate`
+  (`packages/driva_client/lib/src/content_repository.dart`) colapsa **todas** as falhas em
+  `null` — exceção de rede, 404, status ≠ 200, corpo indecodificável, spec inválido — e
+  `load()` completa em silêncio; `_DrivaContentState._subscribe`
+  (`packages/driva_client/lib/src/driva_content.dart`) fabrica no `onDone` um único
+  `StateError` genérico. O `errorBuilder` recebe sempre o mesmo objeto: **o app não tem
+  como distinguir nada.** O conserto exige mexer no contrato público do package.
+
+### Decisões técnicas travadas
+
+**D-R10.1 — A causa da falha entra no contrato público do `driva_client`, sem breaking.**
+Nasce `DrivaLoadFailure` (com `slug` e `cause`) e o enum
+`DrivaLoadCause {network, notFound, invalidSpec, serverError}`. Mapa: exceção do
+`http.Client` → `network`; resposta 404 → `notFound`; corpo que não vira spec válido
+(decode, envelope, `parseContentSpec` `Left` — inclusive `specVersion` mais novo) →
+`invalidSpec`; qualquer outro status ≠ 200/304 → `serverError`. **`load()` passa a fechar
+com `DrivaLoadFailure` no canal de erro do `Stream` quando nada pôde ser servido** (sem
+cache, sem 200 válido, sem fallback), em vez de completar em silêncio — a conclusão
+silenciosa é exatamente a falha silenciosa que o R9 existe para matar. Quando cache ou
+fallback serviu, nada muda. A garantia "nenhuma exceção sobe para a tela do cliente"
+**permanece**: o `DrivaContent` já tem `onError` e entrega o objeto ao `errorBuilder`; a
+assinatura `DrivaErrorBuilder = Widget Function(BuildContext, Object)` **não muda** — app
+que ignora o tipo continua funcionando. É mudança de comportamento documentada, não de
+assinatura: `packages/driva_client/pubspec.yaml` 0.1.0 → 0.2.0 (workspace-only, nenhum
+dependente externo).
+
+**D-R10.2 — O 404 não separa "chave inválida" de "slug não publicado" — e não vai
+separar.** É decisão de segurança registrada da fatia 1 (CHANGELOG: 404, não 401, para não
+distinguir "chave errada" de "conteúdo inexistente" para quem sonda de fora), e este plano
+não a reabre. O caso **placeholder** — o que custou a tarde do APK de vitrine vazia — é
+distinguível **localmente**: a chave real tem formato `pk_...` (D1), o placeholder dos
+`config/*.json` não. Logo o app trata: chave sem prefixo `pk_` → estado "falta a chave"
+**sem chamada de rede**; 404 com chave bem-formada → estado "conteúdo não encontrado",
+cujo texto nomeia as duas causas possíveis (slug sem publicação **ou** chave inválida).
+
+**D-R10.3 — `Driva.init` ganha `httpClient` opcional.** Hoje só o construtor de
+`DrivaContentRepository` aceita `http.Client`, e `Driva.init` não o repassa — o app
+hospedeiro **não tem como** simular rede em teste de widget. `Driva.init(config,
+{http.Client? httpClient})` encaminha ao repositório. Adição pura, sem breaking; é o que
+torna a bateria da Fase B possível.
+
+**Contrato congelado (o que a Fase B pode assumir antes de a Fase A terminar):**
+
+```dart
+enum DrivaLoadCause { network, notFound, invalidSpec, serverError }
+
+class DrivaLoadFailure implements Exception {
+  const DrivaLoadFailure({required this.slug, required this.cause});
+  final String slug;
+  final DrivaLoadCause cause;
+}
+
+static Future<void> Driva.init(DrivaConfig config, {http.Client? httpClient})
+```
+
+### Fase A — `driva_client`: causa tipada + bateria do package **(1 PR)**
+
+Branch `feature/25-driva-client-causa-tipada`, de `develop`.
+
+#### T-A1 — Contrato e repositório emitem a causa **[paralela: não — é a base]** **[sub-agente: especialista-dados]** — ✔ **Entregue em 2026-08-27** (commit `cdcc022`, 13 testes verdes)
+
+Criar `packages/driva_client/lib/src/driva_load_failure.dart` com o contrato congelado
+acima e exportá-lo no barrel. Em `content_repository.dart`, `_fetchAndValidate` passa a
+devolver resultado que preserva a causa, e `load()` fecha com `DrivaLoadFailure` no canal
+de erro quando nada foi servido (D-R10.1). `Driva.init` ganha `httpClient` opcional
+(D-R10.3). A bateria entra **junto**: os casos novos em `content_repository_test.dart`
+(o teste existente "falha total sem fallback não emite e não lança" é reescrito — agora a
+falha total **emite erro tipado**, e continua sem lançar exceção não capturada). Bump
+0.2.0 + entrada no `CHANGELOG.md` raiz (`Unreleased`) no mesmo PR.
+
+**DoD**
+- `packages/driva_client/lib/src/driva_load_failure.dart` existe com a classe `DrivaLoadFailure` (campos `slug` e `cause`) e o enum `DrivaLoadCause` com exatamente os valores `network`, `notFound`, `invalidSpec` e `serverError`; `grep -n "driva_load_failure" /home/euclidesgc/development/driva/packages/driva_client/lib/driva_client.dart` mostra o export no barrel.
+- `packages/driva_client/test/content_repository_test.dart` prova, com `MockClient`, que `load()` de um slug sem cache e sem fallback termina com erro `DrivaLoadFailure` nas quatro causas: exceção de rede → `cause == DrivaLoadCause.network`, resposta 404 → `notFound`, resposta 500 → `serverError`, resposta 200 com spec que não passa no parse → `invalidSpec`.
+- No mesmo arquivo de teste, quando há fallback embarcado servível a falha de rede **não** produz erro no stream — o teste `specVersion incompatível cai no fallback embarcado` segue passando com a mesma expectativa de emissão.
+- `Driva.init` em `packages/driva_client/lib/src/driva.dart` aceita o parâmetro nomeado opcional `httpClient` e um teste prova que o client injetado é o usado (o `MockClient` do teste registra ao menos uma requisição feita via `Driva.instance.repository.load`).
+- `packages/driva_client/pubspec.yaml` declara `version: 0.2.0`, e a seção `Unreleased` de `/home/euclidesgc/development/driva/CHANGELOG.md` tem entrada citando `driva_client` e a causa tipada.
+- `cd packages/driva_client && flutter analyze && flutter test -r compact` saem verdes.
+
+#### T-A2 — Widget test do `DrivaContent` **[paralela: sim — ∥ T-B1, arquivos disjuntos]** **[sub-agente: especialista-apresentacao]** _(dep. T-A1)_
+
+Criar `packages/driva_client/test/driva_content_test.dart` (o arquivo que a P5 previa e
+nunca nasceu): loading → conteúdo; falha total entrega o `DrivaLoadFailure` tipado ao
+`errorBuilder`; sem `errorBuilder`, nada explode. Usa `Driva.resetForTesting()` +
+`Driva.init(..., httpClient: MockClient(...), cache: MemoryCacheStore())`.
+**Inclui um conserto mínimo, achado na entrega da T-A1** (refinamento por realidade de
+implementação, não mudança de exigência — o DoD abaixo não muda): em
+`packages/driva_client/lib/src/driva_content.dart`, o `onDone` de `_subscribe` fabrica o
+`StateError` genérico sempre que `_spec == null` e **não checa `_error`** — e como stream
+que fecha com erro também dispara `onDone`, ele **sobrescreve** o `DrivaLoadFailure` que o
+`onError` acabou de guardar (antes da T-A1 não havia erro tipado para sobrescrever). O
+`onDone` passa a retornar também quando `_error != null`, mantendo o `StateError` só para
+o caso real de stream que completa sem emitir nada.
+
+**DoD**
+- `packages/driva_client/test/driva_content_test.dart` existe e `cd packages/driva_client && flutter test -r compact test/driva_content_test.dart` sai verde.
+- Um teste prova que o widget entregue pelo `loadingBuilder` está na árvore antes da primeira emissão e que, após a resposta 200 do `MockClient`, o conteúdo do spec está renderizado (finder por chave ou semântica, não por texto de log).
+- Um teste com resposta 404, sem cache e sem fallback, captura o argumento `error` recebido pelo `errorBuilder` e asserta `error is DrivaLoadFailure && error.cause == DrivaLoadCause.notFound`.
+- Um teste com falha total e **sem** `errorBuilder` termina com `SizedBox.shrink` na árvore e `tester.takeException()` retornando `null`.
+- Todos os testes passam por `Driva.resetForTesting()` em `setUp` ou `tearDown` — rodar o arquivo duas vezes em sequência passa igual.
+
+#### T-A3 — Guia de integração acompanha o contrato **[paralela: sim — só toca `docs/`]** **[textual — sem supervisor, cobrada no lote da fase]**
+
+`docs/25-entrega-app-cliente/integracao.md`: a seção do `errorBuilder` (e a tabela de
+cenários) passa a documentar `DrivaLoadFailure`/`DrivaLoadCause`, o comportamento novo de
+`load()` (erro tipado no stream em falha total — relevante para quem consome o repositório
+direto) e o `httpClient` do `Driva.init` para testes do app hospedeiro.
+
+**DoD**
+- `grep -c "DrivaLoadCause" /home/euclidesgc/development/driva/docs/25-entrega-app-cliente/integracao.md` ≥ 2 (seção do `errorBuilder` e tabela de cenários).
+- O guia diz explicitamente que `load()` fecha com `DrivaLoadFailure` quando nada pôde ser servido, e mostra o `Driva.init(..., httpClient:)` num exemplo de teste.
+- Nenhuma promessa do guia contradiz o código entregue na T-A1 (conferência de leitura do QA no lote da fase).
+
+### Fase B — demo app: três estados de falha visualmente distintos + bateria do app **(1 PR, empilhado na Fase A)**
+
+Branch `feature/25-demo-app-estados-de-falha`, criada **da branch da Fase A** (pilha,
+`docs/GITFLOW.md` § 6 — nunca dois PRs independentes contra `develop`).
+
+#### T-B1 — Os três estados na UI **[paralela: sim — ∥ T-A2 após a T-A1; arquivos disjuntos]** **[sub-agente: especialista-apresentacao]** _(dep. T-A1 — compila contra o contrato congelado)_
+
+Em `apps/driva_demo_app/lib/modules/published_module/presentation/content/widgets/`:
+criar `content_key_missing_view.dart` (devolve a feature anunciada no CHANGELOG da fatia
+1: ícone de chave + "Falta a chave publicável" + instrução nomeando `PUBLISHABLE_KEY` no
+config do flavor e o `tool/run_demo.sh` — o texto do `missing_key_view.dart` apagado é o
+gabarito, recuperável em `git show 396fd9a^`); criar `content_not_found_view.dart` (ícone
+próprio + texto nomeando as duas causas da D-R10.2 + botão de tentar de novo); ajustar o
+texto do `content_error_view.dart` para falar de conexão/servidor. Em `content_page.dart`:
+chave sem prefixo `pk_` → `ContentKeyMissingView` sem montar `DrivaContent` (D-R10.2); com
+chave bem-formada, o `errorBuilder` escolhe a view pela causa. A chave chega pelo
+construtor; `pageBuilder` continua o único ponto que toca o `getIt`. Acessibilidade: cada
+estado com ícone **e** texto próprios — cor nunca é o único sinal. Tokens de
+`core/theme/` (o `gates_guard.sh` cobra).
+
+**DoD**
+- `apps/driva_demo_app/lib/modules/published_module/presentation/content/widgets/content_key_missing_view.dart` e `content_not_found_view.dart` existem, um widget por arquivo, e os três estados (junto com `content_error_view.dart`) têm ícone e texto distintos entre si — nenhum par compartilha o mesmo ícone.
+- O texto do `ContentKeyMissingView` menciona literalmente `PUBLISHABLE_KEY` e `tool/run_demo.sh` (como obter a chave).
+- Em `apps/driva_demo_app/lib/modules/published_module/presentation/content/page/content_page.dart`, chave que não começa com `pk_` resulta em `ContentKeyMissingView` na árvore **sem** nenhum `DrivaContent` construído; com chave `pk_...`, o `errorBuilder` devolve `ContentNotFoundView` quando o erro é `DrivaLoadFailure` com `cause == DrivaLoadCause.notFound` e `ContentErrorView` nos demais casos.
+- `grep -c "getIt" apps/driva_demo_app/lib/modules/published_module/presentation/content/page/content_page.dart` mostra ocorrência apenas dentro de `pageBuilder`.
+- `cd apps/driva_demo_app && flutter analyze` verde e, da raiz do repo, `bash scripts/gates_guard.sh` verde.
+
+#### T-B2 — Bateria do app: os três estados provados distintos **[paralela: não — dep. T-B1; mesmo agente da T-B1, retomado]** **[sub-agente: especialista-apresentacao]**
+
+Criar `apps/driva_demo_app/test/modules/published_module/presentation/content/`
+`content_page_test.dart` e `content_slug_bar_test.dart`. É a F5 do roadmap: a cobertura
+equivalente aos 4 testes apagados, no desenho novo. Finders por chave/semântica (regra do
+repo). `http` entra em `dev_dependencies` do app para o `MockClient`.
+
+**DoD**
+- `apps/driva_demo_app/test/modules/published_module/presentation/content/content_page_test.dart` prova os três estados, cada um por finder próprio: (1) chave placeholder → `ContentKeyMissingView` presente e `find.byType(DrivaContent)` vazio; (2) chave `pk_test` + `MockClient` respondendo 404 → `ContentNotFoundView` presente; (3) chave `pk_test` + `MockClient` lançando exceção → `ContentErrorView` presente. Os casos 2 e 3 usam `Driva.resetForTesting()` + `Driva.init(..., httpClient: MockClient(...))`.
+- No mesmo arquivo, nenhum teste vaza exceção: `tester.takeException()` é `null` em todos.
+- `apps/driva_demo_app/test/modules/published_module/presentation/content/content_slug_bar_test.dart` prova: submeter um slug novo chama `onSubmit` com o valor sem espaços das pontas; submeter vazio ou o slug atual **não** chama `onSubmit`.
+- `cd apps/driva_demo_app && flutter test -r compact` sai verde, com `test/android_manifest_test.dart` intocado e passando.
+
+#### T-B3 — CHANGELOG do app **[paralela: sim]** **[textual — sem supervisor, cobrada no lote da fase]**
+
+Entrada em `Unreleased` do `CHANGELOG.md` raiz, no mesmo PR: os três estados de falha do
+app de demonstração, nomeando a regressão (a feature "explica como obter a chave" da fatia
+1 volta) e a distinção nova chave × não-encontrado × rede.
+
+**DoD**
+- A seção `Unreleased` de `/home/euclidesgc/development/driva/CHANGELOG.md` tem entrada citando os três estados de falha do `apps/driva_demo_app` e o retorno da instrução de obtenção da chave.
+
+#### T-C — Fechamento do item 25 **[paralela: sim — só toca `docs/`]** **[textual — sem supervisor, cobrada no lote da fase]**
+
+No PR da Fase B: `docs/roadmap.md` — F5 do item 25 vira `[x]`, o item 25 vira `[x]`, o
+parágrafo do gargalo (linha ~32) atualizado, e a linha do 25 em _Validações de campo
+pendentes_ deixa de citar o pré-requisito R9 como pendente (o que resta lá é só o ciclo em
+aparelho). `docs/25-entrega-app-cliente/final_report.md` escrito. Marcas de progresso
+neste `plan.md`.
+
+**DoD**
+- `docs/roadmap.md`: a F5 e o item 25 marcados `[x]`; a célula "Por quê" da linha do item 25 em _Validações de campo pendentes_ não afirma mais que o R9 está por corrigir.
+- `docs/25-entrega-app-cliente/final_report.md` existe, citando as Fases A e B e as decisões D-R10.1–3.
+- Este `plan.md` com as fases A e B marcadas como concluídas.
+
+### Ordem de despacho
+
+```
+T-A1 (base) ─┬─► T-A2 (∥, worktree A) ─┐
+             └─► T-B1 (∥, worktree B) ─► T-B2 (mesmo agente) ─┐
+T-A3 ∥ T-B3 ∥ T-C (textuais, lote do QA) ─────────────────────┴─► consolidação
+```
+
+1. **T-A1** sozinha — todo o resto compila contra o que ela entrega. ✔ **Entregue**
+   (`cdcc022`, 2026-08-27).
+2. **T-A2 ∥ T-B1** — worktrees separadas (branch A × branch B empilhada); arquivos
+   disjuntos (`packages/driva_client/` × `apps/driva_demo_app/`).
+3. **T-B2** — mesmo agente da T-B1, retomado (contexto quente; é quem sabe onde estão as
+   chaves dos widgets que acabou de criar).
+4. **T-A3 ∥ T-B3 ∥ T-C** — textuais, a qualquer momento após a T-A1; QA cobra no lote.
+5. **Consolidação:** suíte completa nos dois alvos + `bash scripts/gates_guard.sh` na
+   branch integrada da pilha; publicar a pilha (skill `empilhar-prs`).
+
+### DoD do fechamento (substitui as linhas riscadas do §7)
+
+- [ ] `cd packages/driva_client && flutter analyze && flutter test -r compact` verdes.
+- [ ] `cd apps/driva_demo_app && flutter analyze && flutter test -r compact` verdes.
+- [ ] `bash scripts/gates_guard.sh` verde na branch integrada da pilha.
+- [ ] Os três estados de falha do app provados **visualmente distintos por teste de widget** (chave placeholder × 404 × sem rede), cada um por finder próprio — `content_page_test.dart` é a prova.
+- [ ] `load()` do `driva_client` provado emitindo `DrivaLoadFailure` com as quatro causas em `content_repository_test.dart`.
+- [ ] `CHANGELOG.md` (`Unreleased`) com as duas entradas, cada uma no PR da sua fase.
+- [ ] `docs/roadmap.md`: item 25 `[x]`, F5 `[x]`, linha de _Validações de campo pendentes_ conferida; `docs/25-entrega-app-cliente/final_report.md` escrito.
 
 ## 4. Fases
 
@@ -292,7 +519,14 @@ DrivaContent(
 
 ---
 
-### P5 — Testes (por último)
+### P5 — Testes (por último) **[Superada em 2026-08-27 pelo §3c (R10)]**
+
+> Escrita antes das decisões do dono de 2026-08-20 (E2E suspenso; revogação de "bateria
+> por último") e de 2026-08-21 (pirâmide verde fecha o item). O que dela continua vivo —
+> `driva_content_test.dart` e a cobertura do app — está redistribuído nas Fases A e B do
+> §3c, junto das fases que cobrem. O "e2e de contrato no `e2e_hml.sh`" não se escreve
+> (suspensão); o contrato Jest existente (`backend/test/public-rate-limit.e2e-spec.ts`)
+> continua. A suíte do `sdui_flutter` já provou a remoção do `DrivaContent` na F1.
 
 - **`packages/driva_client/test/`**: `content_repository_test.dart` (memória→disco→rede, 304 não emite, parse inválido limpa cache, fallback), com um `http.Client` fake (`package:http/testing.dart` — `MockClient`) e `MemoryCacheStore`.
 - **Widget test** `driva_content_test.dart`: mostra `loadingBuilder`, depois o conteúdo; erro sem fallback chama `errorBuilder`.
@@ -321,13 +555,18 @@ P2 (driva_client) ┘        │
 
 ## 7. Definition of Done
 
-- [ ] `pnpm build`/`pnpm lint` verdes; `flutter analyze` verde nos 4 pacotes/apps do workspace.
-- [ ] Migração da chave publicável aplicada em hml sem projeto órfão (contagem antes/depois).
-- [ ] E2E de contrato da rota pública 100% PASS contra o hml.
-- [ ] **E2E do ciclo completo** com o showcase apontado para o hml (publicar → aparecer; salvar sem publicar → não aparecer).
-- [ ] `docs/25-entrega-app-cliente/final_report.md` + guia de integração.
-- [ ] `CHANGELOG.md` com o **breaking change** do `sdui_flutter` (remoção do `DrivaContent`).
-- [ ] `docs/roadmap.md`: item 25 `[x]`.
+> **Revisto em 2026-08-27 (R10):** as linhas de E2E abaixo estão superadas pela suspensão
+> de 2026-08-20 e pela régua de 2026-08-21 — a régua vigente é o **DoD do fechamento** no
+> §3c; o ciclo em aparelho está na linha do item 25 em _Validações de campo pendentes_ do
+> `docs/roadmap.md`.
+
+- [x] `pnpm build`/`pnpm lint` verdes; `flutter analyze` verde nos 4 pacotes/apps do workspace. _(recobrado pelo DoD do §3c a cada fase)_
+- [x] Migração da chave publicável aplicada em hml sem projeto órfão (contagem antes/depois). _(fatia 1)_
+- [x] ~~E2E de contrato da rota pública 100% PASS contra o hml.~~ _(17 PASS na fatia 1, antes da suspensão; o contrato Jest — `backend/test/public-rate-limit.e2e-spec.ts` — segue na CI)_
+- [ ] ~~**E2E do ciclo completo** com o showcase apontado para o hml (publicar → aparecer; salvar sem publicar → não aparecer).~~ _(suspenso — registrado em_ Validações de campo pendentes _do `docs/roadmap.md`)_
+- [ ] `docs/25-entrega-app-cliente/final_report.md` + guia de integração. _(guia entregue; `final_report` é a T-C do §3c)_
+- [x] `CHANGELOG.md` com o **breaking change** do `sdui_flutter` (remoção do `DrivaContent`).
+- [ ] `docs/roadmap.md`: item 25 `[x]`. _(T-C do §3c)_
 
 ## 8. Perguntas para o humano (bloqueiam o P1)
 
