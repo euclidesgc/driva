@@ -236,6 +236,33 @@ void main() {
     );
 
     test(
+      '304 sem cache local para revalidar emite '
+      'DrivaLoadFailure(serverError)',
+      () async {
+        final client = MockClient((request) async => http.Response('', 304));
+        final repository = DrivaContentRepository(
+          config: DrivaConfig(
+            baseUrl: 'https://api.example.com',
+            publishableKey: 'pk_test',
+            cache: MemoryCacheStore(),
+          ),
+          httpClient: client,
+        );
+
+        DrivaLoadFailure? caught;
+        try {
+          await repository.load('home').toList();
+        } on DrivaLoadFailure catch (error) {
+          caught = error;
+        }
+
+        expect(caught, isNotNull);
+        expect(caught!.slug, 'home');
+        expect(caught.cause, DrivaLoadCause.serverError);
+      },
+    );
+
+    test(
       'spec inválido em disco é descartado, não renderizado, e a falha '
       'total que segue emite DrivaLoadFailure',
       () async {
