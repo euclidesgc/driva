@@ -4,8 +4,10 @@
 > plano de gaveta `docs/plans/26-auth-multi-tenant/plan.md` (2026-08-13) e
 > varredura do código em `develop` (commit `f8a03f3`).
 >
-> **Status: levantamento fechado; as ambiguidades da §7 aguardam decisão do
-> dev (via tech-manager) antes de o plano técnico ser revisado.**
+> **Status: levantamento fechado; T1–T3 respondidas pelo tech-lead e as oito
+> ambiguidades da §7 decididas pelo dev em 2026-08-27 (via tech-manager).
+> O PRD saiu do rascunho. Próximo passo: revisão do plano de gaveta pelo
+> tech-lead sobre as decisões.**
 >
 > **Gate CISO é dono da feature, não revisor de fim de fase** — regra herdada
 > do plano de gaveta, reafirmada aqui: nenhuma fase mergeia sem parecer.
@@ -95,7 +97,9 @@ usuário logado continua alcançando projeto alheio por URL.
   (interceptor `onRequest`, linha 24). Ordem atual: projeto → retry → log.
   O `RetryInterceptor` **não retenta 401** (só falha de conexão e
   502/503/504) — não conflita com um refresh automático, mas a ordem
-  auth×retry precisa de decisão técnica (pergunta T2, §8).
+  auth×retry precisa de decisão técnica (pergunta T2, §8 — **respondida**:
+  na A1=B não há interceptor de auth, só `withCredentials` + tratamento de
+  401 depois do retry).
 - **`app_router.dart`** — go_router com `rootNavigatorKey`, `ShellRoute`, e
   as rotas de preview **fora** do shell (gabarito pronto para a rota de
   login sem chrome). `onException` manda para a home. **Não há `redirect`
@@ -106,12 +110,14 @@ usuário logado continua alcançando projeto alheio por URL.
   `editor_module`, `preferences_module` (o gabarito de módulo pequeno que o
   plano cita continua valendo).
 - **`useFakeData` default `true`** sem dart-define: dev local sem servidor
-  roda com fakes. O fluxo de dev com auth é a ambiguidade A6.
+  roda com fakes. O fluxo de dev com auth é a ambiguidade A6 (**decidida**:
+  fakes seguem sem login, com sessão embutida).
 - **Capa de projeto**: `imageUrl` aponta para `GET /v1/projects/:id/image`
   (`projects.service.ts:228`) e é renderizada com `Image.network`
   (`projects_module/presentation/widgets/project_cover.dart:41`,
   `.../project_form/cover_preview.dart:25`) — **`Image.network` não manda
-  `Authorization`**. Ver §5 (colisão viva).
+  `Authorization`**. Ver §5 (colisão resolvida pela A1=B: o cookie
+  autentica o `<img>`).
 
 ### 2.3 Infra (Coolify/VPS)
 
@@ -160,6 +166,9 @@ fases P1→P5 com a restrição dura "P2 e P4 deployam juntos". O que mudou:
    27 não entregou a rota `/v1/media/:key`; o `media/proxy` atual é outra
    coisa (proxy de URL externa). Como o 26 vai primeiro, a saída da capa é
    pré-requisito do guard global e mora **neste** item.
+   **Dissolvida pela decisão A1=B (2026-08-27):** com sessão por cookie, o
+   navegador autentica o `<img>` sozinho — `/v1/media/:key` **sai do escopo
+   do 26** (se o item 27 quiser criá-la por outro motivo, é lá).
 7. **P5 (E2E) morreu como estava escrito**: E2E está suspenso no repositório
    inteiro (política de 2026-08-20). A fase de testes vira pirâmide
    unit/widget escrita junto de cada fase + registro do que sobrar em
@@ -176,20 +185,28 @@ fases P1→P5 com a restrição dura "P2 e P4 deployam juntos". O que mudou:
     custo dela: o `ProjectMemberGuard` consulta o banco **em toda request de
     qualquer jeito** (o "stateless" do JWT não economiza nada), e a sessão
     por cookie dissolve a colisão da capa (§5). É a ambiguidade **A1**, a
-    primeira da fila.
+    primeira da fila. **Reaberta e decidida: A1=B (2026-08-27)** — a D1 do
+    plano será reescrita como sessão server-side na revisão do tech-lead.
+11. **A D3 precisa ser reescrita pela resposta da T3 (2026-08-27)**: o
+    tenant sai do header e vai para o **path** (`/v1/projects/:projectId/…`),
+    com o guard validando o param num helper único — o `x-project-id` morre
+    no backend, no CORS e no editor (17 call sites, §8 › T3). O plano
+    revisado herda isso; a frase da D3 "o header continua selecionando o
+    projeto" não vale mais.
 
 ## 4. O que o item entrega — e a fronteira com o 37
 
 ### Entra no 26
 
-1. **Usuário e sessão**: login, logout, expiração/renovação, `GET /me`.
-2. **Vínculo usuário↔projeto** persistido no banco (forma exata: A2/A3) e
+1. **Usuário e sessão**: login, logout, expiração/renovação, `GET /me` —
+   sessão server-side por cookie (A1=B).
+2. **Vínculo usuário↔projeto** persistido na tabela `Membership` (A2) e
    **validado no servidor** em toda rota escopada — o tenant deixa de ser
-   confiança cega no cliente.
+   confiança cega no cliente e passa a viajar **no path** (T3).
 3. **Guard global**: tudo nasce protegido; `@Public()` explícito e auditável
    em: `health`, `src/public/*` (chave publicável — aviso do plano 25 §6) e
-   as rotas de auth. O destino de `media/proxy` e da capa entra na lista
-   conforme A1/A7.
+   as rotas de auth. O destino de `media/proxy` fecha no gate CISO (T6); a
+   capa de projeto autentica pelo cookie (A1=B) — sem rota nova.
 4. **Editor**: tela de login, restauração de sessão no F5, redirect de rota
    (deep link volta à URL pedida após login), logout no shell, tratamento de
    sessão expirada sem loop.
@@ -200,6 +217,9 @@ fases P1→P5 com a restrição dura "P2 e P4 deployam juntos". O que mudou:
    checkpoint) — fecha o nullable-sem-uso dos itens 24/53.
 8. **Migração**: projetos existentes de hml/prod ganham dono (A5).
 9. **Seed do primeiro usuário** por ambiente (sem cadastro público).
+10. **Token de visualização do preview (A7=B)**: o QR "ver no celular"
+    continua funcionando sem login no celular, por token curto de escopo
+    único — especificado na A7 (§7); superfície nova no gate CISO.
 
 ### Fica no 37 (SaaS) — não entra aqui
 
@@ -238,6 +258,12 @@ capa em todas as telas), a menos que uma das saídas entre **junto** do guard:
 Registro do plano 27 mantido: nenhum dos dois planos pode assumir que o
 outro resolveu; como o 26 vai primeiro, a obrigação é daqui.
 
+**Resolvida pela decisão A1=B (2026-08-27): saída (a).** A sessão é por
+cookie; o `<img>` same-site autentica sozinho e a capa continua funcionando
+sem código novo. Consequência de escopo: **`/v1/media/:key` NÃO entra no
+26** — some da lista de trabalho deste item; se o 27 quiser criá-la por
+outro motivo (servir mídia do Garage), a decisão é de lá.
+
 ## 6. Personas, fluxos e requisitos não-funcionais
 
 ### Personas
@@ -254,17 +280,22 @@ outro resolveu; como o 26 vai primeiro, a obrigação é daqui.
 
 1. **Login**: `/login` fora do shell → e-mail+senha → sessão criada →
    redirect à URL originalmente pedida (deep link preservado).
-2. **Sessão**: F5 não desloga; expiração renova sem o usuário perceber
-   (mecânica conforme A1); renovação concorrente não pode gerar logout em
-   loop (o bug clássico da fila de refresh, se A1 = JWT).
+2. **Sessão** _(mecânica fechada pela A1=B)_: F5 não desloga (o cookie
+   httpOnly sobrevive ao reload); TTL deslizante renovado pelo servidor —
+   **não existe fila de refresh no cliente**, o bug clássico da variante JWT
+   deixou de existir por desenho.
 3. **Vínculo usuário↔projeto**: lista de projetos = memberships do usuário
    (D4); acesso a projeto sem vínculo = **404, não 403** (não revelar que o
    projeto existe); criar projeto = criador vira dono na mesma transação.
-4. **Logout**: revoga a sessão no servidor, limpa estado local e volta ao
-   login. (Quando o item 17 trouxer cache local, o logout limpa o cache —
-   obrigação registrada lá, não aqui, porque o 17 ainda não existe.)
-5. **Expiração/revogação**: sessão morta no meio do uso → uma tentativa de
-   renovar → falhou, volta ao login com mensagem, sem loop.
+4. **Logout**: revoga a sessão no servidor (**delete da linha — vale
+   imediatamente**), limpa estado local e volta ao login. (Quando o item 17
+   trouxer cache local, o logout limpa o cache — obrigação registrada lá,
+   não aqui, porque o 17 ainda não existe.)
+5. **Expiração/revogação**: sessão morta no meio do uso → próxima request
+   recebe 401 → volta ao login com mensagem, preservando a URL, sem loop.
+6. **QR "ver no celular"** _(A7=B)_: o editor gera um token de visualização
+   junto do QR; o celular abre o rascunho **sem login**; expirado, o celular
+   vê a tela "link expirado — gere um novo QR no editor" (spec na A7, §7).
 
 ### Requisitos não-funcionais — segurança é o coração
 
@@ -279,16 +310,25 @@ outro resolveu; como o 26 vai primeiro, a obrigação é daqui.
   errada".
 - CORS com `credentials` exige lista explícita de origens; a regex
   `localhost` em produção vira decisão consciente do CISO (T5).
+- Cookie de sessão **host-only** (sem atributo `Domain`) — achado da T1: os
+  quatro hosts (`hml.`/`api-hml.`/apex/`api.`) são o mesmo site, e um
+  `Domain=driva.duckdns.org` faria a sessão de hml viajar para a API de
+  prod. Entra no parecer do CISO junto do T5.
 - Sem-membership = 404 (não-enumeração de projetos).
-- Rotação/reuso de credencial de renovação detectado → sessão morta (se A1
-  = JWT+refresh; se cookie server-side, revogação é imediata por natureza).
+- Revogação de sessão vale imediatamente (delete da linha — propriedade da
+  A1=B); não há credencial rotativa no cliente para vazar ou reusar.
+- Token de visualização do preview (A7): guardado como **hash** no banco,
+  TTL curto, escopo de um conteúdo, resposta de expirado indistinguível de
+  inexistente — superfície nova no gate CISO.
 
-## 7. Ambiguidades — para o dev decidir (via tech-manager)
+## 7. Ambiguidades — **todas decididas pelo dev em 2026-08-27** (via tech-manager)
 
-> Formato: opções com impacto/custo, e a recomendação do PM. **A A1 destrava
-> A6 e A7 e muda o tamanho de P4 — é a primeira da fila.**
+> Formato original mantido para registro: opções com impacto/custo e a
+> recomendação do PM, com a decisão do dev anexada a cada uma. A1, A3 e A7
+> foram decisões explícitas; A2, A4, A5, A6 e A8 seguiram a recomendação.
+> **A7 saiu diferente da recomendação do PM** — registrado lá.
 
-### A1 — Formato de sessão: JWT (access em memória + refresh em cookie) × sessão server-side com cookie httpOnly
+### A1 — Formato de sessão: JWT (access em memória + refresh em cookie) × sessão server-side com cookie httpOnly → **Decidido: opção B** _(dev, 2026-08-27)_
 
 **A que destrava as outras.** Define se a colisão da capa (§5) exige rota
 nova, o tamanho do interceptor do editor e o fluxo de dev local.
@@ -325,7 +365,16 @@ nova, o tamanho do interceptor do editor e o fluxo de dev local.
   bug do P4 e encolhe o item. Se o T1 desmentir o same-site, a recomendação
   cai para a opção A com `/v1/media/:key` no escopo.
 
-### A2 — Onde mora o vínculo usuário↔projeto: tabela própria × claim na credencial
+**Decisão do dev (2026-08-27): opção B**, com o T1 confirmado (duckdns na
+PSL — §8). Forma fechada: sessão no Postgres; cookie httpOnly, **host-only**
+(sem atributo `Domain` — o achado da T1: os quatro hosts são o mesmo site, e
+`Domain=driva.duckdns.org` faria a sessão de hml valer na API de prod),
+`SameSite=Lax`, `Secure`. Consequências registradas: logout é delete de
+linha; **não existe fila de refresh no Dio** (só `withCredentials` +
+tratamento de 401 depois do retry — T2); a colisão da capa (§5) se dissolve
+e **`/v1/media/:key` sai do escopo do 26**.
+
+### A2 — Onde mora o vínculo usuário↔projeto: tabela própria × claim na credencial → **Decidido: opção A (tabela `Membership`)** _(dev, 2026-08-27, recomendação seguida)_
 
 - **Opção A — tabela `Membership` (plano, D5)**: `userId+projectId+role`,
   única fonte de verdade, consultada pelo guard.
@@ -339,7 +388,7 @@ nova, o tamanho do interceptor do editor e o fluxo de dev local.
 - **Recomendação do PM: opção A.** Sem concorrente real; a B só faria
   sentido num mundo stateless que a A1 já descarta.
 
-### A3 — Provedor de identidade: e-mail+senha próprio × OAuth Google × magic link
+### A3 — Provedor de identidade: e-mail+senha próprio × OAuth Google × magic link → **Decidido: opção A (e-mail+senha, com seed)** _(dev, 2026-08-27)_
 
 - **Opção A — e-mail+senha + seed (plano, D6/D7)**: primeiro usuário por
   `ADMIN_EMAIL`/`ADMIN_PASSWORD` no Coolify; seguintes criados pelo dono.
@@ -360,7 +409,11 @@ nova, o tamanho do interceptor do editor e o fluxo de dev local.
   do 37 no plano (§1 "fica fora"); antecipá-lo agora acopla o item à infra
   externa sem usuário que o justifique.
 
-### A4 — Papéis agora ou só a fundação: `owner/editor/viewer` com guards × `role` no schema com enforcement mínimo
+**Decisão do dev (2026-08-27): opção A.** Sem cadastro público; argon2id;
+usuários nascem por seed ou por convite do owner (A8). **OAuth fica
+registrado como evolução possível, explicitamente fora deste item.**
+
+### A4 — Papéis agora ou só a fundação: `owner/editor/viewer` com guards × `role` no schema com enforcement mínimo → **Decidido: opção B (fundação sem matriz)** _(dev, 2026-08-27, recomendação seguida)_
 
 A pergunta 2 do §8 do plano ("quantos usuários no primeiro momento?") nunca
 foi respondida pelo dono — na prática, hoje é **um**.
@@ -380,7 +433,7 @@ foi respondida pelo dono — na prática, hoje é **um**.
   pior tipo de código de segurança: parece proteger e ninguém nunca o viu
   negar nada. O 26 fecha a porta; a matriz fina é exatamente o produto do 37.
 
-### A5 — Migração dos projetos existentes (hml e prod sem dono)
+### A5 — Migração dos projetos existentes (hml e prod sem dono) → **Decidido: opção A (o admin do seed adota tudo)** _(dev, 2026-08-27, recomendação seguida)_
 
 - **Opção A — o admin do seed adota tudo (plano, D8)**: seed idempotente
   cria `Membership(owner)` do admin para todos os projetos existentes.
@@ -393,7 +446,7 @@ foi respondida pelo dono — na prática, hoje é **um**.
     usuário.
 - **Recomendação do PM: opção A.**
 
-### A6 — Fluxo de dev local: como se trabalha com auth ligado
+### A6 — Fluxo de dev local: como se trabalha com auth ligado → **Decidido: opção A (fakes com sessão embutida; nunca `AUTH_DISABLED`)** _(dev, 2026-08-27, recomendação seguida)_
 
 - **Opção A — fakes = sessão embutida; backend local = login real**:
   `useFakeData` continua abrindo o editor sem login (sessão fake no
@@ -409,7 +462,7 @@ foi respondida pelo dono — na prática, hoje é **um**.
 - **Recomendação do PM: opção A.** Mantém o contrato "produção e dev rodam o
   mesmo código de segurança" e o hábito de `useFakeData` intacto.
 
-### A7 — O QR "ver no celular" e o preview sob sessão
+### A7 — O QR "ver no celular" e o preview sob sessão → **Decidido: opção B (token de visualização)** _(dev, 2026-08-27 — **não** a recomendada pelo PM, que era aceitar a fricção do login)_
 
 Caso de borda **de produto** que nenhum plano registrou: o
 `/preview/:projectId/:id` é rota do editor e consome a API autenticada. Com
@@ -428,7 +481,46 @@ o guard ligado, abrir o QR no celular vai **pedir login no celular**.
   registrar o refinamento). O link assinado fica registrado como candidato a
   item futuro se o atrito doer — não engordar o 26 com uma credencial nova.
 
-### A8 — Gestão mínima de usuário no 26: rota de owner sem UI × nada além do seed
+**Decisão do dev (2026-08-27): opção B** — a rota do QR fica pública por
+token de visualização, preservando o fluxo de uma mão do item 51 (apontar a
+câmera e ver o rascunho) sem exigir login no celular nem abrir o rascunho ao
+mundo. **Superfície nova de credencial: entra no gate CISO do plano, junto
+de T5/T6 (registrada como T8 na §8).**
+
+**Especificação do token (proposta do PM sobre a decisão; o CISO valida no
+gate, o tech-lead fecha a forma no plano revisado):**
+
+- **O que é**: token **opaco** (32 bytes aleatórios, base64url — nada
+  decodificável no cliente), guardado **como hash** no banco, no mesmo
+  padrão server-side da sessão (A1=B): linha com `contentId`, `projectId`,
+  `createdBy` (o usuário que gerou), `expiresAt`, `revokedAt`.
+- **O que carrega/autoriza**: **leitura do rascunho de um único conteúdo** —
+  o mínimo que a página de preview precisa para renderizar. Nada de escrita,
+  nada de listagem, nada de outros conteúdos do projeto. A URL do QR carrega
+  **só o token** (ex.: `/preview/t/:token`); o servidor resolve
+  projeto/conteúdo a partir dele — os ids saem da URL, o link vaza menos.
+- **Expiração proposta: 15 minutos**, contados da geração. Régua: o dobro
+  folgado do gesto real ("gerar QR → pegar o celular → apontar → olhar",
+  ~1–2 min), curto o bastante para que um link esquecido num chat morra
+  sozinho. Cada abertura do diálogo "Ver no celular" gera token novo (o QR
+  já é redesenhado por abertura hoje); gerar de novo é um clique.
+- **Revogável: sim** — delete/`revokedAt` da linha, mesma mecânica da
+  sessão. Dois gatilhos automáticos: **logout do criador revoga os tokens
+  vivos dele** e a expiração. Não há UI de gestão de tokens no 26 (seria
+  item 37).
+- **Quando expira/é inválido (a tela do celular)**: a API responde
+  **404 indistinguível** (token expirado, revogado ou inexistente — mesma
+  resposta, não-enumeração); o editor mostra a tela dedicada **"Este link de
+  visualização expirou — gere um novo QR no editor"**, sem formulário de
+  login e sem vazar nome de projeto/conteúdo. É a lição do item 46: a tela
+  de falha não mente — expirado ≠ "conteúdo não encontrado".
+- **Guardas de borda**: rate limit por IP na rota de resolução (padrão
+  `@Throttle` por handler); o custo conhecido de credencial em URL
+  (histórico do navegador, logs de proxy) fica mitigado por TTL curto +
+  hash em repouso + escopo só-leitura de um conteúdo — é exatamente o
+  trade-off que o CISO precisa aceitar ou endurecer no gate.
+
+### A8 — Gestão mínima de usuário no 26: rota de owner sem UI × nada além do seed → **Decidido: opção A (`POST /v1/users` owner-only, sem UI)** _(dev, 2026-08-27, recomendação seguida)_
 
 - **Opção A — `POST /v1/users` restrito a owner (plano, D6)**: dá para criar
   o segundo usuário e provar multi-tenant de verdade (A não vê projeto de B)
@@ -441,7 +533,7 @@ o guard ligado, abrir o QR no celular vai **pedir login no celular**.
 - **Recomendação do PM: opção A.** É barata e é o que permite ao dono
   **demonstrar** o isolamento — o argumento de venda do item.
 
-## 8. Perguntas técnicas (T1–T3 respondidas pelo tech-lead em 2026-08-27; T4 aberta; T5–T6 são do gate CISO)
+## 8. Perguntas técnicas (T1–T3 respondidas pelo tech-lead em 2026-08-27; T4 aberta; T5, T6 e T8 são do gate CISO)
 
 ### T1 — `duckdns.org` está na Public Suffix List? **RESPONDIDA: está.**
 
@@ -558,6 +650,11 @@ header morre" é a proposta fechada do tech-lead.
 - **T6** — [CISO] `GET /v1/media/proxy` fica `@Public()` (throttle +
   anti-SSRF existentes bastam?) ou passa a exigir sessão — sabendo que
   `Image.network` não manda header e, na opção B da A1, o cookie resolve?
+- **T8** — [CISO] O **token de visualização do QR** (decisão A7=B): a
+  especificação proposta está na §7 › A7 — TTL 15 min, opaco com hash em
+  repouso, escopo de um conteúdo só-leitura, 404 indistinguível, revogação
+  no logout do criador. É superfície nova de credencial em URL; o gate
+  avalia junto de T5/T6 e do cookie host-only da T1.
 - **T7** — Divergência de registro: a fatia 2 do 25 foi dada como fechada em
   2026-08-27, mas `packages/driva_client/pubspec.yaml` está em `0.1.0` e o
   roadmap ainda mostra a F5 aberta. Nada disso muda o 26 (o app cliente não
@@ -580,9 +677,11 @@ header morre" é a proposta fechada do tech-lead.
   do item 46 (2026-08-17): "correção pontual agora, o estrutural é do 26".
   O 26 é o "depois"; não se adia duas vezes.
 - **Sem cadastro público no 26** — fronteira com o 37, registrada no roadmap.
-- **argon2id para senha** (D7), se a A3 sair como recomendado.
+- **argon2id para senha** (D7) — confirmada pela decisão A3 (2026-08-27).
 - **P2 (guards) e P4 (editor) deployam juntos** — a restrição dura do plano
-  continua verdadeira em qualquer variante das ambiguidades.
+  continua verdadeira em qualquer variante das ambiguidades. Com a A7=B,
+  o token de visualização entra **no mesmo evento de deploy**: ligar o
+  guard sem ele quebraria o fluxo do QR do item 51 na janela.
 
 ## 10. Fora de escopo (declarado, para não voltar como surpresa)
 
@@ -590,3 +689,11 @@ Tudo da lista "fica no 37" (§4) e, além dela: expiração por inatividade
 configurável, limite de sessões simultâneas, histórico de logins, política
 de senha além de tamanho mínimo, lockout progressivo por tentativas (o rate
 limit por IP cobre o primeiro momento — registrar reavaliação no 37).
+
+Nomeados pelas decisões de 2026-08-27:
+- **`/v1/media/:key` não entra** — a A1=B dissolveu a necessidade (§5); se
+  o item 27 quiser a rota por outro motivo, a decisão é de lá.
+- **OAuth não entra** — evolução possível registrada na A3, explicitamente
+  fora deste item.
+- **UI de gestão de tokens de visualização não entra** — o token (A7) vive
+  de TTL + revogação automática; gestão visível é assunto do 37.
