@@ -121,6 +121,7 @@ usuário logado continua alcançando projeto alheio por URL.
   estiver na Public Suffix List, `SameSite=Lax` funciona para XHR entre eles
   sem virar `None`. É a pergunta T1 (§8); responde a pergunta 1 do §8 do
   plano de gaveta, que era "o item que mais atrasa se descoberto tarde".
+  **Resolvido: está na PSL — ver a resposta da T1 no §8.**
 - HTTPS nos dois lados, Traefik na frente (`trust proxy 1` já conta com ele).
 
 ### 2.4 App cliente (fora da mudança)
@@ -440,25 +441,120 @@ o guard ligado, abrir o QR no celular vai **pedir login no celular**.
 - **Recomendação do PM: opção A.** É barata e é o que permite ao dono
   **demonstrar** o isolamento — o argumento de venda do item.
 
-## 8. Perguntas técnicas abertas (para o tech-lead, não travam o discovery)
+## 8. Perguntas técnicas (T1–T3 respondidas pelo tech-lead em 2026-08-27; T4 aberta; T5–T6 são do gate CISO)
 
-- **T1** — `duckdns.org` está na Public Suffix List? Define se
-  `hml.driva.duckdns.org` × `api-hml.driva.duckdns.org` são same-site
-  (SameSite=Lax suficiente) ou cross-site (`SameSite=None` + defesa CSRF
-  reforçada). **Condiciona a recomendação da A1.**
-- **T2** — Ordem dos interceptors no `Dio` (auth × `RetryInterceptor` × log)
-  e o comportamento do retry durante renovação de sessão; hoje o retry não
-  retenta 401 — confirmar que continua assim.
-- **T3** — Com o débito do 46 executado (projectId explícito em
-  repositório/use case), o tenant continua viajando como header
-  `x-project-id` validado pelo guard, ou muda para path param nas rotas? O
-  plano assume header; trocar rota é custo de API + driva_client não é
-  afetado (rota pública é outra) — mas os 3 controllers e todos os
-  repositórios do editor sim.
+### T1 — `duckdns.org` está na Public Suffix List? **RESPONDIDA: está.**
+
+Verificado na fonte (`https://publicsuffix.org/list/public_suffix_list.dat`,
+baixada em 2026-08-27): a entrada exata `duckdns.org` existe — linha 13039 do
+arquivo do dia, na seção `===BEGIN PRIVATE DOMAINS===` (que começa na linha
+11277), submetida pelo próprio serviço ("Submitted by Richard Harper
+&lt;richard@duckdns.org&gt;"). Navegadores usam a lista inteira (ICANN +
+PRIVATE) para decidir "site". Domínios reais do deploy conferidos em
+`docs/deploy/coolify.md` (linhas 11–12): `hml.driva.duckdns.org` ×
+`api-hml.driva.duckdns.org` (hml) e `driva.duckdns.org` ×
+`api.driva.duckdns.org` (prod).
+
+**Consequências:**
+
+- O site registrável é **`driva.duckdns.org`** — os dois pares
+  editor × API são **same-site, cross-origin**. Cookie `SameSite=Lax`
+  **viaja** em XHR/fetch e em `<img>` entre eles (a restrição do Lax só
+  atinge requisição cross-site). **Sustenta a recomendação da A1 (opção B)**
+  e a dissolução da colisão da capa (§5), que dependiam exatamente disto.
+- O cookie deve ser **host-only** (sem atributo `Domain`), guardado no host
+  da API — quem precisa dele é só a API, e um `Domain=driva.duckdns.org`
+  faria o cookie de hml viajar também para a API de prod (todos os quatro
+  hosts são o mesmo site). Entra no parecer do CISO junto com o T5.
+- Same-site ≠ same-origin: o CORS com `credentials: true` + origem exata na
+  lista continua obrigatório (já mapeado no T5).
+- Bônus que a PSL compra: `bmjtech.duckdns.org` (os outros serviços da
+  mesma VPS) e qualquer outro tenant do DuckDNS são **outro site** — sem a
+  entrada na lista, todo `*.duckdns.org` de terceiro seria same-site com o
+  driva, e cookie/CSRF virariam um problema sem solução boa (o risco que
+  esta pergunta existia para medir).
+- Premissa registrada, não tarefa: a entrada é da seção PRIVATE (mantida por
+  submissão do DuckDNS); se um dia sair da lista, o "site" vira
+  `duckdns.org` inteiro. Fora do nosso controle e estável há anos.
+
+### T2 — Ordem dos interceptors do Dio e o retry sob renovação. **RESPONDIDA.**
+
+Estado atual, verificado: a ordem em
+`apps/driva_editor/lib/core/network/dio_client.dart:21-32` é **projeto →
+retry → log** — wrapper que estampa `x-project-id` (linha 24),
+`RetryInterceptor` (linha 29), `LogInterceptor` só em `!kReleaseMode`
+(linhas 30–32). O retry
+(`apps/driva_editor/lib/core/network/retry_interceptor.dart`) só retenta
+GET/HEAD/OPTIONS (linhas 69–72) e só falha de conexão/timeout ou 502/503/504
+(linhas 56–67 e 74–75) — **401 nunca é retentado hoje, e deve continuar
+assim**: retentar credencial recusada multiplica o erro; renovar sessão é
+papel de outro interceptor, não do retry.
+
+- **Se A1 = opção B (cookie)** — não existe interceptor de auth: o navegador
+  gerencia a credencial. O editor precisa de (1) `withCredentials: true` no
+  adapter web do Dio (`BrowserHttpClientAdapter`) e (2) **um** interceptor de
+  sessão-expirada (401 → limpa estado, manda ao login preservando a URL),
+  adicionado **depois** do `RetryInterceptor` — o retry repassa 401 intocado
+  via `handler.next` (retry_interceptor.dart:35-37), então o interceptor
+  seguinte o recebe na sequência. O `LogInterceptor` nunca vê a credencial
+  (cookie httpOnly não passa pelo Dio) — mais um ponto a favor da opção B.
+- **Se A1 = opção A (JWT)** — o interceptor de auth (estampa `Authorization`
+  + fila de refresh) entra **antes** do `RetryInterceptor` na lista de
+  inserção. A retentativa re-executa a cadeia inteira via `_dio.fetch`
+  (retry_interceptor.dart:49), então o request retentado ganha o token
+  re-estampado de graça; a fila de refresh continua sendo o custo que a A1
+  descreve.
+- Ligação com a T3: o wrapper das linhas 21–28 morre junto com o header — o
+  `createDio` pós-26 fica só com retry + log (+ `withCredentials`, na B).
+
+### T3 — Header × param com o débito do 46 executado. **RESPONDIDA: o param é a fonte única; `x-project-id` morre de vez.**
+
+A regra única proposta: **toda rota escopada carrega o projeto no path, o
+`ProjectMemberGuard` valida membership contra o param, e o header desaparece
+do backend, do CORS e do editor.** Três verificações que a sustentam:
+
+1. **O guard já precisa validar param de qualquer forma**: as seis rotas
+   `projects/:id` (find/update/remove/archive/unarchive/getImage,
+   `backend/src/projects/projects.controller.ts:63-115`) nunca leram o
+   header. Manter o header nas demais criaria **duas fontes de tenant** a
+   manter consistentes — a mesma classe de ambiguidade que produziu o bug do
+   item 46.
+2. **Onde o header parecia vivo, já é letra morta**: `ProjectsService.list`
+   ignora o argumento (`backend/src/projects/projects.service.ts:52`,
+   parâmetro `_projectId` com underscore nunca usado). No 26 o escopo da
+   lista vira as memberships do usuário (D4) e o header some da rota.
+3. **Com o débito do 46 executado**, o `projectId` já estará explícito em
+   repositório/use case do editor — colocá-lo na URL custa zero no call
+   site.
+
+Desenho: `/v1/projects/:projectId/contents…` (as 12 rotas de
+`backend/src/contents/contents.controller.ts:28-128`) e
+`/v1/projects/:projectId/categories…` (as 4 de
+`backend/src/categories/categories.controller.ts:23-50`); o guard extrai
+`params.projectId ?? params.id` num helper único e devolve **404** sem
+membership (D3). **Services intactos** — todos já recebem `projectId` como
+primeiro argumento; só muda a origem no controller. Morrem: os três
+`projectOf` (`contents.controller.ts:21`, `categories.controller.ts:16`,
+`projects.controller.ts:27`), o `x-project-id` do `allowedHeaders`
+(`backend/src/configure-app.ts:65`) e, no editor, o wrapper de
+`dio_client.dart:21-28` junto com o `project_scope.dart` (o débito do 46).
+Editor atualiza URLs em `editor_repository_impl.dart` (9 call sites),
+`contents_repository_impl.dart` (4) e `categories_repository_impl.dart` (4)
+— `projects_repository_impl.dart` já é por param. Fora do raio:
+`driva_client`/rota pública (`x-driva-key` é outra superfície) e
+`tool/run_demo.sh` (usa `GET /v1/projects`, cuja URL não muda). Custo real:
+a mudança de URL é breaking para o editor — coberto pela restrição dura já
+registrada "P2 e P4 deployam juntos". A forma final da rota (aninhada, como
+proposto, × query param) fecha no plano revisado; a regra "param é a fonte,
+header morre" é a proposta fechada do tech-lead.
+
+### Abertas
+
 - **T4** — Entra `@nestjs/config` ou o "segredo ausente derruba o boot"
   continua em `process.env` manual? (Padrão do repo hoje: manual.)
 - **T5** — [CISO] A regex `localhost` no CORS (`configure-app.ts:62`) pode
   continuar quando `credentials: true` entrar — inclusive em produção?
+  (Somar ao parecer: o cookie host-only da resposta da T1.)
 - **T6** — [CISO] `GET /v1/media/proxy` fica `@Public()` (throttle +
   anti-SSRF existentes bastam?) ou passa a exigir sessão — sabendo que
   `Image.network` não manda header e, na opção B da A1, o cookie resolve?
@@ -467,6 +563,12 @@ o guard ligado, abrir o QR no celular vai **pedir login no celular**.
   roadmap ainda mostra a F5 aberta. Nada disso muda o 26 (o app cliente não
   entra em sessão); confirmar com o tech-manager se há registro pendente de
   merge antes de o plano revisado citar versões.
+  - **Nota do orquestrador (2026-08-27): não é divergência — é base de
+    branch.** Esta branch de discovery nasceu de `develop`, que ainda não
+    contém a pilha da fatia 2 do item 25 (PRs #225/#226 abertos, aguardando
+    merge — é lá que vivem o `0.2.0` do `driva_client` e o fechamento da
+    F5). O discovery rebaseia depois do merge; o plano revisado só cita
+    versões a partir da base rebaseada.
 
 ## 9. Decisões herdadas (não reabertas aqui)
 
