@@ -620,11 +620,13 @@ docs/26-discovery-auth (base da pilha)
 
 ## 8. O que ainda precisa do dev
 
-1. **D26.4 (capa):** o requisito do PRD fica intacto (capas continuam; `@Public()`
-   proibido), mas a frase "sem código novo" do caminho feliz nº 5 é falsa no engine
-   (evidência na D26.4). Pedido: OK para registrar a correção de mecânica em
-   `variance_report.md` e ajustar a linha do PRD quando a T4.5 entregar. **Não bloqueia
-   o início — bloqueia o fechamento da F4.**
+1. **D26.4 (capa) — resolvido em 2026-08-27:** o dev aprovou o registro; a entrada é a
+   **VR-26-01** (`docs/plans/26-auth-multi-tenant/variance_report.md`). O requisito do
+   PRD fica intacto (capas continuam; `@Public()` proibido); a mecânica é o
+   `SessionImageProvider` da T4.5. **O fechamento da F4 inclui corrigir a linha do PRD**
+   (caminho feliz nº 5 + tabela de exceções) citando a VR-26-01 — não antes da entrega
+   da T4.5, porque a mecânica final é a que a implementação provar. Quem fechar a F4
+   confere isso junto do DoD da fase.
 
 Nada mais pende do dev: T4 decidida (D26.2), forma da rota decidida (D26.1), números de
 sessão e destino do proxy são do gate CISO (D26.3/D26.7).
