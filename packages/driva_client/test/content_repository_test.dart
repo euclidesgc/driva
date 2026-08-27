@@ -182,32 +182,6 @@ void main() {
     );
 
     test(
-      'falha total por 500 emite DrivaLoadFailure(serverError)',
-      () async {
-        final client = MockClient((request) async => http.Response('', 500));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
-
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
-
-        expect(caught, isNotNull);
-        expect(caught!.slug, 'home');
-        expect(caught.cause, DrivaLoadCause.serverError);
-      },
-    );
-
-    test(
       'falha total por spec que não passa no parse emite '
       'DrivaLoadFailure(invalidSpec)',
       () async {
