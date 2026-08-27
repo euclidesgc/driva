@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 /// esperado (`pk_...`, D1) — a tela nem chega a montar o `DrivaContent`,
 /// então nenhuma chamada de rede acontece. Cobre o placeholder versionado
 /// em `config/*.json` (`PUBLISHABLE_KEY: "cole-aqui-a-chave-do-projeto"`).
+///
+/// Monta o próprio `Scaffold` porque substitui a página inteira — ao
+/// contrário das irmãs deste diretório, não vai em `body:`.
 class ContentKeyMissingView extends StatelessWidget {
   const ContentKeyMissingView({super.key});
 
@@ -20,7 +23,7 @@ class ContentKeyMissingView extends StatelessWidget {
             children: [
               Icon(
                 Icons.key_off_outlined,
-                size: 48,
+                size: AppIconSizes.emptyState,
                 color: theme.colorScheme.onSurfaceVariant,
                 semanticLabel: 'Chave publicável ausente',
               ),

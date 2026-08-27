@@ -22,14 +22,14 @@ class ContentNotFoundView extends StatelessWidget {
           children: [
             Icon(
               Icons.search_off_outlined,
-              size: 48,
+              size: AppIconSizes.emptyState,
               color: theme.colorScheme.onSurfaceVariant,
               semanticLabel: 'Conteúdo não encontrado',
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
               'Conteúdo não encontrado',
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.sm),

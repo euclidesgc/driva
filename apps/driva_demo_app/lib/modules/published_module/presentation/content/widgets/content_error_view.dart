@@ -21,15 +21,15 @@ class ContentErrorView extends StatelessWidget {
           children: [
             Icon(
               Icons.cloud_off_outlined,
-              size: 48,
+              size: AppIconSizes.emptyState,
               color: theme.colorScheme.error,
               semanticLabel: 'Falha de conexão ou servidor',
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Não foi possível conectar ao servidor. Verifique sua '
-              'internet e tente novamente.',
-              style: theme.textTheme.bodyLarge,
+              'Não foi possível carregar o conteúdo agora — pode ser sua '
+              'conexão ou o servidor.',
+              style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
