@@ -75,7 +75,10 @@ class _DrivaContentState extends State<DrivaContent> {
             setState(() => _error = error);
           },
           onDone: () {
-            if (!mounted || _spec != null) return;
+            // Stream que fecha com erro também dispara onDone — sem este
+            // retorno cedo, o StateError genérico abaixo sobrescreveria o
+            // DrivaLoadFailure que o onError acima acabou de guardar.
+            if (!mounted || _spec != null || _error != null) return;
             setState(
               () => _error = StateError(
                 'Driva: nenhum conteúdo disponível para "${widget.slug}" '
