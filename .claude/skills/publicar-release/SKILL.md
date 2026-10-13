@@ -10,9 +10,24 @@ Objetivo: promover o que está em `develop` (validado em homologação) para pro
 Passos:
 1. Garanta `develop` verde e já testado em **homologação** (`hml.driva.duckdns.org`).
 2. Parta de `develop` atualizado e crie o branch: `git switch develop && git pull && git switch -c release/v<X.Y.0>` (ex.: `release/v0.2.0`).
-3. Estabilize apenas: bump da versão, ajustes finais, docs. **Sem feature nova** (isso continua em `feature/*` para a próxima).
+3. Estabilize apenas: bump da versão, ajustes finais, docs. **Sem feature nova** (isso vai para a próxima história do board).
 4. Promova o **CHANGELOG**: mova `Unreleased` para a seção `v<X.Y.0>` com a data.
-5. Rode a **cancela local completa** — a mesma da skill `iniciar-feature`, que reproduz o `.github/workflows/ci.yml`: `dart format`, `flutter analyze`, `bash scripts/gates_guard.sh`, as quatro suítes (kernel, renderer, editor, app de demonstração — as Flutter de dentro da pasta do pacote) e, no backend, `pnpm prisma:generate` + `lint` + `build` + `test` + `test:e2e`. Format + analyze + `build` do backend sozinhos deixam metade da CI de fora.
+5. Rode a **cancela local completa**, que reproduz o `.github/workflows/ci.yml` — format + analyze + `build` do backend sozinhos deixam metade da CI de fora:
+
+   ```bash
+   dart pub get
+   dart format --output=none --set-exit-if-changed .
+   flutter analyze
+   bash scripts/gates_guard.sh
+   dart test -r compact packages/sdui_core
+   (cd packages/sdui_flutter && flutter test -r compact)
+   (cd apps/driva_editor     && flutter test -r compact)
+   (cd apps/driva_demo_app   && flutter test -r compact)
+   (cd backend && pnpm install --frozen-lockfile && pnpm prisma:generate \
+               && pnpm lint && pnpm build && pnpm test && pnpm test:e2e)
+   ```
+
+   Fora dessa lista fica o job de Android (`cd apps/driva_demo_app && flutter build apk --debug --target lib/main_dev.dart`, exige JDK 17 + Gradle): rode-o quando a release tocar `apps/driva_demo_app`, `packages/sdui_flutter`, o `pubspec.yaml` da raiz ou a versão do Flutter no workflow.
 6. Abra o PR para `main`: `gh pr create --base main --fill`. CI verde + revisão humana → merge.
 7. **Tag no merge de `main`:** `git switch main && git pull && git tag -a v<X.Y.0> -m "release v<X.Y.0>" && git push origin v<X.Y.0>`. O Coolify publica em **produção** (`driva.duckdns.org` + `api.driva.duckdns.org`).
 8. **Regra de ouro:** faça o merge de volta em `develop`: `git switch develop && git pull && git merge --no-ff origin/main && git push`.

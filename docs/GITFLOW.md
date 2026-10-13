@@ -2,7 +2,7 @@
 
 Este projeto segue o **GitFlow** (modelo de Vincent Driessen, *"A successful Git branching
 model"*), com a variante prática **feature / bugfix / hotfix** adotada pelo `git-flow (AVH)`.
-Este documento é a **fonte da verdade** sobre branches. Toda automação (agentes Paperclip) e
+Este documento é a **fonte da verdade** sobre branches. Toda automação (execuções do board Faz AI) e
 todo humano devem segui-lo.
 
 ---
@@ -53,57 +53,35 @@ develop   ●──●──●──●──●───●──────�
 
 ---
 
-## 4. Como o Paperclip implementa isto
+## 4. Como o board Faz AI implementa isto
 
-O Paperclip **não tem GitFlow nativo**. A conformidade vem de 3 camadas:
+Desde 2026-10-13, toda implementação é conduzida pelo **board Faz AI "driva"** (ver `CLAUDE.md` › Método de trabalho). A conformidade com este documento vem de 3 camadas:
 
-1. **Config do projeto** (`executionWorkspacePolicy.workspaceStrategy`):
-   - `baseRef = "develop"` → toda worktree de tarefa **nasce de `develop`**.
-   - `branchTemplate = "feature/{{issue.identifier}}-{{slug}}"` → nome **default** = `feature/...`.
-2. **Este documento + `CLAUDE.md`** na raiz → lido automaticamente pelos agentes (Claude Code).
+1. **O board** cria a branch e a pasta de trabalho de cada história (`prepare_workspace`), **a partir de `develop`**, e abre o PR para `develop` na Homologação. Bug vira card do tipo Bug; não há branch criada à mão para trabalho do board.
+2. **Este documento + `CLAUDE.md`** na raiz, marcados no Harness do board → lidos por toda execução.
 3. **GitHub** → `main` protegida (sem push direto, PR obrigatório), `develop` como branch default.
 
-### Tipo de branch por tarefa (feature é o default)
-
-Como o template do projeto é único, o **tipo** (feature/bugfix/hotfix) é definido **por tarefa**
-por quem a cria (Tech Lead / Architect / operador), via override no Paperclip:
-
-- **feature** (default): nada a fazer.
-- **bugfix**: no momento de criar/atualizar a issue, setar
-  `executionWorkspaceSettings.workspaceStrategy.branchTemplate = "bugfix/{{issue.identifier}}-{{slug}}"`
-  (base continua `develop`).
-- **hotfix**: setar
-  `executionWorkspaceSettings.workspaceStrategy.branchTemplate = "hotfix/{{issue.identifier}}-{{slug}}"`
-  **e** `executionWorkspaceSettings.workspaceStrategy.baseRef = "main"`.
-
-Via API/CLI do Paperclip (ex.): `PATCH /api/issues/<id>` com o corpo
-`{"executionWorkspaceSettings": {"workspaceStrategy": {"branchTemplate": "...", "baseRef": "..."}}}`.
-Use a skill `paperclip` para isso.
+**Fora do board** ficam os processos humanos: `hotfix/*` (skill `iniciar-hotfix`) e `release/*` (skill `publicar-release`).
 
 ---
 
 ## 5. Regras operacionais para os agentes
 
-1. Trabalhe **somente** no branch da sua tarefa (a worktree que o Paperclip já criou). Confira com
-   `git rev-parse --abbrev-ref HEAD` — deve ser `feature/…`, `bugfix/…` ou `hotfix/…`.
+1. Trabalhe **somente** na branch e na pasta que o board criou para a história (`workspace` no card).
 2. **Nunca** faça `git commit`/`git push` direto em `main` ou `develop`. **Nunca** dê `git checkout main`
    para trabalhar.
-3. Abra o Pull Request com base correta:
-   - `feature/*` e `bugfix/*` → **PR para `develop`**.
-   - `hotfix/*` → **PR para `main`** (e, depois do merge, garantir o merge de volta em `develop`).
-   - Comando: `gh pr create --base develop ...` (ou `--base main` para hotfix).
-4. Antes de abrir/atualizar o PR, **rebase/merge da base** (`develop` ou `main`) para o diff ficar atual.
-5. Ao concluir, mova a tarefa para `in_review` e notifique o Tech Lead. **Não** faça merge em `main`.
+3. O PR da história vai **para `develop`** (o de `hotfix/*`, feito à mão, vai para `main` e volta para `develop`).
+4. Antes de abrir/atualizar o PR, **rebase/merge da base** para o diff ficar atual.
+5. Ao concluir, siga o fluxo do board (pedido de revisão na história). **Não** faça merge: ele depende da aprovação do dono.
 6. Merges `develop → main` (releases) e a criação de `hotfix/*` são **decisão humana**, salvo
    instrução explícita.
-7. **Mais de um PR aberto ao mesmo tempo vai em pilha** — nunca vários PRs independentes
-   apontando cada um para `develop`. Ver a seção 6.
+7. **O merge automático do board fica desligado** — `develop` não exige checks obrigatórios, e aprovar com ele ligado mergeia com a CI pendente ou vermelha.
 
 ## 6. Pilha de PRs (stacked pull requests)
 
-Quando um trabalho rende **mais de um PR simultâneo**, eles vão numa **pilha**, com o
-recurso nativo do GitHub. A skill **`empilhar-prs`** tem o passo a passo; aqui fica a regra
-e o porquê.
+Quando um trabalho rende **mais de um PR simultâneo**, eles vão numa **pilha**. No board, quem
+empilha é ele: uma história derivada (feature dividida em partes) parte da branch da anterior e
+abre o PR sobre o dela. Aqui fica a regra e o porquê.
 
 **A regra:** nunca abra N PRs independentes contra `develop`. Encadeie as branches (cada
 uma nasce da anterior) e publique a pilha.
