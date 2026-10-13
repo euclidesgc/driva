@@ -1,0 +1,63 @@
+# Observações 25–32 — painel de propriedades por tipo de widget (FlutterFlow, 2026-10-13, projeto descartável)
+# Todo widget abaixo também tem o WRAPPER COMUM: Widget Styling (só alguns) | Visibility (Conditional, Responsive/breakpoints) | Opacity (+Animated) | Expansion (Flex) | Padding (+Animated) | Alignment X/Y + grade (+Animated) | Value Key
+# Seções a partir de "Value Key" (rótulos da árvore de acessibilidade, " | " separa rótulos):
+
+### column (25) — enums com ícones
+Column Properties | Main Axis Size (2 ícones) | Main Axis Alignment (6 ícones: start, center, end, spaceBetween, spaceAround, spaceEvenly) | Cross Axis Alignment (4 ícones) | Scrollable (2 ícones) | Items Spacing | Apply to Start & End (switch) | Start Spacing | End Spacing | Use Intrinsic Width
+
+### button (26–28)
+Button Text: Text | Theme Text Style "Title Small Normal, 16px" | Font Family | Font Weight | Styling | Font Size | Text Color "White" | Line Height | Letter Spacing | Shadows | Text Overflow Replacement
+Button Default Style: Width/Height (PX/%/∞) | Fill Color "Primary" | Elevation | Border Color | Border Width | Border Radius (modo uniforme = SLIDER + campo 8 + var; modo por canto) | Button Padding (diagrama L/T/R/B 16, botões copiar/colar valor, token, reset) | Show Loading Indicator (switch)
+Button Disable Options (switch que expande): condição booleana (Unset, vermelho = binding obrigatório) | "Preview in UI Builder" (checkbox) | Disabled Color | Text/Icon Color
+Button Hover Style (switch que expande): Fill Color | Border Color | Text/Icon Color | Elevation
+Icon Properties: Icon (botão "None" abre modal) | Icon Position (dropdown "Leading") | Icon Padding (diagrama)
+Modal "Choose Icon": busca "Search icons..." | abas Material (8825) | Font Awesome (1606) | Custom Icons (0) | grade de prévias
+
+### textField
+Width (PX/%/∞) | Min Lines | Max Lines
+Text Field Properties: Initial Value | estilo de texto completo (Theme Text Style "Body Medium", Font Family, Weight, Styling, Size, Color, Line Height, Letter Spacing, Text Align, Shadows, Overflow)
+Label Properties: Label Text | Custom Label Style | Align Label With Hint | estilo de texto completo (Theme "Label Medium 12px", cor "Primary Text")
+Hint Properties: Hint Text | Custom Hint Style | estilo de texto completo
+Input Decoration Properties: Input Border Type ("Filled") | Border Color | Fill Color ("Secondary Background") | Focus Border Color | Error Border Color ("Error") | Border Width | Border Radius | Hover Color | Content Padding | Dense | Custom Error Style
+Icon Properties
+Additional Properties: Enabled | Password Field | Show Clear Field Icon | Autofocus | Enable Interactive Selection | Autocomplete | Auto Fill Hint | Update Page On Focus Change | Update Page On Text Change | Read Only | Cursor Color | Keyboard Type | Mask | Filter | Capitalization | Submit Type | Max Length | Max Length Enforcement | Hide Max Length Counter
+
+### dropdown (30) — editor de LISTA
+Define Options (cabeçalho com var = lista inteira de variável, reset, edição em lote) | Option 1/2/3 (cada uma: rótulo + var + campo + X remover) | Add Option | Add Option Labels (rótulo ≠ valor)
+Initial Configuration: Initial Option Value | Hint Text | Disable Dropdown
+DropDown Multi Select: Allow Multi Select | DropDown Search: Is Searchable
+DropDown Text Style: estilo de texto completo
+DropDown Properties: Width/Height/Max Height (PX/%/∞) | MARGIN | DropDown Style: Fill Color | Menu Elevation | Border Color | Border Width | Border Radius | Focus Border Color | Hides Underline | Fix Position | Menu Offset (Horizontal, Vertical)
+Icon Properties: Icon | Icon Size | Icon Color
+
+### checkbox
+Checkbox Initial Value | Checked Color ("Primary") | Check Border Color ("Alternate") | Check Color ("Info") | Border Radius | Circular Check | Density | Checkbox Disable Options
+
+### switch
+Switch Initial Value | Active Color | Active Track Color | Inactive Track Color | Inactive Thumb Color | Switch Disable Options
+
+### slider
+Initial Value | Minimum | Maximum | Step Size | Width (∞) | Active Color | Inactive Color | Show Value | Round Value | Num Decimal Places | Disable
+
+### radio
+Define Options (lista como DropDown) | Initial Option | Radio Button Text Style + Change Selected Text Style (estilo do selecionado) | Option Height (PX/%/∞) | Option Spacing | MARGIN | Axis | Alignment | Button Position | Selected Color | Unselected Color | Allow Unselected | Disable
+
+### image (31)
+Width/Height (PX/%/∞, 200) | Mem Width | Mem Height | Border Radius (slider) | Image Type (dropdown: Network…) | Cached | Image Format (Auto) | Show Error Image on Failure | Use Blur Hash | Path (campo URL + var + botão buscar) | Box Fit (7 ícones) | Image Alignment X/Y | Make Expandable | Use Hero Animation
+
+### card
+Color ("Secondary Background") | Elevation | Border Radius
+
+### listview
+Axis | List Separator Type | Items Spacing | Apply to Start & End | Start/End Spacing | Shrink Wrap | Primary | Reverse | Start at End | Scroll Physics | Reorderable
+
+### stack (32)
+Width/Height (PX/%/∞) | Default Child Alignment X/Y + grade. Stack vazio mostra placeholder "Top Start ... Bottom End". Sem "Widget Styling".
+
+### Observações transversais
+- MARGIN não é universal: só aparece em widgets específicos (DropDown, RadioButton); o espaçamento externo genérico é feito por Padding do wrapper / Container.
+- "Additional Flutter Properties": editor de código Dart livre ("... stands for the properties set in FlutterFlow. Add extra properties on the highlighted lines.") — NÃO aplicável a SDUI.
+- Cores default de widgets apontam para papéis do tema (Primary, Alternate, Info, Secondary Background, Secondary Text, Error) — nunca hex.
+- Estado por widget interativo: "<X> Disable Options" (condição + cores do estado) e "Hover Style".
+- Excluir pelo canvas é bloqueado ("Cannot delete from canvas"); exclusão só pela árvore.
+- Seleção múltipla com Shift+clique no canvas não funcionou nesta rodada (inconclusivo; doc afirma que existe).

@@ -1,0 +1,19 @@
+# Observação 02 — FlutterFlow, árvore de acessibilidade (2026-10-13), projeto descartável "Meu teste"
+# Ação: arrastar "Column" da biblioteca para o canvas (clique simples NÃO inseriu).
+Biblioteca (categorias e itens):
+- Commonly Used Elements: Text, Column, Row, Container, Image, Button
+- Layout Elements: Container, Row, Column, Stack, Card, ListView, GridView, Spacer, Divider, VerticalDivider, TabBar, PageView, Carousel, Expandable, Wrap, Form Validation, StaggeredView, FlippableCard, SwipeableStack, DataTable, Flex
+- Base Elements: Text, RichText, Image, CircleImage, Icon, Button, IconButton, ListTile, SlidableListTile, VideoPlayer, YoutubePlayer, Calendar, ToggleIcon, AudioPlayer, WebView, StaticMap, GoogleMap, AdBanner, LottieAnimation, Blur, AspectRatio, ShaderWrapper, ShaderFill, Transform, MediaDisplay, RiveAnimation, PdfViewer, ProgressBar, LanguageSelector, Badge, Chart, MuxBroadcast, Timer, MouseRegion, Barcode, DataTable, Tooltip, ConditionalBuilder, StickyHeader, Markdown, Draggable, DragTarget, GenUI Chat
+- Page Elements: AppBar, FAB, Drawer, EndDrawer
+- Form Elements: TextField, DropDown, Checkbox, CheckboxListTile, Switch, SwitchListTile, RadioButton, PinCode, Slider, RatingBar, CreditCardForm, Counter Button, ChoiceChips, PlacePicker, Form Validation, CheckboxGroup, Signature
+Canvas: Column vazio mostra placeholder "Example ↓ Column" (slot vazio visível).
+Painel do Column (seções, na ordem):
+- Cabeçalho: tipo + nome editável do nó + ações; abas de painel (5 ícones: propriedades, ações, ...)
+- Busca: "Search properties..."
+- Visibility: Conditional (switch), Responsive (4 breakpoints: phone/tablet/landscape/desktop), Opacity (slider + campo + ícone de variável), "Add Animated Opacity"
+- Expansion: Flex (campo) + 3 modos (ícones)
+- Padding: modo uniforme/por lado + diagrama T/L/R/B + reset + "Add Animated Padding"
+- Alignment: X, Y (com ícone de variável) + grade 3x3 + reset + "Add Animated Alignment"
+- Value Key
+- Column Properties: Main Axis Size, Main Axis Alignment, Cross Axis Alignment, Scrollable, Items Spacing, Apply to Start & End, Start Spacing, End Spacing, Use Intrinsic Width
+- Additional Flutter Properties (colapsado)

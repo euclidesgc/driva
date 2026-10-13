@@ -1,0 +1,37 @@
+# Observações 03–11 — FlutterFlow, árvore de acessibilidade (2026-10-13), projeto descartável "Meu teste"
+## 03 Text — painel (ordem)
+Widget Styling: "Theme Style Unset" | Text (ícone de variável) | Visibility | Expansion | Padding | Alignment | Value Key
+Text Properties: Theme Text Style (ex.: "Body Medium Normal, 14px") | Font Family ("Primary Family") | Font Weight ("400 - Normal") | Styling (itálico/sublinhado/tachado) | Font Size (var) | Text Color (#303030, var) | Line Height (var) | Letter Spacing (var) | Text Align (4 botões) | Max Lines (var) | Shadows + Add Shadow | Auto Size | Text Overflow Replacement | Selectable | Animate Changes | Additional Flutter Properties
+## 04 Binding — seletor (ícone de variável ao lado de "Text")
+Cabeçalho: "Set from Variable / Type: String" + busca "Search variables..."
+Fontes: Page Parameters ›, Global Properties ›, Combine Text, DateTime from UNIX, Conditional Value (If/Then/Else), Inline Function, Custom Functions ›, Random Data ›, Sample Data ›, Custom Code Expression
+Global Properties (exemplos): Current Time, Current Device Location, Current Route Stack (List<String>), Fraction of Screen Width/Height, Screen Width, Screen Height, ...
+## 05 Binding — configuração após escolher "Current Time"
+Variable: Global Property / Current Time (ícones editar e menu) | Available Options: "No Further Changes" (transformação) | Default Variable Value | UI Builder Display Value | botões Remove / Cancel / Confirm
+Resultado: campo do painel vira chip laranja "Current Time"; canvas mostra "Current Time"; árvore de acessibilidade mostra "[Current Time]".
+## 06 Aba Actions do widget
+Sub-abas: Actions | Action Blocks. "Action Flow Editor [Open/Edit]", "+ Add Action", "Paste Action(s)".
+Após Add Action: "Define Action", gatilho "On Tap" (dropdown), "Action 1" com busca "Search for action..." e categorias em acordeão.
+## 07 Gatilhos disponíveis para Text (não interativo)
+On Tap, On Double Tap, On Long Press, On Double Tap Cancel, On Double Tap Down, On Force Press End/Peak/Start/Update, On Horizontal Drag Cancel/Down/End/Start, ... (lista do GestureDetector)
+## Catálogo de ações (todas as categorias expandidas)
+Navigation: Navigate To, Navigate Back (pop)
+Backend/Database: Firestore, API Call, Refresh Database Request, Simple Search (On Device), Supabase, SQLite Query
+State Management: Rebuild Page   (contextual — página sem variáveis de estado)
+Widget/UI Interactions: Bottom Sheet, Date/Time Picker, Color Picker, Scan Barcode/QR Code, Launch Map, Control Data Table, Google Map, Walkthrough
+Alerts/Notifications: Alert Dialog, Dismiss Custom Dialog, Show Snack Bar, Hide Snack Bar, Haptic Feedback, Request Permissions, Play Sound, Stop Sound
+Utilities: Upload Data, Delete Data, Wait (Delay), Start/Stop Periodic Action, Set Dark Mode Settings, Copy to Clipboard, Biometric Verification, Start/Stop Audio Recording, Download File, Execute Custom Code, Debug Log
+Share: Share, Launch URL, Send Email, Call Number, Send SMS
+Animation: (vazio — contextual)
+Integrations: Stripe/Braintree/Razorpay Payment, AdMob, RevenueCat, OneSignal, AI/TTS/STT/Image Generation/Video Generation Agent
+Custom Actions: + Create New Action
+Supabase Edge Function | Accessibility: Semantics Announce
+## Ação "Show Snack Bar" — parâmetros
+Value (var) | Text Style: Theme Text Style "Custom", Font Family, Font Weight, Font Size, Text Color ("Primary Text" = cor do tema), Line Height, Letter Spacing, Text Align, Shadows | Background Value ("Secondary") | Duration (ms) | Hide Previous Snackbar
+→ parâmetros de ação usam OS MESMOS editores de propriedade dos widgets.
+## 08–11 Action Flow Editor (modal)
+3 colunas: [gatilhos do widget: busca + "+" | lista com contador de erros e lixeira] [canvas do fluxo: nós com "+" acima/abaixo, ↑ ↓ reordenar, ⋮ menu] [painel "Define Action" do nó selecionado]
+"+" entre nós oferece: Add Action, Add Conditional, Add Loop, Add Parallel, Add Try / Catch, Paste Action(s)
+Condicional: painel "Set Condition for Action" com "Multiple conditions" (switch) e valor UNSET; o seletor é o MESMO seletor tipado do binding, agora "Type: Boolean", com fontes: Conditions ›, Conditional Value, Responsive Value, Page Parameters ›, Global Properties ›, Permissions ›, Inline Function, Custom Functions ›, Random Data ›…
+Ramos TRUE / FALSE desenhados como caixa tracejada com "+" em cada ramo e "+" de junção abaixo.
+Contador de erros de validação (badge "2") no gatilho e no topo do modal.

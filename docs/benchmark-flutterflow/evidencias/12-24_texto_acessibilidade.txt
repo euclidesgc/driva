@@ -1,0 +1,45 @@
+# Observações 12–24 — FlutterFlow, árvore de acessibilidade (2026-10-13), projeto descartável "Meu teste"
+## 12 Árvore de widgets (aba Widget Tree)
+HomePage > Column > [Container, Column > Text]. Cada linha tem botão "adicionar filho" e chevron; nó com ação ganha ícone verde de ação.
+Aba Actions do widget com ação: lista "On Tap · 1 action" + "Add New Trigger".
+## 13 Menu de contexto (botão direito numa linha da árvore)
+Barra de ícones: recortar, copiar, colar, desfazer, refazer, excluir.
+Itens: Duplicate (Ctrl+D) | Insert Widget (Ctrl+Shift+F) | Wrap Widget (Ctrl+B) | Replace Widget | Remove Widget (com dica) | Copy Widget Style (Ctrl+Shift+C) | Copy Widget Code (Ctrl+J) | Get Bug Report Code | Copy AI Selector (Ctrl+L) | Convert to Component | Save as Template | Generate Component
+## 14 Convert to Component
+Diálogo "New Component": Component Name (obrigatório) + Component Description (opcional) → "Create Component".
+Abre editor do componente (URL ?component=<Nome>): árvore com raiz = componente; canvas do tamanho do conteúdo (103 x 21) com alças; painel: "Component Parameters (+)", "Component Imports", "Local Component State Variables + Add Field".
+Na página de origem a subárvore é substituída por uma instância (ícone de losango verde na árvore).
+## 15 Parâmetro de componente
+Campos: Parameter Name | Description | Type | Is List | Required | Default Parameter Value (Optional, aparece após escolher tipo)
+Tipos: Icon, Integer, Double, String, ImagePath, VideoPath, AudioPath, Boolean, Color, DocumentReference, Document, DateTime, JSON, TimestampRange, LatLng, GooglePlace, Enum, Data Type, Uploaded File (Bytes), Action, Widget Builder, Child Widget
+## 16 Parâmetro do tipo Action (callback)
+Sem "Is List"; tem "Required" e seu próprio "+ Add Parameter" (parâmetros que o callback devolve ao chamador).
+## 17 Binding a parâmetro do componente
+Ao remover um binding, o campo volta ao literal anterior ("Hello World") — o literal é preservado sob o binding.
+Seletor tipado (Type: String) passa a listar no topo "Component Parameters": titulo (habilitado), aoTocar (desabilitado — tipo incompatível), "Create New Component Parameter" (criação inline).
+## 18 Validação no binding
+Config do binding: "Parameter: titulo · String" | Default Variable Value | UI Builder Display Value → erro "A default value is required" (parâmetro sem default + propriedade não anulável).
+## 19 Novo gatilho sem ações (estado vazio do Action Flow Editor)
+"No Actions Created" + botões: Add Action, Add Conditional Action, Add Loop, Add Parallel Action, Add Try / Catch, Paste Action(s).
+## 20 Execute Callback (só disponível dentro de componente)
+Busca "callback" → "Top Results: Utilities > Execute Callback, Share > Call Number" (busca com breadcrumb de categoria).
+Parâmetros: Callback (dropdown dos parâmetros tipo Action) | Non-Blocking (switch).
+Gatilhos listados no modal com contador de erros por gatilho (On Tap 2, On Double Tap 1).
+## 21 Instância do componente na página — painel
+Wrapper comum (Widget Styling, Visibility, Expansion, Padding, Alignment, Value Key) +
+Component Properties: Update Page on Changes, Use Hero Animation +
+Component Parameters: "titulo [String] *" campo com ícone de variável (Unset) | "aoTocar *" → "Action Flow Editor [Open]" (o callback é preenchido com o mesmo editor de fluxo).
+Canvas renderiza o default "Titulo padrao".
+## 22–23 Container — Container Properties
+Forma: retângulo | círculo (toggle)
+Width / Height: campo + var + toggle PX/% + botão ∞ (valor "inf")
+Fill Color / Border Color: amostra + hex + limpar (x) + var
+Border Radius: modo uniforme|por canto + 4 campos em volta de um desenho de canto + ícone de token do tema + reset
+Border Width (var), Elevation (var), Border Style (Solid…), Border Sides (4 toggles)
+Min W / Min H / Max W / Max H: PX/% + ∞
+Clip Content (switch), Box Shadow (switch + token), Gradient (switch + token), Background Image (›), Child Alignment X/Y + grade
+## 24 Seletor de cor
+"Choose a Color": quadrado saturação/valor, slider de matiz, slider de alfa, modo RGB (dropdown) + hex + R G B A
+"Theme Colors" (toggle) + busca "Search theme colors..." + lista: Primary, Secondary, Tertiary, Alternate, Primary Background, Secondary Background, Primary Text, Secondary Text, Accent1… (nome + hex)
+## Rede (passivo)
+Projeto não trafega como REST visível no buffer (assets e changelog); worker "workers/error_checking_service.web.g.dart.js" → validação em web worker alimenta os contadores de erro.
