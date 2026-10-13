@@ -1,0 +1,16 @@
+# Observações 33–34 + releitura de 15–30 — editores dinâmicos (FlutterFlow, 2026-10-13)
+## A. A forma do editor muda com o MODO escolhido no próprio editor
+- Padding (33/34): modo "por lado" = diagrama com campos L/T/R/B e alças nas bordas; modo "Uniform Padding" (tooltip) = UMA linha com slider + campo + variável.
+- Border Radius (22, 26): uniforme = slider + campo; por canto = 4 campos em volta de um desenho de canto.
+## B. O CONJUNTO de campos muda com uma ESCOLHA anterior (campos condicionais)
+- Switch que revela sub-editor: "Button Disable Options" → condição + Preview in UI Builder + cores; "Button Hover Style" → 4 cores/elevação (27); Box Shadow / Gradient (23).
+- Tipo do parâmetro de componente: "Default Parameter Value" só aparece depois de escolher o tipo; tipo Action troca "Is List" por um "+ Add Parameter" próprio (15, 16).
+- Fonte do binding: Global Property mostra "Available Options" (transformação); Component Parameter não mostra (05 vs 18).
+- "Add Option Labels" revela um campo de rótulo por opção (30).
+- Condição de ação: "Multiple conditions" (switch) troca condição única por lista AND/OR (11).
+- Theme Text Style "Custom" vs estilo nomeado; Image Type (Network/Asset…) governa o campo Path (31) — troca de tipo NÃO verificada nesta rodada (dropdown não abriu com o painel reduzido).
+## C. Resumo compacto vs editor completo
+- O estilo de texto mostra um RESUMO de uma linha ("Body Medium · Normal, 14px") e abre o editor completo abaixo (03).
+- Seções recolhíveis com chevron; "Value Key ›" e "Additional Flutter Properties ›" abrem sob demanda.
+## Não confirmado
+- Painel de propriedades NÃO redimensionou arrastando a borda (largura fixa nesta rodada) → nenhuma evidência de layout que muda pela largura do painel.
