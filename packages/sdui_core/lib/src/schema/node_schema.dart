@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/src/catalog/binding_context.dart';
 import 'package:sdui_core/src/catalog/widget_catalog.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/dimension_value.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
 import 'package:sdui_core/src/schema/node_props_schema.dart';
 import 'package:sdui_core/src/schema/spec_validation_error.dart';
@@ -81,6 +82,9 @@ Either<SpecValidationError, SduiNode> parseNode(
       }
   }
 
+  final limitError = _validateLimits(path, rawProps);
+  if (limitError != null) return Left(limitError);
+
   SduiNode? child;
   if (rawChild != null) {
     if (rawChild is! Map) {
@@ -127,4 +131,24 @@ Either<SpecValidationError, SduiNode> parseNode(
       children: children,
     ),
   );
+}
+
+/// min > max só é comparável quando os dois lados são pixels: percentual e
+/// `inf` dependem do espaço do pai, que o kernel não conhece.
+SpecValidationError? _validateLimits(String path, Object? rawProps) {
+  if (rawProps is! Map) return null;
+  const pairs = [('minWidth', 'maxWidth'), ('minHeight', 'maxHeight')];
+  for (final (minKey, maxKey) in pairs) {
+    final min = DimensionValue.parse(rawProps[minKey]);
+    final max = DimensionValue.parse(rawProps[maxKey]);
+    if (min is PixelDimension &&
+        max is PixelDimension &&
+        min.pixels > max.pixels) {
+      return SpecValidationError(
+        '$path.props: $minKey (${min.pixels}) maior que $maxKey '
+        '(${max.pixels})',
+      );
+    }
+  }
+  return null;
 }

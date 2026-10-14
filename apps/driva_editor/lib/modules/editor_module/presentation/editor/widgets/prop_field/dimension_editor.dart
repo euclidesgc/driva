@@ -6,8 +6,8 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/p
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-/// Largura/altura no padrão do FlutterFlow: unidade na linha do rótulo e, em
-/// pixels, um `∞` dentro do campo para "preenche o disponível".
+/// Largura/altura no padrão do FlutterFlow, numa linha só: campo → unidade →
+/// `∞` (preenche o disponível; com ele ativo o campo fica desabilitado).
 ///
 /// Percentual não oferece `∞` porque a combinação não quer dizer nada.
 class DimensionEditor extends StatefulWidget {
@@ -170,6 +170,12 @@ class _DimensionEditorState extends State<DimensionEditor> {
   }
 
   void _fillAvailable() {
+    if (_isInfinite) {
+      _controller.clear();
+      _setSignal(hasError: false);
+      widget.onChanged(null);
+      return;
+    }
     _controller.text = DimensionValue.infiniteToken;
     _setSignal(hasError: false);
     widget.onChanged(DimensionValue.infiniteToken);
@@ -184,10 +190,6 @@ class _DimensionEditorState extends State<DimensionEditor> {
       label: widget.field.label,
       isRequired: widget.field.isRequired,
       helpText: widget.field.helpText,
-      headerTrailing: DimensionUnitToggle(
-        unit: _unit,
-        onChanged: _changeUnit,
-      ),
       // Binding só faz sentido em pixels: uma variável que devolve "70%" não
       // tem como ser validada aqui, e o FlutterFlow esconde o botão do mesmo
       // jeito.
@@ -195,22 +197,30 @@ class _DimensionEditorState extends State<DimensionEditor> {
         if (acceptsInfinite) ?widget.bindingButton,
         ?widget.resetButton,
       ],
-      body: NumberTextField(
-        controller: _controller,
-        onChanged: _onTextChanged,
-        errorText: _hasError ? invalidNumberMessage : null,
-        helperText: _clampMessage,
-        hintText: acceptsInfinite ? 'auto' : '0+',
-        suffixIcon: acceptsInfinite
-            ? IconButton(
-                tooltip: 'Preencher o espaço disponível',
-                iconSize: 14,
-                visualDensity: VisualDensity.compact,
-                color: _isInfinite ? colors.inkPrimary : colors.inkMuted,
-                icon: const Icon(Icons.all_inclusive),
-                onPressed: _fillAvailable,
-              )
-            : null,
+      body: Row(
+        children: [
+          Expanded(
+            child: NumberTextField(
+              controller: _controller,
+              onChanged: _onTextChanged,
+              enabled: !_isInfinite,
+              errorText: _hasError ? invalidNumberMessage : null,
+              helperText: _clampMessage,
+              hintText: acceptsInfinite ? 'auto' : '0+',
+            ),
+          ),
+          const SizedBox(width: 8),
+          DimensionUnitToggle(unit: _unit, onChanged: _changeUnit),
+          if (acceptsInfinite)
+            IconButton(
+              tooltip: 'Preencher o espaço disponível',
+              iconSize: 16,
+              visualDensity: VisualDensity.compact,
+              color: _isInfinite ? colors.inkPrimary : colors.inkMuted,
+              icon: const Icon(Icons.all_inclusive),
+              onPressed: _fillAvailable,
+            ),
+        ],
       ),
     );
   }

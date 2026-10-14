@@ -9,6 +9,7 @@ class NumberTextField extends StatelessWidget {
     this.helperText,
     this.hintText = '—',
     this.suffixIcon,
+    this.enabled = true,
     super.key,
   });
 
@@ -18,11 +19,13 @@ class NumberTextField extends StatelessWidget {
   final String? helperText;
   final String hintText;
   final Widget? suffixIcon;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      enabled: enabled,
       style: const TextStyle(fontSize: AppTypography.base),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(

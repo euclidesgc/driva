@@ -198,6 +198,7 @@ void main() {
 
       expect(changes, ['inf']);
       expect(find.text('inf'), findsOneWidget);
+      expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
     });
 
     testWidgets('não é oferecido em porcentagem', (tester) async {
