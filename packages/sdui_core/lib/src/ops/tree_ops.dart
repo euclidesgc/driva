@@ -160,6 +160,18 @@ SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   });
 }
 
+/// Só muda o rótulo de edição; o `id` fica. Vazio ou só espaços vira `null`.
+SduiNode renameNode(SduiNode root, String id, String? name) {
+  final trimmed = name?.trim();
+  final value = trimmed == null || trimmed.isEmpty
+      ? null
+      : (trimmed.length > 80 ? trimmed.substring(0, 80) : trimmed);
+  return _rebuild(root, (current) {
+    if (current.id != id) return current;
+    return current.copyWith(name: () => value);
+  });
+}
+
 SduiNode _rebuild(SduiNode node, SduiNode Function(SduiNode) transform) {
   var next = node;
   if (next.child != null) {

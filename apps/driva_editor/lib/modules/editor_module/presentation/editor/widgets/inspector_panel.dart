@@ -18,6 +18,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onUpdateSafeAreaProps,
     required this.onRemove,
     required this.onWrap,
+    this.onRename,
     this.collapsedSections,
     this.compareSection,
     this.isReadOnly = false,
@@ -33,6 +34,9 @@ class InspectorPanel extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>> onUpdateSafeAreaProps;
   final ValueChanged<String> onRemove;
   final ValueChanged<String> onWrap;
+
+  /// Nome de edição do nó; não muda o `id`.
+  final void Function(String nodeId, String? name)? onRename;
 
   /// O que difere da versão comparada, desenhado abaixo do cabeçalho quando o
   /// modo de comparação está ativo. Chega pronto de fora porque o dado de
@@ -85,6 +89,10 @@ class InspectorPanel extends StatelessWidget {
       children: [
         InspectorHeader(
           title: descriptor?.label ?? node.type,
+          name: node.name,
+          onRename: isReadOnly || onRename == null
+              ? null
+              : (name) => onRename!(node.id, name),
           subtitle: 'id ${node.id}',
           iconType: node.type,
           onRemove: isReadOnly ? null : () => onRemove(node.id),

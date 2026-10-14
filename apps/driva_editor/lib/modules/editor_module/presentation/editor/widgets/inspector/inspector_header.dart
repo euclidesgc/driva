@@ -17,6 +17,8 @@ class InspectorHeader extends StatelessWidget {
     required this.onRemove,
     required this.onWrap,
     this.removeLabel,
+    this.name,
+    this.onRename,
     super.key,
   }) : assert(
          onRemove == null || removeLabel != null,
@@ -28,6 +30,10 @@ class InspectorHeader extends StatelessWidget {
   final String? iconType;
   final VoidCallback? onRemove;
   final String? removeLabel;
+
+  /// Nome de edição do nó; com [onRename] vira campo editável.
+  final String? name;
+  final ValueChanged<String>? onRename;
   final ValueChanged<String>? onWrap;
 
   @override
@@ -54,7 +60,22 @@ class InspectorHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.titleSmall),
+                if (onRename != null)
+                  TextFormField(
+                    key: ValueKey('node-name-$subtitle-$name'),
+                    initialValue: name ?? '',
+                    maxLength: 80,
+                    style: theme.textTheme.titleSmall,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      counterText: '',
+                      hintText: title,
+                      border: InputBorder.none,
+                    ),
+                    onFieldSubmitted: onRename,
+                  )
+                else
+                  Text(name ?? title, style: theme.textTheme.titleSmall),
                 Text(
                   subtitle,
                   style: TextStyle(

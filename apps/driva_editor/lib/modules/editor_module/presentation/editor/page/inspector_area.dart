@@ -40,6 +40,7 @@ class InspectorArea extends StatelessWidget {
               contentName: vm.contentName,
               contentSlug: vm.contentSlug,
               onUpdateProps: cubit.updateProps,
+              onRename: cubit.renameNode,
               onUpdateSafeAreaProps: cubit.updateSafeAreaProps,
               onRemove: cubit.removeNode,
               onWrap: cubit.wrapSelected,

@@ -54,6 +54,11 @@ Either<SpecValidationError, SduiNode> parseNode(
     return Left(SpecValidationError('$path.events: esperado um objeto'));
   }
 
+  final rawName = json['name'];
+  if (rawName != null && rawName is! String) {
+    return Left(SpecValidationError('$path.name: esperado texto'));
+  }
+
   final rawChild = json['child'];
   final rawChildren = json['children'];
 
@@ -129,6 +134,7 @@ Either<SpecValidationError, SduiNode> parseNode(
       events: (rawEvents as Map?)?.cast<String, dynamic>() ?? const {},
       child: child,
       children: children,
+      name: rawName as String?,
     ),
   );
 }
