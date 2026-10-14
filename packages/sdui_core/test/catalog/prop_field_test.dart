@@ -5,10 +5,7 @@ void main() {
   group('PropOption', () {
     test('displayLabel cai no value quando não há label', () {
       expect(const PropOption('start').displayLabel, 'start');
-      expect(
-        const PropOption('start', label: 'Início').displayLabel,
-        'Início',
-      );
+      expect(const PropOption('start', label: 'Início').displayLabel, 'Início');
     });
   });
 
@@ -81,6 +78,48 @@ void main() {
 
       expect(base, isNot(outroMax));
     });
+
+    test('valueType deriva do kind por padrão', () {
+      const field = PropField(
+        key: 'color',
+        kind: FieldKind.color,
+        label: 'Cor',
+        group: FieldGroups.style,
+      );
+
+      expect(field.declaredValueType, isNull);
+      expect(field.valueType, PropValueType.color);
+    });
+
+    test('declaredValueType sobrescreve o tipo do kind', () {
+      const field = PropField(
+        key: 'count',
+        kind: FieldKind.string,
+        label: 'Quantidade',
+        group: FieldGroups.content,
+        declaredValueType: PropValueType.integer,
+      );
+
+      expect(field.valueType, PropValueType.integer);
+    });
+
+    test('igualdade cobre declaredValueType', () {
+      const derivado = PropField(
+        key: 'count',
+        kind: FieldKind.string,
+        label: 'Quantidade',
+        group: FieldGroups.content,
+      );
+      const declarado = PropField(
+        key: 'count',
+        kind: FieldKind.string,
+        label: 'Quantidade',
+        group: FieldGroups.content,
+        declaredValueType: PropValueType.integer,
+      );
+
+      expect(derivado, isNot(declarado));
+    });
   });
 
   group('catálogo', () {
@@ -123,6 +162,25 @@ void main() {
             defaultValue,
             inInclusiveRange(field.min!, field.max!),
             reason: '${descriptor.type}.${field.key}',
+          );
+        }
+      }
+    });
+
+    test('todo campo declara o tipo esperado, sem tipo de saída de fonte', () {
+      final descriptors = [...widgetCatalog.values, safeAreaDescriptor];
+      for (final descriptor in descriptors) {
+        for (final field in descriptor.fields) {
+          final reason = '${descriptor.type}.${field.key}';
+          expect(
+            field.valueType,
+            field.declaredValueType ?? field.kind.valueType,
+            reason: reason,
+          );
+          expect(
+            field.valueType,
+            isNot(anyOf(PropValueType.any, PropValueType.declared)),
+            reason: reason,
           );
         }
       }
