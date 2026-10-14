@@ -96,6 +96,13 @@ void main() {
       value: 'center',
     ),
     (
+      name: 'enum_icon_group_main_axis',
+      field: descriptorFor(
+        'row',
+      )!.fields.firstWhere((f) => f.key == 'mainAxisAlignment'),
+      value: 'spaceBetween',
+    ),
+    (
       name: 'number_slider',
       field: const PropField(
         key: 'fontSize',
