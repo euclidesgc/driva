@@ -74,7 +74,7 @@ class DrivaContentRepository {
     final onDisk = await _cache.read(cacheKey);
     if (onDisk == null) return null;
 
-    final parsed = parseContentSpec(onDisk.specJson);
+    final parsed = parseContentSpec(onDisk.specJson, tolerant: true);
     if (parsed.isLeft()) {
       await _cache.delete(cacheKey);
       return null;
@@ -128,7 +128,7 @@ class DrivaContentRepository {
     }
 
     final specJson = Map<String, dynamic>.from(envelope['spec'] as Map);
-    final parsed = parseContentSpec(specJson);
+    final parsed = parseContentSpec(specJson, tolerant: true);
     if (parsed.isLeft()) {
       final reason = parsed.getLeft().toNullable()?.message;
       log('Spec inválido ao buscar "$slug": $reason', name: 'driva_client');
@@ -149,7 +149,7 @@ class DrivaContentRepository {
     final raw = _config.fallbacks[slug];
     if (raw == null) return null;
 
-    final parsed = parseContentSpec(raw);
+    final parsed = parseContentSpec(raw, tolerant: true);
     if (parsed.isLeft()) {
       final reason = parsed.getLeft().toNullable()?.message;
       log(

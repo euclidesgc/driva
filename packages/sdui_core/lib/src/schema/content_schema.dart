@@ -19,8 +19,9 @@ final ZMap _contentEnvelope = z.map({
 });
 
 Either<SpecValidationError, ContentSpec> parseContentSpec(
-  Map<String, dynamic> json,
-) {
+  Map<String, dynamic> json, {
+  bool tolerant = false,
+}) {
   final result = _contentEnvelope.safeParse(json);
   if (!result.success) {
     return Left(SpecValidationError(z.prettifyError(result.error!)));
@@ -73,5 +74,6 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
   return parseNode(
     rawRoot.cast<String, dynamic>(),
     specVersion: specVersion,
+    tolerant: tolerant,
   ).map(build);
 }

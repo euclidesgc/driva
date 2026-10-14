@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:driva_client/driva_client.dart';
 import 'package:driva_demo_app/modules/published_module/presentation/content/page/content_page.dart';
 import 'package:driva_demo_app/modules/published_module/presentation/content/widgets/content_error_view.dart';
@@ -97,6 +99,59 @@ void main() {
           find.bySemanticsLabel('Falha de conexão ou servidor'),
           findsOneWidget,
         );
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'conteúdo com tipo de widget desconhecido renderiza sem estado de erro',
+      (tester) async {
+        final spec = {
+          'specVersion': 1,
+          'kind': 'content',
+          'id': 'ct_1',
+          'name': 'Home',
+          'slug': 'home',
+          'root': {
+            'id': 'n1',
+            'type': 'column',
+            'children': [
+              {
+                'id': 'n2',
+                'type': 'text',
+                'props': {'data': 'antes'},
+              },
+              {'id': 'n3', 'type': 'futureWidget'},
+              {
+                'id': 'n4',
+                'type': 'text',
+                'props': {'data': 'depois'},
+              },
+            ],
+          },
+        };
+        final client = MockClient(
+          (request) async => http.Response(jsonEncode({'spec': spec}), 200),
+        );
+        await Driva.init(
+          DrivaConfig(
+            baseUrl: 'https://api.example.com',
+            publishableKey: 'pk_test',
+            cache: MemoryCacheStore(),
+          ),
+          httpClient: client,
+        );
+
+        await tester.pumpWidget(
+          _harness(
+            const ContentPage(initialSlug: 'home', publishableKey: 'pk_test'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ContentErrorView), findsNothing);
+        expect(find.text('antes'), findsOneWidget);
+        expect(find.text('depois'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
