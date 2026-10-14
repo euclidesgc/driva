@@ -44,9 +44,10 @@ void main() {
         type: 'expanded',
         child: SduiNode(id: 'txt', type: 'text'),
       );
-      expect(diagnoseTree(tree).map((d) => d.code), [
-        DiagnosticCode.flexOnlyOutsideFlex,
-      ]);
+      expect(
+        diagnoseTree(tree).map((d) => d.code),
+        [DiagnosticCode.flexOnlyOutsideFlex],
+      );
     });
 
     test('embrulho de slot único sem filho vira aviso', () {

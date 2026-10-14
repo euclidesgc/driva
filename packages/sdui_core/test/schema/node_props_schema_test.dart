@@ -27,7 +27,11 @@ Map<String, dynamic> _bind(
   String path = 'user.name',
   Object? fallback,
 }) => {
-  r'$bind': {'source': source, 'path': path, 'fallback': ?fallback},
+  r'$bind': {
+    'source': source,
+    'path': path,
+    'fallback': ?fallback,
+  },
 };
 
 void main() {
@@ -114,9 +118,12 @@ void main() {
 
   group('forma', () {
     test('erro de forma sobe com o caminho da prop', () {
-      expectRejected({
-        'data': {r'$theme': ''},
-      }, r'root.props.data.$theme');
+      expectRejected(
+        {
+          'data': {r'$theme': ''},
+        },
+        r'root.props.data.$theme',
+      );
     });
   });
 
@@ -135,21 +142,24 @@ void main() {
 
   group('fonte', () {
     test('fonte inexistente é recusada', () {
-      expectRejected({
-        'data': _bind('nope', fallback: 'x'),
-      }, r'data.$bind.source: fonte "nope" desconhecida');
+      expectRejected(
+        {'data': _bind('nope', fallback: 'x')},
+        r'data.$bind.source: fonte "nope" desconhecida',
+      );
     });
 
     test('componentParam em página é recusado', () {
-      expectRejected({
-        'data': _bind('componentParam', fallback: 'x'),
-      }, 'fonte "componentParam" não está disponível em página');
+      expectRejected(
+        {'data': _bind('componentParam', fallback: 'x')},
+        'fonte "componentParam" não está disponível em página',
+      );
     });
 
     test(r'legacy em $bind é recusado', () {
-      expectRejected({
-        'data': _bind('legacy', fallback: 'x'),
-      }, r'data.$bind.source: fonte "legacy" só vale como {{expressão}}');
+      expectRejected(
+        {'data': _bind('legacy', fallback: 'x')},
+        r'data.$bind.source: fonte "legacy" só vale como {{expressão}}',
+      );
     });
 
     test('pageParam com fallback é aceito', () {
