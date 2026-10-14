@@ -83,7 +83,7 @@ void main() {
     });
 
     test('specVersion incompatível vira ValidationFailure', () {
-      final map = validMap(specVersion: kSpecVersion + 1);
+      final map = validMap(specVersion: kLatestSpecVersion + 1);
 
       final result = LoadedContentVersionModel.tryParse(map);
 

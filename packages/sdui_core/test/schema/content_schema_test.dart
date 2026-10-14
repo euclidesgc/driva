@@ -214,4 +214,121 @@ void main() {
       expect(parseContentSpec(json).isLeft(), isTrue);
     });
   });
+
+  group('faixa de specVersion e formas tipadas', () {
+    Map<String, dynamic> content({
+      required int specVersion,
+      Map<String, dynamic>? root,
+      Map<String, dynamic>? safeArea,
+    }) => {
+      'specVersion': specVersion,
+      'kind': 'content',
+      'id': 'ct',
+      'name': 'N',
+      'slug': 'n',
+      'root': ?root,
+      'safeArea': ?safeArea,
+    };
+
+    Map<String, dynamic> textNode(Object? data) => {
+      'id': 'nd_text',
+      'type': 'text',
+      'props': {'data': data},
+    };
+
+    test('specVersion 1 e 2 são aceitas', () {
+      for (final version in [kOldestSpecVersion, kLatestSpecVersion]) {
+        final result = parseContentSpec(content(specVersion: version));
+        expect(result.isRight(), isTrue, reason: '$version: $result');
+        expect(result.getRight().toNullable()!.specVersion, version);
+      }
+    });
+
+    test('specVersion 0 e 3 são recusadas com a faixa na mensagem', () {
+      for (final version in [0, 3]) {
+        final error = parseContentSpec(
+          content(specVersion: version),
+        ).getLeft().toNullable();
+        expect(
+          error?.message,
+          'specVersion $version não suportada (suportadas: 1 a 2)',
+        );
+      }
+    });
+
+    test(r'$theme em root.props com v1 é recusado', () {
+      final error = parseContentSpec(
+        content(
+          specVersion: 1,
+          root: {
+            'id': 'nd_root',
+            'type': 'container',
+            'props': {
+              'color': {r'$theme': 'primary'},
+            },
+          },
+        ),
+      ).getLeft().toNullable();
+
+      expect(error?.message, startsWith('root.props.color: '));
+      expect(error!.message, contains('specVersion 2 ou maior (o spec é 1)'));
+    });
+
+    test('erro num filho aponta o caminho do filho', () {
+      final error = parseContentSpec(
+        content(
+          specVersion: 2,
+          root: {
+            'id': 'nd_root',
+            'type': 'column',
+            'children': [
+              textNode({
+                r'$bind': {'source': 'pageParam', 'path': 'user.name'},
+              }),
+            ],
+          },
+        ),
+      ).getLeft().toNullable();
+
+      expect(
+        error?.message,
+        'root.children[0].props.data: '
+        'binding em prop obrigatória exige fallback',
+      );
+    });
+
+    test(r'safeArea.enabled com $theme é recusado em v2', () {
+      final error = parseContentSpec(
+        content(
+          specVersion: 2,
+          safeArea: {
+            'enabled': {r'$theme': 'x'},
+          },
+        ),
+      ).getLeft().toNullable();
+
+      expect(
+        error?.message,
+        'safeArea.enabled: a prop não aceita token do tema nem binding',
+      );
+    });
+
+    test(r'$bind válido chega cru em SduiNode.properties', () {
+      final data = {
+        r'$bind': {
+          'source': 'pageParam',
+          'path': 'user.name',
+          'fallback': 'Visitante',
+        },
+      };
+
+      final spec = parseContentSpec(
+        content(specVersion: 2, root: textNode(data)),
+      ).getRight().toNullable();
+
+      expect(spec, isNotNull);
+      expect(spec!.root!.properties, {'data': data});
+      expect(spec.root!.properties['data'], same(data));
+    });
+  });
 }

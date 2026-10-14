@@ -1,6 +1,9 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:sdui_core/src/catalog/binding_context.dart';
+import 'package:sdui_core/src/catalog/safe_area_descriptor.dart';
 import 'package:sdui_core/src/model/content_spec.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
+import 'package:sdui_core/src/schema/node_props_schema.dart';
 import 'package:sdui_core/src/schema/node_schema.dart';
 import 'package:sdui_core/src/schema/spec_validation_error.dart';
 import 'package:sdui_core/src/schema/spec_version.dart';
@@ -25,10 +28,11 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
   final data = result.data!;
 
   final specVersion = data['specVersion'] as int;
-  if (specVersion != kSpecVersion) {
+  if (specVersion < kOldestSpecVersion || specVersion > kLatestSpecVersion) {
     return Left(
       SpecValidationError(
-        'specVersion $specVersion não suportada (atual: $kSpecVersion)',
+        'specVersion $specVersion não suportada '
+        '(suportadas: $kOldestSpecVersion a $kLatestSpecVersion)',
       ),
     );
   }
@@ -36,6 +40,16 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
   final rawSafeArea = json['safeArea'];
   if (rawSafeArea != null && rawSafeArea is! Map) {
     return const Left(SpecValidationError('safeArea: esperado um objeto'));
+  }
+  if (rawSafeArea is Map) {
+    final validated = validateNodeProps(
+      rawSafeArea.cast<String, dynamic>(),
+      safeAreaDescriptor,
+      path: 'safeArea',
+      specVersion: specVersion,
+      context: BindingContext.page,
+    );
+    if (validated case Left(:final value)) return Left(value);
   }
 
   ContentSpec build(SduiNode? root) => ContentSpec(
@@ -56,5 +70,8 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
     return const Left(SpecValidationError('root: esperado um objeto'));
   }
 
-  return parseNode(rawRoot.cast<String, dynamic>()).map(build);
+  return parseNode(
+    rawRoot.cast<String, dynamic>(),
+    specVersion: specVersion,
+  ).map(build);
 }

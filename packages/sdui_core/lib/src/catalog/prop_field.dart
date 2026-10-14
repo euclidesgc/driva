@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_option.dart';
+import 'package:sdui_core/src/catalog/prop_value_type.dart';
 
 class PropField extends Equatable {
   const PropField({
@@ -18,6 +19,7 @@ class PropField extends Equatable {
     this.isRequired = false,
     this.isAdvanced = false,
     this.isBindable = true,
+    this.declaredValueType,
   });
 
   final String key;
@@ -46,8 +48,12 @@ class PropField extends Equatable {
   /// Fica atrás do disclosure "Avançado" da seção.
   final bool isAdvanced;
 
-  /// Aceita `{{binding}}` no lugar de um valor fixo.
+  /// Aceita `{{binding}}`, `$theme` ou `$bind` no lugar de um valor fixo.
   final bool isBindable;
+
+  final PropValueType? declaredValueType;
+
+  PropValueType get valueType => declaredValueType ?? kind.valueType;
 
   List<String> get enumValues => [for (final option in options) option.value];
 
@@ -69,6 +75,7 @@ class PropField extends Equatable {
     isRequired,
     isAdvanced,
     isBindable,
+    declaredValueType,
   ];
 }
 
