@@ -18,7 +18,7 @@ final ZMap _nodeScalars = z.map({
 Either<SpecValidationError, SduiNode> parseNode(
   Map<String, dynamic> json, {
   String path = 'root',
-  int specVersion = kSpecVersion,
+  int specVersion = kOldestSpecVersion,
 }) {
   final result = _nodeScalars.safeParse(json);
   if (!result.success) {

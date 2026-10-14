@@ -44,8 +44,9 @@ BindingSource? bindingSourceFor(String id) {
 List<BindingSource> bindingSourcesFor(
   BindingContext context, {
   PropValueType? feeding,
+  Iterable<BindingSource> sources = bindingSourceCatalog,
 }) => [
-  for (final source in bindingSourceCatalog)
+  for (final source in sources)
     if (source.isAvailableIn(context) &&
         (feeding == null || source.feeds(feeding)))
       source,

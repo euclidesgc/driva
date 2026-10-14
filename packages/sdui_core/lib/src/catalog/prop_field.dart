@@ -48,7 +48,7 @@ class PropField extends Equatable {
   /// Fica atrás do disclosure "Avançado" da seção.
   final bool isAdvanced;
 
-  /// Aceita `{{binding}}` no lugar de um valor fixo.
+  /// Aceita `{{binding}}`, `$theme` ou `$bind` no lugar de um valor fixo.
   final bool isBindable;
 
   final PropValueType? declaredValueType;

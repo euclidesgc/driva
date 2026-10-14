@@ -77,6 +77,14 @@ Either<SpecValidationError, PropValue> _parseBound(Object? raw, String path) {
   }
 
   final json = raw.cast<String, dynamic>();
+  if (json.containsKey('transform') && json['transform'] == null) {
+    return Left(
+      SpecValidationError(
+        '$path.transform: esperado um texto não vazio (sem a chave, se não '
+        'houver transformação)',
+      ),
+    );
+  }
   final result = _bindScalars.safeParse(json);
   if (!result.success) {
     return Left(

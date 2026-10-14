@@ -99,15 +99,37 @@ void main() {
         outputType: PropValueType.text,
         contexts: {BindingContext.page},
       );
-
-      expect(fixedText.feeds(PropValueType.color), isFalse);
-      expect(fixedText.feeds(PropValueType.text), isTrue);
-      expect(
-        bindingSourcesFor(BindingContext.page, feeding: PropValueType.color),
-        everyElement(
-          predicate<BindingSource>((s) => s.feeds(PropValueType.color)),
-        ),
+      const fixedColor = BindingSource(
+        id: 'fixedColor',
+        label: 'Cor fixa',
+        outputType: PropValueType.color,
+        contexts: {BindingContext.page},
       );
+      const sources = [fixedText, fixedColor];
+
+      expect(
+        bindingSourcesFor(
+          BindingContext.page,
+          feeding: PropValueType.color,
+          sources: sources,
+        ),
+        [fixedColor],
+      );
+      expect(
+        bindingSourcesFor(
+          BindingContext.page,
+          feeding: PropValueType.text,
+          sources: sources,
+        ),
+        [fixedText],
+      );
+      expect(
+        bindingSourcesFor(BindingContext.page, sources: sources),
+        sources,
+      );
+    });
+
+    test('no catálogo, any e declared alimentam qualquer tipo', () {
       expect(
         [
           for (final s in bindingSourcesFor(

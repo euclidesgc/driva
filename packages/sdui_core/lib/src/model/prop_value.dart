@@ -12,7 +12,6 @@ sealed class PropValue extends Equatable {
   static bool isTypedForm(Object? raw) =>
       raw is Map && (raw.containsKey(themeKey) || raw.containsKey(bindKey));
 
-  /// `parsePropValue(x.toJson())` devolve `x`.
   Object? toJson();
 }
 

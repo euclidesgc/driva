@@ -162,6 +162,12 @@ void main() {
         },
         '$path.\$bind',
       ),
+      'transform nulo': (
+        {
+          r'$bind': {'source': 'pageParam', 'path': 'a', 'transform': null},
+        },
+        '$path.\$bind.transform: esperado um texto não vazio',
+      ),
       'fallback nulo': (
         {
           r'$bind': {'source': 'pageParam', 'path': 'a', 'fallback': null},
