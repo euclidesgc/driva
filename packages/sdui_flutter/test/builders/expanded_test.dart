@@ -22,11 +22,7 @@ void main() {
   testWidgets('dentro de um Column vira Expanded de verdade', (tester) async {
     await _pump(
       tester,
-      const SduiNode(
-        id: 'c1',
-        type: 'column',
-        children: [_expandedNode],
-      ),
+      const SduiNode(id: 'c1', type: 'column', children: [_expandedNode]),
     );
 
     expect(tester.takeException(), isNull);
@@ -36,11 +32,7 @@ void main() {
   testWidgets('dentro de um Row vira Expanded de verdade', (tester) async {
     await _pump(
       tester,
-      const SduiNode(
-        id: 'r1',
-        type: 'row',
-        children: [_expandedNode],
-      ),
+      const SduiNode(id: 'r1', type: 'row', children: [_expandedNode]),
     );
 
     expect(tester.takeException(), isNull);
@@ -60,11 +52,7 @@ void main() {
   testWidgets('dentro de um Container (sem flex) não estoura', (tester) async {
     await _pump(
       tester,
-      const SduiNode(
-        id: 'ct1',
-        type: 'container',
-        child: _expandedNode,
-      ),
+      const SduiNode(id: 'ct1', type: 'container', child: _expandedNode),
     );
 
     expect(tester.takeException(), isNull);
@@ -79,11 +67,7 @@ void main() {
         id: 'c1',
         type: 'column',
         children: [
-          SduiNode(
-            id: 'ct1',
-            type: 'container',
-            child: _expandedNode,
-          ),
+          SduiNode(id: 'ct1', type: 'container', child: _expandedNode),
         ],
       ),
     );

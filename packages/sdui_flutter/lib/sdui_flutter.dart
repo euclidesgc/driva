@@ -8,7 +8,14 @@ library;
 
 export 'src/builders/default_registry.dart';
 export 'src/layout/sdui_safe_area.dart';
-export 'src/parsing/material_icons.dart' show curatedIconNames;
+export 'src/parsing/material_icons.dart'
+    show
+        curatedIconNames,
+        iconDataFrom,
+        iconDataOrFallback,
+        iconFallback,
+        iconLibraries,
+        parseIconRef;
 export 'src/registry.dart';
 export 'src/renderer.dart';
 export 'src/sdui_view.dart';
