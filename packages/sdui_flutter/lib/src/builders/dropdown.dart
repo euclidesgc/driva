@@ -23,9 +23,7 @@ Widget buildDropdown(BuildContext context, SduiNode node, SduiRenderer r) {
       fillColor: parseColor(p['fillColor']),
       filled: parseColor(p['fillColor']) != null,
     ),
-    items: [
-      if (hasValue) DropdownMenuItem(value: value, child: Text(value)),
-    ],
+    items: [if (hasValue) DropdownMenuItem(value: value, child: Text(value))],
     onChanged: enabled ? (_) {} : null,
   );
 }

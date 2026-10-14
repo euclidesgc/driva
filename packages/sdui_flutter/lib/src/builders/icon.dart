@@ -8,7 +8,7 @@ import 'package:sdui_flutter/src/renderer.dart';
 Widget buildIcon(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   return Icon(
-    iconDataFrom(p['icon']),
+    iconDataOrFallback(p['icon']),
     size: parseDouble(p['size']) ?? 24,
     color: parseColor(p['color']),
   );

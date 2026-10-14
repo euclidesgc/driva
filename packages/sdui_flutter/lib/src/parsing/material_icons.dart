@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
+/// Referência de ícone: `"biblioteca:nome"`; sem prefixo vale `material`.
+typedef IconRef = ({String library, String name});
+
+IconRef parseIconRef(String raw) {
+  final i = raw.indexOf(':');
+  if (i < 0) return (library: 'material', name: raw);
+  return (library: raw.substring(0, i), name: raw.substring(i + 1));
+}
+
 /// Subconjunto curado de Material Icons. `IconData` const não pode ser
 /// resolvido por nome em runtime (tree-shaking), então mantemos um mapa
-/// explícito; cresce conforme a necessidade. O seletor de ícones do editor
-/// lê [curatedIconNames].
-const _icons = <String, IconData>{
+/// explícito; cresce conforme a necessidade.
+const _material = <String, IconData>{
   'home': Icons.home,
   'settings': Icons.settings,
   'add': Icons.add,
@@ -23,8 +31,193 @@ const _icons = <String, IconData>{
   'person': Icons.person,
   'info': Icons.info,
   'warning': Icons.warning,
+  'accountCircle': Icons.account_circle,
+  'addCircle': Icons.add_circle,
+  'alarm': Icons.alarm,
+  'analytics': Icons.analytics,
+  'apps': Icons.apps,
+  'arrowDownward': Icons.arrow_downward,
+  'arrowUpward': Icons.arrow_upward,
+  'attachFile': Icons.attach_file,
+  'barChart': Icons.bar_chart,
+  'bookmark': Icons.bookmark,
+  'build': Icons.build,
+  'calendarToday': Icons.calendar_today,
+  'call': Icons.call,
+  'cameraAlt': Icons.camera_alt,
+  'cancel': Icons.cancel,
+  'chat': Icons.chat,
+  'checkCircle': Icons.check_circle,
+  'chevronLeft': Icons.chevron_left,
+  'chevronRight': Icons.chevron_right,
+  'cloud': Icons.cloud,
+  'cloudUpload': Icons.cloud_upload,
+  'cloudDownload': Icons.cloud_download,
+  'code': Icons.code,
+  'contentCopy': Icons.content_copy,
+  'create': Icons.create,
+  'creditCard': Icons.credit_card,
+  'dashboard': Icons.dashboard,
+  'dateRange': Icons.date_range,
+  'description': Icons.description,
+  'done': Icons.done,
+  'download': Icons.download,
+  'email': Icons.email,
+  'error': Icons.error,
+  'event': Icons.event,
+  'expandLess': Icons.expand_less,
+  'expandMore': Icons.expand_more,
+  'explore': Icons.explore,
+  'face': Icons.face,
+  'favoriteBorder': Icons.favorite_border,
+  'fileCopy': Icons.file_copy,
+  'filterList': Icons.filter_list,
+  'flag': Icons.flag,
+  'folder': Icons.folder,
+  'forum': Icons.forum,
+  'group': Icons.group,
+  'help': Icons.help,
+  'history': Icons.history,
+  'image': Icons.image,
+  'inbox': Icons.inbox,
+  'insertDriveFile': Icons.insert_drive_file,
+  'key': Icons.key,
+  'language': Icons.language,
+  'launch': Icons.launch,
+  'layers': Icons.layers,
+  'lightbulb': Icons.lightbulb,
+  'link': Icons.link,
+  'list': Icons.list,
+  'locationOn': Icons.location_on,
+  'lock': Icons.lock,
+  'login': Icons.login,
+  'logout': Icons.logout,
+  'map': Icons.map,
+  'mic': Icons.mic,
+  'moreHoriz': Icons.more_horiz,
+  'moreVert': Icons.more_vert,
+  'navigation': Icons.navigation,
+  'notifications': Icons.notifications,
+  'openInNew': Icons.open_in_new,
+  'payments': Icons.payments,
+  'phone': Icons.phone,
+  'photo': Icons.photo,
+  'place': Icons.place,
+  'playArrow': Icons.play_arrow,
+  'print': Icons.print,
+  'public': Icons.public,
+  'receipt': Icons.receipt,
+  'refresh': Icons.refresh,
+  'removeCircle': Icons.remove_circle,
+  'save': Icons.save,
+  'schedule': Icons.schedule,
+  'send': Icons.send,
+  'share': Icons.share,
+  'shoppingBag': Icons.shopping_bag,
+  'sort': Icons.sort,
+  'starBorder': Icons.star_border,
+  'store': Icons.store,
+  'sync': Icons.sync,
+  'thumbUp': Icons.thumb_up,
+  'thumbDown': Icons.thumb_down,
+  'timer': Icons.timer,
+  'tune': Icons.tune,
+  'upload': Icons.upload,
+  'verified': Icons.verified,
+  'visibility': Icons.visibility,
+  'visibilityOff': Icons.visibility_off,
+  'wallet': Icons.wallet,
+  'wifi': Icons.wifi,
+  'work': Icons.work,
+  'accountBalance': Icons.account_balance,
+  'accountBalanceWallet': Icons.account_balance_wallet,
+  'addShoppingCart': Icons.add_shopping_cart,
+  'arrowDropDown': Icons.arrow_drop_down,
+  'arrowDropUp': Icons.arrow_drop_up,
+  'assignment': Icons.assignment,
+  'badge': Icons.badge,
+  'block': Icons.block,
+  'brush': Icons.brush,
+  'business': Icons.business,
+  'cached': Icons.cached,
+  'category': Icons.category,
+  'celebration': Icons.celebration,
+  'checkBox': Icons.check_box,
+  'checkBoxOutlineBlank': Icons.check_box_outline_blank,
+  'circle': Icons.circle,
+  'contacts': Icons.contacts,
+  'deleteOutline': Icons.delete_outline,
+  'directionsCar': Icons.directions_car,
+  'downloadDone': Icons.download_done,
+  'driveFileRenameOutline': Icons.drive_file_rename_outline,
+  'emojiEmotions': Icons.emoji_emotions,
+  'fastfood': Icons.fastfood,
+  'fitnessCenter': Icons.fitness_center,
+  'flashOn': Icons.flash_on,
+  'formatListBulleted': Icons.format_list_bulleted,
+  'gridView': Icons.grid_view,
+  'groups': Icons.groups,
+  'homeWork': Icons.home_work,
+  'hourglassEmpty': Icons.hourglass_empty,
+  'keyboard': Icons.keyboard,
+  'laptop': Icons.laptop,
+  'localOffer': Icons.local_offer,
+  'localShipping': Icons.local_shipping,
+  'mail': Icons.mail,
+  'menuBook': Icons.menu_book,
+  'message': Icons.message,
+  'money': Icons.money,
+  'musicNote': Icons.music_note,
+  'palette': Icons.palette,
+  'pause': Icons.pause,
+  'pets': Icons.pets,
+  'phoneAndroid': Icons.phone_android,
+  'pinDrop': Icons.pin_drop,
+  'playlistAdd': Icons.playlist_add,
+  'policy': Icons.policy,
+  'qrCode': Icons.qr_code,
+  'radioButtonChecked': Icons.radio_button_checked,
+  'radioButtonUnchecked': Icons.radio_button_unchecked,
+  'reply': Icons.reply,
+  'rocketLaunch': Icons.rocket_launch,
+  'school': Icons.school,
+  'security': Icons.security,
+  'sell': Icons.sell,
+  'settingsApplications': Icons.settings_applications,
+  'shield': Icons.shield,
+  'smartphone': Icons.smartphone,
+  'speed': Icons.speed,
+  'supportAgent': Icons.support_agent,
+  'task': Icons.task,
+  'translate': Icons.translate,
+  'trendingUp': Icons.trending_up,
+  'trendingDown': Icons.trending_down,
+  'tv': Icons.tv,
+  'update': Icons.update,
+  'videocam': Icons.videocam,
+  'volumeUp': Icons.volume_up,
+  'zoomIn': Icons.zoom_in,
+  'zoomOut': Icons.zoom_out,
 };
 
-IconData? iconDataFrom(Object? v) => v is String ? _icons[v] : null;
+/// Bibliotecas de ícone conhecidas, por nome.
+const Map<String, Map<String, IconData>> iconLibraries = {
+  'material': _material,
+};
 
-List<String> get curatedIconNames => _icons.keys.toList(growable: false);
+/// Ícone mostrado quando biblioteca ou nome são desconhecidos.
+const IconData iconFallback = Icons.broken_image_outlined;
+
+/// Resolve o ícone; `null` se o valor não for string ou for desconhecido.
+IconData? iconDataFrom(Object? v) {
+  if (v is! String) return null;
+  final ref = parseIconRef(v);
+  return iconLibraries[ref.library]?[ref.name];
+}
+
+/// Como [iconDataFrom], mas string desconhecida vira [iconFallback].
+/// Valor ausente ou não-string continua sem ícone.
+IconData? iconDataOrFallback(Object? v) =>
+    v is String ? (iconDataFrom(v) ?? iconFallback) : null;
+
+List<String> get curatedIconNames => _material.keys.toList(growable: false);

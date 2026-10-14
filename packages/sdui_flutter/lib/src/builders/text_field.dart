@@ -32,7 +32,9 @@ Widget buildTextField(BuildContext context, SduiNode node, SduiRenderer r) {
       labelText: (label?.isEmpty ?? true) ? null : label,
       hintText: (hint?.isEmpty ?? true) ? null : hint,
       helperText: (helperText?.isEmpty ?? true) ? null : helperText,
-      prefixIcon: prefixIcon == null ? null : Icon(iconDataFrom(prefixIcon)),
+      prefixIcon: prefixIcon == null
+          ? null
+          : Icon(iconDataOrFallback(prefixIcon)),
       filled: filled,
       border: border,
     ),
