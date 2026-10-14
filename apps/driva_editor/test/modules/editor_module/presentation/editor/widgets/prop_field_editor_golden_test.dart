@@ -14,6 +14,17 @@ void main() {
 
   final cases = <({String name, PropField field, Object? value})>[
     (
+      name: 'dimension_infinite',
+      field: const PropField(
+        key: 'width',
+        kind: FieldKind.dimension,
+        label: 'Largura',
+        group: FieldGroups.size,
+        min: 0,
+      ),
+      value: 'inf',
+    ),
+    (
       name: 'string',
       field: const PropField(
         key: 'data',

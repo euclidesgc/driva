@@ -9,6 +9,10 @@ Widget buildSizedBox(BuildContext context, SduiNode node, SduiRenderer r) {
   return SduiDimensionBox(
     width: p['width'],
     height: p['height'],
+    minWidth: p['minWidth'],
+    maxWidth: p['maxWidth'],
+    minHeight: p['minHeight'],
+    maxHeight: p['maxHeight'],
     child: r.maybeRender(context, node.child) ?? const SizedBox.shrink(),
   );
 }

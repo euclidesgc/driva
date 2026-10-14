@@ -1,0 +1,28 @@
+{
+  "specVersion": 1,
+  "kind": "content",
+  "id": "ct_limits",
+  "name": "Limites de dimensão",
+  "slug": "limits",
+  "root": {
+    "id": "nd_root",
+    "type": "column",
+    "children": [
+      {
+        "id": "nd_box",
+        "type": "container",
+        "props": { "width": "inf", "minWidth": 100, "maxWidth": 300, "minHeight": "10%", "maxHeight": 200 }
+      },
+      {
+        "id": "nd_sized",
+        "type": "sizedBox",
+        "props": { "minWidth": 50, "maxWidth": 50 }
+      },
+      {
+        "id": "nd_img",
+        "type": "image",
+        "props": { "src": "https://example.com/a.png", "maxWidth": 120, "maxHeight": "100%" }
+      }
+    ]
+  }
+}
