@@ -39,12 +39,12 @@ void main() {
     });
 
     test('roundtrip: toJson de um conteúdo parseado re-parseia igual', () {
-      final content = parseContentSpec(
-        _loadFixture('content_valid.json'),
-      ).getRight().toNullable()!;
-      final reparsed = parseContentSpec(
-        content.toJson(),
-      ).getRight().toNullable();
+      final content = parseContentSpec(_loadFixture('content_valid.json'))
+          .getRight()
+          .toNullable()!;
+      final reparsed = parseContentSpec(content.toJson())
+          .getRight()
+          .toNullable();
 
       expect(reparsed, equals(content));
     });
@@ -246,9 +246,9 @@ void main() {
 
     test('specVersion 0 e 3 são recusadas com a faixa na mensagem', () {
       for (final version in [0, 3]) {
-        final error = parseContentSpec(
-          content(specVersion: version),
-        ).getLeft().toNullable();
+        final error = parseContentSpec(content(specVersion: version))
+            .getLeft()
+            .toNullable();
         expect(
           error?.message,
           'specVersion $version não suportada (suportadas: 1 a 2)',

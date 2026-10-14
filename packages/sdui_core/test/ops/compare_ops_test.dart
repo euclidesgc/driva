@@ -441,50 +441,47 @@ void main() {
     );
 
     group('ID duplicado bloqueia a comparação inteira', () {
-      test(
-        'duplicado na base devolve DuplicateNodeIdComparisonFailure '
-        'e preserva as entradas',
-        () {
-          final base = _withRoot(
-            _emptySpec,
-            SduiNode(
-              id: 'root',
-              type: 'column',
-              properties: Map<String, dynamic>.of({'text': 'root-base'}),
-              children: const [
-                SduiNode(id: 'dup', type: 'text'),
-                SduiNode(id: 'dup', type: 'icon'),
-              ],
-            ),
-          );
-          final candidate = _withRoot(
-            _emptySpec,
-            SduiNode(
-              id: 'root',
-              type: 'text',
-              properties: Map<String, dynamic>.of({'text': 'root-candidate'}),
-            ),
-          );
-          final baseSnapshot = _deepCopySpec(base);
-          final candidateSnapshot = _deepCopySpec(candidate);
+      test('duplicado na base devolve DuplicateNodeIdComparisonFailure '
+          'e preserva as entradas', () {
+        final base = _withRoot(
+          _emptySpec,
+          SduiNode(
+            id: 'root',
+            type: 'column',
+            properties: Map<String, dynamic>.of({'text': 'root-base'}),
+            children: const [
+              SduiNode(id: 'dup', type: 'text'),
+              SduiNode(id: 'dup', type: 'icon'),
+            ],
+          ),
+        );
+        final candidate = _withRoot(
+          _emptySpec,
+          SduiNode(
+            id: 'root',
+            type: 'text',
+            properties: Map<String, dynamic>.of({'text': 'root-candidate'}),
+          ),
+        );
+        final baseSnapshot = _deepCopySpec(base);
+        final candidateSnapshot = _deepCopySpec(candidate);
 
-          final result = compareContentSpecs(base, candidate);
+        final result = compareContentSpecs(base, candidate);
 
-          expect(result.isLeft(), isTrue);
-          final failure = result.getLeft().toNullable();
-          expect(failure, isA<DuplicateNodeIdComparisonFailure>());
-          expect(
-            (failure! as DuplicateNodeIdComparisonFailure).baseDuplicateIds,
-            {'dup'},
-          );
-          expect(
-            (failure as DuplicateNodeIdComparisonFailure).candidateDuplicateIds,
-            isEmpty,
-          );
-          expect(base, baseSnapshot);
-          expect(candidate, candidateSnapshot);
-        },
-      );
+        expect(result.isLeft(), isTrue);
+        final failure = result.getLeft().toNullable();
+        expect(failure, isA<DuplicateNodeIdComparisonFailure>());
+        expect(
+          (failure! as DuplicateNodeIdComparisonFailure).baseDuplicateIds,
+          {'dup'},
+        );
+        expect(
+          (failure as DuplicateNodeIdComparisonFailure).candidateDuplicateIds,
+          isEmpty,
+        );
+        expect(base, baseSnapshot);
+        expect(candidate, candidateSnapshot);
+      });
 
       test('duplicado na candidata também bloqueia', () {
         final base = _withRoot(
@@ -587,9 +584,7 @@ void main() {
           SduiNode(
             id: 'x',
             type: 'text',
-            properties: Map<String, dynamic>.of({
-              'style': <String, dynamic>{},
-            }),
+            properties: Map<String, dynamic>.of({'style': <String, dynamic>{}}),
           ),
         );
         final originalNested = <String, dynamic>{'value': 1};

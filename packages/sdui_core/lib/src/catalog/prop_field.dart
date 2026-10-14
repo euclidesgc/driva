@@ -10,6 +10,7 @@ class PropField extends Equatable {
     required this.kind,
     required this.label,
     required this.group,
+    this.section = FieldSections.tipo,
     this.options = const [],
     this.min,
     this.max,
@@ -29,6 +30,9 @@ class PropField extends Equatable {
   final String label;
 
   final String group;
+
+  /// Papel do campo no inspector: comum a todo nó, do tipo ou de uma parte.
+  final String section;
 
   final List<PropOption> options;
 
@@ -66,6 +70,7 @@ class PropField extends Equatable {
     kind,
     label,
     group,
+    section,
     options,
     min,
     max,
@@ -85,4 +90,12 @@ abstract final class FieldGroups {
   static const spacing = 'Espaçamento';
   static const style = 'Estilo';
   static const content = 'Conteúdo';
+}
+
+abstract final class FieldSections {
+  static const comum = 'comum';
+  static const tipo = 'tipo';
+  static String parte(String nome) => 'parte:$nome';
+  static bool isValid(String s) =>
+      s == comum || s == tipo || (s.startsWith('parte:') && s.length > 6);
 }

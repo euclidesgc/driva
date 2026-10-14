@@ -10,6 +10,7 @@ class SduiNode extends Equatable {
     this.events = const {},
     this.child,
     this.children = const [],
+    this.name,
   });
 
   final String id;
@@ -21,6 +22,9 @@ class SduiNode extends Equatable {
   final SduiNode? child;
   final List<SduiNode> children;
 
+  /// Rótulo de edição; não altera o [id].
+  final String? name;
+
   /// [child] é função-getter porque `SduiNode?` não distinguiria "não passei"
   /// de "setar null".
   SduiNode copyWith({
@@ -30,6 +34,7 @@ class SduiNode extends Equatable {
     Map<String, dynamic>? events,
     SduiNode? Function()? child,
     List<SduiNode>? children,
+    String? Function()? name,
   }) {
     return SduiNode(
       id: id ?? this.id,
@@ -38,6 +43,7 @@ class SduiNode extends Equatable {
       events: events ?? this.events,
       child: child != null ? child() : this.child,
       children: children ?? this.children,
+      name: name != null ? name() : this.name,
     );
   }
 
@@ -45,6 +51,7 @@ class SduiNode extends Equatable {
     return {
       'id': id,
       'type': type,
+      if (name != null) 'name': name,
       if (properties.isNotEmpty) 'props': properties,
       if (events.isNotEmpty) 'events': events,
       if (child != null) 'child': child!.toJson(),
@@ -61,5 +68,6 @@ class SduiNode extends Equatable {
     events,
     child,
     children,
+    name,
   ];
 }
