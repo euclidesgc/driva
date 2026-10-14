@@ -2,7 +2,7 @@ import 'package:sdui_core/sdui_core.dart';
 
 String treeNodeLabel(SduiNode node, {bool isRoot = false}) {
   final descriptor = descriptorFor(node.type);
-  final base = descriptor?.label ?? node.type;
+  final base = node.name ?? descriptor?.label ?? node.type;
   final text = node.properties['data'];
   if (node.type == 'text' && text is String && text.isNotEmpty) {
     return '$base — “$text”';

@@ -76,7 +76,22 @@ class _InspectorPropListState extends State<InspectorPropList> {
     for (final field in widget.descriptor.fields) {
       if (!groups.contains(field.group)) groups.add(field.group);
     }
-    return groups;
+    // Comum → tipo → partes; estável dentro de cada faixa.
+    int rank(String group) {
+      final section = widget.descriptor.fields
+          .firstWhere((f) => f.group == group)
+          .section;
+      if (section == FieldSections.comum) return 0;
+      if (section == FieldSections.tipo) return 1;
+      return 2;
+    }
+
+    final indexed = [for (var i = 0; i < groups.length; i++) (i, groups[i])]
+      ..sort((a, b) {
+        final byRank = rank(a.$2).compareTo(rank(b.$2));
+        return byRank != 0 ? byRank : a.$1.compareTo(b.$1);
+      });
+    return [for (final e in indexed) e.$2];
   }
 
   List<PropField> _fieldsOf(String group) => [

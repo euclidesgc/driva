@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:sdui_core/sdui_core.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('todo campo do catálogo declara uma seção válida', () {

@@ -219,9 +219,9 @@ void main() {
         root: result,
       );
 
-      final parsed = parseContentSpec(documento.toJson())
-          .getRight()
-          .toNullable();
+      final parsed = parseContentSpec(
+        documento.toJson(),
+      ).getRight().toNullable();
 
       expect(parsed, isNotNull);
       expect(parsed!.root, result);

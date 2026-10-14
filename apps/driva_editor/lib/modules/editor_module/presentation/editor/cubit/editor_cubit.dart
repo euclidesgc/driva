@@ -463,6 +463,18 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  void renameNode(String id, String? name) {
+    final current = _editable;
+    if (current == null) return;
+    final root = current.document.root;
+    if (root == null) return;
+    _emitRoot(
+      current,
+      sdui.renameNode(root, id, name),
+      coalesceKey: 'name:$id',
+    );
+  }
+
   /// Área segura da página: chrome do conteúdo, fora da árvore de nós.
   void updateSafeAreaProps(Map<String, dynamic> patch) {
     final current = _editable;
