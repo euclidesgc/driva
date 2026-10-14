@@ -101,7 +101,7 @@ void main() {
         when(
           () => dio.get<Map<String, dynamic>>('/v1/contents/ct_1/versions/3'),
         ).thenAnswer(
-          (_) async => ok(versionBody(specVersion: kSpecVersion + 1)),
+          (_) async => ok(versionBody(specVersion: kLatestSpecVersion + 1)),
         );
 
         final result = await repository.getVersion('ct_1', 3);

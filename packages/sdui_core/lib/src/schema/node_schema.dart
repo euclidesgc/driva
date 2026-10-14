@@ -1,8 +1,11 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:sdui_core/src/catalog/binding_context.dart';
 import 'package:sdui_core/src/catalog/widget_catalog.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
+import 'package:sdui_core/src/schema/node_props_schema.dart';
 import 'package:sdui_core/src/schema/spec_validation_error.dart';
+import 'package:sdui_core/src/schema/spec_version.dart';
 import 'package:zard/zard.dart';
 
 // O z.map do zard só devolve as chaves declaradas: `props`/`events` ficam de
@@ -15,6 +18,7 @@ final ZMap _nodeScalars = z.map({
 Either<SpecValidationError, SduiNode> parseNode(
   Map<String, dynamic> json, {
   String path = 'root',
+  int specVersion = kSpecVersion,
 }) {
   final result = _nodeScalars.safeParse(json);
   if (!result.success) {
@@ -33,6 +37,16 @@ Either<SpecValidationError, SduiNode> parseNode(
   final rawProps = json['props'];
   if (rawProps != null && rawProps is! Map) {
     return Left(SpecValidationError('$path.props: esperado um objeto'));
+  }
+  if (rawProps is Map) {
+    final validated = validateNodeProps(
+      rawProps.cast<String, dynamic>(),
+      descriptor,
+      path: '$path.props',
+      specVersion: specVersion,
+      context: BindingContext.page,
+    );
+    if (validated case Left(:final value)) return Left(value);
   }
   final rawEvents = json['events'];
   if (rawEvents != null && rawEvents is! Map) {
@@ -75,6 +89,7 @@ Either<SpecValidationError, SduiNode> parseNode(
     final parsed = parseNode(
       rawChild.cast<String, dynamic>(),
       path: '$path.child',
+      specVersion: specVersion,
     );
     if (parsed.isLeft()) return parsed;
     child = parsed.toNullable();
@@ -95,6 +110,7 @@ Either<SpecValidationError, SduiNode> parseNode(
       final parsed = parseNode(
         item.cast<String, dynamic>(),
         path: '$path.children[$i]',
+        specVersion: specVersion,
       );
       if (parsed.isLeft()) return parsed;
       children.add(parsed.toNullable()!);
