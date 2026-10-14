@@ -20,6 +20,7 @@ Either<SpecValidationError, SduiNode> parseNode(
   Map<String, dynamic> json, {
   String path = 'root',
   int specVersion = kOldestSpecVersion,
+  bool tolerant = false,
 }) {
   final result = _nodeScalars.safeParse(json);
   if (!result.success) {
@@ -31,7 +32,7 @@ Either<SpecValidationError, SduiNode> parseNode(
   final type = result.data!['type'] as String;
 
   final descriptor = descriptorFor(type);
-  if (descriptor == null) {
+  if (descriptor == null && !tolerant) {
     return Left(SpecValidationError('$path: tipo "$type" fora do catálogo'));
   }
 
@@ -39,7 +40,7 @@ Either<SpecValidationError, SduiNode> parseNode(
   if (rawProps != null && rawProps is! Map) {
     return Left(SpecValidationError('$path.props: esperado um objeto'));
   }
-  if (rawProps is Map) {
+  if (rawProps is Map && descriptor != null) {
     final validated = validateNodeProps(
       rawProps.cast<String, dynamic>(),
       descriptor,
@@ -62,7 +63,9 @@ Either<SpecValidationError, SduiNode> parseNode(
   final rawChild = json['child'];
   final rawChildren = json['children'];
 
-  switch (descriptor.slot) {
+  switch (descriptor?.slot) {
+    case null:
+      break;
     case SlotKind.none:
       if (rawChild != null || rawChildren != null) {
         return Left(
@@ -87,8 +90,10 @@ Either<SpecValidationError, SduiNode> parseNode(
       }
   }
 
-  final limitError = _validateLimits(path, rawProps);
-  if (limitError != null) return Left(limitError);
+  if (descriptor != null) {
+    final limitError = _validateLimits(path, rawProps);
+    if (limitError != null) return Left(limitError);
+  }
 
   SduiNode? child;
   if (rawChild != null) {
@@ -99,6 +104,7 @@ Either<SpecValidationError, SduiNode> parseNode(
       rawChild.cast<String, dynamic>(),
       path: '$path.child',
       specVersion: specVersion,
+      tolerant: tolerant,
     );
     if (parsed.isLeft()) return parsed;
     child = parsed.toNullable();
@@ -120,6 +126,7 @@ Either<SpecValidationError, SduiNode> parseNode(
         item.cast<String, dynamic>(),
         path: '$path.children[$i]',
         specVersion: specVersion,
+        tolerant: tolerant,
       );
       if (parsed.isLeft()) return parsed;
       children.add(parsed.toNullable()!);

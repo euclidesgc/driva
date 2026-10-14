@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sdui_core/sdui_core.dart';
 
@@ -90,6 +93,12 @@ class _UnknownTypeBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    developer.log(
+      'Tipo desconhecido: "$type"',
+      name: 'sdui_flutter.renderer',
+      level: 900,
+    );
+    if (!kDebugMode) return const SizedBox.shrink();
     return Container(
       padding: SduiChromeTokens.unknownTypePadding,
       decoration: BoxDecoration(
