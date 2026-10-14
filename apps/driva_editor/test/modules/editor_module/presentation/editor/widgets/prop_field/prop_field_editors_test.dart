@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:driva_editor/core/theme/app_theme.dart';
 import 'package:driva_editor/core/widgets/buttons/toggle_button.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
@@ -96,6 +98,68 @@ void main() {
 
       expect(find.byType(EnumEditor), findsOneWidget);
       expect(find.byType(EnumIconGroupEditor), findsNothing);
+    });
+  });
+
+  group('Box Fit da imagem', () {
+    final fitField = descriptorFor(
+      'image',
+    )!.fields.firstWhere((f) => f.key == 'fit');
+    const labels = [
+      'Preencher',
+      'Conter',
+      'Cobrir',
+      'Ajustar largura',
+      'Ajustar altura',
+      'Nenhum',
+      'Reduzir',
+    ];
+
+    testWidgets('renderiza 7 botões com rótulo pt-BR', (tester) async {
+      final handle = tester.ensureSemantics();
+      await _pumpEditor(tester, field: fitField, value: 'contain');
+
+      expect(find.byType(EnumIconGroupEditor), findsOneWidget);
+      expect(find.byType(ToggleButton), findsNWidgets(7));
+      for (final label in labels) {
+        expect(
+          find.bySemanticsLabel(label),
+          findsOneWidget,
+          reason: label,
+        );
+        final node = tester.getSemantics(find.bySemanticsLabel(label));
+        expect(node.getSemanticsData().flagsCollection.isButton, true);
+        expect(
+          node.getSemanticsData().flagsCollection.isSelected,
+          label == 'Conter' ? Tristate.isTrue : Tristate.isFalse,
+          reason: label,
+        );
+      }
+      handle.dispose();
+    });
+
+    testWidgets('botão do valor atual vem selecionado', (tester) async {
+      await _pumpEditor(tester, field: fitField, value: 'contain');
+
+      final selected = tester
+          .widgetList<ToggleButton>(find.byType(ToggleButton))
+          .where((b) => b.selected)
+          .toList();
+      expect(selected, hasLength(1));
+      expect(selected.single.tooltip, 'Conter');
+    });
+
+    testWidgets('tocar em Cobrir emite cover', (tester) async {
+      final changes = await _pumpEditor(
+        tester,
+        field: fitField,
+        value: 'contain',
+      );
+
+      await tester.tap(find.byTooltip('Cobrir'));
+      await tester.pump();
+
+      expect(changes, ['cover']);
     });
   });
 

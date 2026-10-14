@@ -33,6 +33,13 @@ abstract final class PropIcons {
     'edgeUniform': Icons.crop_square,
     'edgeIndividual': Icons.border_outer,
     'resetToDefault': Icons.settings_backup_restore,
+    'boxFill': Icons.fullscreen,
+    'boxContain': Icons.fit_screen,
+    'boxCover': Icons.crop,
+    'boxFitWidth': Icons.width_full,
+    'boxFitHeight': Icons.height,
+    'boxNone': Icons.crop_original,
+    'boxScaleDown': Icons.aspect_ratio,
   };
 
   static IconData? resolve(String? name) => name == null ? null : _icons[name];
