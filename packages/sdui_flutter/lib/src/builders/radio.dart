@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 /// Preview estático: `selected` vem das props e a interação não muta estado
@@ -11,7 +11,7 @@ Widget buildRadio(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final selected = p['selected'] as bool? ?? false;
   final enabled = p['enabled'] as bool? ?? true;
-  final activeColor = parseColor(p['activeColor']);
+  final activeColor = resolveColor(p['activeColor'], r.theme);
   final label = (p['label'] as String?)?.trim();
 
   return RadioGroup<bool>(

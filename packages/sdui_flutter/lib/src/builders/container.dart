@@ -4,6 +4,7 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/src/layout/sdui_dimension_box.dart';
 import 'package:sdui_flutter/src/parsing/enums.dart';
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 /// Flutter: `color` e `decoration` são mutuamente exclusivos — passar os dois
@@ -15,7 +16,7 @@ import 'package:sdui_flutter/src/renderer.dart';
 Widget buildContainer(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final borderRadius = parseBorderRadius(p['borderRadius']);
-  final borderColor = parseColor(p['borderColor']);
+  final borderColor = resolveColor(p['borderColor'], r.theme);
   final border = borderColor != null
       ? Border.all(
           color: borderColor,
@@ -23,6 +24,7 @@ Widget buildContainer(BuildContext context, SduiNode node, SduiRenderer r) {
         )
       : null;
   final needsDecoration = borderRadius != null || border != null;
+  final color = resolveColor(p['color'], r.theme);
 
   return Padding(
     padding: parseEdgeInsets(p['margin']) ?? EdgeInsets.zero,
@@ -36,10 +38,10 @@ Widget buildContainer(BuildContext context, SduiNode node, SduiRenderer r) {
       child: Container(
         padding: parseEdgeInsets(p['padding']),
         alignment: alignmentFrom(p['alignment']),
-        color: needsDecoration ? null : parseColor(p['color']),
+        color: needsDecoration ? null : color,
         decoration: needsDecoration
             ? BoxDecoration(
-                color: parseColor(p['color']),
+                color: color,
                 borderRadius: borderRadius,
                 border: border,
               )
