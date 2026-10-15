@@ -25,6 +25,7 @@ class SduiRenderer {
     this.nodeWrapper,
     this.showDiagnostics = false,
     this.imageUrlResolver,
+    this.boundValueDisplay = BoundValueDisplay.fallback,
   });
 
   final SduiRegistry registry;
@@ -38,6 +39,10 @@ class SduiRenderer {
   final bool showDiagnostics;
 
   final SduiImageUrlResolver? imageUrlResolver;
+
+  /// Como um `\$bind` aparece quando não há dado em tempo de execução: o
+  /// app cliente usa `fallback`; o editor liga `preview`.
+  final BoundValueDisplay boundValueDisplay;
 
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
@@ -80,7 +85,11 @@ class _SduiNodeView extends StatelessWidget {
     final builder = renderer.registry[node.type];
     final built = builder == null
         ? _UnknownTypeBox(type: node.type)
-        : builder(context, node, renderer);
+        : builder(
+            context,
+            resolveBoundProps(node, display: renderer.boundValueDisplay),
+            renderer,
+          );
     final wrapper = renderer.nodeWrapper;
     return wrapper == null ? built : wrapper(node, built);
   }
