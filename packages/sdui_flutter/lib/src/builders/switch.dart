@@ -12,7 +12,9 @@ Widget buildSwitch(BuildContext context, SduiNode node, SduiRenderer r) {
   final value = p['value'] as bool? ?? false;
   final enabled = p['enabled'] as bool? ?? true;
   final activeColor = resolveColor(p['activeColor'], r.theme);
-  final onChanged = enabled ? (_) {} : null;
+  final onChanged = enabled
+      ? (_) => r.dispatchTrigger(node, EventTrigger.onChanged)
+      : null;
   final label = (p['label'] as String?)?.trim();
 
   if (label != null && label.isNotEmpty) {

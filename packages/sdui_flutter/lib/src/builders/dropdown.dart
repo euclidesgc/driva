@@ -25,6 +25,8 @@ Widget buildDropdown(BuildContext context, SduiNode node, SduiRenderer r) {
       filled: fillColor != null,
     ),
     items: [if (hasValue) DropdownMenuItem(value: value, child: Text(value))],
-    onChanged: enabled ? (_) {} : null,
+    onChanged: enabled
+        ? (_) => r.dispatchTrigger(node, EventTrigger.onChanged)
+        : null,
   );
 }
