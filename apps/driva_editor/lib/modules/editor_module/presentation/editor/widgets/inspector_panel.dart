@@ -149,6 +149,7 @@ class InspectorPanel extends StatelessWidget {
   }
 
   // dart format off
+  // ignore: lines_longer_than_80_chars
   Widget _buildBatch(BuildContext context, EditorColors colors) { // gate1-ok: ramo do build()
   // dart format on
     final fields = commonFields(multiNodes);
