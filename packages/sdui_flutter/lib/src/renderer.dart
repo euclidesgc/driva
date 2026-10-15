@@ -45,8 +45,6 @@ class SduiRenderer {
   /// app cliente usa `fallback`; o editor liga `preview`.
   final BoundValueDisplay boundValueDisplay;
 
-  /// O tema do projeto que resolve os `$theme` das props. Sem tema injetado,
-  /// vale o baseline Material 3 do kernel.
   final ProjectTheme theme;
 
   Widget render(BuildContext context, SduiNode node) =>
