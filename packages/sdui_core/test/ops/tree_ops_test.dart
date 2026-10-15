@@ -248,6 +248,72 @@ void main() {
     });
   });
 
+  group('updateNodeEvents', () {
+    const tap = {
+      'action': 'navigate',
+      'params': {'slug': 'promocoes'},
+    };
+    const back = {'action': 'navigateBack'};
+
+    test('define um gatilho num nó sem eventos', () {
+      final result = updateNodeEvents(root, 'a', {
+        'onTap': [tap],
+      });
+
+      expect(findNode(result, 'a')!.events, {
+        'onTap': [tap],
+      });
+    });
+
+    test('troca a lista de um gatilho e mantém o outro', () {
+      final base = updateNodeEvents(root, 'a', {
+        'onTap': [tap],
+        'onLongPress': [back],
+      });
+
+      final result = updateNodeEvents(base, 'a', {
+        'onTap': [back, tap],
+      });
+
+      expect(findNode(result, 'a')!.events, {
+        'onTap': [back, tap],
+        'onLongPress': [back],
+      });
+    });
+
+    test('valor null remove o gatilho', () {
+      final base = updateNodeEvents(root, 'a', {
+        'onTap': [tap],
+        'onLongPress': [back],
+      });
+
+      final result = updateNodeEvents(base, 'a', {'onTap': null});
+
+      expect(findNode(result, 'a')!.events, {
+        'onLongPress': [back],
+      });
+    });
+
+    test('lista vazia remove o gatilho', () {
+      final base = updateNodeEvents(root, 'a', {
+        'onTap': [tap],
+      });
+
+      final result = updateNodeEvents(base, 'a', {'onTap': []});
+
+      expect(findNode(result, 'a')!.events, isEmpty);
+    });
+
+    test('id inexistente devolve árvore igual', () {
+      expect(
+        updateNodeEvents(root, 'nao-existe', {
+          'onTap': [tap],
+        }),
+        root,
+      );
+    });
+  });
+
   group('cloneWithNewIds', () {
     Set<String> idsOf(SduiNode node) => {
       node.id,

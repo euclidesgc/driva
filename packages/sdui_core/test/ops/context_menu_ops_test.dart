@@ -87,6 +87,31 @@ void main() {
       expect(replaceNode(tree, 'root', 'stack')!.properties, isEmpty);
     });
 
+    test('descarta os gatilhos que o novo tipo não declara', () {
+      const step = {'action': 'navigateBack'};
+      const tree = SduiNode(
+        id: 'root',
+        type: 'column',
+        children: [
+          SduiNode(
+            id: 'btn',
+            type: 'button',
+            properties: {'label': 'Ok'},
+            events: {
+              'onPressed': [step],
+              'onLongPress': [step],
+            },
+          ),
+        ],
+      );
+
+      final result = replaceNode(tree, 'btn', 'text')!;
+
+      expect(findNode(result, 'btn')!.events, {
+        'onLongPress': [step],
+      });
+    });
+
     test('recusa quando os filhos não cabem', () {
       expect(replaceNode(root, 'root', 'text'), isNull);
       expect(replaceNode(root, 'root', 'container'), isNull);
