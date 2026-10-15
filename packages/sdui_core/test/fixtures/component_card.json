@@ -1,0 +1,43 @@
+{
+  "specVersion": 2,
+  "kind": "component",
+  "id": "c-card",
+  "name": "Card de oferta",
+  "slug": "card-de-oferta",
+  "params": [
+    { "name": "titulo", "type": "text", "isList": false, "required": true },
+    {
+      "name": "corDeFundo",
+      "type": "color",
+      "isList": false,
+      "required": false,
+      "default": "#FFFFFF"
+    },
+    {
+      "name": "aoTocar",
+      "type": "action",
+      "isList": false,
+      "required": false,
+      "params": [
+        {
+          "name": "quantidade",
+          "type": "integer",
+          "isList": false,
+          "required": true
+        }
+      ]
+    }
+  ],
+  "state": [
+    { "name": "aberto", "type": "boolean", "isList": false, "default": false }
+  ],
+  "root": {
+    "id": "t",
+    "type": "text",
+    "props": {
+      "data": {
+        "$bind": { "source": "componentParam", "path": "titulo", "fallback": "" }
+      }
+    }
+  }
+}

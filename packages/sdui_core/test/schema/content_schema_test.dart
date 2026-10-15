@@ -336,4 +336,238 @@ void main() {
       expect(spec.root!.properties['data'], same(data));
     });
   });
+
+  group('componente (kind component)', () {
+    Map<String, dynamic> bind(String param, {Object? fallback = ''}) => {
+      r'$bind': {
+        'source': 'componentParam',
+        'path': param,
+        'fallback': ?fallback,
+      },
+    };
+
+    Map<String, dynamic> text(String id, Object? data) => {
+      'id': id,
+      'type': 'text',
+      'props': {'data': data},
+    };
+
+    Map<String, dynamic> component({
+      Object? root,
+      List<Map<String, dynamic>> params = const [],
+      Map<String, dynamic> extra = const {},
+    }) => {
+      'specVersion': 2,
+      'kind': 'component',
+      'id': 'c1',
+      'name': 'Card',
+      'slug': 'card',
+      'params': params,
+      'root': ?root,
+      ...extra,
+    };
+
+    const titulo = {
+      'name': 'titulo',
+      'type': 'text',
+      'isList': false,
+      'required': true,
+    };
+    const aoTocar = {
+      'name': 'aoTocar',
+      'type': 'action',
+      'isList': false,
+      'required': false,
+    };
+
+    String errorOf(Map<String, dynamic> json) => parseContentSpec(json).match(
+      (error) => error.message,
+      (spec) => fail('esperado Left, veio $spec'),
+    );
+
+    test('lê a fixture component_card.json', () {
+      final result = parseContentSpec(_loadFixture('component_card.json'));
+
+      final spec = result.getOrElse((e) => fail('$e'));
+      expect(spec.kind, ContentKind.component);
+      expect(spec.params.map((p) => p.name), [
+        'titulo',
+        'corDeFundo',
+        'aoTocar',
+      ]);
+      expect(spec.paramNamed('aoTocar')!.callbackParams, hasLength(1));
+      expect(spec.state, hasLength(1));
+      expect(spec.state.single.name, 'aberto');
+      expect(spec.root!.type, 'text');
+    });
+
+    test('toJson do componente lido devolve a fixture', () {
+      final json = _loadFixture('component_card.json');
+
+      final spec = parseContentSpec(json).getOrElse((e) => fail('$e'));
+
+      expect(spec.toJson(), json);
+      expect(parseContentSpec(spec.toJson()).toNullable(), spec);
+    });
+
+    test('componente sem root e sem params é válido', () {
+      final spec = parseContentSpec(
+        component(),
+      ).getOrElse((e) => fail('$e'));
+
+      expect(spec.kind, ContentKind.component);
+      expect(spec.root, isNull);
+      expect(spec.params, isEmpty);
+    });
+
+    test('kind fora de content e component é recusado', () {
+      final json = _loadFixture('content_valid.json')..['kind'] = 'widget';
+
+      expect(errorOf(json), contains('kind'));
+    });
+
+    test('componente com safeArea é recusado', () {
+      final json = component(
+        extra: {
+          'safeArea': {'enabled': false},
+        },
+      );
+
+      expect(
+        errorOf(json),
+        'safeArea: componente não tem área segura',
+      );
+    });
+
+    test('conteúdo com params é recusado', () {
+      final json = _loadFixture('content_valid.json')..['params'] = [titulo];
+
+      expect(errorOf(json), contains('só um componente declara parâmetros'));
+    });
+
+    test('conteúdo com state é recusado', () {
+      final json = _loadFixture('content_valid.json')..['state'] = <Object>[];
+
+      expect(errorOf(json), contains('só um componente declara estado'));
+    });
+
+    test('erro de declaração sai com o caminho do parâmetro', () {
+      final json = component(
+        params: [
+          {...titulo, 'type': 'json'},
+        ],
+      );
+
+      expect(errorOf(json), startsWith('params[0].type:'));
+    });
+
+    test(r'a raiz lê $bind componentParam de parâmetro declarado', () {
+      final spec = parseContentSpec(
+        component(params: [titulo], root: text('t', bind('titulo'))),
+      ).getOrElse((e) => fail('$e'));
+
+      expect(spec.root!.properties['data'], bind('titulo'));
+    });
+
+    test(r'$bind para parâmetro não declarado na raiz é recusado', () {
+      final error = errorOf(
+        component(params: [titulo], root: text('t', bind('subtitulo'))),
+      );
+
+      expect(error, contains('não declarado no componente'));
+      expect(error, startsWith(r'root.props.data.$bind.path:'));
+    });
+
+    test(r'$bind para parâmetro não declarado num filho aponta o filho', () {
+      final error = errorOf(
+        component(
+          params: [titulo],
+          root: {
+            'id': 'col',
+            'type': 'column',
+            'children': [
+              text('a', bind('titulo')),
+              text('b', bind('subtitulo')),
+            ],
+          },
+        ),
+      );
+
+      expect(error, contains('não declarado no componente'));
+      expect(error, startsWith(r'root.children[1].props.data.$bind.path:'));
+    });
+
+    test('prop de nó comum ligada a parâmetro action é recusada', () {
+      final error = errorOf(
+        component(params: [aoTocar], root: text('t', bind('aoTocar'))),
+      );
+
+      expect(error, startsWith(r'root.props.data.$bind.path:'));
+      expect(error, contains('ação'));
+    });
+
+    test('arg de instância aninhada pode repassar o parâmetro action', () {
+      final json = component(
+        params: [aoTocar],
+        root: {
+          'id': 'col',
+          'type': 'column',
+          'children': [
+            {
+              'id': 'i1',
+              'type': 'component',
+              'props': {
+                'componentId': 'c-botao',
+                'args': {'aoClicar': bind('aoTocar', fallback: null)},
+              },
+            },
+          ],
+        },
+      );
+
+      expect(parseContentSpec(json).isRight(), isTrue);
+    });
+
+    test('arg de instância para parâmetro não declarado é recusado', () {
+      final error = errorOf(
+        component(
+          params: [titulo],
+          root: {
+            'id': 'i1',
+            'type': 'component',
+            'props': {
+              'componentId': 'c-selo',
+              'args': {'rotulo': bind('nada', fallback: null)},
+            },
+          },
+        ),
+      );
+
+      expect(
+        error,
+        startsWith(r'root.props.args.rotulo.$bind.path:'),
+      );
+    });
+
+    test(r'conteúdo continua recusando $bind componentParam', () {
+      final json = _loadFixture('content_valid.json')
+        ..['specVersion'] = 2
+        ..['root'] = text('t', bind('titulo'));
+
+      expect(errorOf(json), contains('não está disponível em página'));
+    });
+
+    test('conteúdo da fixture serializa igual a antes', () {
+      final json = _loadFixture('content_valid.json');
+
+      final spec = parseContentSpec(json).getOrElse((e) => fail('$e'));
+      final serialized = spec.toJson();
+
+      expect(spec.kind, ContentKind.content);
+      expect(serialized['kind'], 'content');
+      expect(serialized.containsKey('params'), isFalse);
+      expect(serialized.containsKey('state'), isFalse);
+      expect(serialized, json);
+    });
+  });
 }
