@@ -126,6 +126,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                 document,
                 theme: ProjectThemeScope.of(context),
                 showDiagnostics: true,
+                authoringMode: true,
                 boundValueDisplay: BoundValueDisplay.preview,
                 imageUrlResolver: widget.imageUrlResolver,
                 onAction: (action) {

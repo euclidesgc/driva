@@ -64,6 +64,7 @@ void main() {
     required bool fitToWindow,
     ValueChanged<double>? onChangeZoom,
     VoidCallback? onToggleFitToWindow,
+    ValueChanged<String?>? onSelect,
   }) {
     return MaterialApp(
       theme: AppTheme.light,
@@ -77,7 +78,7 @@ void main() {
               device: device,
               zoom: zoom,
               fitToWindow: fitToWindow,
-              onSelect: (_) {},
+              onSelect: onSelect ?? (_) {},
               onChangeDevice: (_) {},
               onChangeZoom: onChangeZoom ?? (_) {},
               onToggleFitToWindow: onToggleFitToWindow ?? () {},
@@ -318,5 +319,92 @@ void main() {
         );
       },
     );
+  });
+
+  group('modo de autoria no canvas', () {
+    const clientOnlyNotice = 'executada só no app cliente';
+
+    Future<void> pumpWithRoot(
+      WidgetTester tester,
+      SduiNode root, {
+      ValueChanged<String?>? onSelect,
+    }) async {
+      cubit.emit(
+        EditorReady(
+          document: ContentSpec(
+            specVersion: kSpecVersion,
+            id: 'ct_1',
+            name: 'Home',
+            slug: 'home',
+            root: root,
+          ),
+        ),
+      );
+      await tester.pumpWidget(
+        harness(
+          viewport: const Size(1440, 900),
+          device: DevicePreset.tablet,
+          zoom: 1,
+          fitToWindow: false,
+          onSelect: onSelect,
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('tocar num card com onTap seleciona o nó e não executa a '
+        'ação', (tester) async {
+      final selected = <String?>[];
+      await pumpWithRoot(
+        tester,
+        const SduiNode(
+          id: 'card_promo',
+          type: 'card',
+          events: {
+            'onTap': [
+              {
+                'action': 'navigate',
+                'params': {'slug': 'promocoes'},
+              },
+            ],
+          },
+        ),
+        onSelect: selected.add,
+      );
+
+      await tester.tap(find.byType(Card));
+      await tester.pump();
+
+      expect(selected, ['card_promo']);
+      expect(find.textContaining(clientOnlyNotice), findsNothing);
+    });
+
+    testWidgets('alternar um switch com onChanged mostra o aviso de ação só '
+        'no app cliente', (tester) async {
+      await pumpWithRoot(
+        tester,
+        const SduiNode(
+          id: 'switch_news',
+          type: 'switch',
+          properties: {'value': false},
+          events: {
+            'onChanged': [
+              {
+                'action': 'showSnackBar',
+                'params': {'message': 'Inscrito'},
+              },
+            ],
+          },
+        ),
+      );
+
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+
+      expect(
+        find.textContaining('Ação "showSnackBar" é $clientOnlyNotice'),
+        findsOneWidget,
+      );
+    });
   });
 }
