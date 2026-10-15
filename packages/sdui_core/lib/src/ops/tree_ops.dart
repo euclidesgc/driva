@@ -151,6 +151,101 @@ SduiNode? wrapNode(
   });
 }
 
+/// Inverso de [wrapNode]: os filhos do nó ocupam a posição dele. `null` quando
+/// o nó é a raiz, não tem filhos, ou tem mais de um filho num pai de slot
+/// único (não há onde encaixá-los sem perder estrutura).
+SduiNode? unwrapNode(SduiNode root, String id) {
+  final target = findNode(root, id);
+  final parent = findParent(root, id);
+  if (target == null || parent == null) return null;
+  final inner = target.child != null ? [target.child!] : target.children;
+  if (inner.isEmpty) return null;
+
+  if (parent.child?.id == id) {
+    if (inner.length != 1) return null;
+    return setChild(root, parent.id, inner.first);
+  }
+  return _rebuild(root, (current) {
+    if (current.id != parent.id) return current;
+    return current.copyWith(
+      children: [
+        for (final c in current.children)
+          if (c.id == id) ...inner else c,
+      ],
+    );
+  });
+}
+
+/// Troca o tipo mantendo `id`, `name`, `events` e filhos; das props sobram só
+/// as chaves que o novo tipo conhece. `null` quando o tipo é desconhecido,
+/// igual ao atual, ou quando os filhos não cabem no slot do novo tipo.
+SduiNode? replaceNode(SduiNode root, String id, String newType) {
+  final target = findNode(root, id);
+  final descriptor = descriptorFor(newType);
+  if (target == null || descriptor == null || target.type == newType) {
+    return null;
+  }
+  final inner = target.child != null ? 1 : target.children.length;
+  final fits = switch (descriptor.slot) {
+    SlotKind.none => inner == 0,
+    SlotKind.single => inner <= 1,
+    SlotKind.multi => true,
+  };
+  if (!fits) return null;
+
+  final replacement = switch (descriptor.slot) {
+    SlotKind.multi when target.child != null => target.copyWith(
+      type: newType,
+      child: () => null,
+      children: [target.child!],
+    ),
+    SlotKind.single when target.children.length == 1 => target.copyWith(
+      type: newType,
+      child: () => target.children.first,
+      children: const [],
+    ),
+    _ => target.copyWith(type: newType),
+  };
+  final known = {for (final f in descriptor.fields) f.key};
+  final filtered = replacement.copyWith(
+    properties: {
+      for (final entry in replacement.properties.entries)
+        if (known.contains(entry.key)) entry.key: entry.value,
+    },
+  );
+  return _rebuild(root, (current) => current.id == id ? filtered : current);
+}
+
+/// Só as props que o descritor do nó marca como `isStyle`.
+Map<String, dynamic>? copyStyle(SduiNode root, String id) {
+  final target = findNode(root, id);
+  final descriptor = target == null ? null : descriptorFor(target.type);
+  if (target == null || descriptor == null) return null;
+  return {
+    for (final field in descriptor.fields)
+      if (field.isStyle && target.properties.containsKey(field.key))
+        field.key: target.properties[field.key],
+  };
+}
+
+/// Aplica só as chaves de [style] que o descritor do alvo marca como
+/// `isStyle`; `updateNodeProps` não revalida, então o filtro mora aqui.
+SduiNode? pasteStyle(SduiNode root, String id, Map<String, dynamic> style) {
+  final target = findNode(root, id);
+  final descriptor = target == null ? null : descriptorFor(target.type);
+  if (target == null || descriptor == null) return null;
+  final allowed = {
+    for (final field in descriptor.fields)
+      if (field.isStyle) field.key,
+  };
+  final patch = {
+    for (final entry in style.entries)
+      if (allowed.contains(entry.key)) entry.key: entry.value,
+  };
+  if (patch.isEmpty) return null;
+  return updateNodeProps(root, id, patch);
+}
+
 SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
   return _rebuild(root, (current) {
     if (current.id != id) return current;

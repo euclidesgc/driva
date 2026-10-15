@@ -37,6 +37,32 @@ Future<void> _pumpCanvas(
 }
 
 void main() {
+  group('slot vazio', () {
+    testWidgets('column sem filhos mostra o marcador', (tester) async {
+      await _pumpCanvas(
+        tester,
+        const SduiNode(id: 'col', type: 'column'),
+      );
+
+      expect(find.text('Exemplo ↓ Column'), findsOneWidget);
+    });
+
+    testWidgets('column com filhos não mostra o marcador', (tester) async {
+      await _pumpCanvas(
+        tester,
+        const SduiNode(
+          id: 'col',
+          type: 'column',
+          children: [
+            SduiNode(id: 't', type: 'text', properties: {'data': 'Oi'}),
+          ],
+        ),
+      );
+
+      expect(find.text('Exemplo ↓ Column'), findsNothing);
+    });
+  });
+
   group('overlay de seleção do canvas', () {
     testWidgets('não embrulha o expanded, que precisa ser filho do flex', (
       tester,

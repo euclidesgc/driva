@@ -52,6 +52,39 @@ Future<void> _pump(
 }
 
 void main() {
+  group('marcador de ação', () {
+    testWidgets('nó com events mostra o ícone com Semantics "tem ação"', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(
+        tester,
+        node: const SduiNode(
+          id: 'nd_1',
+          type: 'button',
+          events: {
+            'onTap': {'action': 'navigate'},
+          },
+        ),
+      );
+
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'tem ação',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.bolt), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('nó sem events não mostra o ícone', (tester) async {
+      await _pump(tester);
+
+      expect(find.byIcon(Icons.bolt), findsNothing);
+    });
+  });
+
   group('marcação de problema na linha', () {
     testWidgets('nó sem diagnóstico não mostra ícone', (tester) async {
       await _pump(tester);

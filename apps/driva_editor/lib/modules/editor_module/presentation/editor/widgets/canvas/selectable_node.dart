@@ -1,3 +1,4 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/empty_slot_marker.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/node_drag_feedback.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node_surface.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
@@ -23,6 +24,7 @@ class SelectableNode extends StatelessWidget {
     required this.onHover,
     required this.onAccept,
     this.isDraggable = true,
+    this.onContextMenu,
     super.key,
   });
 
@@ -34,6 +36,7 @@ class SelectableNode extends StatelessWidget {
   final VoidCallback onSelect;
   final ValueChanged<bool> onHover;
   final ValueChanged<DragPayload> onAccept;
+  final ValueChanged<Offset>? onContextMenu;
 
   /// Falso enquanto o rascunho está congelado: o nó continua selecionável e
   /// com a mesma pele — mover é edição, selecionar para ler o diff não é.
@@ -45,17 +48,32 @@ class SelectableNode extends StatelessWidget {
     _ => false,
   };
 
+  String? get _emptySlotHint {
+    if (node.children.isNotEmpty) return null;
+    return switch (node.type) {
+      'column' => 'Exemplo ↓ Column',
+      'stack' => 'Início … Fim',
+      _ => null,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isRawFlexParentDataWidget) return built;
 
     final label = descriptorFor(node.type)?.label ?? node.type;
+    final shown = _emptySlotHint == null
+        ? built
+        : EmptySlotMarker(hint: _emptySlotHint!, child: built);
     return MouseRegion(
       onEnter: (_) => onHover(true),
       onExit: (_) => onHover(false),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onSelect,
+        onSecondaryTapDown: onContextMenu == null
+            ? null
+            : (details) => onContextMenu!(details.globalPosition),
         child: Semantics(
           label: label,
           selected: isSelected,
@@ -67,7 +85,7 @@ class SelectableNode extends StatelessWidget {
               opacity: 0.35,
               child: SelectableNodeSurface(
                 label: label,
-                built: built,
+                built: shown,
                 isSelected: isSelected,
                 isHovered: false,
                 isDropTarget: false,
@@ -82,7 +100,7 @@ class SelectableNode extends StatelessWidget {
               onAcceptWithDetails: (details) => onAccept(details.data),
               builder: (context, candidates, _) => SelectableNodeSurface(
                 label: label,
-                built: built,
+                built: shown,
                 isSelected: isSelected,
                 isHovered: isHovered,
                 isDropTarget: candidates.isNotEmpty,

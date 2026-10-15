@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:driva_editor/core/theme/app_radii.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
 import 'package:driva_editor/core/theme/app_theme.dart';
@@ -6,6 +8,7 @@ import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/remove_node_labels.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/node_context_menu.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_node_label.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/tree_row_content.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +63,10 @@ class TreeRow extends StatelessWidget {
       onSelect: onSelect,
       onRemove: onRemove,
       removeLabel: _removeLabel,
+      hasAction: node.events.isNotEmpty,
+      onContextMenu: (position) => unawaited(
+        showNodeContextMenu(context, position: position, nodeId: node.id),
+      ),
     );
     if (isReadOnly) return content;
 
@@ -80,6 +87,10 @@ class TreeRow extends StatelessWidget {
         onSelect: onSelect,
         onRemove: onRemove,
         removeLabel: _removeLabel,
+        hasAction: node.events.isNotEmpty,
+        onContextMenu: (position) => unawaited(
+          showNodeContextMenu(context, position: position, nodeId: node.id),
+        ),
       ),
     );
 

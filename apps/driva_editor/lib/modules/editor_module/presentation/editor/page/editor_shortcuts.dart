@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_intents.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/node_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,6 +51,13 @@ class EditorShortcuts extends StatelessWidget {
               const PasteNodeIntent(),
           const SingleActivator(LogicalKeyboardKey.keyG, control: true):
               const WrapIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyB, control: true):
+              const WrapPickerIntent(),
+          const SingleActivator(
+            LogicalKeyboardKey.keyC,
+            control: true,
+            shift: true,
+          ): const CopyStyleIntent(),
           const SingleActivator(LogicalKeyboardKey.delete):
               const DeleteIntent(),
           // F7/D16: `Esc` só sai do fullscreen enquanto ele está ativo;
@@ -83,6 +93,21 @@ class EditorShortcuts extends StatelessWidget {
             WrapIntent: CallbackAction<WrapIntent>(
               onInvoke: (_) =>
                   _isEditingText ? null : cubit.wrapSelected('column'),
+            ),
+            WrapPickerIntent: CallbackAction<WrapPickerIntent>(
+              onInvoke: (_) {
+                final state = cubit.state;
+                final hasSelection =
+                    state is EditorReady && state.selectedNodeId != null;
+                if (!_isEditingText && hasSelection) {
+                  unawaited(showWrapperPicker(context));
+                }
+                return null;
+              },
+            ),
+            CopyStyleIntent: CallbackAction<CopyStyleIntent>(
+              onInvoke: (_) =>
+                  _isEditingText ? null : cubit.copyStyleSelected(),
             ),
             ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
               onInvoke: (_) => _isEditingText ? null : cubit.selectNode(null),

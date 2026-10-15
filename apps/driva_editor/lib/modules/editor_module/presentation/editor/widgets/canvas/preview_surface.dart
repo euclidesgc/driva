@@ -6,6 +6,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/c
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/node_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -134,6 +135,14 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                   isHovered: node.id == _hoveredNodeId,
                   diagnostics: _nodeDiagnostics[node.id] ?? const [],
                   onSelect: () => widget.onSelect(node.id),
+                  onContextMenu: (position) => unawaited(
+                    showNodeContextMenu(
+                      context,
+                      position: position,
+                      nodeId: node.id,
+                      allowDelete: false,
+                    ),
+                  ),
                   onAccept: (payload) => widget.onDropOn(payload, node.id),
                   onHover: (hovering) {
                     if (!mounted) return;

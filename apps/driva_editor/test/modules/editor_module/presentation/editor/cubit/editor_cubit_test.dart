@@ -1695,4 +1695,70 @@ void main() {
       },
     );
   });
+  group('menu de contexto: desembrulhar, substituir e estilo', () {
+    blocTest<EditorCubit, EditorState>(
+      'unwrapSelected desfaz o wrapSelected em uma entrada de undo',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..wrapSelected('column');
+        final wrapperId = (cubit.state as EditorReady).selectedNodeId;
+        cubit
+          ..selectNode(wrapperId)
+          ..unwrapSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.nodeUnwrapped);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'unwrapSelected na raiz recusa sem alterar o documento',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_root')
+          ..unwrapSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.operationRefused);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'replaceSelected troca o tipo mantendo id e filhos',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_root')
+          ..replaceSelected('row');
+      },
+      verify: (cubit) {
+        final root = (cubit.state as EditorReady).document.root!;
+        expect(root.type, 'row');
+        expect(root.id, 'nd_root');
+        expect(root.children, content.root!.children);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'colar estilo sem nada copiado avisa e não altera o documento',
+      build: buildLoaded,
+      act: (cubit) {
+        cubit
+          ..selectNode('nd_text')
+          ..pasteStyleSelected();
+      },
+      verify: (cubit) {
+        final state = cubit.state as EditorReady;
+        expect(state.document, content);
+        expect(state.notice?.kind, EditorNoticeKind.styleClipboardEmpty);
+      },
+    );
+  });
 }

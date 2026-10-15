@@ -32,6 +32,17 @@ abstract final class EditorNoticeMessage {
       EditorNoticeKind.clipboardEmpty =>
         'Nada para colar: copie um widget antes, com Ctrl+C.',
       EditorNoticeKind.nodeWrapped => 'Envolvido numa ${label ?? 'Column'}.',
+      EditorNoticeKind.nodeUnwrapped =>
+        '${label ?? 'Widget'} removido; o conteúdo subiu um nível.',
+      EditorNoticeKind.nodeReplaced =>
+        'Substituído por ${wrapperLabel ?? 'outro widget'}.',
+      EditorNoticeKind.styleCopied =>
+        'Estilo de ${label ?? 'widget'} copiado — use "Colar estilo".',
+      EditorNoticeKind.stylePasted => 'Estilo aplicado.',
+      EditorNoticeKind.styleClipboardEmpty =>
+        'Nenhum estilo copiado: use Ctrl+Shift+C num widget antes.',
+      EditorNoticeKind.operationRefused =>
+        'Esta operação não se aplica a este widget.',
       EditorNoticeKind.publishFailed => 'Falha ao publicar. Tente novamente.',
       EditorNoticeKind.unpublishFailed =>
         'Falha ao despublicar. Tente novamente.',
