@@ -32,7 +32,9 @@ class BindingDialog extends StatefulWidget {
   /// O binding atual, para reabrir o diálogo preenchido.
   final BoundPropValue? initial;
 
-  /// O valor fixo atual da prop, que vira o padrão inicial.
+  /// O valor fixo atual da prop, que vira o padrão inicial só de um binding
+  /// novo (ou de um `{{x}}`, que não tem padrão): o padrão de um binding
+  /// tipado que já existe é o dele, mesmo ausente.
   final Object? initialFallback;
 
   @override
@@ -44,7 +46,10 @@ class _BindingDialogState extends State<BindingDialog> {
   late final TextEditingController _path = TextEditingController(
     text: widget.initial?.path ?? '',
   );
-  late Object? _fallback = widget.initial?.fallback ?? widget.initialFallback;
+  late Object? _fallback = switch (widget.initial) {
+    final initial? when !initial.isLegacy => initial.fallback,
+    _ => widget.initialFallback,
+  };
   late Object? _preview = widget.initial?.preview;
   String? _pathError;
   String? _fallbackError;
@@ -94,6 +99,7 @@ class _BindingDialogState extends State<BindingDialog> {
           : BoundPropValue(
               source: source,
               path: path,
+              transform: widget.initial?.transform,
               fallback: _isAbsent(_fallback) ? null : _fallback,
               preview: _isAbsent(_preview) ? null : _preview,
               literal: widget.initial?.literal,

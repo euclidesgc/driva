@@ -252,6 +252,44 @@ void main() {
 
       expect(resultado.valor, atual);
     });
+
+    testWidgets('reabre e preserva o transform', (tester) async {
+      const atual = BoundPropValue(
+        source: BindingSourceIds.pageParam,
+        path: 'nomeCliente',
+        transform: 'upper',
+      );
+      final resultado = await _abrir(
+        tester,
+        field: _textoOpcional,
+        initial: atual,
+      );
+
+      await _confirmar(tester);
+
+      expect(resultado.valor, atual);
+    });
+
+    testWidgets('reabre um binding sem padrão sem inventar um', (
+      tester,
+    ) async {
+      const atual = BoundPropValue(
+        source: BindingSourceIds.pageParam,
+        path: 'nomeCliente',
+        literal: 'Olá',
+      );
+      final resultado = await _abrir(
+        tester,
+        field: _textoOpcional,
+        initial: atual,
+        initialFallback: 'Olá',
+      );
+
+      expect(_texto(tester, _editorDe('binding-fallback')), isEmpty);
+      await _confirmar(tester);
+
+      expect(resultado.valor, atual);
+    });
   });
 
   group('expressão livre', () {
