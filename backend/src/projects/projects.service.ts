@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -37,6 +38,12 @@ const PROJECT_SELECT = {
   publishableKey: true,
   ...COUNTS_SELECT,
 } as const;
+
+const PROJECT_DETAIL_SELECT = { ...PROJECT_SELECT, theme: true } as const;
+
+type ProjectDetail = ReturnType<ProjectsService['toSummary']> & {
+  theme: Prisma.JsonValue | null;
+};
 
 export type ProjectStatus = 'active' | 'archived';
 
@@ -103,13 +110,32 @@ export class ProjectsService {
     }
   }
 
-  async find(id: string) {
+  async find(id: string): Promise<ProjectDetail> {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      select: PROJECT_SELECT,
+      select: PROJECT_DETAIL_SELECT,
     });
     if (!project) throw new NotFoundException();
-    return this.toSummary(project);
+    return this.toDetail(project);
+  }
+
+  async setTheme(
+    id: string,
+    theme: Record<string, unknown> | null,
+  ): Promise<ProjectDetail> {
+    const current = await this.prisma.project.findUnique({ where: { id } });
+    if (!current) throw new NotFoundException();
+
+    const row = await this.prisma.project.update({
+      where: { id },
+      data: {
+        theme:
+          theme === null ? Prisma.DbNull : (theme as Prisma.InputJsonObject),
+        themeUpdatedAt: new Date(),
+      },
+      select: PROJECT_DETAIL_SELECT,
+    });
+    return this.toDetail(row);
   }
 
   async update(id: string, dto: UpdateProjectDto, image?: ProcessedImage) {
@@ -218,6 +244,12 @@ export class ProjectsService {
     const object = await this.storage.get(project.imageKey);
     if (!object) throw new NotFoundException();
     return object;
+  }
+
+  private toDetail(
+    row: ProjectRow & { theme: Prisma.JsonValue | null },
+  ): ProjectDetail {
+    return { ...this.toSummary(row), theme: row.theme };
   }
 
   private toSummary(row: ProjectRow) {
