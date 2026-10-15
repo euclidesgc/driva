@@ -9,7 +9,7 @@ Plataforma de **Server-Driven UI** para apps Flutter: monte conteúdos num edito
 | `packages/sdui_core` | Kernel do spec (Dart puro): modelos, validação zard (`parseContentSpec`), catálogo de 24 primitivos com gatilhos por widget, catálogo de ações, operações puras de árvore |
 | `packages/sdui_flutter` | Renderer: registry `type → builder`, `SduiView`. Roda no preview do editor e dentro do `driva_client`, no app do cliente |
 | `packages/driva_client` | Runtime do app cliente: `Driva.init` + `DrivaContent(slug:)` — busca na API pública, cache em disco, revalidação em background, fallback embarcado e falha com causa tipada (`DrivaLoadFailure`). É o package que um app de terceiro adiciona |
-| `apps/driva_editor` | O editor (Flutter Web): AppBar global com breadcrumb (via `ShellRoute`) + home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel |
+| `apps/driva_editor` | O editor (Flutter Web): AppBar global com breadcrumb (via `ShellRoute`) + home de Projetos + tela do projeto (árvore de categorias + painel de conteúdos) + builder de 3 colunas com preview fiel e inspector com as ações por gatilho de cada widget |
 | `apps/driva_demo_app` | App de demonstração (Android/iOS/Web): o primeiro consumidor do `driva_client` — abre um slug de config, com campo para trocar e botão de recarregar |
 | `backend/` | NestJS + Prisma + Postgres: hierarquia Projeto → Categoria → Conteúdo (`/v1/projects`, `/v1/categories`, `/v1/contents`), tenant por `x-project-id` |
 | `docs/01-modulo-pagina/` | Docs vivas do incremento I1 (specs, prd, plan, test_plan, final_report) |
