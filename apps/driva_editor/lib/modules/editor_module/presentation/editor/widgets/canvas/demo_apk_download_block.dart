@@ -37,10 +37,7 @@ class DemoApkDownloadBlock extends StatelessWidget {
             style: textStyle,
           ),
           const SizedBox(height: AppSpacing.s8),
-          Text(
-            'No iPhone, use o preview instalável acima.',
-            style: textStyle,
-          ),
+          Text('No iPhone, use o preview instalável acima.', style: textStyle),
           const SizedBox(height: AppSpacing.s8),
           Text(
             'O Android vai pedir permissão para instalar de fonte '

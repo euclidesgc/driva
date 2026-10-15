@@ -133,9 +133,5 @@ final class VersionCompareModeFailure extends VersionCompareModeState {
   final String? candidateCheckpointId;
 
   @override
-  List<Object?> get props => [
-    failure,
-    candidateVersion,
-    candidateCheckpointId,
-  ];
+  List<Object?> get props => [failure, candidateVersion, candidateCheckpointId];
 }

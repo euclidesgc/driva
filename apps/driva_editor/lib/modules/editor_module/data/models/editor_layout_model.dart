@@ -27,9 +27,7 @@ class EditorLayoutModel extends EditorLayoutSnapshot {
     'collapsedInspectorSections': z.list(z.string()),
   });
 
-  static Either<Failure, EditorLayoutModel> tryParse(
-    Map<String, dynamic> map,
-  ) {
+  static Either<Failure, EditorLayoutModel> tryParse(Map<String, dynamic> map) {
     final result = _schema.safeParse(map);
     if (!result.success) {
       return Left(ValidationFailure(z.prettifyError(result.error!)));

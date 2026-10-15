@@ -1,5 +1,7 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/binding/binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
 import 'package:flutter/material.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 /// `null` em [onChanged] remove a chave (volta ao default do renderer).
@@ -11,12 +13,20 @@ class PropFieldEditor extends StatelessWidget {
     required this.field,
     required this.value,
     required this.onChanged,
+    required this.onBind,
+    required this.onUnbind,
     super.key,
   });
 
   final PropField field;
   final Object? value;
   final ValueChanged<Object?> onChanged;
+
+  /// Grava a ligação a uma variável (o cubit guarda o valor fixo por baixo).
+  final ValueChanged<BoundPropValue> onBind;
+
+  /// Remove a ligação e restaura o valor fixo que estava por baixo.
+  final VoidCallback onUnbind;
 
   /// Kinds cujo editor monta a própria moldura: precisam de um controle na
   /// linha do rótulo que compartilha estado com o corpo (a unidade do campo de
@@ -27,35 +37,41 @@ class PropFieldEditor extends StatelessWidget {
     FieldKind.edgeInsets,
   };
 
-  bool get _isBound => SduiBinding.isBinding(value);
+  BoundPropValue? get _binding => switch (parsePropValue(value)) {
+    Right(value: final BoundPropValue bound) => bound,
+    _ => null,
+  };
 
   Future<void> _editBinding(BuildContext context) async {
-    final expression = await showDialog<String>(
+    final current = _binding;
+    final result = await showDialog<BoundPropValue>(
       context: context,
-      builder: (_) => PropBindingDialog(
-        propLabel: field.label,
-        kind: field.kind,
-        initialExpression: SduiBinding.expressionOf(value),
+      builder: (_) => BindingDialog(
+        field: field,
+        bindingContext: BindingContext.page,
+        initial: current,
+        initialFallback: current == null ? value : null,
       ),
     );
-    if (expression == null) return;
-    onChanged(SduiBinding.wrap(expression));
+    if (result == null) return;
+    onBind(result);
   }
 
   @override
   Widget build(BuildContext context) {
-    final expression = SduiBinding.expressionOf(value);
+    final binding = _binding;
+    final isBound = binding != null;
     final bindingButton = field.isBindable
         ? PropBindingButton(
-            isActive: _isBound,
+            isActive: isBound,
             onPressed: () => _editBinding(context),
           )
         : null;
-    final resetButton = value != null && !field.isRequired && !_isBound
+    final resetButton = value != null && !field.isRequired && !isBound
         ? PropResetButton(onPressed: () => onChanged(null))
         : null;
 
-    if (expression == null && _selfChromed.contains(field.kind)) {
+    if (!isBound && _selfChromed.contains(field.kind)) {
       return SelfChromedPropEditor(
         field: field,
         value: value,
@@ -70,16 +86,13 @@ class PropFieldEditor extends StatelessWidget {
       isRequired: field.isRequired,
       helpText: field.helpText,
       actions: [?bindingButton, ?resetButton],
-      body: expression != null
-          ? PropBindingEditor(
-              expression: expression,
-              onClear: () => onChanged(null),
+      body: binding != null
+          ? BindingChip(
+              binding: binding,
+              onTap: () => _editBinding(context),
+              onRemove: onUnbind,
             )
-          : TypedPropEditor(
-              field: field,
-              value: value,
-              onChanged: onChanged,
-            ),
+          : TypedPropEditor(field: field, value: value, onChanged: onChanged),
     );
   }
 }

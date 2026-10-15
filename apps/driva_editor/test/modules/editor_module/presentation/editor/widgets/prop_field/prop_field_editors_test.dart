@@ -21,6 +21,8 @@ Future<List<Object?>> _pumpEditor(
         body: SizedBox(
           width: 320,
           child: PropFieldEditor(
+            onBind: (_) {},
+            onUnbind: () {},
             field: field,
             value: value,
             onChanged: changes.add,

@@ -181,6 +181,8 @@ void main() {
               child: SizedBox(
                 width: 300,
                 child: PropFieldEditor(
+                  onBind: (_) {},
+                  onUnbind: () {},
                   field: c.field,
                   value: c.value,
                   onChanged: (_) {},

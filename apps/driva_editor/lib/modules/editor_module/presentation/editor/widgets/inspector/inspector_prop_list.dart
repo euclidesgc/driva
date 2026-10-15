@@ -17,6 +17,8 @@ class InspectorPropList extends StatefulWidget {
     required this.properties,
     required this.descriptor,
     required this.onUpdateProps,
+    required this.onBindProp,
+    required this.onUnbindProp,
     this.collapsedSections,
     this.isReadOnly = false,
     super.key,
@@ -29,6 +31,8 @@ class InspectorPropList extends StatefulWidget {
   final Map<String, dynamic> properties;
   final WidgetDescriptor descriptor;
   final ValueChanged<Map<String, dynamic>> onUpdateProps;
+  final void Function(String key, BoundPropValue binding) onBindProp;
+  final ValueChanged<String> onUnbindProp;
 
   /// Rascunho congelado pelo modo de comparação: os campos ficam à vista,
   /// com o valor que têm, mas inertes — buscar, rolar e colapsar seção
@@ -163,15 +167,16 @@ class _InspectorPropListState extends State<InspectorPropList> {
                         children: [
                           for (final field in _fieldsOf(group))
                             EditingLock(
-                              key: ValueKey(
-                                '${widget.ownerKey}_${field.key}',
-                              ),
+                              key: ValueKey('${widget.ownerKey}_${field.key}'),
                               locked: widget.isReadOnly,
                               child: PropFieldEditor(
                                 field: field,
                                 value: widget.properties[field.key],
                                 onChanged: (value) =>
                                     widget.onUpdateProps({field.key: value}),
+                                onBind: (binding) =>
+                                    widget.onBindProp(field.key, binding),
+                                onUnbind: () => widget.onUnbindProp(field.key),
                               ),
                             ),
                         ],
