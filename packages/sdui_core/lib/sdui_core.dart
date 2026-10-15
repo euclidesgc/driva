@@ -40,6 +40,7 @@ export 'src/ops/bound_value_resolution.dart';
 export 'src/ops/compare_ops.dart';
 export 'src/ops/component_resolution_error.dart';
 export 'src/ops/drop_ops.dart';
+export 'src/ops/resolve_components.dart';
 export 'src/ops/spec_version_ops.dart';
 export 'src/ops/tree_ops.dart';
 export 'src/schema/component_declarations_schema.dart';
