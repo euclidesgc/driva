@@ -63,7 +63,7 @@ class ContentActionRunner {
   static String? _literal(Object? value) =>
       value is String && value.trim().isNotEmpty ? value : null;
 
-  static Duration _durationFrom(Object? value) => value is num && value >= 0
+  static Duration _durationFrom(Object? value) => value is num && value > 0
       ? Duration(milliseconds: value.round())
       : defaultSnackBarDuration;
 }

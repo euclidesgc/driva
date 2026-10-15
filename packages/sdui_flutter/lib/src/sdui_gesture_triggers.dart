@@ -18,12 +18,15 @@ class SduiGestureTriggers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _callbackFor(EventTrigger.onTap),
-      onDoubleTap: _callbackFor(EventTrigger.onDoubleTap),
-      onLongPress: _callbackFor(EventTrigger.onLongPress),
-      child: child,
+    return Semantics(
+      button: triggers.contains(EventTrigger.onTap),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _callbackFor(EventTrigger.onTap),
+        onDoubleTap: _callbackFor(EventTrigger.onDoubleTap),
+        onLongPress: _callbackFor(EventTrigger.onLongPress),
+        child: child,
+      ),
     );
   }
 }

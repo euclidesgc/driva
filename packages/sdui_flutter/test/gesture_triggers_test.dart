@@ -258,4 +258,24 @@ void main() {
   test('parseColor é exportado pelo barrel', () {
     expect(parseColor('#FF0000'), const Color(0xFFFF0000));
   });
+
+  testWidgets('nó com onTap é anunciado como botão ao leitor de tela', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _host(
+        SduiView(
+          node: _tappable('text', events: const {'onTap': _navigatePromocoes}),
+          onAction: (_) {},
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSemantics(find.byType(SduiGestureTriggers)),
+      isSemantics(isButton: true, hasTapAction: true),
+    );
+    semantics.dispose();
+  });
 }

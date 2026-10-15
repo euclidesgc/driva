@@ -130,13 +130,11 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                 boundValueDisplay: BoundValueDisplay.preview,
                 imageUrlResolver: widget.imageUrlResolver,
                 onAction: (action) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Ação "${action.type}" é executada só no app cliente.',
-                      ),
-                    ),
-                  );
+                  final notice =
+                      'Ação "${action.type}" é executada só no app cliente.';
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(SnackBar(content: Text(notice)));
                 },
                 nodeWrapper: (node, built) => SelectableNode(
                   node: node,

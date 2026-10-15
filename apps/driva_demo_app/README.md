@@ -65,8 +65,9 @@ os executa. Cinco ações rodam de verdade:
 
 - `navigate`: abre o `slug` na mesma tela e guarda o anterior numa pilha. Slug
   inexistente mostra "Conteúdo não encontrado", e dá para voltar.
-- `navigateBack`: volta para o slug anterior da pilha. Sem histórico, não faz
-  nada e não fecha o app.
+- `navigateBack`: volta para o slug anterior da pilha. Sem histórico, volta
+  para a rota abaixo da tela, se houver; na tela inicial, não faz nada e não
+  fecha o app.
 - `showSnackBar`: mostra `message` por `durationMs` (padrão de 4 s), com
   `backgroundColor` em hex (`#RRGGBB` ou `#AARRGGBB`). Duração ou cor inválidas
   caem no padrão.

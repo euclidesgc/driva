@@ -87,6 +87,15 @@ void main() {
       );
     });
 
+    test('durationMs zero usa 4000 ms', () async {
+      await h.run('showSnackBar', {'message': 'Oi', 'durationMs': 0});
+
+      expect(
+        h.messages.single.duration,
+        const Duration(milliseconds: 4000),
+      );
+    });
+
     test('cor inválida vira cor nula', () async {
       await h.run('showSnackBar', {'message': 'Oi', 'backgroundColor': 'azul'});
 
