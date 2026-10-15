@@ -687,3 +687,73 @@ describe('ContentsService.listVersions — paginação por cursor', () => {
     expect(result.nextCursor).toBeNull();
   });
 });
+
+describe('ContentsService.update — specVersion aceita', () => {
+  const specV2ComBinding = {
+    specVersion: 2,
+    kind: 'content',
+    id: 'content-1',
+    name: 'Home',
+    slug: 'home',
+    root: {
+      id: 'title',
+      type: 'text',
+      props: {
+        data: {
+          $bind: {
+            source: 'pageParam',
+            path: 'nomeCliente',
+            fallback: 'Visitante',
+            literal: 'Olá',
+          },
+        },
+      },
+    },
+  };
+
+  function prismaQueSalva(): PrismaMock {
+    const prisma = createPrismaMock();
+    prisma.content.updateMany.mockResolvedValue({ count: 1 });
+    prisma.content.findFirst.mockResolvedValue(contentRow());
+    prisma.contentVersion.findMany.mockResolvedValue([]);
+    return prisma;
+  }
+
+  it('aceita um spec v2 com $bind numa prop', async () => {
+    const prisma = prismaQueSalva();
+
+    await serviceWith(prisma).update('project-1', 'content-1', {
+      spec: specV2ComBinding,
+    });
+
+    expect(prisma.content.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ draftSpec: specV2ComBinding }),
+      }),
+    );
+  });
+
+  it('aceita um spec v1', async () => {
+    const prisma = prismaQueSalva();
+    const specV1 = { ...specV2ComBinding, specVersion: 1, root: undefined };
+
+    await expect(
+      serviceWith(prisma).update('project-1', 'content-1', { spec: specV1 }),
+    ).resolves.toBeDefined();
+  });
+
+  it.each([0, 3, '2', undefined])(
+    'recusa specVersion %p com a mensagem das versões aceitas',
+    async (specVersion) => {
+      const prisma = prismaQueSalva();
+
+      const update = serviceWith(prisma).update('project-1', 'content-1', {
+        spec: { ...specV2ComBinding, specVersion },
+      });
+
+      await expect(update).rejects.toBeInstanceOf(BadRequestException);
+      await expect(update).rejects.toThrow('spec.specVersion precisa ser 1 ou 2');
+      expect(prisma.content.updateMany).not.toHaveBeenCalled();
+    },
+  );
+});

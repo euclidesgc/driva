@@ -1761,4 +1761,131 @@ void main() {
       },
     );
   });
+
+  group('binding de prop (bindProp/unbindProp)', () {
+    const binding = BoundPropValue(
+      source: BindingSourceIds.pageParam,
+      path: 'nomeCliente',
+      fallback: 'Visitante',
+    );
+
+    const textContent = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_bind',
+      name: 'Bind',
+      slug: 'bind',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(id: 'nd_text', type: 'text', properties: {'data': 'Olá'}),
+        ],
+      ),
+    );
+
+    EditorCubit buildBindable() => buildWith(textContent);
+
+    EditorReady ready(EditorCubit cubit) => cubit.state as EditorReady;
+
+    Object? dataOf(EditorCubit cubit) =>
+        findNode(ready(cubit).document.root!, 'nd_text')!.properties['data'];
+
+    blocTest<EditorCubit, EditorState>(
+      'ligar e remover devolve a prop exatamente ao literal',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..unbindProp('nd_text', 'data'),
+      verify: (cubit) => expect(dataOf(cubit), 'Olá'),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'ligar passa a specVersion para 2 e remover a devolve para 1',
+      build: buildBindable,
+      act: (cubit) => cubit.bindProp('nd_text', 'data', binding),
+      verify: (cubit) {
+        expect(ready(cubit).document.specVersion, 2);
+        expect(dataOf(cubit), isA<Map<String, dynamic>>());
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'remover o único binding devolve a specVersion para 1',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..unbindProp('nd_text', 'data'),
+      verify: (cubit) => expect(ready(cubit).document.specVersion, 1),
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'desfazer depois de ligar volta ao documento v1 e refazer reaplica',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..undo(),
+      verify: (cubit) {
+        expect(ready(cubit).document, textContent);
+        expect(ready(cubit).document.specVersion, 1);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'refazer depois de desfazer reaplica o binding',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..undo()
+        ..redo(),
+      verify: (cubit) {
+        expect(ready(cubit).document.specVersion, 2);
+        expect(dataOf(cubit), isA<Map<String, dynamic>>());
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'desfazer depois de remover traz o binding de volta',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..unbindProp('nd_text', 'data')
+        ..undo(),
+      verify: (cubit) {
+        expect(ready(cubit).document.specVersion, 2);
+        expect(dataOf(cubit), isA<Map<String, dynamic>>());
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'ligar e remover são passos de undo separados',
+      build: buildBindable,
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..unbindProp('nd_text', 'data')
+        ..undo()
+        ..undo(),
+      verify: (cubit) {
+        expect(ready(cubit).document, textContent);
+        expect(ready(cubit).canUndo, isFalse);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'unbindProp numa prop sem binding não emite estado',
+      build: buildBindable,
+      act: (cubit) => cubit.unbindProp('nd_text', 'data'),
+      expect: () => <EditorState>[],
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'somente leitura: bindProp e unbindProp não alteram o documento',
+      build: () =>
+          build()
+            ..emit(const EditorReady(document: textContent, isReadOnly: true)),
+      act: (cubit) => cubit
+        ..bindProp('nd_text', 'data', binding)
+        ..unbindProp('nd_text', 'data'),
+      expect: () => <EditorState>[],
+    );
+  });
 }
