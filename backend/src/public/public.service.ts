@@ -36,7 +36,7 @@ export class PublicService {
     const { id: projectId } = await this.projectFor(publishableKey);
 
     const rows = await this.prisma.content.findMany({
-      where: { projectId, publishedVersionId: { not: null } },
+      where: { projectId, kind: 'content', publishedVersionId: { not: null } },
       orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
       take: LIST_LIMIT,
       select: { id: true, name: true, slug: true, publishedAt: true },
@@ -55,7 +55,12 @@ export class PublicService {
     const project = await this.projectFor(publishableKey);
 
     const content = await this.prisma.content.findFirst({
-      where: { projectId: project.id, slug, publishedVersionId: { not: null } },
+      where: {
+        projectId: project.id,
+        slug,
+        kind: 'content',
+        publishedVersionId: { not: null },
+      },
       select: {
         id: true,
         name: true,
