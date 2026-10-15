@@ -16,12 +16,29 @@ Either<SpecValidationError, Unit> validateNodeProps(
   required String path,
   required int specVersion,
   required BindingContext context,
+}) => validateFieldValues(
+  props,
+  descriptor.fields,
+  path: path,
+  specVersion: specVersion,
+  context: context,
+);
+
+/// A mesma regra das props para qualquer lista de campos (os parâmetros de
+/// uma ação, por exemplo). Só confere as formas tipadas: o literal passa como
+/// veio, e chave sem campo é conferida sem regra de campo.
+Either<SpecValidationError, Unit> validateFieldValues(
+  Map<String, dynamic> values,
+  List<PropField> fields, {
+  required String path,
+  required int specVersion,
+  required BindingContext context,
 }) {
-  for (final MapEntry(:key, :value) in props.entries) {
+  for (final MapEntry(:key, :value) in values.entries) {
     if (!PropValue.isTypedForm(value)) continue;
     final result = _validateTypedProp(
       value,
-      descriptor.fieldOf(key),
+      _fieldOf(fields, key),
       path: '$path.$key',
       specVersion: specVersion,
       context: context,
@@ -29,6 +46,13 @@ Either<SpecValidationError, Unit> validateNodeProps(
     if (result.isLeft()) return result;
   }
   return const Right(unit);
+}
+
+PropField? _fieldOf(List<PropField> fields, String key) {
+  for (final field in fields) {
+    if (field.key == key) return field;
+  }
+  return null;
 }
 
 Either<SpecValidationError, Unit> _validateTypedProp(

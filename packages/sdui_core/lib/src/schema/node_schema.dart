@@ -4,6 +4,7 @@ import 'package:sdui_core/src/catalog/widget_catalog.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/dimension_value.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
+import 'package:sdui_core/src/schema/node_events_schema.dart';
 import 'package:sdui_core/src/schema/node_props_schema.dart';
 import 'package:sdui_core/src/schema/spec_validation_error.dart';
 import 'package:sdui_core/src/schema/spec_version.dart';
@@ -53,6 +54,22 @@ Either<SpecValidationError, SduiNode> parseNode(
   final rawEvents = json['events'];
   if (rawEvents != null && rawEvents is! Map) {
     return Left(SpecValidationError('$path.events: esperado um objeto'));
+  }
+  var events = (rawEvents as Map?)?.cast<String, dynamic>() ?? const {};
+  if (rawEvents != null && descriptor != null) {
+    final parsed = parseNodeEvents(
+      events,
+      descriptor,
+      path: '$path.events',
+      specVersion: specVersion,
+      tolerant: tolerant,
+    );
+    switch (parsed) {
+      case Left(:final value):
+        return Left(value);
+      case Right(:final value):
+        events = value;
+    }
   }
 
   final rawName = json['name'];
@@ -138,7 +155,7 @@ Either<SpecValidationError, SduiNode> parseNode(
       id: id,
       type: type,
       properties: (rawProps as Map?)?.cast<String, dynamic>() ?? const {},
-      events: (rawEvents as Map?)?.cast<String, dynamic>() ?? const {},
+      events: events,
       child: child,
       children: children,
       name: rawName as String?,
