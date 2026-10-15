@@ -1,3 +1,4 @@
+import 'package:driva_editor/core/theme/app_sizes.dart';
 import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
@@ -83,8 +84,8 @@ class _LeftPanelState extends State<LeftPanel>
                 child: TabBar(
                   controller: _tabController,
                   tabs: const [
-                    Tab(text: 'Widgets', height: 40),
-                    Tab(text: 'Árvore', height: 40),
+                    Tab(text: 'Widgets', height: AppSizes.panelTabHeight),
+                    Tab(text: 'Árvore', height: AppSizes.panelTabHeight),
                   ],
                 ),
               ),
