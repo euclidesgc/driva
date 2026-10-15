@@ -60,6 +60,7 @@ export class PublicController {
       slug: content.slug,
       updatedAt: content.updatedAt.toISOString(),
       spec: content.spec,
+      theme: content.theme ?? null,
     });
   }
 
