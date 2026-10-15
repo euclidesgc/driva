@@ -488,6 +488,42 @@ void main() {
       },
     );
 
+    test(
+      'cache legado sem themeJson refaz o pedido sem if-none-match e emite '
+      'o tema do servidor em vez de aceitar o 304',
+      () async {
+        final legacy = CachedContent.fromJson({
+          'specJson': _validSpecJson,
+          'etag': '"home-1-t5"',
+          'fetchedAt': DateTime.now().toIso8601String(),
+        });
+        final cache = FakeCacheStore(seed: legacy);
+        final sentIfNoneMatch = <String?>[];
+        final client = MockClient((request) async {
+          sentIfNoneMatch.add(request.headers['if-none-match']);
+          if (request.headers.containsKey('if-none-match')) {
+            return http.Response('', 304);
+          }
+          return http.Response(
+            jsonEncode(_themedEnvelope(_redThemeJson)),
+            200,
+            headers: {'etag': '"home-1-t5"'},
+          );
+        });
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: cache,
+        ).load('home').toList();
+
+        expect(sentIfNoneMatch, [null]);
+        expect(emissions, hasLength(2));
+        expect(emissions.first.theme, kDefaultProjectTheme);
+        expect(_primaryOf(emissions.last), '#FF0000');
+        expect(cache.written.single.themeJson, _redThemeJson);
+      },
+    );
+
     test('CachedContent preserva o themeJson ida e volta pelo JSON', () {
       final original = CachedContent(
         specJson: _validSpecJson,
