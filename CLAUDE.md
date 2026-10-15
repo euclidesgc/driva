@@ -67,7 +67,7 @@ Valem em **`apps/driva_editor`, `apps/driva_demo_app` e `packages/sdui_flutter`*
 
 ## Regras do spec SDUI
 
-- Todo nó tem `id`, `type`, `props`; `events` e `children`/`child` opcionais. Conteúdo: `{specVersion, kind: "content", id, name, slug, root?}`. **`root` é opcional (qualquer widget do catálogo, não só `column`)**: página vazia = sem `root` (`root: null`, chave omitida no JSON); o **primeiro widget adicionado vira a raiz**. Quando presente, `root` é validado como um nó normal contra o catálogo, recursivamente.
+- Todo nó tem `id`, `type`, `props`; `events` e `children`/`child` opcionais. Conteúdo: `{specVersion, kind: "content", id, name, slug, root?}`. **`root` é opcional (qualquer widget do catálogo, não só `column`)**: página vazia = sem `root` (`root: null`, chave omitida no JSON); o **primeiro widget adicionado vira a raiz**. Quando presente, `root` é validado como um nó normal contra o catálogo, recursivamente. Componente: `{specVersion, kind: "component", id, name, slug, params?, state?, root?}`, sem `safeArea`; ele é usado numa página pelo nó de instância `type: "component"` com `props: {componentId, args}`, que fica fora do `widget_catalog.dart`.
 - O JSON só vira entidade por `parsePageSpec` (zard) do `sdui_core` — nenhum `fromMap` cru fora dele.
 - Paleta, inspector e defaults derivam 100% do `widget_catalog.dart` (WidgetDescriptor/PropField). Novo primitivo = novo descriptor + novo builder + fixture; nada hardcoded no editor.
 - Binding `{{prop}}` e ações são **dados** — o editor não os executa (só o app cliente).
