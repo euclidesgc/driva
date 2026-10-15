@@ -108,6 +108,22 @@ void main() {
       expect(find.byType(ActionPickerDialog), findsNothing);
     });
 
+    testWidgets('o leitor de tela aciona a ação pelo botão', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final opened = await _open(tester);
+
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Mostrar aviso')),
+        isSemantics(label: 'Mostrar aviso', isButton: true, hasTapAction: true),
+      );
+
+      tester.semantics.tap(find.semantics.byLabel('Mostrar aviso'));
+      await tester.pumpAndSettle();
+
+      expect((await opened.result)?.type, 'showSnackBar');
+      semantics.dispose();
+    });
+
     testWidgets('Esc fecha devolvendo null', (tester) async {
       final opened = await _open(tester);
 

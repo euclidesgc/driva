@@ -24,6 +24,7 @@ class ActionPickerTile extends StatelessWidget {
     return Semantics(
       button: true,
       label: showCategory ? breadcrumb : action.label,
+      onTap: onTap,
       excludeSemantics: true,
       child: ListTile(
         dense: true,

@@ -83,6 +83,18 @@ void main() {
     blocTest<EditorCubit, EditorState>(
       'null remove o gatilho do nó',
       build: build,
+      act: (cubit) => cubit
+        ..updateEvents('n1', onTapBack)
+        ..updateEvents('n1', {'onTap': null}),
+      verify: (cubit) {
+        expect(n1(cubit).events, isNot(contains('onTap')));
+        expect(n1(cubit).events, previousEvents);
+      },
+    );
+
+    blocTest<EditorCubit, EditorState>(
+      'null no único gatilho deixa o nó sem events',
+      build: build,
       act: (cubit) => cubit.updateEvents('n1', {'onLongPress': null}),
       verify: (cubit) => expect(n1(cubit).events, isEmpty),
     );

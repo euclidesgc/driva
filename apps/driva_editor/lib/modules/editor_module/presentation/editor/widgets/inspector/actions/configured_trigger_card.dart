@@ -124,7 +124,7 @@ class ConfiguredTriggerCard extends StatelessWidget {
                   vertical: AppSpacing.s4,
                 ),
                 child: Text(
-                  '+$extraSteps ações',
+                  extraSteps == 1 ? '+1 ação' : '+$extraSteps ações',
                   style: TextStyle(
                     fontSize: AppTypography.md,
                     color: colors.inkMuted,

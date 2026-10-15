@@ -143,6 +143,7 @@ void main() {
       await _openTriggerMenu(tester);
       await tester.tap(find.text('Ao tocar'));
       await tester.pumpAndSettle();
+      expect(find.byType(ActionPickerDialog), findsOneWidget);
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
 
@@ -328,6 +329,21 @@ void main() {
         ],
       });
       expect(find.byType(PropFieldEditor), findsNothing);
+    });
+
+    testWidgets('dois passos mostram +1 ação, no singular', (tester) async {
+      await _pump(
+        tester,
+        _containerWith({
+          'onTap': [
+            _snackStep('Oi'),
+            {'action': 'navigateBack', 'params': <String, dynamic>{}},
+          ],
+        }),
+      );
+
+      expect(find.text('+1 ação'), findsOneWidget);
+      expect(find.text('+1 ações'), findsNothing);
     });
 
     testWidgets('três passos mostram +2 ações e editar preserva os outros', (
