@@ -55,7 +55,6 @@ abstract final class ActionCategories {
   static const utilities = 'Utilitários';
   static const backend = 'Backend';
 
-  /// Ordem em que o seletor de ações agrupa as categorias.
   static const List<String> inPickerOrder = [
     navigation,
     alerts,

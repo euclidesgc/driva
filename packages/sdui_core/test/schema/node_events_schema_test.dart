@@ -96,6 +96,21 @@ void main() {
       );
     });
 
+    test('com action e type no passo, vale action', () {
+      expect(
+        parse({
+          'onPressed': [
+            {
+              'action': 'navigate',
+              'type': 'abrirPorta',
+              'params': {'slug': 'a'},
+            },
+          ],
+        }).isRight(),
+        isTrue,
+      );
+    });
+
     test('passo com type no lugar de action é guardado sem mudança', () {
       const step = {
         'type': 'navigate',
