@@ -49,6 +49,7 @@ Either<SpecValidationError, ContentSpec> parseContentSpec(
       path: 'safeArea',
       specVersion: specVersion,
       context: BindingContext.page,
+      tolerant: tolerant,
     );
     if (validated case Left(:final value)) return Left(value);
   }

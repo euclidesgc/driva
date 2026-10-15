@@ -40,21 +40,29 @@ void main() {
     WidgetDescriptor? descriptor,
     int specVersion = kLatestSpecVersion,
     BindingContext context = BindingContext.page,
+    bool tolerant = false,
   }) => validateNodeProps(
     props,
     descriptor ?? _text,
     path: _path,
     specVersion: specVersion,
     context: context,
+    tolerant: tolerant,
   ).getLeft().toNullable();
 
   void expectAccepted(
     Map<String, dynamic> props, {
     WidgetDescriptor? descriptor,
     int specVersion = kLatestSpecVersion,
+    bool tolerant = false,
   }) {
     expect(
-      errorOf(props, descriptor: descriptor, specVersion: specVersion),
+      errorOf(
+        props,
+        descriptor: descriptor,
+        specVersion: specVersion,
+        tolerant: tolerant,
+      ),
       isNull,
     );
   }
@@ -66,12 +74,14 @@ void main() {
     WidgetDescriptor? descriptor,
     int specVersion = kLatestSpecVersion,
     BindingContext context = BindingContext.page,
+    bool tolerant = false,
   }) {
     final error = errorOf(
       props,
       descriptor: descriptor,
       specVersion: specVersion,
       context: context,
+      tolerant: tolerant,
     );
     expect(error, isNotNull, reason: 'esperado Left para $props');
     expect(error!.message, startsWith('$_path.$key'));
@@ -140,6 +150,75 @@ void main() {
     });
   });
 
+  group('papel do tema', () {
+    test(r'$theme com papel de cor em prop de cor é aceito', () {
+      expectAccepted({
+        'color': {r'$theme': 'primaryText'},
+      });
+    });
+
+    test('papel desconhecido é recusado citando a prop e o token', () {
+      expectRejected(
+        {
+          'color': {r'$theme': 'brand'},
+        },
+        r'root.props.color.$theme: papel de cor "brand" desconhecido',
+        key: 'color',
+      );
+    });
+
+    test(r'$theme em prop declarada que não é de cor é recusado', () {
+      expectRejected({
+        'data': {r'$theme': 'primary'},
+      }, r'root.props.data: $theme só vale em prop de cor');
+      expectRejected(
+        {
+          'fontSize': {r'$theme': 'primary'},
+        },
+        r'$theme só vale em prop de cor',
+        key: 'fontSize',
+      );
+    });
+
+    test(r'$theme em prop fora do catálogo é recusado', () {
+      expectRejected(
+        {
+          'foo': {r'$theme': 'primary'},
+        },
+        r'root.props.foo: $theme só vale em prop de cor',
+        key: 'foo',
+      );
+    });
+
+    test('o modo tolerante aceita os três casos de recusa', () {
+      expectAccepted({
+        'color': {r'$theme': 'brand'},
+        'data': {r'$theme': 'primary'},
+        'foo': {r'$theme': 'primary'},
+      }, tolerant: true);
+    });
+
+    test('o modo tolerante continua conferindo a forma e a versão', () {
+      expectRejected(
+        {
+          'color': {r'$theme': ''},
+        },
+        r'root.props.color.$theme',
+        key: 'color',
+        tolerant: true,
+      );
+      expectRejected(
+        {
+          'color': {r'$theme': 'brand'},
+        },
+        'specVersion 2',
+        key: 'color',
+        specVersion: 1,
+        tolerant: true,
+      );
+    });
+  });
+
   group('fonte', () {
     test('fonte inexistente é recusada', () {
       expectRejected(
@@ -191,15 +270,25 @@ void main() {
     test(r'$theme em prop obrigatória não exige fallback', () {
       expectAccepted({
         'data': {r'$theme': 'headline'},
-      });
+      }, tolerant: true);
     });
   });
 
   group('prop fora do descriptor', () {
-    test(r'$theme em v2 é aceito', () {
+    test(r'$theme em v2 é recusado no modo estrito', () {
+      expectRejected(
+        {
+          'naoExiste': {r'$theme': 'primary'},
+        },
+        r'$theme só vale em prop de cor',
+        key: 'naoExiste',
+      );
+    });
+
+    test(r'$theme em v2 é aceito no modo tolerante', () {
       expectAccepted({
         'naoExiste': {r'$theme': 'primary'},
-      });
+      }, tolerant: true);
     });
 
     test(r'$bind sem fallback é aceito, mas a fonte é conferida', () {
