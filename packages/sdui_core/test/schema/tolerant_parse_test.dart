@@ -87,8 +87,15 @@ void main() {
       });
     });
 
-    test('o modo estrito recusa o mesmo JSON', () {
-      expect(parseContentSpec(themedSpec()).isLeft(), isTrue);
+    test('o modo estrito recusa o mesmo JSON pelo papel desconhecido', () {
+      final error = parseContentSpec(themedSpec()).getLeft().toNullable();
+
+      expect(error, isNotNull);
+      expect(
+        error!.message,
+        r'root.children[0].props.color.$theme: papel de cor "brand" '
+        'desconhecido',
+      );
     });
 
     test(r'o modo tolerante também vale para o $theme no safeArea', () {
