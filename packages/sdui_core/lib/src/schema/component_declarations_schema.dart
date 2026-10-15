@@ -53,7 +53,7 @@ Either<SpecValidationError, List<T>> _parseList<T>(
   Either<SpecValidationError, T> Function(Map<String, dynamic>, String) parse,
   String Function(T) nameOf,
 ) {
-  if (raw == null) return const Right([]);
+  if (raw == null) return Right(List<T>.empty());
   if (raw is! List) {
     return Left(SpecValidationError('$path: esperada uma lista'));
   }

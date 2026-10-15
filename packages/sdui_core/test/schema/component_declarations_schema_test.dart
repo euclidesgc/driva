@@ -1,4 +1,3 @@
-import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:test/test.dart';
 
@@ -94,7 +93,7 @@ void main() {
     });
 
     test('raw nulo vira lista vazia', () {
-      expect(parseComponentParams(null), const Right<Never, List<Never>>([]));
+      expect(parseComponentParams(null).getOrElse((e) => fail('$e')), isEmpty);
     });
 
     test('toJson do lido devolve o JSON de entrada', () {
