@@ -223,11 +223,7 @@ Either<ComparisonFailure, ContentSpec> copyComparableNodeProperties(
   }
 
   final copiedProperties = _deepCloneProperties(candidateNode.properties);
-  final updatedRoot = _withNodeProperties(
-    base.root!,
-    nodeId,
-    copiedProperties,
-  );
+  final updatedRoot = _withNodeProperties(base.root!, nodeId, copiedProperties);
   return Right(base.copyWith(root: () => updatedRoot));
 }
 
