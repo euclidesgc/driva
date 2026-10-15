@@ -18,6 +18,7 @@ class InspectorPanel extends StatelessWidget {
     required this.onUpdateSafeAreaProps,
     required this.onBindProp,
     required this.onUnbindProp,
+    required this.onUpdateEvents,
     required this.onRemove,
     required this.onWrap,
     this.onRename,
@@ -45,6 +46,14 @@ class InspectorPanel extends StatelessWidget {
   final void Function(String nodeId, String key, BoundPropValue binding)
   onBindProp;
   final void Function(String nodeId, String key) onUnbindProp;
+
+  /// `null` no patch remove o gatilho.
+  final void Function(
+    String nodeId,
+    Map<String, List<Map<String, dynamic>>?> patch, {
+    String? coalesceKey,
+  })
+  onUpdateEvents;
   final ValueChanged<String> onRemove;
   final ValueChanged<String> onWrap;
 
@@ -122,27 +131,36 @@ class InspectorPanel extends StatelessWidget {
         ),
         ?compareSection,
         Expanded(
-          child: descriptor == null || descriptor.fields.isEmpty
-              ? Center(
-                  child: Text(
-                    'Sem propriedades editáveis.',
-                    style: TextStyle(
-                      color: colors.inkMuted,
-                      fontSize: AppTypography.base,
+          child: InspectorNodeTabs(
+            properties: descriptor == null || descriptor.fields.isEmpty
+                ? Center(
+                    child: Text(
+                      'Sem propriedades editáveis.',
+                      style: TextStyle(
+                        color: colors.inkMuted,
+                        fontSize: AppTypography.base,
+                      ),
                     ),
+                  )
+                : InspectorPropList(
+                    ownerKey: node.id,
+                    properties: node.properties,
+                    descriptor: descriptor,
+                    onUpdateProps: (patch) => onUpdateProps(node.id, patch),
+                    onBindProp: (key, binding) =>
+                        onBindProp(node.id, key, binding),
+                    onUnbindProp: (key) => onUnbindProp(node.id, key),
+                    collapsedSections: collapsedSections,
+                    isReadOnly: isReadOnly,
                   ),
-                )
-              : InspectorPropList(
-                  ownerKey: node.id,
-                  properties: node.properties,
-                  descriptor: descriptor,
-                  onUpdateProps: (patch) => onUpdateProps(node.id, patch),
-                  onBindProp: (key, binding) =>
-                      onBindProp(node.id, key, binding),
-                  onUnbindProp: (key) => onUnbindProp(node.id, key),
-                  collapsedSections: collapsedSections,
-                  isReadOnly: isReadOnly,
-                ),
+            actions: ActionsTab(
+              node: node,
+              descriptor: descriptor,
+              isReadOnly: isReadOnly,
+              onUpdateEvents: (patch, {coalesceKey}) =>
+                  onUpdateEvents(node.id, patch, coalesceKey: coalesceKey),
+            ),
+          ),
         ),
       ],
     );

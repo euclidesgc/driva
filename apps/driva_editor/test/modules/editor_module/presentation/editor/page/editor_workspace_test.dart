@@ -605,4 +605,60 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'adicionar uma ação pelo inspector marca o nó na árvore e o desfazer '
+    'tira a marca',
+    (tester) async {
+      enlarge(tester);
+      final semantics = tester.ensureSemantics();
+      const box = SduiNode(id: 'nd_box', type: 'container');
+      cubit
+        ..emit(
+          const EditorReady(
+            document: ContentSpec(
+              specVersion: kSpecVersion,
+              id: 'ct_1',
+              name: 'Home',
+              slug: 'home',
+              root: SduiNode(id: 'nd_root', type: 'column', children: [box]),
+            ),
+          ),
+        )
+        ..selectNode('nd_box');
+      layoutController.setLeftPanelTab(LeftPanelTab.tree);
+      final actionMarker = find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.label == 'tem ação',
+      );
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      expect(actionMarker, findsNothing);
+
+      await tester.tap(find.widgetWithText(Tab, 'Ações'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Adicionar gatilho'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ao tocar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mostrar aviso'));
+      await tester.pumpAndSettle();
+
+      final state = cubit.state as EditorReady;
+      expect(findNode(state.document.root!, 'nd_box')!.events, {
+        'onTap': [
+          {
+            'action': 'showSnackBar',
+            'params': {'message': '', 'durationMs': 4000},
+          },
+        ],
+      });
+      expect(actionMarker, findsOneWidget);
+
+      cubit.undo();
+      await tester.pumpAndSettle();
+
+      expect(actionMarker, findsNothing);
+      semantics.dispose();
+    },
+  );
 }

@@ -23,6 +23,7 @@ Future<void> _pump(
         body: InspectorPanel(
           onBindProp: (_, _, _) {},
           onUnbindProp: (_, _) {},
+          onUpdateEvents: (_, _, {coalesceKey}) {},
           node: node,
           isRoot: false,
           safeArea: const {},

@@ -155,8 +155,11 @@ class _LeftPanelState extends State<LeftPanel>
   }
 }
 
+/// Entra na chave o que a linha da árvore desenha além da estrutura: sem a
+/// presença de ações, o marcador "tem ação" não acompanharia a aba Ações.
 String _structureKey(SduiNode node) {
-  final buffer = StringBuffer('${node.id}:${node.type}(');
+  final actionMark = node.events.isEmpty ? '' : '!';
+  final buffer = StringBuffer('${node.id}:${node.type}$actionMark(');
   final child = node.child;
   if (child != null) {
     buffer
