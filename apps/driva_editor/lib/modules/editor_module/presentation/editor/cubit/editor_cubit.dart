@@ -9,6 +9,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/device_pr
 import 'package:equatable/equatable.dart';
 import 'package:sdui_core/sdui_core.dart'
     show
+        BoundPropValue,
         ContentSpec,
         DiagnosticSeverity,
         DropAccepted,
@@ -546,6 +547,24 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  void bindProp(String nodeId, String key, BoundPropValue binding) {
+    final current = _editable;
+    if (current == null) return;
+    final root = current.document.root;
+    if (root == null) return;
+    _emitRoot(current, sdui.bindNodeProp(root, nodeId, key, binding));
+  }
+
+  void unbindProp(String nodeId, String key) {
+    final current = _editable;
+    if (current == null) return;
+    final root = current.document.root;
+    if (root == null) return;
+    final newRoot = sdui.unbindNodeProp(root, nodeId, key);
+    if (identical(newRoot, root)) return;
+    _emitRoot(current, newRoot);
+  }
+
   void renameNode(String id, String? name) {
     final current = _editable;
     if (current == null) return;
@@ -858,7 +877,7 @@ class EditorCubit extends Cubit<EditorState> {
         : current.publication;
     emit(
       current.copyWith(
-        document: document,
+        document: sdui.withRequiredSpecVersion(document),
         saveStatus: SaveStatus.dirty,
         selectedNodeId: identical(selectedNodeId, _keepSelection)
             ? null
