@@ -51,6 +51,60 @@ void main() {
       }
     });
 
+    test('cada tipo declara os gatilhos da tabela, na ordem', () {
+      const gestures = [
+        EventTrigger.onTap,
+        EventTrigger.onDoubleTap,
+        EventTrigger.onLongPress,
+      ];
+      const changes = [EventTrigger.onChanged];
+      const expected = <String, List<EventTrigger>>{
+        'button': [EventTrigger.onPressed, EventTrigger.onLongPress],
+        'container': gestures,
+        'card': gestures,
+        'text': gestures,
+        'image': gestures,
+        'icon': gestures,
+        'textField': [EventTrigger.onChanged, EventTrigger.onSubmit],
+        'switch': changes,
+        'checkbox': changes,
+        'radio': changes,
+        'slider': changes,
+        'dropdown': changes,
+        'column': [],
+        'row': [],
+        'stack': [],
+        'divider': [],
+        'sizedBox': [],
+        'padding': [],
+        'center': [],
+        'spacer': [],
+        'wrap': [],
+        'expanded': [],
+        'listView': [],
+        'gridView': [],
+      };
+
+      expect(expected.keys, unorderedEquals(widgetCatalog.keys));
+      for (final descriptor in widgetCatalog.values) {
+        expect(
+          descriptor.triggers,
+          expected[descriptor.type],
+          reason: descriptor.type,
+        );
+      }
+    });
+
+    test('declaresTrigger responde pela lista de gatilhos do tipo', () {
+      final button = descriptorFor('button')!;
+      expect(button.declaresTrigger(EventTrigger.onPressed), isTrue);
+      expect(button.declaresTrigger(EventTrigger.onTap), isFalse);
+      expect(
+        descriptorFor('column')!.declaresTrigger(EventTrigger.onTap),
+        isFalse,
+      );
+    });
+
     test('toda categoria usada está declarada na ordem da paleta', () {
       for (final descriptor in widgetCatalog.values) {
         expect(

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:sdui_core/src/catalog/event_trigger.dart';
 import 'package:sdui_core/src/catalog/prop_field.dart';
 
 enum SlotKind { none, single, multi }
@@ -12,6 +13,7 @@ class WidgetDescriptor extends Equatable {
     required this.category,
     required this.slot,
     this.fields = const [],
+    this.triggers = const [],
   });
 
   final String type;
@@ -26,6 +28,9 @@ class WidgetDescriptor extends Equatable {
 
   final List<PropField> fields;
 
+  /// Layout e estrutura não reagem a gesto: lista vazia.
+  final List<EventTrigger> triggers;
+
   PropField? fieldOf(String key) {
     for (final field in fields) {
       if (field.key == key) return field;
@@ -35,8 +40,18 @@ class WidgetDescriptor extends Equatable {
 
   Object? defaultValueOf(String key) => fieldOf(key)?.defaultValue;
 
+  bool declaresTrigger(EventTrigger trigger) => triggers.contains(trigger);
+
   @override
-  List<Object?> get props => [type, label, iconName, category, slot, fields];
+  List<Object?> get props => [
+    type,
+    label,
+    iconName,
+    category,
+    slot,
+    fields,
+    triggers,
+  ];
 }
 
 /// Espelha a divisão da paleta do FlutterFlow (Base / Layout / Form), com as

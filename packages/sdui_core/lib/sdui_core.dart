@@ -1,7 +1,10 @@
+export 'src/catalog/action_catalog.dart';
+export 'src/catalog/action_descriptor.dart';
 export 'src/catalog/binding_context.dart';
 export 'src/catalog/binding_source.dart';
 export 'src/catalog/binding_source_catalog.dart';
 export 'src/catalog/binding_source_ids.dart';
+export 'src/catalog/event_trigger.dart';
 export 'src/catalog/field_kind.dart';
 export 'src/catalog/prop_field.dart';
 export 'src/catalog/prop_option.dart';
@@ -25,6 +28,7 @@ export 'src/ops/drop_ops.dart';
 export 'src/ops/spec_version_ops.dart';
 export 'src/ops/tree_ops.dart';
 export 'src/schema/content_schema.dart';
+export 'src/schema/node_events_schema.dart';
 export 'src/schema/node_props_schema.dart';
 export 'src/schema/node_schema.dart';
 export 'src/schema/prop_value_schema.dart';

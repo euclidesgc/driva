@@ -81,7 +81,7 @@
         },
         "events": {
           "onPressed": [
-            { "action": "navigate", "params": { "to": "/promocoes" } }
+            { "action": "navigate", "params": { "slug": "promocoes" } }
           ]
         }
       },

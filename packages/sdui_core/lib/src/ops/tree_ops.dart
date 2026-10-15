@@ -1,3 +1,4 @@
+import 'package:sdui_core/src/catalog/event_trigger.dart';
 import 'package:sdui_core/src/catalog/widget_catalog.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
@@ -176,8 +177,10 @@ SduiNode? unwrapNode(SduiNode root, String id) {
   });
 }
 
-/// Troca o tipo mantendo `id`, `name`, `events` e filhos; das props sobram só
-/// as chaves que o novo tipo conhece. `null` quando o tipo é desconhecido,
+/// Troca o tipo mantendo `id`, `name` e filhos; das props sobram só as chaves
+/// que o novo tipo conhece, e dos `events` só os gatilhos que ele declara —
+/// sem esse filtro o rascunho sairia com um gatilho que o parse estrito
+/// recusa ao salvar. `null` quando o tipo é desconhecido,
 /// igual ao atual, ou quando os filhos não cabem no slot do novo tipo.
 SduiNode? replaceNode(SduiNode root, String id, String newType) {
   final target = findNode(root, id);
@@ -211,6 +214,10 @@ SduiNode? replaceNode(SduiNode root, String id, String newType) {
     properties: {
       for (final entry in replacement.properties.entries)
         if (known.contains(entry.key)) entry.key: entry.value,
+    },
+    events: {
+      for (final entry in replacement.events.entries)
+        if (_declares(descriptor, entry.key)) entry.key: entry.value,
     },
   );
   return _rebuild(root, (current) => current.id == id ? filtered : current);
@@ -252,6 +259,33 @@ SduiNode updateNodeProps(SduiNode root, String id, Map<String, dynamic> patch) {
     final merged = {...current.properties, ...patch}
       ..removeWhere((_, value) => value == null);
     return current.copyWith(properties: merged);
+  });
+}
+
+bool _declares(WidgetDescriptor descriptor, String trigger) {
+  final known = EventTrigger.byName(trigger);
+  return known != null && descriptor.declaresTrigger(known);
+}
+
+/// Cada chave do [patch] troca a lista inteira daquele gatilho; `null` ou
+/// lista vazia remove o gatilho. Não valida: quem valida é o parse.
+SduiNode updateNodeEvents(
+  SduiNode root,
+  String id,
+  Map<String, List<Map<String, dynamic>>?> patch,
+) {
+  return _rebuild(root, (current) {
+    if (current.id != id) return current;
+    final merged = {...current.events};
+    for (final entry in patch.entries) {
+      final steps = entry.value;
+      if (steps == null || steps.isEmpty) {
+        merged.remove(entry.key);
+      } else {
+        merged[entry.key] = steps;
+      }
+    }
+    return current.copyWith(events: merged);
   });
 }
 

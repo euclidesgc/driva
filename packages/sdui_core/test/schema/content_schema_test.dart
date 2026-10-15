@@ -30,7 +30,12 @@ void main() {
       expect(banner.child?.type, 'text');
 
       final cta = content.root!.children.firstWhere((n) => n.type == 'button');
-      expect(cta.events['onPressed'], isA<List<dynamic>>());
+      expect(cta.events['onPressed'], [
+        {
+          'action': 'navigate',
+          'params': {'slug': 'promocoes'},
+        },
+      ]);
 
       final field = content.root!.children.firstWhere(
         (n) => n.type == 'textField',
