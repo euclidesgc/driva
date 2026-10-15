@@ -1763,7 +1763,11 @@ void main() {
   });
 
   group('binding de prop (bindProp/unbindProp)', () {
-    const binding = BoundPropValue(source: 'api', path: 'user.name');
+    const binding = BoundPropValue(
+      source: BindingSourceIds.pageParam,
+      path: 'nomeCliente',
+      fallback: 'Visitante',
+    );
 
     const textContent = ContentSpec(
       specVersion: kSpecVersion,

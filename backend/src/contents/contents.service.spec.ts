@@ -699,7 +699,7 @@ describe('ContentsService.update — specVersion aceita', () => {
       id: 'title',
       type: 'text',
       props: {
-        text: {
+        data: {
           $bind: {
             source: 'pageParam',
             path: 'nomeCliente',

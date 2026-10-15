@@ -40,7 +40,7 @@ class SduiRenderer {
 
   final SduiImageUrlResolver? imageUrlResolver;
 
-  /// Como um `\$bind` aparece quando não há dado em tempo de execução: o
+  /// Como um `$bind` aparece quando não há dado em tempo de execução: o
   /// app cliente usa `fallback`; o editor liga `preview`.
   final BoundValueDisplay boundValueDisplay;
 

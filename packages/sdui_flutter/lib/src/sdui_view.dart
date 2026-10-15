@@ -55,7 +55,6 @@ class SduiView extends StatelessWidget {
   /// Repassado ao [SduiRenderer] — só o editor injeta (proxy de mídia).
   final SduiImageUrlResolver? imageUrlResolver;
 
-  /// Repassado ao [SduiRenderer].
   final BoundValueDisplay boundValueDisplay;
 
   @override
