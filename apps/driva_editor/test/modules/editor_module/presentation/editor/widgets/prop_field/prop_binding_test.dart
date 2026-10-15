@@ -1,4 +1,5 @@
 import 'package:driva_editor/core/theme/app_theme.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/binding/binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/prop_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field_editor.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,18 @@ const _texto = PropField(
   group: FieldGroups.content,
 );
 
-Future<List<Object?>> _pumpEditor(
+final class _Calls {
+  final changes = <Object?>[];
+  final binds = <BoundPropValue>[];
+  int unbinds = 0;
+}
+
+Future<_Calls> _pumpEditor(
   WidgetTester tester, {
   required Object? value,
   PropField field = _texto,
 }) async {
-  final changes = <Object?>[];
+  final calls = _Calls();
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light,
@@ -27,45 +34,52 @@ Future<List<Object?>> _pumpEditor(
           child: PropFieldEditor(
             field: field,
             value: value,
-            onChanged: changes.add,
+            onChanged: calls.changes.add,
+            onBind: calls.binds.add,
+            onUnbind: () => calls.unbinds++,
           ),
         ),
       ),
     ),
   );
-  return changes;
+  return calls;
 }
+
+const _ligado = {
+  r'$bind': {'source': 'pageParam', 'path': 'nome', 'fallback': 'Visitante'},
+};
 
 void main() {
   group('propriedade ligada a variável', () {
-    testWidgets('valor com binding troca o editor por tipo pela faixa', (
+    testWidgets('valor com binding troca o editor por tipo pelo chip', (
       tester,
     ) async {
-      await _pumpEditor(tester, value: '{{usuario.nome}}');
+      await _pumpEditor(tester, value: _ligado);
 
-      expect(find.byType(PropBindingEditor), findsOneWidget);
+      expect(find.byType(BindingChip), findsOneWidget);
       expect(find.byType(TypedPropEditor), findsNothing);
-      expect(find.text('usuario.nome'), findsOneWidget);
+      expect(find.textContaining('nome'), findsOneWidget);
     });
 
     testWidgets('valor fixo mantém o editor por tipo', (tester) async {
       await _pumpEditor(tester, value: 'Semana do cliente');
 
       expect(find.byType(TypedPropEditor), findsOneWidget);
-      expect(find.byType(PropBindingEditor), findsNothing);
+      expect(find.byType(BindingChip), findsNothing);
     });
 
-    testWidgets('"voltar a valor fixo" remove a chave', (tester) async {
-      final changes = await _pumpEditor(tester, value: '{{usuario.nome}}');
+    testWidgets('o × do chip remove a ligação', (tester) async {
+      final calls = await _pumpEditor(tester, value: _ligado);
 
-      await tester.tap(find.byTooltip('Voltar a valor fixo'));
+      await tester.tap(find.byTooltip(BindingChip.removeLabel));
       await tester.pump();
 
-      expect(changes, [null]);
+      expect(calls.unbinds, 1);
+      expect(calls.changes, isEmpty);
     });
 
     testWidgets('ligada, não oferece o "voltar ao padrão"', (tester) async {
-      await _pumpEditor(tester, value: '{{usuario.nome}}');
+      await _pumpEditor(tester, value: _ligado);
 
       expect(find.byType(PropResetButton), findsNothing);
     });
@@ -89,66 +103,36 @@ void main() {
       expect(find.byType(PropBindingButton), findsNothing);
     });
 
-    testWidgets('abre o diálogo com o tipo esperado da propriedade', (
-      tester,
-    ) async {
+    testWidgets('abre o BindingDialog com o tipo esperado', (tester) async {
       await _pumpEditor(tester, value: null);
 
       await tester.tap(find.byType(PropBindingButton));
       await tester.pumpAndSettle();
 
-      expect(find.byType(PropBindingDialog), findsOneWidget);
+      expect(find.byType(BindingDialog), findsOneWidget);
       expect(find.text('Tipo esperado: texto'), findsOneWidget);
-    });
-  });
-
-  group('diálogo de binding', () {
-    testWidgets('aplicar grava a expressão entre chaves', (tester) async {
-      final changes = await _pumpEditor(tester, value: null);
-
-      await tester.tap(find.byType(PropBindingButton));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).last, 'usuario.nome');
-      await tester.tap(find.text('Aplicar'));
-      await tester.pumpAndSettle();
-
-      expect(changes, ['{{usuario.nome}}']);
-    });
-
-    testWidgets('aplicar vazio remove a chave em vez de gravar "{{}}"', (
-      tester,
-    ) async {
-      final changes = await _pumpEditor(tester, value: null);
-
-      await tester.tap(find.byType(PropBindingButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Aplicar'));
-      await tester.pumpAndSettle();
-
-      expect(changes, [null]);
     });
 
     testWidgets('cancelar não emite mudança', (tester) async {
-      final changes = await _pumpEditor(tester, value: 'fixo');
+      final calls = await _pumpEditor(tester, value: 'fixo');
 
       await tester.tap(find.byType(PropBindingButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancelar'));
       await tester.pumpAndSettle();
 
-      expect(changes, isEmpty);
+      expect(calls.binds, isEmpty);
+      expect(calls.changes, isEmpty);
+      expect(calls.unbinds, 0);
     });
 
-    testWidgets('reabrir com binding traz a expressão preenchida', (
-      tester,
-    ) async {
-      await _pumpEditor(tester, value: '{{produto.preco}}');
+    testWidgets('tocar o chip reabre o diálogo preenchido', (tester) async {
+      await _pumpEditor(tester, value: _ligado);
 
-      await tester.tap(find.byType(PropBindingButton));
+      await tester.tap(find.byType(BindingChip));
       await tester.pumpAndSettle();
 
-      expect(find.text('produto.preco'), findsWidgets);
-      expect(find.text('Voltar a valor fixo'), findsOneWidget);
+      expect(find.byType(BindingDialog), findsOneWidget);
     });
   });
 }

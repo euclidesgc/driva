@@ -181,23 +181,20 @@ class VersionCompareModeCubit extends Cubit<VersionCompareModeState> {
     final latest = state;
     if (latest is! VersionCompareModeActive) return;
 
-    result.fold(
-      (failure) => emit(failureState(failure)),
-      (candidate) {
-        final latestEditorState = editorCubit.state;
-        if (latestEditorState is! EditorReady) return;
-        emit(
-          latest.copyWith(
-            candidate: candidate,
-            baseSpec: latestEditorState.document,
-            result: compareContentSpecs(
-              latestEditorState.document,
-              candidate.spec,
-            ),
+    result.fold((failure) => emit(failureState(failure)), (candidate) {
+      final latestEditorState = editorCubit.state;
+      if (latestEditorState is! EditorReady) return;
+      emit(
+        latest.copyWith(
+          candidate: candidate,
+          baseSpec: latestEditorState.document,
+          result: compareContentSpecs(
+            latestEditorState.document,
+            candidate.spec,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 
   Future<void> _selectEntry(ContentHistoryEntry entry) => switch (entry) {

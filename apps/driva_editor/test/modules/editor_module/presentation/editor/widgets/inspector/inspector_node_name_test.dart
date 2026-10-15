@@ -21,6 +21,8 @@ Future<void> _pump(
       theme: AppTheme.light,
       home: Scaffold(
         body: InspectorPanel(
+          onBindProp: (_, _, _) {},
+          onUnbindProp: (_, _) {},
           node: node,
           isRoot: false,
           safeArea: const {},

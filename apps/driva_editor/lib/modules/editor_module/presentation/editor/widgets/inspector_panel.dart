@@ -16,6 +16,8 @@ class InspectorPanel extends StatelessWidget {
     required this.contentSlug,
     required this.onUpdateProps,
     required this.onUpdateSafeAreaProps,
+    required this.onBindProp,
+    required this.onUnbindProp,
     required this.onRemove,
     required this.onWrap,
     this.onRename,
@@ -32,6 +34,9 @@ class InspectorPanel extends StatelessWidget {
   final String contentSlug;
   final void Function(String nodeId, Map<String, dynamic> patch) onUpdateProps;
   final ValueChanged<Map<String, dynamic>> onUpdateSafeAreaProps;
+  final void Function(String nodeId, String key, BoundPropValue binding)
+  onBindProp;
+  final void Function(String nodeId, String key) onUnbindProp;
   final ValueChanged<String> onRemove;
   final ValueChanged<String> onWrap;
 
@@ -74,6 +79,10 @@ class InspectorPanel extends StatelessWidget {
               properties: safeArea,
               descriptor: safeAreaDescriptor,
               onUpdateProps: onUpdateSafeAreaProps,
+              // A página (área segura) não tem binding: o inspector dela
+              // não oferece o controle de ligação a uma variável aqui.
+              onBindProp: (_, _) {},
+              onUnbindProp: (_) {},
               collapsedSections: collapsedSections,
               isReadOnly: isReadOnly,
             ),
@@ -116,6 +125,9 @@ class InspectorPanel extends StatelessWidget {
                   properties: node.properties,
                   descriptor: descriptor,
                   onUpdateProps: (patch) => onUpdateProps(node.id, patch),
+                  onBindProp: (key, binding) =>
+                      onBindProp(node.id, key, binding),
+                  onUnbindProp: (key) => onUnbindProp(node.id, key),
                   collapsedSections: collapsedSections,
                   isReadOnly: isReadOnly,
                 ),

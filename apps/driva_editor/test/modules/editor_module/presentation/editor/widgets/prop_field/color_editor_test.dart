@@ -23,6 +23,8 @@ Future<List<Object?>> _pumpEditor(
         body: SizedBox(
           width: 360,
           child: PropFieldEditor(
+            onBind: (_) {},
+            onUnbind: () {},
             field: _cor,
             value: value,
             onChanged: changes.add,

@@ -69,6 +69,8 @@ void main() {
 
   Widget inspector({required bool isReadOnly}) => hosted(
     InspectorPanel(
+      onBindProp: (_, _, _) {},
+      onUnbindProp: (_, _) {},
       node: const SduiNode(id: 'text', type: 'text'),
       isRoot: false,
       safeArea: const {},

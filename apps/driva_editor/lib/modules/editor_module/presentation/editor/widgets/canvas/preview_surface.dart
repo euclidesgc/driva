@@ -117,6 +117,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
               child: SduiView.content(
                 document,
                 showDiagnostics: true,
+                boundValueDisplay: BoundValueDisplay.preview,
                 imageUrlResolver: widget.imageUrlResolver,
                 onAction: (action) {
                   ScaffoldMessenger.of(context).showSnackBar(

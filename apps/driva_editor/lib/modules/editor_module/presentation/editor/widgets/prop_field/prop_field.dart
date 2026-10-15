@@ -14,8 +14,6 @@ export 'icon_editor.dart';
 export 'number_editor.dart';
 export 'number_text_field.dart';
 export 'prop_binding_button.dart';
-export 'prop_binding_dialog.dart';
-export 'prop_binding_editor.dart';
 export 'prop_field_shell.dart';
 export 'prop_reset_button.dart';
 export 'self_chromed_prop_editor.dart';
