@@ -102,6 +102,47 @@ void main() {
       expect(emissions.single.id, 'home-id');
     });
 
+    test(r'spec v2 com $bind numa prop carrega sem falha', () async {
+      const boundText = {
+        r'$bind': {
+          'source': 'pageParam',
+          'path': 'nomeCliente',
+          'fallback': 'Visitante',
+          'literal': 'Olá',
+        },
+      };
+      final client = MockClient(
+        (request) async => http.Response(
+          jsonEncode(
+            _envelope({
+              ..._validSpecJson,
+              'specVersion': 2,
+              'root': {
+                'id': 'title',
+                'type': 'text',
+                'props': {'text': boundText},
+              },
+            }),
+          ),
+          200,
+        ),
+      );
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
+
+      final emissions = await repository.load('home').toList();
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single.specVersion, 2);
+      expect(emissions.single.root?.properties['text'], boundText);
+    });
+
     test(
       'falha total sem fallback emite DrivaLoadFailure(serverError) e não '
       'lança exceção não capturada',

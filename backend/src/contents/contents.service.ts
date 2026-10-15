@@ -19,7 +19,8 @@ import { PublishContentDto } from './dto/publish-content.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 import { normalizeName } from './name-normalize';
 
-const SPEC_VERSION = 1;
+const NEW_CONTENT_SPEC_VERSION = 1;
+const SUPPORTED_SPEC_VERSIONS: readonly unknown[] = [1, 2];
 const GERAL_SLUG = 'geral';
 
 type ContentRow = {
@@ -145,7 +146,7 @@ export class ContentsService {
           select: { id: true },
         });
         const spec = {
-          specVersion: SPEC_VERSION,
+          specVersion: NEW_CONTENT_SPEC_VERSION,
           kind: 'content',
           id: created.id,
           name: dto.name,
@@ -188,9 +189,12 @@ export class ContentsService {
   }
 
   async update(projectId: string, id: string, dto: UpdateContentDto) {
-    if (dto.spec !== undefined && dto.spec['specVersion'] !== SPEC_VERSION) {
+    if (
+      dto.spec !== undefined &&
+      !SUPPORTED_SPEC_VERSIONS.includes(dto.spec['specVersion'])
+    ) {
       throw new BadRequestException(
-        `spec.specVersion precisa ser ${SPEC_VERSION}`,
+        `spec.specVersion precisa ser ${SUPPORTED_SPEC_VERSIONS.join(' ou ')}`,
       );
     }
     const categoryId =
