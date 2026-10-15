@@ -83,6 +83,53 @@ void main() {
 
   EditorCubit buildLoaded() => buildWith(content);
 
+  group('seleção múltipla e edição em lote', () {
+    const twoTexts = ContentSpec(
+      specVersion: kSpecVersion,
+      id: 'ct_2',
+      name: 'Home',
+      slug: 'home',
+      root: SduiNode(
+        id: 'nd_root',
+        type: 'column',
+        children: [
+          SduiNode(id: 't1', type: 'text', properties: {'color': '#000000'}),
+          SduiNode(id: 't2', type: 'text', properties: {'color': '#111111'}),
+        ],
+      ),
+    );
+
+    test('toggle soma, remove e selectNode limpa o conjunto', () {
+      final cubit = buildWith(twoTexts)
+        ..selectNode('t1')
+        ..toggleNodeSelection('t2');
+      var s = cubit.state as EditorReady;
+      expect(s.effectiveSelection, ['t1', 't2']);
+      expect(s.selectedNodeId, 't2');
+      cubit.toggleNodeSelection('t2');
+      s = cubit.state as EditorReady;
+      expect(s.effectiveSelection, ['t1']);
+      expect(s.selectedNodeId, 't1');
+      cubit
+        ..toggleNodeSelection('t2')
+        ..selectNode('t1');
+      s = cubit.state as EditorReady;
+      expect(s.selectedNodeIds, isEmpty);
+    });
+
+    test('updatePropsBatch aplica nos dois e um undo restaura ambos', () {
+      final cubit = buildWith(twoTexts)
+        ..updatePropsBatch(['t1', 't2'], {'color': '#FF0000'});
+      SduiNode node(String id) =>
+          findNode((cubit.state as EditorReady).document.root!, id)!;
+      expect(node('t1').properties['color'], '#FF0000');
+      expect(node('t2').properties['color'], '#FF0000');
+      cubit.undo();
+      expect(node('t1').properties['color'], '#000000');
+      expect(node('t2').properties['color'], '#111111');
+    });
+  });
+
   group('rascunho congelado (modo de comparação)', () {
     EditorCubit buildFrozen() {
       final cubit = build()

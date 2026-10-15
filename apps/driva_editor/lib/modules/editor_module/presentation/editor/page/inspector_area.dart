@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/page/insp
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/inspector_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 class InspectorArea extends StatelessWidget {
   const InspectorArea({super.key});
@@ -19,6 +20,12 @@ class InspectorArea extends StatelessWidget {
       selector: (state) {
         if (state is! EditorReady) return null;
         final selectedNode = state.selectedNode;
+        final root = state.document.root;
+        final multiNodes = root == null
+            ? const <SduiNode>[]
+            : [
+                for (final id in state.effectiveSelection) ?findNode(root, id),
+              ];
         return InspectorVm(
           node: selectedNode,
           isRoot:
@@ -28,6 +35,7 @@ class InspectorArea extends StatelessWidget {
           contentName: state.document.name,
           contentSlug: state.document.slug,
           isReadOnly: state.isReadOnly,
+          multiNodes: multiNodes.length > 1 ? multiNodes : const [],
         );
       },
       builder: (context, vm) => vm == null
@@ -35,6 +43,8 @@ class InspectorArea extends StatelessWidget {
           : InspectorPanel(
               compareSection: InspectorCompareSection(nodeId: vm.node?.id),
               node: vm.node,
+              multiNodes: vm.multiNodes,
+              onUpdatePropsBatch: cubit.updatePropsBatch,
               isRoot: vm.isRoot,
               safeArea: vm.safeArea,
               contentName: vm.contentName,

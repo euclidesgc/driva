@@ -1,5 +1,6 @@
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/version_compare_mode_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/select_with_modifiers.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/versions/version_compare_enums.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree_panel.dart';
@@ -32,6 +33,7 @@ class CompareAwareWidgetTree extends StatelessWidget {
       root: state.document.root,
       isReadOnly: state.isReadOnly,
       selectedNodeId: state.selectedNodeId,
+      selectedNodeIds: state.selectedNodeIds.toSet(),
       nodeDiagnostics: diagnosticsByNode(state.diagnostics),
       compareDiffs: comparison == null
           ? const {}
@@ -50,7 +52,7 @@ class CompareAwareWidgetTree extends StatelessWidget {
         if (comparison?.changedContentMetadataFields.isNotEmpty ?? false)
           VersionCompareMarkerKind.metadataChanged,
       ],
-      onSelect: cubit.selectNode,
+      onSelect: (id) => selectWithModifiers(cubit, id),
       onRemove: cubit.removeNode,
       onDropNew: (type, targetId) => cubit.addNode(type, targetId: targetId),
       onDropMove: cubit.moveNode,

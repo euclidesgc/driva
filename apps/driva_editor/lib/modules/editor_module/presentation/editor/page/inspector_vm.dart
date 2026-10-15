@@ -10,6 +10,7 @@ class InspectorVm {
     required this.contentName,
     required this.contentSlug,
     required this.isReadOnly,
+    this.multiNodes = const [],
   });
 
   /// `null` = nenhum nó selecionado; o Inspector mostra a página.
@@ -23,6 +24,9 @@ class InspectorVm {
   /// Rascunho congelado pelo modo de comparação.
   final bool isReadOnly;
 
+  /// Dois ou mais nós selecionados (edição em lote); vazio = seleção única.
+  final List<SduiNode> multiNodes;
+
   @override
   bool operator ==(Object other) =>
       other is InspectorVm &&
@@ -31,7 +35,8 @@ class InspectorVm {
       mapEquals(other.safeArea, safeArea) &&
       other.contentName == contentName &&
       other.contentSlug == contentSlug &&
-      other.isReadOnly == isReadOnly;
+      other.isReadOnly == isReadOnly &&
+      listEquals(other.multiNodes, multiNodes);
 
   @override
   int get hashCode => Object.hash(
@@ -43,5 +48,6 @@ class InspectorVm {
     contentName,
     contentSlug,
     isReadOnly,
+    Object.hashAll(multiNodes),
   );
 }

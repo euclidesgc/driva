@@ -16,6 +16,7 @@ class WidgetTreePanel extends StatelessWidget {
     required this.onDropNewAt,
     required this.onDropMoveAt,
     required this.nodeDiagnostics,
+    this.selectedNodeIds = const {},
     this.compareDiffs = const {},
     this.compareOnlyInBase = const {},
     this.compareGhostNodes = const [],
@@ -49,6 +50,9 @@ class WidgetTreePanel extends StatelessWidget {
 
   /// `null` = a página (área segura) está no Inspector.
   final String? selectedNodeId;
+
+  /// Multi-seleção: todos ficam destacados; o primário é [selectedNodeId].
+  final Set<String> selectedNodeIds;
   final ValueChanged<String?> onSelect;
   final ValueChanged<String> onRemove;
 
@@ -128,7 +132,8 @@ class WidgetTreePanel extends StatelessWidget {
         node: node,
         depth: depth,
         isRoot: node.id == root.id,
-        isSelected: node.id == selectedNodeId,
+        isSelected:
+            node.id == selectedNodeId || selectedNodeIds.contains(node.id),
         diagnostics: nodeDiagnostics[node.id] ?? const [],
         diffMarkerKind: _markerKindFor(node.id),
         onSelect: () => onSelect(node.id),

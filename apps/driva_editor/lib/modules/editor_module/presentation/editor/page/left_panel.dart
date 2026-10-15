@@ -114,6 +114,7 @@ class _LeftPanelState extends State<LeftPanel>
                     final root = state.document.root;
                     final structure = root == null ? '' : _structureKey(root);
                     return '$structure#${state.selectedNodeId ?? ''}'
+                        '#${state.selectedNodeIds.join(',')}'
                         '#${state.isReadOnly}';
                   },
                   builder: (context, _) {

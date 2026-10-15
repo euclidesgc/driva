@@ -39,6 +39,7 @@ final class EditorReady extends EditorState {
   const EditorReady({
     required this.document,
     this.selectedNodeId,
+    this.selectedNodeIds = const [],
     this.device = DevicePreset.smartphone,
     this.zoom = 0.9,
     this.fitToWindow = true,
@@ -55,6 +56,11 @@ final class EditorReady extends EditorState {
   final ContentSpec document;
 
   final String? selectedNodeId;
+
+  /// Multi-seleção aditiva (Shift/Ctrl+clique). Vazia = só o primário
+  /// [selectedNodeId]. Só a edição de propriedades em lote usa o conjunto;
+  /// deletar, mover, copiar e envolver atuam no primário.
+  final List<String> selectedNodeIds;
   final DevicePreset device;
   final double zoom;
 
@@ -114,6 +120,20 @@ final class EditorReady extends EditorState {
     return sdui.findNode(root, selectedNodeId!);
   }
 
+  /// Ids efetivamente selecionados: o conjunto (sem ids que não existem mais
+  /// no documento) ou, vazio, só o primário.
+  List<String> get effectiveSelection {
+    if (selectedNodeIds.isEmpty) {
+      return selectedNodeId == null ? const [] : [selectedNodeId!];
+    }
+    final root = document.root;
+    if (root == null) return const [];
+    return [
+      for (final id in selectedNodeIds)
+        if (sdui.findNode(root, id) != null) id,
+    ];
+  }
+
   /// Problemas estruturais do documento, recalculados a partir dele — mover um
   /// widget para um lugar que o renderer ignora é permitido, e aparece aqui.
   List<SpecDiagnostic> get diagnostics => sdui.diagnoseTree(document.root);
@@ -123,6 +143,7 @@ final class EditorReady extends EditorState {
   EditorReady copyWith({
     ContentSpec? document,
     String? Function()? selectedNodeId,
+    List<String>? selectedNodeIds,
     DevicePreset? device,
     double? zoom,
     bool? fitToWindow,
@@ -139,6 +160,7 @@ final class EditorReady extends EditorState {
       selectedNodeId: selectedNodeId != null
           ? selectedNodeId()
           : this.selectedNodeId,
+      selectedNodeIds: selectedNodeIds ?? this.selectedNodeIds,
       device: device ?? this.device,
       zoom: zoom ?? this.zoom,
       fitToWindow: fitToWindow ?? this.fitToWindow,
@@ -156,6 +178,7 @@ final class EditorReady extends EditorState {
   List<Object?> get props => [
     document,
     selectedNodeId,
+    selectedNodeIds,
     device,
     zoom,
     fitToWindow,

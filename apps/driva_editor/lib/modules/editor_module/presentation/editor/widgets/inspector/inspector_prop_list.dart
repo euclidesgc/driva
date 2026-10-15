@@ -20,6 +20,7 @@ class InspectorPropList extends StatefulWidget {
     required this.onBindProp,
     required this.onUnbindProp,
     this.collapsedSections,
+    this.mixedKeys = const {},
     this.isReadOnly = false,
     super.key,
   });
@@ -38,6 +39,9 @@ class InspectorPropList extends StatefulWidget {
   /// com o valor que têm, mas inertes — buscar, rolar e colapsar seção
   /// continuam, porque ler as propriedades é metade do que se faz comparando.
   final bool isReadOnly;
+
+  /// Edição em lote: chaves cujo valor diverge entre os nós; mostram "Misto".
+  final Set<String> mixedKeys;
 
   /// Chave é o rótulo do grupo (Q2/P3), lembrado globalmente entre nós — não
   /// por [descriptor]. `null` fora do `EditorLayoutScope` (ex. este widget
@@ -165,7 +169,20 @@ class _InspectorPropListState extends State<InspectorPropList> {
                         onExpandedChanged: (expanded) =>
                             _toggleSection(group, expanded: expanded),
                         children: [
-                          for (final field in _fieldsOf(group))
+                          for (final field in _fieldsOf(group)) ...[
+                            if (widget.mixedKeys.contains(field.key))
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: AppSpacing.s12,
+                                ),
+                                child: Text(
+                                  'Misto',
+                                  style: TextStyle(
+                                    color: colors.inkMuted,
+                                    fontSize: AppTypography.base,
+                                  ),
+                                ),
+                              ),
                             EditingLock(
                               key: ValueKey('${widget.ownerKey}_${field.key}'),
                               locked: widget.isReadOnly,
@@ -179,6 +196,7 @@ class _InspectorPropListState extends State<InspectorPropList> {
                                 onUnbind: () => widget.onUnbindProp(field.key),
                               ),
                             ),
+                          ],
                         ],
                       ),
                   ],

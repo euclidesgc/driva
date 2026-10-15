@@ -21,6 +21,8 @@ class InspectorPanel extends StatelessWidget {
     required this.onRemove,
     required this.onWrap,
     this.onRename,
+    this.multiNodes = const [],
+    this.onUpdatePropsBatch,
     this.collapsedSections,
     this.compareSection,
     this.isReadOnly = false,
@@ -28,6 +30,12 @@ class InspectorPanel extends StatelessWidget {
   });
 
   final SduiNode? node;
+
+  /// Dois ou mais nós: o inspector mostra só os campos em comum e aplica a
+  /// edição a todos, numa única entrada de histórico.
+  final List<SduiNode> multiNodes;
+  final void Function(List<String> ids, Map<String, dynamic> patch)?
+  onUpdatePropsBatch;
   final bool isRoot;
   final Map<String, dynamic> safeArea;
   final String contentName;
@@ -91,6 +99,10 @@ class InspectorPanel extends StatelessWidget {
       );
     }
 
+    if (multiNodes.length > 1 && onUpdatePropsBatch != null) {
+      return _buildBatch(context, colors);
+    }
+
     final descriptor = descriptorFor(node.type);
 
     return Column(
@@ -128,6 +140,65 @@ class InspectorPanel extends StatelessWidget {
                   onBindProp: (key, binding) =>
                       onBindProp(node.id, key, binding),
                   onUnbindProp: (key) => onUnbindProp(node.id, key),
+                  collapsedSections: collapsedSections,
+                  isReadOnly: isReadOnly,
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBatch(BuildContext context, EditorColors colors) {
+    final fields = commonFields(multiNodes);
+    final ids = [for (final n in multiNodes) n.id];
+    final first = multiNodes.first;
+    final mixed = {
+      for (final f in fields)
+        if (mixedValue(multiNodes, f.key)) f.key,
+    };
+    final descriptor = WidgetDescriptor(
+      type: 'multi',
+      label: '${multiNodes.length} nós selecionados',
+      iconName: '',
+      category: '',
+      slot: SlotKind.none,
+      fields: fields,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InspectorHeader(
+          title: '${multiNodes.length} nós selecionados',
+          subtitle: 'edição em lote',
+          iconType: null,
+          onRemove: null,
+          onWrap: null,
+        ),
+        Expanded(
+          child: fields.isEmpty
+              ? Center(
+                  child: Text(
+                    'Sem campos em comum.',
+                    style: TextStyle(
+                      color: colors.inkMuted,
+                      fontSize: AppTypography.base,
+                    ),
+                  ),
+                )
+              : InspectorPropList(
+                  ownerKey: 'multi-${ids.join('|')}',
+                  properties: {
+                    for (final f in fields)
+                      if (!mixed.contains(f.key) &&
+                          first.properties[f.key] != null)
+                        f.key: first.properties[f.key],
+                  },
+                  descriptor: descriptor,
+                  mixedKeys: mixed,
+                  onUpdateProps: (patch) => onUpdatePropsBatch!(ids, patch),
+                  // Ligação a variável fica fora do lote.
+                  onBindProp: (_, _) {},
+                  onUnbindProp: (_) {},
                   collapsedSections: collapsedSections,
                   isReadOnly: isReadOnly,
                 ),
