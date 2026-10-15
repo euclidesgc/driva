@@ -1,3 +1,5 @@
+export 'src/catalog/action_catalog.dart';
+export 'src/catalog/action_descriptor.dart';
 export 'src/catalog/binding_context.dart';
 export 'src/catalog/binding_source.dart';
 export 'src/catalog/binding_source_catalog.dart';
