@@ -64,6 +64,8 @@ Future<void> _pumpList(
           width: 320,
           height: 700,
           child: InspectorPropList(
+            onBindProp: (_, _) {},
+            onUnbindProp: (_) {},
             ownerKey: 'n1',
             properties: properties,
             descriptor: descriptor,

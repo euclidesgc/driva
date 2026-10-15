@@ -115,9 +115,7 @@ class ProjectDetailPage extends StatelessWidget {
               // linha?" — geometria medida no conteúdo — é dona só do
               // empilhamento do cabeçalho, e continua empilhado até 795
               // mesmo com a barra lateral já visível (601–794).
-              final showDrawer = AppBreakpoints.isCompact(
-                constraints.maxWidth,
-              );
+              final showDrawer = AppBreakpoints.isCompact(constraints.maxWidth);
               final headerCompact =
                   constraints.maxWidth <
                   AppSizes.contentPanelWideHeaderFitWidth;
@@ -127,12 +125,8 @@ class ProjectDetailPage extends StatelessWidget {
                     _openCategoryForm(context, editing: category),
                 onDeleteCategory: (category) =>
                     _confirmDeleteCategory(context, category),
-                onMoveContent: (content, categoryId) => _moveContent(
-                  context,
-                  content,
-                  categoryId,
-                  offerUndo: true,
-                ),
+                onMoveContent: (content, categoryId) =>
+                    _moveContent(context, content, categoryId, offerUndo: true),
               );
               final contentSection =
                   BlocListener<CategoryTreeCubit, CategoryTreeState>(

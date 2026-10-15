@@ -20,6 +20,8 @@ Future<void> _pump(
           width: 340,
           height: 700,
           child: InspectorPanel(
+            onBindProp: (_, _, _) {},
+            onUnbindProp: (_, _) {},
             node: node,
             isRoot: isRoot,
             safeArea: safeArea,

@@ -128,10 +128,7 @@ class _LeftPanelState extends State<LeftPanel>
                     // modo.
                     final compareCubit = VersionCompareModeScope.of(context);
                     if (compareCubit == null) {
-                      return CompareAwareWidgetTree(
-                        state: state,
-                        cubit: cubit,
-                      );
+                      return CompareAwareWidgetTree(state: state, cubit: cubit);
                     }
                     return BlocBuilder<
                       VersionCompareModeCubit,

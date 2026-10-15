@@ -25,6 +25,8 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: InspectorPropList(
+            onBindProp: (_, _) {},
+            onUnbindProp: (_) {},
             ownerKey: 'n1',
             properties: const {
               'mainAxisAlignment': 'spaceBetween',
@@ -58,6 +60,8 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: InspectorPropList(
+            onBindProp: (_, _) {},
+            onUnbindProp: (_) {},
             ownerKey: 'n1',
             properties: const {
               'data': 'Semana do cliente',

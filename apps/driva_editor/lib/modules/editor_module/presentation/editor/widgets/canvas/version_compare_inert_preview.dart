@@ -27,7 +27,11 @@ class VersionCompareInertPreview extends StatelessWidget {
       canRequestFocus: false,
       child: AbsorbPointer(
         child: SingleChildScrollView(
-          child: SduiView.content(spec, imageUrlResolver: imageUrlResolver),
+          child: SduiView.content(
+            spec,
+            imageUrlResolver: imageUrlResolver,
+            boundValueDisplay: BoundValueDisplay.preview,
+          ),
         ),
       ),
     );

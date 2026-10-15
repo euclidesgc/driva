@@ -62,9 +62,7 @@ class _EditorStatusBarState extends State<EditorStatusBar> {
                 color: colors.panelAlt,
                 child: ListView.builder(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.s4,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.s4),
                   itemCount: diagnostics.length,
                   itemBuilder: (context, index) => DiagnosticRow(
                     diagnostic: diagnostics[index],

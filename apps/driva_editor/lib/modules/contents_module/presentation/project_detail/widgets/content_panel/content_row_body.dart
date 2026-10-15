@@ -64,9 +64,7 @@ class ContentRowBody extends StatelessWidget {
                 // mesmo de o título entrar em jogo. Peso igual ao título: um
                 // peso maior para o título elidia um slug curto que cabia
                 // com folga, mesmo havendo espaço de sobra na linha.
-                Flexible(
-                  child: SlugBadge(slug: content.slug),
-                ),
+                Flexible(child: SlugBadge(slug: content.slug)),
                 const SizedBox(width: AppSpacing.s14),
                 Expanded(
                   child: Text(

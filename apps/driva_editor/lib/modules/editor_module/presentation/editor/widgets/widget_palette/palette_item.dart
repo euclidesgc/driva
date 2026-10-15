@@ -24,10 +24,7 @@ class PaletteItem extends StatelessWidget {
     if (!isDraggable) {
       return Opacity(
         opacity: EditingLock.lockedOpacity,
-        child: Tooltip(
-          message: 'Feche a comparação para editar',
-          child: tile,
-        ),
+        child: Tooltip(message: 'Feche a comparação para editar', child: tile),
       );
     }
     return Draggable<DragPayload>(

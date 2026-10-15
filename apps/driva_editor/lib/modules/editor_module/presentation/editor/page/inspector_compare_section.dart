@@ -25,29 +25,26 @@ class InspectorCompareSection extends StatelessWidget {
         if (state is! VersionCompareModeActive || cubit == null) {
           return const SizedBox.shrink();
         }
-        return state.result.fold(
-          (_) => const SizedBox.shrink(),
-          (comparison) {
-            final nodes = _correspondingNodes(state, nodeId);
-            return InspectorCompareHeader(
-              diff: _diffFor(comparison, nodeId),
-              isOnlyInDraft:
-                  nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
-              isOnlyInVersion:
-                  nodeId != null &&
-                  comparison.nodesOnlyInCandidate.contains(nodeId),
-              safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
-              changedMetadataFields: nodeId == null
-                  ? comparison.changedContentMetadataFields
-                  : const {},
-              changedPropertyKeys: nodes == null
-                  ? const {}
-                  : changedPropertyKeys(nodes.base, nodes.candidate),
-              descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
-              candidateLabel: historyEntryPhraseReference(state.candidate),
-            );
-          },
-        );
+        return state.result.fold((_) => const SizedBox.shrink(), (comparison) {
+          final nodes = _correspondingNodes(state, nodeId);
+          return InspectorCompareHeader(
+            diff: _diffFor(comparison, nodeId),
+            isOnlyInDraft:
+                nodeId != null && comparison.nodesOnlyInBase.contains(nodeId),
+            isOnlyInVersion:
+                nodeId != null &&
+                comparison.nodesOnlyInCandidate.contains(nodeId),
+            safeAreaChanged: nodeId == null && comparison.safeAreaChanged,
+            changedMetadataFields: nodeId == null
+                ? comparison.changedContentMetadataFields
+                : const {},
+            changedPropertyKeys: nodes == null
+                ? const {}
+                : changedPropertyKeys(nodes.base, nodes.candidate),
+            descriptor: nodes == null ? null : descriptorFor(nodes.base.type),
+            candidateLabel: historyEntryPhraseReference(state.candidate),
+          );
+        });
       },
     );
   }
@@ -63,10 +60,7 @@ NodeDiff? _diffFor(SpecComparisonResult comparison, String? nodeId) {
 
 typedef _NodePair = ({SduiNode base, SduiNode candidate});
 
-_NodePair? _correspondingNodes(
-  VersionCompareModeActive state,
-  String? nodeId,
-) {
+_NodePair? _correspondingNodes(VersionCompareModeActive state, String? nodeId) {
   if (nodeId == null) return null;
   final base = nodeById(state.baseSpec.root, nodeId);
   final candidate = nodeById(state.candidate.spec.root, nodeId);
