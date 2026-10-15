@@ -93,7 +93,7 @@ Either<SpecValidationError, Object?> _parseStep(
       ? 'ação "$type" fora do catálogo'
       : action.isAvailableIn(context)
       ? null
-      : 'ação "$type" não está disponível em ${_contextLabel(context)}';
+      : 'ação "$type" não está disponível em ${context.label}';
   if (actionError != null) {
     if (tolerant) return const Right(null);
     return Left(SpecValidationError('$path.action: $actionError'));
@@ -123,9 +123,3 @@ Either<SpecValidationError, Object?> _parseStep(
     context: context,
   ).map((_) => raw);
 }
-
-String _contextLabel(BindingContext context) => switch (context) {
-  BindingContext.page => 'página',
-  BindingContext.component => 'componente',
-  BindingContext.action => 'ação',
-};

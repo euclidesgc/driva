@@ -94,7 +94,7 @@ Either<SpecValidationError, Unit> _validateTypedProp(
       return Left(
         SpecValidationError(
           '$sourcePath: fonte "${value.source}" não está disponível em '
-          '${_contextLabel(context)}',
+          '${context.label}',
         ),
       );
     }
@@ -109,9 +109,3 @@ Either<SpecValidationError, Unit> _validateTypedProp(
     return const Right(unit);
   });
 }
-
-String _contextLabel(BindingContext context) => switch (context) {
-  BindingContext.page => 'página',
-  BindingContext.component => 'componente',
-  BindingContext.action => 'ação',
-};
