@@ -209,4 +209,9 @@ abstract final class AppSizes {
 
   /// Espessura da cápsula do indicador de home do mock.
   static const double deviceHomeIndicatorHeight = 4;
+
+  /// Altura de uma linha densa do inspector: a do resumo recolhido de um
+  /// editor composto, que precisa caber numa linha ao lado dos campos comuns
+  /// sem empurrar a lista.
+  static const double propSummaryRowHeight = 32;
 }
