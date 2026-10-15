@@ -148,7 +148,11 @@ class InspectorPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildBatch(BuildContext context, EditorColors colors) {
+  Widget _buildBatch(
+    // gate1-ok: ramo do build(), como os demais
+    BuildContext context,
+    EditorColors colors,
+  ) {
     final fields = commonFields(multiNodes);
     final ids = [for (final n in multiNodes) n.id];
     final first = multiNodes.first;
