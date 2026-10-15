@@ -28,10 +28,8 @@ class IconEditor extends StatelessWidget {
       onPressed: () async {
         final r = await showDialog<IconPickerResult>(
           context: context,
-          builder: (_) => IconPickerDialog(
-            selected: current,
-            allowNone: !field.isRequired,
-          ),
+          builder: (_) =>
+              IconPickerDialog(selected: current, allowNone: !field.isRequired),
         );
         if (r != null) onChanged(r.value);
       },

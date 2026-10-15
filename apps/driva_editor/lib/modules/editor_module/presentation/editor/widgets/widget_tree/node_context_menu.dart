@@ -82,10 +82,7 @@ Future<void> showNodeContextMenu(
         if (shortcut != null)
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.s16),
-            child: Text(
-              shortcut,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            child: Text(shortcut, style: Theme.of(context).textTheme.bodySmall),
           ),
       ],
     );
@@ -129,11 +126,7 @@ Future<void> showNodeContextMenu(
       ),
       item(_NodeAction.wrap, 'Envolver…', shortcut: 'Ctrl+B'),
       item(_NodeAction.replace, 'Substituir…'),
-      item(
-        _NodeAction.unwrap,
-        'Remover widget',
-        disabledReason: unwrapReason,
-      ),
+      item(_NodeAction.unwrap, 'Remover widget', disabledReason: unwrapReason),
       const PopupMenuDivider(),
       item(_NodeAction.copyStyle, 'Copiar estilo', shortcut: 'Ctrl+Shift+C'),
       item(_NodeAction.pasteStyle, 'Colar estilo'),

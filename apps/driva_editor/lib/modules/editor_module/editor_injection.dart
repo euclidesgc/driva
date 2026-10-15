@@ -46,13 +46,10 @@ void registerEditorModule(GetIt getIt) {
       () => EditorLayoutRepositoryImpl(getIt<SharedPreferences>()),
     )
     ..registerFactory(
-      () => GetEditorLayoutUseCase(
-        repository: getIt<EditorLayoutRepository>(),
-      ),
+      () => GetEditorLayoutUseCase(repository: getIt<EditorLayoutRepository>()),
     )
     ..registerFactory(
-      () => SaveEditorLayoutUseCase(
-        repository: getIt<EditorLayoutRepository>(),
-      ),
+      () =>
+          SaveEditorLayoutUseCase(repository: getIt<EditorLayoutRepository>()),
     );
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:driva_editor/modules/editor_module/editor_routes.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
@@ -126,10 +127,7 @@ class CanvasArea extends StatelessWidget {
     if (state is! EditorReady) return;
     final location = GoRouter.of(context).namedLocation(
       EditorRoutes.previewName,
-      pathParameters: {
-        'projectId': cubit.projectId,
-        'id': state.document.id,
-      },
+      pathParameters: {'projectId': cubit.projectId, 'id': state.document.id},
     );
     // `Uri.origin` só aceita http/https; fora do navegador real — a VM de
     // `flutter test` enxerga `file://` — ele lança, e nenhum teste de

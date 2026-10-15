@@ -24,9 +24,7 @@ class DropZoneContent extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         color: active ? colors.primaryTint : null,
-        border: Border.all(
-          color: active ? AppTheme.primary : colors.border,
-        ),
+        border: Border.all(color: active ? AppTheme.primary : colors.border),
         borderRadius: BorderRadius.circular(AppRadii.r8),
       ),
       child: Center(

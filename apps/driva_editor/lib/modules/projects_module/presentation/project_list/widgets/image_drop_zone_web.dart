@@ -33,7 +33,10 @@ class ImageDropZoneImpl {
   }).toJS;
 
   late final JSExportedDartFunction _onDragLeave =
-      ((web.Event event) => onHover(false)).toJS;
+      ((
+            web.Event event,
+          ) => onHover(false))
+          .toJS;
 
   late final JSExportedDartFunction _onDrop = ((web.Event event) {
     event.preventDefault();

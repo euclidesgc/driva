@@ -40,14 +40,13 @@ abstract final class PropGroupSummary {
         : '${_number(pair.x)} · ${_number(pair.y)}';
   }
 
-  static String _dimension(Object? value) => switch (DimensionValue.parse(
-    value,
-  )) {
-    PixelDimension(:final pixels) => _number(pixels),
-    PercentDimension() && final percent => percent.toJson().toString(),
-    InfiniteDimension() => '∞',
-    null => value.toString(),
-  };
+  static String _dimension(Object? value) =>
+      switch (DimensionValue.parse(value)) {
+        PixelDimension(:final pixels) => _number(pixels),
+        PercentDimension() && final percent => percent.toJson().toString(),
+        InfiniteDimension() => '∞',
+        null => value.toString(),
+      };
 
   static String _optionLabel(PropField field, Object? value) {
     for (final option in field.options) {
@@ -68,8 +67,6 @@ abstract final class PropGroupSummary {
     final all = value['all'];
     if (all != null) return _number(all);
     const sides = ['left', 'top', 'right', 'bottom'];
-    return [
-      for (final side in sides) _number(value[side] ?? 0),
-    ].join(' · ');
+    return [for (final side in sides) _number(value[side] ?? 0)].join(' · ');
   }
 }

@@ -125,6 +125,8 @@ void main() {
             body: VersionCompareModeScope(
               cubit: compareCubit,
               child: InspectorPanel(
+                onBindProp: (_, _, _) {},
+                onUnbindProp: (_, _) {},
                 node: _selectedNode,
                 isRoot: false,
                 safeArea: const {},

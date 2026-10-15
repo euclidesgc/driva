@@ -19,7 +19,7 @@ class PropBindingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<EditorColors>()!;
-    final label = isActive ? 'Editar variável' : 'Definir por variável';
+    final label = isActive ? 'Editar ligação' : 'Ligar a variável';
     return Tooltip(
       message: label,
       child: Semantics(

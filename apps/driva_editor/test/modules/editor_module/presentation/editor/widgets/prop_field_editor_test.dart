@@ -24,6 +24,8 @@ class _InspectorHarnessState extends State<_InspectorHarness> {
       theme: AppTheme.light,
       home: Scaffold(
         body: PropFieldEditor(
+          onBind: (_) {},
+          onUnbind: () {},
           key: ValueKey('node-1_${widget.field.key}'),
           field: widget.field,
           value: _value,
@@ -115,6 +117,8 @@ void main() {
           theme: AppTheme.light,
           home: Scaffold(
             body: PropFieldEditor(
+              onBind: (_) {},
+              onUnbind: () {},
               key: const ValueKey('node-A_text'),
               field: field,
               value: 'A',
@@ -130,6 +134,8 @@ void main() {
           theme: AppTheme.light,
           home: Scaffold(
             body: PropFieldEditor(
+              onBind: (_) {},
+              onUnbind: () {},
               key: const ValueKey('node-B_text'),
               field: field,
               value: 'B',

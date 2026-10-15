@@ -47,6 +47,8 @@ class _HarnessState extends State<_Harness> {
       body: SizedBox(
         width: 360,
         child: PropFieldEditor(
+          onBind: (_) {},
+          onUnbind: () {},
           field: widget.field,
           value: _value,
           onChanged: (value) {
@@ -217,7 +219,7 @@ void main() {
     testWidgets('é oferecido em pixels', (tester) async {
       await _pumpEditor(tester);
 
-      expect(find.byTooltip('Definir por variável'), findsOneWidget);
+      expect(find.byTooltip('Ligar a variável'), findsOneWidget);
     });
 
     testWidgets('some em porcentagem, que não aceita expressão', (
@@ -228,15 +230,15 @@ void main() {
       await tester.tap(find.byTooltip('Medir em porcentagem do pai'));
       await tester.pump();
 
-      expect(find.byTooltip('Definir por variável'), findsNothing);
+      expect(find.byTooltip('Ligar a variável'), findsNothing);
     });
 
-    testWidgets('valor ligado troca o campo pela faixa de expressão', (
+    testWidgets('valor ligado troca o campo pelo chip', (
       tester,
     ) async {
       await _pumpEditor(tester, value: '{{produto.largura}}');
 
-      expect(find.text('produto.largura'), findsOneWidget);
+      expect(find.textContaining('produto.largura'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     });
   });

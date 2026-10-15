@@ -292,11 +292,7 @@ class EditorCubit extends Cubit<EditorState> {
     final node = current.selectedNode;
     if (node == null) return;
     _clipboard = node;
-    _emitNotice(
-      current,
-      EditorNoticeKind.nodeCopied,
-      subjectType: node.type,
-    );
+    _emitNotice(current, EditorNoticeKind.nodeCopied, subjectType: node.type);
   }
 
   void duplicateSelected() {
@@ -756,11 +752,7 @@ class EditorCubit extends Cubit<EditorState> {
       (spec) {
         final restoresPublishedVersion =
             version == latest.publication.publishedVersion;
-        _emitDocument(
-          latest,
-          spec,
-          markUnpublished: !restoresPublishedVersion,
-        );
+        _emitDocument(latest, spec, markUnpublished: !restoresPublishedVersion);
         return true;
       },
     );

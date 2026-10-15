@@ -90,11 +90,7 @@ class TreeRowContent extends StatelessWidget {
                   padding: const EdgeInsets.only(left: AppSpacing.s4),
                   child: Semantics(
                     label: 'tem ação',
-                    child: Icon(
-                      Icons.bolt,
-                      size: 16,
-                      color: colors.success,
-                    ),
+                    child: Icon(Icons.bolt, size: 16, color: colors.success),
                   ),
                 ),
               if (diffMarkerKind != null)
