@@ -96,11 +96,7 @@ void main() {
   ) async {
     await _pump(
       tester,
-      const SduiNode(
-        id: 'c',
-        type: 'checkbox',
-        properties: {'value': '{{x}}'},
-      ),
+      const SduiNode(id: 'c', type: 'checkbox', properties: {'value': '{{x}}'}),
     );
 
     expect(tester.takeException(), isNull);
