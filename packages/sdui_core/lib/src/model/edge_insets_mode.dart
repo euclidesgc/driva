@@ -1,0 +1,1 @@
+enum EdgeInsetsMode { uniform, perSide }

@@ -79,6 +79,42 @@ void main() {
       expect(base, isNot(outroMax));
     });
 
+    test('igualdade cobre visibleWhen', () {
+      const semCondicao = PropField(
+        key: 'hoverColor',
+        kind: FieldKind.color,
+        label: 'Cor',
+        group: FieldGroups.style,
+      );
+      const comCondicao = PropField(
+        key: 'hoverColor',
+        kind: FieldKind.color,
+        label: 'Cor',
+        group: FieldGroups.style,
+        visibleWhen: PropEquals('hoverEnabled', true),
+      );
+      const outraCondicao = PropField(
+        key: 'hoverColor',
+        kind: FieldKind.color,
+        label: 'Cor',
+        group: FieldGroups.style,
+        visibleWhen: PropEquals('hoverEnabled', false),
+      );
+
+      expect(semCondicao, isNot(comCondicao));
+      expect(comCondicao, isNot(outraCondicao));
+      expect(
+        comCondicao,
+        const PropField(
+          key: 'hoverColor',
+          kind: FieldKind.color,
+          label: 'Cor',
+          group: FieldGroups.style,
+          visibleWhen: PropEquals('hoverEnabled', true),
+        ),
+      );
+    });
+
     test('valueType deriva do kind por padrão', () {
       const field = PropField(
         key: 'color',
