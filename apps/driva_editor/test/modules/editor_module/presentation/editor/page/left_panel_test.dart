@@ -183,10 +183,7 @@ void main() {
         ),
       );
 
-      expect(
-        markerInRow().kind,
-        VersionCompareMarkerKind.propertiesChanged,
-      );
+      expect(markerInRow().kind, VersionCompareMarkerKind.propertiesChanged);
 
       compareCubit.emit(activeAgainst(typeChangedSpec, 2));
       await tester.pumpAndSettle();

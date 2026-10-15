@@ -61,11 +61,7 @@ void main() {
   testWidgets('nunca publicado: "Rascunho" com outro ícone e outro tooltip', (
     tester,
   ) async {
-    await pumpBadge(
-      tester,
-      publishedAt: null,
-      hasUnpublishedChanges: true,
-    );
+    await pumpBadge(tester, publishedAt: null, hasUnpublishedChanges: true);
 
     expect(find.text('Rascunho'), findsOneWidget);
     expect(find.text('Publicado'), findsNothing);
@@ -91,11 +87,7 @@ void main() {
         findsOneWidget,
       );
 
-      await pumpBadge(
-        tester,
-        publishedAt: null,
-        hasUnpublishedChanges: true,
-      );
+      await pumpBadge(tester, publishedAt: null, hasUnpublishedChanges: true);
 
       expect(
         find.bySemanticsLabel('Rascunho: Nunca publicado'),
@@ -114,11 +106,7 @@ void main() {
       final publishedIcon = tester.widget<Icon>(find.byType(Icon));
       final publishedLabel = tester.widget<Text>(find.byType(Text)).data;
 
-      await pumpBadge(
-        tester,
-        publishedAt: null,
-        hasUnpublishedChanges: true,
-      );
+      await pumpBadge(tester, publishedAt: null, hasUnpublishedChanges: true);
       final draftIcon = tester.widget<Icon>(find.byType(Icon));
       final draftLabel = tester.widget<Text>(find.byType(Text)).data;
 

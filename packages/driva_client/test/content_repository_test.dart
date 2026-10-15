@@ -80,9 +80,7 @@ void main() {
     test('specVersion incompatível cai no fallback embarcado', () async {
       final client = MockClient(
         (request) async => http.Response(
-          jsonEncode(
-            _envelope({..._validSpecJson, 'specVersion': 999}),
-          ),
+          jsonEncode(_envelope({..._validSpecJson, 'specVersion': 999})),
           200,
         ),
       );
@@ -102,32 +100,29 @@ void main() {
       expect(emissions.single.id, 'home-id');
     });
 
-    test(
-      'falha total sem fallback emite DrivaLoadFailure(serverError) e não '
-      'lança exceção não capturada',
-      () async {
-        final client = MockClient((request) async => http.Response('', 500));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
+    test('falha total sem fallback emite DrivaLoadFailure(serverError) e não '
+        'lança exceção não capturada', () async {
+      final client = MockClient((request) async => http.Response('', 500));
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
 
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
+      DrivaLoadFailure? caught;
+      try {
+        await repository.load('home').toList();
+      } on DrivaLoadFailure catch (error) {
+        caught = error;
+      }
 
-        expect(caught, isNotNull);
-        expect(caught!.slug, 'home');
-        expect(caught.cause, DrivaLoadCause.serverError);
-      },
-    );
+      expect(caught, isNotNull);
+      expect(caught!.slug, 'home');
+      expect(caught.cause, DrivaLoadCause.serverError);
+    });
 
     test(
       'falha total por exceção de rede emite DrivaLoadFailure(network)',
@@ -155,140 +150,125 @@ void main() {
       },
     );
 
-    test(
-      'falha total por 404 emite DrivaLoadFailure(notFound)',
-      () async {
-        final client = MockClient((request) async => http.Response('', 404));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
+    test('falha total por 404 emite DrivaLoadFailure(notFound)', () async {
+      final client = MockClient((request) async => http.Response('', 404));
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
 
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
+      DrivaLoadFailure? caught;
+      try {
+        await repository.load('home').toList();
+      } on DrivaLoadFailure catch (error) {
+        caught = error;
+      }
 
-        expect(caught, isNotNull);
-        expect(caught!.slug, 'home');
-        expect(caught.cause, DrivaLoadCause.notFound);
-      },
-    );
+      expect(caught, isNotNull);
+      expect(caught!.slug, 'home');
+      expect(caught.cause, DrivaLoadCause.notFound);
+    });
 
-    test(
-      'falha total por spec que não passa no parse emite '
-      'DrivaLoadFailure(invalidSpec)',
-      () async {
-        final client = MockClient(
-          (request) async => http.Response(
-            jsonEncode(_envelope(const {'kind': 'content'})),
-            200,
-          ),
-        );
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
+    test('falha total por spec que não passa no parse emite '
+        'DrivaLoadFailure(invalidSpec)', () async {
+      final client = MockClient(
+        (request) async => http.Response(
+          jsonEncode(_envelope(const {'kind': 'content'})),
+          200,
+        ),
+      );
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
 
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
+      DrivaLoadFailure? caught;
+      try {
+        await repository.load('home').toList();
+      } on DrivaLoadFailure catch (error) {
+        caught = error;
+      }
 
-        expect(caught, isNotNull);
-        expect(caught!.slug, 'home');
-        expect(caught.cause, DrivaLoadCause.invalidSpec);
-      },
-    );
+      expect(caught, isNotNull);
+      expect(caught!.slug, 'home');
+      expect(caught.cause, DrivaLoadCause.invalidSpec);
+    });
 
-    test(
-      'falha de rede com fallback embarcado servível não produz erro no '
-      'stream',
-      () async {
-        final client = MockClient((request) async => throw Exception('boom'));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            fallbacks: const {'home': _validSpecJson},
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
+    test('falha de rede com fallback embarcado servível não produz erro no '
+        'stream', () async {
+      final client = MockClient((request) async => throw Exception('boom'));
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          fallbacks: const {'home': _validSpecJson},
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
 
-        final emissions = await repository.load('home').toList();
+      final emissions = await repository.load('home').toList();
 
-        expect(emissions, hasLength(1));
-        expect(emissions.single.id, 'home-id');
-      },
-    );
+      expect(emissions, hasLength(1));
+      expect(emissions.single.id, 'home-id');
+    });
 
-    test(
-      '304 sem cache local para revalidar emite '
-      'DrivaLoadFailure(serverError)',
-      () async {
-        final client = MockClient((request) async => http.Response('', 304));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: MemoryCacheStore(),
-          ),
-          httpClient: client,
-        );
+    test('304 sem cache local para revalidar emite '
+        'DrivaLoadFailure(serverError)', () async {
+      final client = MockClient((request) async => http.Response('', 304));
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
 
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
+      DrivaLoadFailure? caught;
+      try {
+        await repository.load('home').toList();
+      } on DrivaLoadFailure catch (error) {
+        caught = error;
+      }
 
-        expect(caught, isNotNull);
-        expect(caught!.slug, 'home');
-        expect(caught.cause, DrivaLoadCause.serverError);
-      },
-    );
+      expect(caught, isNotNull);
+      expect(caught!.slug, 'home');
+      expect(caught.cause, DrivaLoadCause.serverError);
+    });
 
-    test(
-      'spec inválido em disco é descartado, não renderizado, e a falha '
-      'total que segue emite DrivaLoadFailure',
-      () async {
-        final cache = _CorruptCacheStore();
-        final client = MockClient((request) async => http.Response('', 500));
-        final repository = DrivaContentRepository(
-          config: DrivaConfig(
-            baseUrl: 'https://api.example.com',
-            publishableKey: 'pk_test',
-            cache: cache,
-          ),
-          httpClient: client,
-        );
+    test('spec inválido em disco é descartado, não renderizado, e a falha '
+        'total que segue emite DrivaLoadFailure', () async {
+      final cache = _CorruptCacheStore();
+      final client = MockClient((request) async => http.Response('', 500));
+      final repository = DrivaContentRepository(
+        config: DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: cache,
+        ),
+        httpClient: client,
+      );
 
-        DrivaLoadFailure? caught;
-        try {
-          await repository.load('home').toList();
-        } on DrivaLoadFailure catch (error) {
-          caught = error;
-        }
+      DrivaLoadFailure? caught;
+      try {
+        await repository.load('home').toList();
+      } on DrivaLoadFailure catch (error) {
+        caught = error;
+      }
 
-        expect(caught, isNotNull);
-        expect(caught!.cause, DrivaLoadCause.serverError);
-        expect(cache.deleted, isTrue);
-      },
-    );
+      expect(caught, isNotNull);
+      expect(caught!.cause, DrivaLoadCause.serverError);
+      expect(cache.deleted, isTrue);
+    });
   });
 
   group('Driva', () {

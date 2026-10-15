@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sdui_core: ^0.3.0
+  sdui_core: ^0.3.2
 
 dev_dependencies:
   flutter_test:

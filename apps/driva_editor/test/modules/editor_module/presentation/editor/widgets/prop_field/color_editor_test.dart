@@ -11,10 +11,7 @@ const _cor = PropField(
   group: FieldGroups.style,
 );
 
-Future<List<Object?>> _pumpEditor(
-  WidgetTester tester, {
-  Object? value,
-}) async {
+Future<List<Object?>> _pumpEditor(WidgetTester tester, {Object? value}) async {
   final changes = <Object?>[];
   await tester.pumpWidget(
     MaterialApp(

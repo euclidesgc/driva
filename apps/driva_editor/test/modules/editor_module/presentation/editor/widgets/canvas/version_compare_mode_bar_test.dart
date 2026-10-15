@@ -105,9 +105,7 @@ void main() {
     )..emit(const EditorReady(document: _draftSpec));
 
     getVersion = _MockGetContentVersionUseCase();
-    when(
-      () => getVersion('ct_1', 9),
-    ).thenAnswer((_) async => Right(versionV9));
+    when(() => getVersion('ct_1', 9)).thenAnswer((_) async => Right(versionV9));
     when(
       () => getVersion('ct_1', 10),
     ).thenAnswer((_) async => Right(versionV10));
@@ -186,53 +184,47 @@ void main() {
     },
   );
 
-  testWidgets(
-    '“Item mais antigo” desce um índice na lista paginada e troca a '
-    'candidata de verdade',
-    (tester) async {
-      compareCubit.emit(
-        activeAt(
-          versionV10,
-          versions: [
-            ContentVersion(version: 10, createdAt: versionV10.createdAt),
-            ContentVersion(version: 9, createdAt: versionV9.createdAt),
-          ],
-        ),
-      );
-      await pumpBar(tester);
+  testWidgets('“Item mais antigo” desce um índice na lista paginada e troca a '
+      'candidata de verdade', (tester) async {
+    compareCubit.emit(
+      activeAt(
+        versionV10,
+        versions: [
+          ContentVersion(version: 10, createdAt: versionV10.createdAt),
+          ContentVersion(version: 9, createdAt: versionV9.createdAt),
+        ],
+      ),
+    );
+    await pumpBar(tester);
 
-      await tester.tap(find.byTooltip(_olderTooltip));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(_olderTooltip));
+    await tester.pumpAndSettle();
 
-      final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate, versionV9);
-      expect(find.text('Versão 9'), findsOneWidget);
-    },
-  );
+    final state = compareCubit.state as VersionCompareModeActive;
+    expect(state.candidate, versionV9);
+    expect(find.text('Versão 9'), findsOneWidget);
+  });
 
-  testWidgets(
-    '“Item mais novo” sobe um índice na lista paginada e troca a '
-    'candidata de verdade',
-    (tester) async {
-      compareCubit.emit(
-        activeAt(
-          versionV9,
-          versions: [
-            ContentVersion(version: 10, createdAt: versionV10.createdAt),
-            ContentVersion(version: 9, createdAt: versionV9.createdAt),
-          ],
-        ),
-      );
-      await pumpBar(tester);
+  testWidgets('“Item mais novo” sobe um índice na lista paginada e troca a '
+      'candidata de verdade', (tester) async {
+    compareCubit.emit(
+      activeAt(
+        versionV9,
+        versions: [
+          ContentVersion(version: 10, createdAt: versionV10.createdAt),
+          ContentVersion(version: 9, createdAt: versionV9.createdAt),
+        ],
+      ),
+    );
+    await pumpBar(tester);
 
-      await tester.tap(find.byTooltip(_newerTooltip));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(_newerTooltip));
+    await tester.pumpAndSettle();
 
-      final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate, versionV10);
-      expect(find.text('Versão 10'), findsOneWidget);
-    },
-  );
+    final state = compareCubit.state as VersionCompareModeActive;
+    expect(state.candidate, versionV10);
+    expect(find.text('Versão 10'), findsOneWidget);
+  });
 
   testWidgets(
     'candidata fora da linha do tempo já carregada: ‹ › ficam desabilitados '
@@ -260,38 +252,35 @@ void main() {
     expect(compareCubit.state, isA<VersionCompareModeInactive>());
   });
 
-  testWidgets(
-    'nas pontas do histórico as setas continuam habilitadas — '
-    '`stepOlder`/`stepNewer` não têm para onde ir e não emitem, em vez de '
-    'a barra desabilitar o botão',
-    (tester) async {
-      compareCubit.emit(
-        activeAt(
-          versionV10,
-          versions: [
-            ContentVersion(version: 10, createdAt: versionV10.createdAt),
-          ],
-        ),
-      );
-      await pumpBar(tester);
+  testWidgets('nas pontas do histórico as setas continuam habilitadas — '
+      '`stepOlder`/`stepNewer` não têm para onde ir e não emitem, em vez de '
+      'a barra desabilitar o botão', (tester) async {
+    compareCubit.emit(
+      activeAt(
+        versionV10,
+        versions: [
+          ContentVersion(version: 10, createdAt: versionV10.createdAt),
+        ],
+      ),
+    );
+    await pumpBar(tester);
 
-      final older = tester.widget<IconButton>(
-        find.widgetWithIcon(IconButton, Icons.chevron_right),
-      );
-      final newer = tester.widget<IconButton>(
-        find.widgetWithIcon(IconButton, Icons.chevron_left),
-      );
-      expect(older.onPressed, isNotNull);
-      expect(newer.onPressed, isNotNull);
+    final older = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.chevron_right),
+    );
+    final newer = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.chevron_left),
+    );
+    expect(older.onPressed, isNotNull);
+    expect(newer.onPressed, isNotNull);
 
-      await tester.tap(find.byTooltip(_olderTooltip));
-      await tester.tap(find.byTooltip(_newerTooltip));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(_olderTooltip));
+    await tester.tap(find.byTooltip(_newerTooltip));
+    await tester.pumpAndSettle();
 
-      final state = compareCubit.state as VersionCompareModeActive;
-      expect(state.candidate, versionV10);
-    },
-  );
+    final state = compareCubit.state as VersionCompareModeActive;
+    expect(state.candidate, versionV10);
+  });
 
   testWidgets('some quando o modo de comparação não está ativo', (
     tester,

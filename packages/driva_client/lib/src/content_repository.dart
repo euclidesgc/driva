@@ -47,7 +47,7 @@ class DrivaContentRepository {
         return;
       case FetchNotModified():
         if (entry != null) return;
-      case FetchFailed(cause: final cause):
+      case FetchFailed(:final cause):
         failureCause = cause;
     }
 

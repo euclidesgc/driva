@@ -113,7 +113,7 @@ class ContentListCubit extends Cubit<ContentListState> {
     required String slug,
     String? description,
     String? categoryId,
-  }) async {
+  }) {
     return createContent(
       name: name,
       slug: slug,

@@ -149,10 +149,7 @@ void main() {
         router.routerDelegate.currentConfiguration.uri.toString(),
         '/projects/$projectId/contents/${existing.id}/edit',
       );
-      expect(editorParams.single, {
-        'projectId': projectId,
-        'id': existing.id,
-      });
+      expect(editorParams.single, {'projectId': projectId, 'id': existing.id});
     });
 
     testWidgets('conteúdo recém-criado cai no editor com os dois params', (

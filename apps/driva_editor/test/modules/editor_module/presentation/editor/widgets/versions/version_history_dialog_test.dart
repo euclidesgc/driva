@@ -122,9 +122,7 @@ void main() {
     getContentCheckpoints = MockGetContentCheckpointsUseCase();
     getContentCheckpoint = MockGetContentCheckpointUseCase();
 
-    when(
-      () => getContentVersions('ct_1'),
-    ).thenAnswer((_) async => Right(page));
+    when(() => getContentVersions('ct_1')).thenAnswer((_) async => Right(page));
     when(
       () => getContentCheckpoints('ct_1'),
     ).thenAnswer((_) async => Right(checkpointsPage));
@@ -499,10 +497,7 @@ void main() {
         find.text('Sem conexão com o servidor. Tente de novo.'),
         findsOneWidget,
       );
-      expect(
-        find.byType(LoadVersionIntoDraftConfirmDialog),
-        findsNothing,
-      );
+      expect(find.byType(LoadVersionIntoDraftConfirmDialog), findsNothing);
       expect(editorCubit.state, before);
       expect(find.text('Histórico de versões'), findsOneWidget);
     });
@@ -517,43 +512,39 @@ void main() {
 
       expect(find.text('Antes do lançamento'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'Ver'), findsNWidgets(2));
-      expect(
-        find.widgetWithText(OutlinedButton, 'Comparar'),
-        findsNWidgets(2),
-      );
+      expect(find.widgetWithText(OutlinedButton, 'Comparar'), findsNWidgets(2));
       expect(
         find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
         findsNWidgets(2),
       );
     });
 
-    testWidgets(
-      'Comparar liga o modo de comparação com aquele checkpoint',
-      (tester) async {
-        final editorCubit = buildEditorCubit();
-        addTearDown(editorCubit.close);
-        final compareMode = buildCompareModeWithCheckpoints(editorCubit);
-        addTearDown(compareMode.close);
+    testWidgets('Comparar liga o modo de comparação com aquele checkpoint', (
+      tester,
+    ) async {
+      final editorCubit = buildEditorCubit();
+      addTearDown(editorCubit.close);
+      final compareMode = buildCompareModeWithCheckpoints(editorCubit);
+      addTearDown(compareMode.close);
 
-        await openHistoryWithCheckpoint(
-          tester,
-          editorCubit,
-          compareMode: compareMode,
-        );
-        await tester.tap(find.widgetWithText(OutlinedButton, 'Comparar').last);
-        await tester.pumpAndSettle();
+      await openHistoryWithCheckpoint(
+        tester,
+        editorCubit,
+        compareMode: compareMode,
+      );
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Comparar').last);
+      await tester.pumpAndSettle();
 
-        expect(find.byType(VersionHistoryDialog), findsNothing);
-        expect(
-          compareMode.state,
-          isA<VersionCompareModeActive>().having(
-            (s) => s.candidate,
-            'candidate',
-            loadedCheckpoint,
-          ),
-        );
-      },
-    );
+      expect(find.byType(VersionHistoryDialog), findsNothing);
+      expect(
+        compareMode.state,
+        isA<VersionCompareModeActive>().having(
+          (s) => s.candidate,
+          'candidate',
+          loadedCheckpoint,
+        ),
+      );
+    });
 
     testWidgets(
       'Carregar no rascunho pede confirmação nomeando o ponto salvo e, '

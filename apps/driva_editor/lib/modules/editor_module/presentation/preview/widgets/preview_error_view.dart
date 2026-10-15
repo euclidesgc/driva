@@ -12,10 +12,7 @@ class PreviewErrorView extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s24),
-        child: Text(
-          _messageFor(failure),
-          textAlign: TextAlign.center,
-        ),
+        child: Text(_messageFor(failure), textAlign: TextAlign.center),
       ),
     );
   }

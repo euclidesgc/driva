@@ -53,10 +53,7 @@ void main() {
       ),
     );
 
-    expect(
-      find.bySemanticsLabel('Baixar APK de teste'),
-      findsOneWidget,
-    );
+    expect(find.bySemanticsLabel('Baixar APK de teste'), findsOneWidget);
 
     handle.dispose();
   });

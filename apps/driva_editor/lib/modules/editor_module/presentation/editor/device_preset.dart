@@ -32,8 +32,7 @@ enum DevicePreset {
     notch: DeviceNotch.punchHole,
     safeAreaTop: 24,
     safeAreaBottom: 20,
-  ),
-  ;
+  );
 
   const DevicePreset(
     this.label,

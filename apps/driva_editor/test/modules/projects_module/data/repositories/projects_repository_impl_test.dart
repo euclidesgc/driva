@@ -78,9 +78,9 @@ void main() {
     });
 
     test('imageUrl nula permanece nula (projeto sem imagem)', () async {
-      when(() => dio.get<Map<String, dynamic>>('/v1/projects/p1')).thenAnswer(
-        (_) async => ok<Map<String, dynamic>>(projectJson()),
-      );
+      when(
+        () => dio.get<Map<String, dynamic>>('/v1/projects/p1'),
+      ).thenAnswer((_) async => ok<Map<String, dynamic>>(projectJson()));
 
       final result = await repository.getProject('p1');
 

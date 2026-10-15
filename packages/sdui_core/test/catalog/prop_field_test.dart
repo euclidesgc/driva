@@ -5,10 +5,7 @@ void main() {
   group('PropOption', () {
     test('displayLabel cai no value quando não há label', () {
       expect(const PropOption('start').displayLabel, 'start');
-      expect(
-        const PropOption('start', label: 'Início').displayLabel,
-        'Início',
-      );
+      expect(const PropOption('start', label: 'Início').displayLabel, 'Início');
     });
   });
 

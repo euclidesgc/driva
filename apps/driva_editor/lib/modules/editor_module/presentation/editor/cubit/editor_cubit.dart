@@ -7,6 +7,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_notice_kind.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:equatable/equatable.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/sdui_core.dart'
     show
         ContentSpec,
@@ -290,11 +291,7 @@ class EditorCubit extends Cubit<EditorState> {
     final node = current.selectedNode;
     if (node == null) return;
     _clipboard = node;
-    _emitNotice(
-      current,
-      EditorNoticeKind.nodeCopied,
-      subjectType: node.type,
-    );
+    _emitNotice(current, EditorNoticeKind.nodeCopied, subjectType: node.type);
   }
 
   void duplicateSelected() {
@@ -634,22 +631,22 @@ class EditorCubit extends Cubit<EditorState> {
     final latest = state;
     if (latest is! EditorReady) return false;
 
-    return result.fold(
-      (failure) {
+    return switch (result) {
+      Left() => () {
         _emitNotice(latest, EditorNoticeKind.restoreFailed);
         return false;
-      },
-      (spec) {
+      }(),
+      Right(:final value) => () {
         final restoresPublishedVersion =
             version == latest.publication.publishedVersion;
         _emitDocument(
           latest,
-          spec,
+          value,
           markUnpublished: !restoresPublishedVersion,
         );
         return true;
-      },
-    );
+      }(),
+    };
   }
 
   /// Aplica em memória o spec de uma versão ou de um ponto salvo já lido por

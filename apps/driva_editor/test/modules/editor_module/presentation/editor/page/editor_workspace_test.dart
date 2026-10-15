@@ -235,56 +235,47 @@ void main() {
     },
   );
 
-  testWidgets(
-    'tocar Árvore na faixa esquerda reabre o painel já na aba Árvore '
-    '(aceite 26)',
-    (tester) async {
-      enlarge(tester);
-      await tester.pumpWidget(harness());
-      await tester.pump();
-      layoutController.collapseLeftPanel();
-      await tester.pump();
+  testWidgets('tocar Árvore na faixa esquerda reabre o painel já na aba Árvore '
+      '(aceite 26)', (tester) async {
+    enlarge(tester);
+    await tester.pumpWidget(harness());
+    await tester.pump();
+    layoutController.collapseLeftPanel();
+    await tester.pump();
 
-      await tester.tap(find.byTooltip('Árvore'));
-      await tester.pump();
+    await tester.tap(find.byTooltip('Árvore'));
+    await tester.pump();
 
-      expect(layoutController.value.leftPanelCollapsed, isFalse);
-      expect(layoutController.value.leftPanelTab, LeftPanelTab.tree);
-      expect(find.byType(WidgetTreePanel), findsOneWidget);
-    },
-  );
+    expect(layoutController.value.leftPanelCollapsed, isFalse);
+    expect(layoutController.value.leftPanelTab, LeftPanelTab.tree);
+    expect(find.byType(WidgetTreePanel), findsOneWidget);
+  });
 
-  testWidgets(
-    'tocar o botão de recolher no cabeçalho do painel esquerdo chama '
-    'collapseLeftPanel',
-    (tester) async {
-      enlarge(tester);
-      await tester.pumpWidget(harness());
-      await tester.pump();
-      expect(layoutController.value.leftPanelCollapsed, isFalse);
+  testWidgets('tocar o botão de recolher no cabeçalho do painel esquerdo chama '
+      'collapseLeftPanel', (tester) async {
+    enlarge(tester);
+    await tester.pumpWidget(harness());
+    await tester.pump();
+    expect(layoutController.value.leftPanelCollapsed, isFalse);
 
-      await tester.tap(find.byTooltip('Recolher painel'));
-      await tester.pump();
+    await tester.tap(find.byTooltip('Recolher painel'));
+    await tester.pump();
 
-      expect(layoutController.value.leftPanelCollapsed, isTrue);
-    },
-  );
+    expect(layoutController.value.leftPanelCollapsed, isTrue);
+  });
 
-  testWidgets(
-    'tocar o botão de recolher no cabeçalho do Inspector chama '
-    'collapseRightPanel',
-    (tester) async {
-      enlarge(tester);
-      await tester.pumpWidget(harness());
-      await tester.pump();
-      expect(layoutController.value.rightPanelCollapsed, isFalse);
+  testWidgets('tocar o botão de recolher no cabeçalho do Inspector chama '
+      'collapseRightPanel', (tester) async {
+    enlarge(tester);
+    await tester.pumpWidget(harness());
+    await tester.pump();
+    expect(layoutController.value.rightPanelCollapsed, isFalse);
 
-      await tester.tap(find.byTooltip('Recolher Inspector'));
-      await tester.pump();
+    await tester.tap(find.byTooltip('Recolher Inspector'));
+    await tester.pump();
 
-      expect(layoutController.value.rightPanelCollapsed, isTrue);
-    },
-  );
+    expect(layoutController.value.rightPanelCollapsed, isTrue);
+  });
 
   testWidgets(
     'o colapso da paleta (F4b) sobrevive ao colapso do painel em faixa '
@@ -352,10 +343,7 @@ void main() {
         // direto no controller — é o que mantém `_leftWidth` do
         // `ResizableSplitView` e `layoutController.value.leftPanelWidth`
         // sincronizados em produção.
-        await tester.drag(
-          find.byType(ResizeHandle).first,
-          const Offset(60, 0),
-        );
+        await tester.drag(find.byType(ResizeHandle).first, const Offset(60, 0));
         await tester.pump();
         layoutController.collapseRightPanel();
         await tester.pump();
@@ -393,22 +381,21 @@ void main() {
       },
     );
 
-    testWidgets(
-      'a visibilidade do rodapé não muda ao entrar em tela cheia — a '
-      'F7 não toca a regra de exibição do `StatusBarArea` (P2)',
-      (tester) async {
-        enlarge(tester);
-        await tester.pumpWidget(harness());
-        await tester.pump();
-        final before = find.byType(EditorStatusBar).evaluate().length;
+    testWidgets('a visibilidade do rodapé não muda ao entrar em tela cheia — a '
+        'F7 não toca a regra de exibição do `StatusBarArea` (P2)', (
+      tester,
+    ) async {
+      enlarge(tester);
+      await tester.pumpWidget(harness());
+      await tester.pump();
+      final before = find.byType(EditorStatusBar).evaluate().length;
 
-        layoutController.enterFullscreen();
-        await tester.pump();
-        final after = find.byType(EditorStatusBar).evaluate().length;
+      layoutController.enterFullscreen();
+      await tester.pump();
+      final after = find.byType(EditorStatusBar).evaluate().length;
 
-        expect(after, before);
-      },
-    );
+      expect(after, before);
+    });
   });
 
   testWidgets(
@@ -553,9 +540,7 @@ void main() {
 
         await pumpWorkspaceAndOpenHistory(
           tester,
-          checkpointsResult: Right(
-            ContentCheckpointsPage(items: [checkpoint]),
-          ),
+          checkpointsResult: Right(ContentCheckpointsPage(items: [checkpoint])),
         );
 
         expect(find.byType(CheckpointRow), findsOneWidget);
@@ -575,34 +560,23 @@ void main() {
 
         await pumpWorkspaceAndOpenHistory(
           tester,
-          checkpointsResult: Right(
-            ContentCheckpointsPage(items: [checkpoint]),
-          ),
+          checkpointsResult: Right(ContentCheckpointsPage(items: [checkpoint])),
         );
 
         expect(find.byType(CheckpointRow), findsOneWidget);
-        expect(
-          find.text('Nenhuma versão ou ponto salvo ainda.'),
-          findsNothing,
-        );
+        expect(find.text('Nenhuma versão ou ponto salvo ainda.'), findsNothing);
       },
     );
 
-    testWidgets(
-      'sem versões e sem checkpoints, o diálogo continua mostrando a '
-      'mensagem de vazio',
-      (tester) async {
-        await pumpWorkspaceAndOpenHistory(
-          tester,
-          checkpointsResult: const Right(ContentCheckpointsPage(items: [])),
-        );
+    testWidgets('sem versões e sem checkpoints, o diálogo continua mostrando a '
+        'mensagem de vazio', (tester) async {
+      await pumpWorkspaceAndOpenHistory(
+        tester,
+        checkpointsResult: const Right(ContentCheckpointsPage(items: [])),
+      );
 
-        expect(find.byType(CheckpointRow), findsNothing);
-        expect(
-          find.text('Nenhuma versão ou ponto salvo ainda.'),
-          findsOneWidget,
-        );
-      },
-    );
+      expect(find.byType(CheckpointRow), findsNothing);
+      expect(find.text('Nenhuma versão ou ponto salvo ainda.'), findsOneWidget);
+    });
   });
 }

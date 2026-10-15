@@ -197,170 +197,143 @@ void main() {
       saveLayout = SaveEditorLayoutUseCase(repository: repository);
     });
 
-    test(
-      'aceite 30 — reclamp (D13): largura fora do teto/piso chega já '
-      'clampada depois do boot',
-      () async {
-        repository.stored = const EditorLayoutSnapshot(
-          leftPanelWidth: 900,
-          rightPanelWidth: 10,
-        );
-        final controller = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        addTearDown(controller.dispose);
+    test('aceite 30 — reclamp (D13): largura fora do teto/piso chega já '
+        'clampada depois do boot', () async {
+      repository.stored = const EditorLayoutSnapshot(
+        leftPanelWidth: 900,
+        rightPanelWidth: 10,
+      );
+      final controller = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      addTearDown(controller.dispose);
 
-        await controller.ready;
+      await controller.ready;
 
-        expect(
-          controller.value.leftPanelWidth,
-          AppSizes.workspacePanelMaxWidth,
-        );
-        expect(
-          controller.value.rightPanelWidth,
-          AppSizes.workspacePanelMinWidth,
-        );
-      },
-    );
+      expect(controller.value.leftPanelWidth, AppSizes.workspacePanelMaxWidth);
+      expect(controller.value.rightPanelWidth, AppSizes.workspacePanelMinWidth);
+    });
 
-    test(
-      'aceite 31 — corrupção (D12): Left dobra ao padrão em silêncio, sem '
-      'propagar erro',
-      () async {
-        repository.corrupted = true;
-        final controller = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        addTearDown(controller.dispose);
+    test('aceite 31 — corrupção (D12): Left dobra ao padrão em silêncio, sem '
+        'propagar erro', () async {
+      repository.corrupted = true;
+      final controller = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      addTearDown(controller.dispose);
 
-        await controller.ready;
+      await controller.ready;
 
-        expect(controller.value, const EditorLayout());
-        expect(controller.collapsedPaletteCategories.value, isEmpty);
-        expect(controller.collapsedInspectorSections.value, isEmpty);
-      },
-    );
+      expect(controller.value, const EditorLayout());
+      expect(controller.collapsedPaletteCategories.value, isEmpty);
+      expect(controller.collapsedInspectorSections.value, isEmpty);
+    });
 
-    test(
-      'aceites 28/29 — o que uma sessão grava, a próxima carrega (refresh e '
-      're-entrada)',
-      () async {
-        final first = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        await first.ready;
+    test('aceites 28/29 — o que uma sessão grava, a próxima carrega (refresh e '
+        're-entrada)', () async {
+      final first = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      await first.ready;
 
-        first
-          ..setLeftPanelWidth(430)
-          ..collapseRightPanel();
-        first.collapsedInspectorSections.value = {'Aparência'};
-        first.dispose();
-        await Future<void>.delayed(Duration.zero);
+      first
+        ..setLeftPanelWidth(430)
+        ..collapseRightPanel();
+      first.collapsedInspectorSections.value = {'Aparência'};
+      first.dispose();
+      await Future<void>.delayed(Duration.zero);
 
-        final second = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        addTearDown(second.dispose);
-        await second.ready;
+      final second = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      addTearDown(second.dispose);
+      await second.ready;
 
-        expect(second.value.leftPanelWidth, 430);
-        expect(second.value.rightPanelCollapsed, isTrue);
-        expect(second.collapsedInspectorSections.value, {'Aparência'});
-      },
-    );
+      expect(second.value.leftPanelWidth, 430);
+      expect(second.value.rightPanelCollapsed, isTrue);
+      expect(second.collapsedInspectorSections.value, {'Aparência'});
+    });
 
-    test(
-      'gravação é debounced: várias mudanças em sequência resultam numa só '
-      'escrita, com o valor final',
-      () async {
-        final controller = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        addTearDown(controller.dispose);
-        await controller.ready;
+    test('gravação é debounced: várias mudanças em sequência resultam numa só '
+        'escrita, com o valor final', () async {
+      final controller = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      addTearDown(controller.dispose);
+      await controller.ready;
 
-        controller
-          ..setLeftPanelWidth(300)
-          ..setLeftPanelWidth(310)
-          ..setLeftPanelWidth(320);
+      controller
+        ..setLeftPanelWidth(300)
+        ..setLeftPanelWidth(310)
+        ..setLeftPanelWidth(320);
 
-        expect(repository.saveCount, 0);
+      expect(repository.saveCount, 0);
 
-        await Future<void>.delayed(const Duration(milliseconds: 450));
+      await Future<void>.delayed(const Duration(milliseconds: 450));
 
-        expect(repository.saveCount, 1);
-        expect(repository.stored?.leftPanelWidth, 320);
-      },
-    );
+      expect(repository.saveCount, 1);
+      expect(repository.stored?.leftPanelWidth, 320);
+    });
 
-    test(
-      'dispose com gravação pendente ainda grava — não espera o debounce '
-      'que não vai mais rodar',
-      () async {
-        final controller = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        await controller.ready;
+    test('dispose com gravação pendente ainda grava — não espera o debounce '
+        'que não vai mais rodar', () async {
+      final controller = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      await controller.ready;
 
-        controller.setLeftPanelWidth(333);
-        expect(repository.saveCount, 0);
+      controller.setLeftPanelWidth(333);
+      expect(repository.saveCount, 0);
 
-        controller.dispose();
-        await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+      await Future<void>.delayed(Duration.zero);
 
-        expect(repository.saveCount, 1);
-        expect(repository.stored?.leftPanelWidth, 333);
-      },
-    );
+      expect(repository.saveCount, 1);
+      expect(repository.stored?.leftPanelWidth, 333);
+    });
 
-    test(
-      'dispose sem gravação pendente não grava de novo',
-      () async {
-        final controller = EditorLayoutController(
-          getLayoutUseCase: getLayout,
-          saveLayoutUseCase: saveLayout,
-        );
-        await controller.ready;
-        await Future<void>.delayed(const Duration(milliseconds: 450));
-        final savesBeforeDispose = repository.saveCount;
+    test('dispose sem gravação pendente não grava de novo', () async {
+      final controller = EditorLayoutController(
+        getLayoutUseCase: getLayout,
+        saveLayoutUseCase: saveLayout,
+      );
+      await controller.ready;
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      final savesBeforeDispose = repository.saveCount;
 
-        controller.dispose();
-        await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+      await Future<void>.delayed(Duration.zero);
 
-        expect(repository.saveCount, savesBeforeDispose);
-      },
-    );
+      expect(repository.saveCount, savesBeforeDispose);
+    });
 
-    test(
-      'boot que lança um Error (não um Left) não trava _isBooting para '
-      'sempre — a gravação seguinte funciona normalmente',
-      () async {
-        final throwingRepository = _ThrowingEditorLayoutRepository();
-        final controller = EditorLayoutController(
-          getLayoutUseCase: GetEditorLayoutUseCase(
-            repository: throwingRepository,
-          ),
-          saveLayoutUseCase: SaveEditorLayoutUseCase(
-            repository: throwingRepository,
-          ),
-        );
-        addTearDown(controller.dispose);
+    test('boot que lança um Error (não um Left) não trava _isBooting para '
+        'sempre — a gravação seguinte funciona normalmente', () async {
+      final throwingRepository = _ThrowingEditorLayoutRepository();
+      final controller = EditorLayoutController(
+        getLayoutUseCase: GetEditorLayoutUseCase(
+          repository: throwingRepository,
+        ),
+        saveLayoutUseCase: SaveEditorLayoutUseCase(
+          repository: throwingRepository,
+        ),
+      );
+      addTearDown(controller.dispose);
 
-        await expectLater(controller.ready, throwsA(isA<TypeError>()));
+      await expectLater(controller.ready, throwsA(isA<TypeError>()));
 
-        controller.setLeftPanelWidth(333);
-        await Future<void>.delayed(const Duration(milliseconds: 450));
+      controller.setLeftPanelWidth(333);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
 
-        expect(throwingRepository.saveCount, 1);
-        expect(throwingRepository.stored?.leftPanelWidth, 333);
-      },
-    );
+      expect(throwingRepository.saveCount, 1);
+      expect(throwingRepository.stored?.leftPanelWidth, 333);
+    });
 
     test(
       'colapsar/expandir um grupo do Inspector agenda gravação (debounced)',
@@ -376,10 +349,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 450));
 
         expect(repository.saveCount, 1);
-        expect(
-          repository.stored?.collapsedInspectorSections,
-          {'Aparência'},
-        );
+        expect(repository.stored?.collapsedInspectorSections, {'Aparência'});
       },
     );
   });

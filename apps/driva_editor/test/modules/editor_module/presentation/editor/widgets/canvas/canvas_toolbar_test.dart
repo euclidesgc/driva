@@ -54,28 +54,27 @@ void main() {
     },
   );
 
-  testWidgets(
-    'ajuste automático acima do piso: o "−" continua habilitado',
-    (tester) async {
-      var calls = 0;
-      await tester.pumpWidget(
-        _harness(
-          effectiveScale: 0.6,
-          fitToWindow: true,
-          onChangeZoom: (_) => calls++,
-        ),
-      );
-      await tester.pump();
+  testWidgets('ajuste automático acima do piso: o "−" continua habilitado', (
+    tester,
+  ) async {
+    var calls = 0;
+    await tester.pumpWidget(
+      _harness(
+        effectiveScale: 0.6,
+        fitToWindow: true,
+        onChangeZoom: (_) => calls++,
+      ),
+    );
+    await tester.pump();
 
-      final zoomOutButton = tester.widget<IconButton>(
-        find.widgetWithIcon(IconButton, Icons.zoom_out),
-      );
-      expect(zoomOutButton.onPressed, isNotNull);
+    final zoomOutButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.zoom_out),
+    );
+    expect(zoomOutButton.onPressed, isNotNull);
 
-      await tester.tap(find.widgetWithIcon(IconButton, Icons.zoom_out));
-      expect(calls, 1);
-    },
-  );
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.zoom_out));
+    expect(calls, 1);
+  });
 
   testWidgets(
     'zoom manual (fitToWindow desligado) no mesmo piso: o "−" continua '

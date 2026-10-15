@@ -12,9 +12,7 @@ class PrefsCacheStore implements DrivaCacheStore {
     final raw = prefs.getString(key);
     if (raw == null) return null;
     try {
-      return CachedContent.fromJson(
-        jsonDecode(raw) as Map<String, dynamic>,
-      );
+      return CachedContent.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } on Object catch (error) {
       log(
         'Entrada de cache corrompida para "$key": $error',

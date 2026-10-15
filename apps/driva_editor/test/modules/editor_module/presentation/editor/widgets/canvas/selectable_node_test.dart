@@ -256,11 +256,7 @@ void main() {
 
     testWidgets('um nó não aceita a si mesmo como destino', (tester) async {
       var chamou = false;
-      await _pumpCanvas(
-        tester,
-        arvore,
-        onAccept: (_, _) => chamou = true,
-      );
+      await _pumpCanvas(tester, arvore, onAccept: (_, _) => chamou = true);
 
       final centro = tester.getCenter(find.text('Alvo'));
       final gesture = await tester.startGesture(centro);

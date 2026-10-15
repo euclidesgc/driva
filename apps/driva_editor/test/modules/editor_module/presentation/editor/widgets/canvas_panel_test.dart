@@ -180,25 +180,24 @@ void main() {
       },
     );
 
-    testWidgets(
-      'clique em "Ajustar à janela" dispara onToggleFitToWindow',
-      (tester) async {
-        var toggled = false;
-        await tester.pumpWidget(
-          harness(
-            viewport: const Size(1000, 800),
-            device: DevicePreset.smartphone,
-            zoom: 0.9,
-            fitToWindow: false,
-            onToggleFitToWindow: () => toggled = true,
-          ),
-        );
-        await tester.pump();
+    testWidgets('clique em "Ajustar à janela" dispara onToggleFitToWindow', (
+      tester,
+    ) async {
+      var toggled = false;
+      await tester.pumpWidget(
+        harness(
+          viewport: const Size(1000, 800),
+          device: DevicePreset.smartphone,
+          zoom: 0.9,
+          fitToWindow: false,
+          onToggleFitToWindow: () => toggled = true,
+        ),
+      );
+      await tester.pump();
 
-        await tester.tap(find.byTooltip('Ajustar à janela'));
-        expect(toggled, isTrue);
-      },
-    );
+      await tester.tap(find.byTooltip('Ajustar à janela'));
+      expect(toggled, isTrue);
+    });
   });
 
   group('modo de comparação lado a lado', () {

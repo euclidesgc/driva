@@ -148,9 +148,7 @@ class _InspectorPropListState extends State<InspectorPropList> {
                         children: [
                           for (final field in _fieldsOf(group))
                             EditingLock(
-                              key: ValueKey(
-                                '${widget.ownerKey}_${field.key}',
-                              ),
+                              key: ValueKey('${widget.ownerKey}_${field.key}'),
                               locked: widget.isReadOnly,
                               child: PropFieldEditor(
                                 field: field,

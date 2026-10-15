@@ -29,10 +29,7 @@ void main() {
     });
 
     test('publishedVersion nulo devolve "nunca publicado"', () {
-      final map = {
-        'publishedVersion': null,
-        'hasUnpublishedChanges': true,
-      };
+      final map = {'publishedVersion': null, 'hasUnpublishedChanges': true};
 
       final result = PublicationStateModel.tryParse(map);
 

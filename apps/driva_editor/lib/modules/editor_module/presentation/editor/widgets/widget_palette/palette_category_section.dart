@@ -53,10 +53,7 @@ class PaletteCategorySection extends StatelessWidget {
               runSpacing: AppSpacing.s8,
               children: [
                 for (final descriptor in descriptors)
-                  PaletteItem(
-                    descriptor: descriptor,
-                    isDraggable: isDraggable,
-                  ),
+                  PaletteItem(descriptor: descriptor, isDraggable: isDraggable),
               ],
             ),
           ),

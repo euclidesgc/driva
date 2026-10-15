@@ -215,10 +215,7 @@ void main() {
       verify: (cubit) {
         final state = cubit.state as EditorReady;
         expect(state.canPublish, isFalse);
-        expect(
-          state.publishBlockReason,
-          PublishBlockReason.comparingVersions,
-        );
+        expect(state.publishBlockReason, PublishBlockReason.comparingVersions);
       },
     );
   });
@@ -996,10 +993,10 @@ void main() {
 
         final clone = children[1];
         expect(clone.children.map((n) => n.type), ['text', 'text', 'text']);
-        expect(
-          {clone.id, ...clone.children.map((n) => n.id)},
-          isNot(contains(anyOf('nd_card', 'nd_a', 'nd_b', 'nd_c'))),
-        );
+        expect({
+          clone.id,
+          ...clone.children.map((n) => n.id),
+        }, isNot(contains(anyOf('nd_card', 'nd_a', 'nd_b', 'nd_c'))));
         expect(state.selectedNodeId, clone.id);
       },
     );
@@ -1201,16 +1198,8 @@ void main() {
           ..toggleFitToWindow();
       },
       expect: () => [
-        isA<EditorReady>().having(
-          (s) => s.fitToWindow,
-          'fitToWindow',
-          isFalse,
-        ),
-        isA<EditorReady>().having(
-          (s) => s.fitToWindow,
-          'fitToWindow',
-          isTrue,
-        ),
+        isA<EditorReady>().having((s) => s.fitToWindow, 'fitToWindow', isFalse),
+        isA<EditorReady>().having((s) => s.fitToWindow, 'fitToWindow', isTrue),
       ],
     );
   });

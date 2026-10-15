@@ -1,21 +1,23 @@
-// `jest.mock` PRECISA rodar antes de qualquer módulo do proxy ser
+import { type MockedFunction, vi } from 'vitest';
+
+// `vi.mock` PRECISA rodar antes de qualquer módulo do proxy ser
 // carregado (`MediaModule` → `media.service.ts` → `url-guard.ts`, que
 // importa `node:dns` no próprio topo do arquivo) — senão `url-guard.ts`
 // resolve contra o `dns.lookup` real, cacheado antes da troca, e este
 // arquivo de teste passa a inspecionar um mock que ninguém chama. Por
-// isso o `jest.mock` vem antes de qualquer `import`, nesta ordem exata —
+// isso o `vi.mock` vem antes de qualquer `import`, nesta ordem exata —
 // não é estilo, é o que garante que a substituição vale para todo mundo
 // que ainda vai `require('node:dns')`.
 //
 // `dns.lookup` também é um módulo nativo com propriedades não
-// reconfiguráveis — `jest.spyOn` não consegue redefini-lo diretamente
-// (`TypeError: Cannot redefine property`). `jest.mock` troca o módulo
-// inteiro por um objeto novo, onde `lookup` já nasce um `jest.fn` — e
+// reconfiguráveis — `vi.spyOn` não consegue redefini-lo diretamente
+// (`TypeError: Cannot redefine property`). `vi.mock` troca o módulo
+// inteiro por um objeto novo, onde `lookup` já nasce um `vi.fn` — e
 // nasce delegando para a implementação real, então todo teste que NÃO
 // mexe no mock continua resolvendo DNS de verdade.
-jest.mock('node:dns', () => {
-  const actual = jest.requireActual<typeof import('node:dns')>('node:dns');
-  return { __esModule: true, ...actual, lookup: jest.fn(actual.lookup) };
+vi.mock('node:dns', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:dns')>();
+  return { ...actual, lookup: vi.fn(actual.lookup) };
 });
 
 import { Test } from '@nestjs/testing';
@@ -35,8 +37,8 @@ import {
 import { MEDIA_PROXY_THROTTLE } from '../src/media/media.constants';
 
 const realDnsLookup =
-  jest.requireActual<typeof import('node:dns')>('node:dns').lookup;
-const mockedDnsLookup = dns.lookup as jest.MockedFunction<typeof dns.lookup>;
+  (await vi.importActual<typeof import('node:dns')>('node:dns')).lookup;
+const mockedDnsLookup = dns.lookup as MockedFunction<typeof dns.lookup>;
 
 // O Node (autoSelectFamily/Happy Eyeballs, ligado por padrão desde a v20)
 // sempre pede `{ all: true }` para host por nome — então o fake precisa
@@ -409,9 +411,9 @@ describe('Media proxy — matriz de segurança (docs/16-image-url-e-props/plan.m
       expect(closedEarly).toBe(true);
     });
 
-    // O `testTimeout` global (`test/jest-e2e.json`) fica acima do
+    // O `testTimeout` global (`vitest.e2e.config.mjs`) fica acima do
     // `MEDIA_PROXY_TIMEOUT_MS` (10s) — esse é o teste que precisa da folga;
-    // sem ela o jest estoura em 5s **antes** da asserção rodar, e o
+    // sem ela o runner estoura em 5s **antes** da asserção rodar, e o
     // `afterEach` corre contra uma requisição ainda pendente.
     it('#38 — timeout: alvo que segura a conexão aberta devolve 504', async () => {
       await withServer(

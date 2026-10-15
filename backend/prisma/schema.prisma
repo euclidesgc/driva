@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 /// O novo topo da hierarquia (Projeto → Categorias → Conteúdos). Guarda só a
