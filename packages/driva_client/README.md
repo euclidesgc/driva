@@ -83,6 +83,21 @@ arquivo versionado leva um placeholder.
 - **Só desenha spec validado pelo kernel.** JSON corrompido ou `specVersion`
   mais nova que a do app é tratado como falha de parse, não como conteúdo.
 
+## Tema do projeto
+
+A página sai desenhada com o tema do projeto (cores, estilos de texto, raios e
+sombras), que vem junto da resposta pública. Você não configura nada: o
+`DrivaContent` lê o tema e o entrega ao renderer, e o tema também fica no cache
+em disco, então a segunda abertura já sai com as cores certas.
+
+- **Tema ausente ou ilegível não derruba a página.** Cada item que não lê cai
+  no padrão do Material 3 claro (`kDefaultProjectTheme`), e os outros itens
+  continuam com o que o projeto escolheu. Projeto sem tema gravado sai com o
+  padrão inteiro.
+- **Quem chama `load` direto recebe `DrivaLoadedContent { spec, theme }`.** O
+  `spec` é a página, como antes; o `theme` é o tema do projeto. Quem usa só o
+  `DrivaContent` não precisa mudar nada.
+
 ## O que ainda não funciona
 
 - **Ações são inertes.** O editor ainda não deixa autorar eventos, então o

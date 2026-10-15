@@ -4,6 +4,11 @@
 
 ### Adicionado
 
+- **Projeto guarda o tema: `PUT /v1/projects/:id/theme` e `theme` no `GET /v1/projects/:id` (história #59 do board)**: o corpo `{ "theme": objeto | null }` grava o tema como veio, e `null` o limpa (vira `Prisma.DbNull`, não JSON nulo). Cada gravação marca `theme_updated_at`. A rota confere só que o tema é objeto ou `null`; a validação dos papéis fica no parse do kernel. A migração `add_project_theme` acrescenta duas colunas nulas em `projects`, `theme` (JSONB) e `theme_updated_at`, então projeto antigo continua sem tema.
+- **Leitura pública traz o tema do projeto (história #59 do board)**: `GET /v1/public/contents/:slug` passa a devolver `theme` (objeto ou `null`) ao lado do `spec`, para o app cliente desenhar a página com as cores do projeto.
+- **`parseProjectThemeTolerant` no `sdui_core` (história #59 do board)**: lê o tema do JSON item por item. Um papel de cor, estilo de texto, raio ou sombra ilegível cai no padrão de `kDefaultProjectTheme` daquele item, sem derrubar o resto; JSON que não é objeto vira o tema padrão inteiro. É a leitura que o app cliente usa, porque ali um tema novo ou com erro não pode tirar a página do ar.
+- **`DrivaLoadedContent` no `driva_client` (história #59 do board)**: par `{ spec, theme }` que o repositório emite. O cache em disco (`CachedContent`) guarda o `themeJson` ao lado do `specJson`, e o fallback embarcado sai com `kDefaultProjectTheme`.
+
 - **Editor de cor com alfa, hex `#AARRGGBB` e cores do tema pesquisáveis (história #6 do board)**: o seletor de cor do Inspector passa a ser um popover com a cor livre (canal de opacidade incluído) e a lista de papéis do tema com busca por nome. Escolher um papel grava a referência `{"$theme": papel}`, e o campo mostra o nome do papel em vez do hex. O modelo do tema do projeto (história #3) foi trazido para esta branch só nos arquivos de `sdui_core/src/model`, idênticos aos do PR #239.
 
 ### Corrigido
@@ -124,6 +129,9 @@
 - **Ícone final do Driva Builder (item 42)**: `web/icons/` e `web/favicon.png` deixam de ser o template do Flutter. Monograma **D+B** em Space Grotesk Bold (a mesma fonte do wordmark do topo), fundo em `conic-gradient` dividido na diagonal (tinta `#1C1512` × laranja da marca `#E8602C`), glifo num tom só (`#F5F3F0`) — o "Concepto B" escolhido entre os dois candidatos gerados. Ícone único: `manifest.json` (Driva Editor) e `preview_manifest.json` (Driva Preview) já apontavam para o mesmo conjunto de PNGs.
 
 ### Alterado
+
+- **⚠️ Breaking — `driva_client` 0.2.0 → 0.3.0: `DrivaContentRepository.load` emite `DrivaLoadedContent` em vez de `ContentSpec` (história #59 do board)**: quem chama `load` direto (fora do `DrivaContent`) recebe `DrivaLoadedContent { spec, theme }` e passa a ler `.spec` onde lia o spec. O `DrivaContent` desenha a página com `theme` (`SduiView.content(..., theme:)`), então o app que só usa o widget não precisa mudar nada. O fallback embarcado entra com o tema padrão.
+- **O `ETag` da leitura pública muda quando o tema do projeto muda (história #59 do board)**: quando o projeto já teve tema gravado, o `ETag` ganha o sufixo `-t<ms>` do `theme_updated_at`, e uma troca de tema revalida como uma publicação nova. Projeto sem tema mantém o formato de `ETag` de antes.
 
 - **`SduiView`/`SduiRenderer` ganham `boundValueDisplay` e trocam o `$bind` por um valor cru antes do builder (história #5 do board)**: nenhum builder recebe mais um mapa `$bind` (vários lançavam `TypeError`). O `resolveBoundProps` do `sdui_core` usa o valor padrão (`BoundValueDisplay.fallback`, o padrão — comportamento do app, onde a variável ainda não existe em runtime) ou a prévia (`BoundValueDisplay.preview`, para o canvas do editor; sem prévia, cai no padrão); sem nenhum dos dois, a chave sai e o widget usa o próprio default. O `nodeWrapper` continua recebendo o nó original, e páginas sem binding passam pelo mesmo caminho de antes (o nó volta idêntico).
 
