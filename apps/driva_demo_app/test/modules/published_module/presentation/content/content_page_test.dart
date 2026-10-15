@@ -62,10 +62,7 @@ void main() {
         expect(find.byType(ContentNotFoundView), findsOneWidget);
         // O ícone e o título compartilham o texto — o rótulo aparece duas
         // vezes na árvore de semântica (ícone + texto visível).
-        expect(
-          find.bySemanticsLabel('Conteúdo não encontrado'),
-          findsWidgets,
-        );
+        expect(find.bySemanticsLabel('Conteúdo não encontrado'), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );

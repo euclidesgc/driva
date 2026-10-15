@@ -42,11 +42,7 @@ ContentSpec _specWithText(String text) => ContentSpec(
   id: 'ct_1',
   name: 'Home',
   slug: 'home',
-  root: SduiNode(
-    id: 'n_root',
-    type: 'text',
-    properties: {'text': text},
-  ),
+  root: SduiNode(id: 'n_root', type: 'text', properties: {'text': text}),
 );
 
 void main() {
@@ -109,10 +105,7 @@ void main() {
   EditorReady ready({
     ContentSpec? document,
     SaveStatus saveStatus = SaveStatus.saved,
-  }) => EditorReady(
-    document: document ?? draftSpec,
-    saveStatus: saveStatus,
-  );
+  }) => EditorReady(document: document ?? draftSpec, saveStatus: saveStatus);
 
   setUpAll(() {
     registerFallbackValue(draftSpec);
@@ -689,22 +682,19 @@ void main() {
       editorCubit: realEditorCubit,
     );
 
-    test(
-      'escreve o spec do checkpoint no rascunho e marca como não publicado, '
-      'mesmo havendo uma versão publicada',
-      () async {
-        final cubit = buildWithRealEditor();
-        await cubit.enterCheckpoint('cp_1');
+    test('escreve o spec do checkpoint no rascunho e marca como não publicado, '
+        'mesmo havendo uma versão publicada', () async {
+      final cubit = buildWithRealEditor();
+      await cubit.enterCheckpoint('cp_1');
 
-        cubit.applyCandidateToDraft();
+      cubit.applyCandidateToDraft();
 
-        expect(cubit.state, isA<VersionCompareModeInactive>());
-        final state = realEditorCubit.state as EditorReady;
-        expect(state.document, cp1Spec);
-        expect(state.publication.hasUnpublishedChanges, isTrue);
-        expect(state.isReadOnly, isFalse);
-        await cubit.close();
-      },
-    );
+      expect(cubit.state, isA<VersionCompareModeInactive>());
+      final state = realEditorCubit.state as EditorReady;
+      expect(state.document, cp1Spec);
+      expect(state.publication.hasUnpublishedChanges, isTrue);
+      expect(state.isReadOnly, isFalse);
+      await cubit.close();
+    });
   });
 }

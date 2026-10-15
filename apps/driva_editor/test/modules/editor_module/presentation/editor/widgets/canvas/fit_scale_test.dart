@@ -43,10 +43,7 @@ void main() {
         fitScaleFor(frame: Size.zero, viewport: const Size(800, 600)).isFinite,
         isTrue,
       );
-      expect(
-        fitScaleFor(frame: const Size(400, 300), viewport: Size.zero),
-        0,
-      );
+      expect(fitScaleFor(frame: const Size(400, 300), viewport: Size.zero), 0);
     },
   );
 }

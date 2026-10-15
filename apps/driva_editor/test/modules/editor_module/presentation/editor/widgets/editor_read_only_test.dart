@@ -39,9 +39,7 @@ void main() {
 
   Widget hosted(Widget child) => MaterialApp(
     theme: AppTheme.light,
-    home: Scaffold(
-      body: SizedBox(width: 340, height: 700, child: child),
-    ),
+    home: Scaffold(body: SizedBox(width: 340, height: 700, child: child)),
   );
 
   Widget palette({required bool isReadOnly}) => hosted(

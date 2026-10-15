@@ -49,13 +49,11 @@ class SduiRenderer {
   ];
 
   /// Filhos de `Row`/`Column`: só aqui `Expanded` é legal.
-  List<Widget> renderFlexChildren(
-    BuildContext context,
-    List<SduiNode> nodes,
-  ) => [
-    for (final n in nodes)
-      SduiFlexScope(isFlexParent: true, child: render(context, n)),
-  ];
+  List<Widget> renderFlexChildren(BuildContext context, List<SduiNode> nodes) =>
+      [
+        for (final n in nodes)
+          SduiFlexScope(isFlexParent: true, child: render(context, n)),
+      ];
 
   void dispatch(Object? actions) {
     final handler = onAction;

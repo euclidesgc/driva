@@ -165,18 +165,14 @@ void main() {
   });
 
   group('colapso persistido por grupo (F6, Q2/P3)', () {
-    testWidgets(
-      'um grupo presente em collapsedSections nasce fechado',
-      (tester) async {
-        await _pumpList(
-          tester,
-          collapsedSections: ValueNotifier({'Estilo'}),
-        );
+    testWidgets('um grupo presente em collapsedSections nasce fechado', (
+      tester,
+    ) async {
+      await _pumpList(tester, collapsedSections: ValueNotifier({'Estilo'}));
 
-        expect(find.text('Tamanho da fonte'), findsNothing);
-        expect(find.text('Texto'), findsOneWidget);
-      },
-    );
+      expect(find.text('Tamanho da fonte'), findsNothing);
+      expect(find.text('Texto'), findsOneWidget);
+    });
 
     testWidgets(
       'fechar uma seção grava o rótulo do grupo em collapsedSections',

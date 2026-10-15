@@ -98,9 +98,9 @@ void main() {
 
   setUp(() {
     editorCubit = _MockEditorCubit();
-    when(() => editorCubit.state).thenReturn(
-      const EditorReady(document: _draftSpec),
-    );
+    when(
+      () => editorCubit.state,
+    ).thenReturn(const EditorReady(document: _draftSpec));
     whenListen(
       editorCubit,
       const Stream<EditorState>.empty(),
@@ -108,27 +108,24 @@ void main() {
     );
   });
 
-  testWidgets(
-    'fora do modo de comparação o canvas mostra um mock só, e nenhum '
-    'alternador',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1600, 900));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('fora do modo de comparação o canvas mostra um mock só, e nenhum '
+      'alternador', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1600, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        _harness(
-          surface: const Size(1600, 900),
-          editorCubit: editorCubit,
-          comparing: false,
-        ),
-      );
-      await tester.pump();
+    await tester.pumpWidget(
+      _harness(
+        surface: const Size(1600, 900),
+        editorCubit: editorCubit,
+        comparing: false,
+      ),
+    );
+    await tester.pump();
 
-      expect(find.byType(DeviceFrame), findsOneWidget);
-      expect(find.byType(CanvasCompareSideToggle), findsNothing);
-      expect(find.byType(VersionCompareMockPane), findsNothing);
-    },
-  );
+    expect(find.byType(DeviceFrame), findsOneWidget);
+    expect(find.byType(CanvasCompareSideToggle), findsNothing);
+    expect(find.byType(VersionCompareMockPane), findsNothing);
+  });
 
   testWidgets(
     'com espaço de sobra, comparar mostra os dois mocks lado a lado, na '
@@ -228,42 +225,40 @@ void main() {
     },
   );
 
-  testWidgets(
-    'em janela estreita cai para um mock por vez, com alternador',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(440, 380));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('em janela estreita cai para um mock por vez, com alternador', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(440, 380));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        _harness(surface: const Size(440, 380), editorCubit: editorCubit),
-      );
-      await tester.pump();
+    await tester.pumpWidget(
+      _harness(surface: const Size(440, 380), editorCubit: editorCubit),
+    );
+    await tester.pump();
 
-      expect(find.byType(DeviceFrame), findsOneWidget);
-      expect(find.byType(CanvasCompareSideToggle), findsOneWidget);
-    },
-  );
+    expect(find.byType(DeviceFrame), findsOneWidget);
+    expect(find.byType(CanvasCompareSideToggle), findsOneWidget);
+  });
 
-  testWidgets(
-    'na faixa estreita, o alternador escolhe qual mock aparece',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(440, 380));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('na faixa estreita, o alternador escolhe qual mock aparece', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(440, 380));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        _harness(
-          surface: const Size(440, 380),
-          editorCubit: editorCubit,
-          side: CanvasCompareSide.candidate,
-        ),
-      );
-      await tester.pump();
+    await tester.pumpWidget(
+      _harness(
+        surface: const Size(440, 380),
+        editorCubit: editorCubit,
+        side: CanvasCompareSide.candidate,
+      ),
+    );
+    await tester.pump();
 
-      expect(find.byType(VersionCompareMockPane), findsOneWidget);
-      expect(find.byType(CanvasDraftMock), findsNothing);
-      expect(find.byTooltip('Fechar comparação'), findsOneWidget);
-    },
-  );
+    expect(find.byType(VersionCompareMockPane), findsOneWidget);
+    expect(find.byType(CanvasDraftMock), findsNothing);
+    expect(find.byTooltip('Fechar comparação'), findsOneWidget);
+  });
 
   testWidgets(
     'o mock da versão é inerte e fica fora do alvo de arraste do rascunho',

@@ -93,9 +93,9 @@ void main() {
     blocTest<VersionReviewCubit, VersionReviewState>(
       'JSON inválido: mostra o estado de erro em vez de travar em Loading',
       build: build,
-      setUp: () => when(() => getContentVersion('ct_1', 3)).thenAnswer(
-        (_) async => const Left(ValidationFailure('spec ausente')),
-      ),
+      setUp: () => when(
+        () => getContentVersion('ct_1', 3),
+      ).thenAnswer((_) async => const Left(ValidationFailure('spec ausente'))),
       act: (cubit) => cubit.load(),
       expect: () => [
         const VersionReviewLoading(),

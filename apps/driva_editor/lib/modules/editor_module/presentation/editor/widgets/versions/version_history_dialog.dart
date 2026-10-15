@@ -95,15 +95,12 @@ class VersionHistoryDialog extends StatelessWidget {
     final result = await getContentVersionUseCase(contentId, version);
     if (!context.mounted) return;
 
-    final loaded = result.fold(
-      (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(versionFailureMessage(failure))),
-        );
-        return null;
-      },
-      (loadedVersion) => loadedVersion,
-    );
+    final loaded = result.fold((failure) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(versionFailureMessage(failure))));
+      return null;
+    }, (loadedVersion) => loadedVersion);
     if (loaded == null) return;
 
     final editorState = editorCubit.state;
@@ -133,15 +130,12 @@ class VersionHistoryDialog extends StatelessWidget {
     final result = await checkpointUseCase(contentId, checkpointId);
     if (!context.mounted) return;
 
-    final loaded = result.fold(
-      (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(versionFailureMessage(failure))),
-        );
-        return null;
-      },
-      (loadedCheckpoint) => loadedCheckpoint,
-    );
+    final loaded = result.fold((failure) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(versionFailureMessage(failure))));
+      return null;
+    }, (loadedCheckpoint) => loadedCheckpoint);
     if (loaded == null) return;
 
     final editorState = editorCubit.state;

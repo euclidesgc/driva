@@ -82,24 +82,23 @@ void main() {
     verify(() => getContentVersion('ct_1', 5)).called(2);
   });
 
-  testWidgets(
-    'sucesso: mostra número, data, nota e o selo Somente leitura',
-    (tester) async {
-      when(
-        () => getContentVersion('ct_1', 5),
-      ).thenAnswer((_) async => Right(loaded));
-      final cubit = buildCubit();
-      addTearDown(cubit.close);
-      await pumpDialog(tester, cubit);
-      await cubit.load();
-      await tester.pump();
+  testWidgets('sucesso: mostra número, data, nota e o selo Somente leitura', (
+    tester,
+  ) async {
+    when(
+      () => getContentVersion('ct_1', 5),
+    ).thenAnswer((_) async => Right(loaded));
+    final cubit = buildCubit();
+    addTearDown(cubit.close);
+    await pumpDialog(tester, cubit);
+    await cubit.load();
+    await tester.pump();
 
-      expect(find.textContaining('Versão 5'), findsOneWidget);
-      expect(find.textContaining('16/08/2026'), findsOneWidget);
-      expect(find.text('Ajuste no banner'), findsOneWidget);
-      expect(find.text('Somente leitura'), findsOneWidget);
-    },
-  );
+    expect(find.textContaining('Versão 5'), findsOneWidget);
+    expect(find.textContaining('16/08/2026'), findsOneWidget);
+    expect(find.text('Ajuste no banner'), findsOneWidget);
+    expect(find.text('Somente leitura'), findsOneWidget);
+  });
 
   testWidgets('desktop: usa a moldura larga (AlertDialog)', (tester) async {
     tester.view.physicalSize = const Size(1600, 1200);

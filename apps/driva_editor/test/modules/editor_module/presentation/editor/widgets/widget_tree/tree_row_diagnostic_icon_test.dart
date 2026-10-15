@@ -30,9 +30,7 @@ Future<void> _pump(
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light,
-      home: Scaffold(
-        body: TreeRowDiagnosticIcon(diagnostics: diagnostics),
-      ),
+      home: Scaffold(body: TreeRowDiagnosticIcon(diagnostics: diagnostics)),
     ),
   );
 }

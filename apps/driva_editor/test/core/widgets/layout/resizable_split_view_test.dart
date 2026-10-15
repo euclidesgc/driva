@@ -321,30 +321,27 @@ void main() {
       },
     );
 
-    testWidgets(
-      'arrastar o handle direito chama onRightWidthChanged, e não o '
-      'esquerdo',
-      (tester) async {
-        final leftReports = <double>[];
-        final rightReports = <double>[];
-        await tester.pumpWidget(
-          _controlledHarness(
-            controller: controller,
-            left: const ColoredBox(color: Colors.red),
-            center: const ColoredBox(color: Colors.green),
-            right: const ColoredBox(color: Colors.blue),
-            onLeftWidthChanged: leftReports.add,
-            onRightWidthChanged: rightReports.add,
-          ),
-        );
-        await tester.pump();
+    testWidgets('arrastar o handle direito chama onRightWidthChanged, e não o '
+        'esquerdo', (tester) async {
+      final leftReports = <double>[];
+      final rightReports = <double>[];
+      await tester.pumpWidget(
+        _controlledHarness(
+          controller: controller,
+          left: const ColoredBox(color: Colors.red),
+          center: const ColoredBox(color: Colors.green),
+          right: const ColoredBox(color: Colors.blue),
+          onLeftWidthChanged: leftReports.add,
+          onRightWidthChanged: rightReports.add,
+        ),
+      );
+      await tester.pump();
 
-        await tester.drag(find.byType(ResizeHandle).last, const Offset(-40, 0));
-        await tester.pump();
+      await tester.drag(find.byType(ResizeHandle).last, const Offset(-40, 0));
+      await tester.pump();
 
-        expect(rightReports, isNotEmpty);
-        expect(leftReports, isEmpty);
-      },
-    );
+      expect(rightReports, isNotEmpty);
+      expect(leftReports, isEmpty);
+    });
   });
 }

@@ -1,6 +1,6 @@
 name: sdui_core
 description: Kernel do spec SDUI do driva — modelos, schema de validação e catálogo de widgets (Dart puro).
-version: 0.3.0
+version: 0.3.2
 publish_to: none
 resolution: workspace
 
@@ -8,10 +8,12 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  equatable: ^2.0.7
-  fpdart: ^1.1.1
-  zard: ^1.3.0
+  equatable: ^3.0.0
+  fpdart: ^1.2.0
+  zard: ^1.4.0
 
 dev_dependencies:
-  lints: ^6.0.0
-  test: ^1.25.0
+  lints: ^6.1.0
+  # Flutter 3.47 pins test_api 0.7.12 through flutter_test.
+  # Newer test releases require a newer test_api and cannot resolve here.
+  test: ^1.31.1

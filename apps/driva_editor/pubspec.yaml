@@ -8,24 +8,26 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  bloc: ^9.0.0
-  dio: ^5.7.0
-  equatable: ^2.0.7
+  bloc: ^9.2.1
+  dio: ^5.11.1
+  equatable: ^3.0.0
+  # v4 depends on material_ui, whose MaterialLocalizations are incompatible
+  # with Flutter's MaterialApp. Keep the newest compatible major.
   flex_color_picker: ^3.8.0
   flutter:
     sdk: flutter
-  flutter_bloc: ^9.1.0
+  flutter_bloc: ^9.1.1
   flutter_web_plugins:
     sdk: flutter
-  fpdart: ^1.1.1
-  get_it: ^8.0.3
-  go_router: ^16.0.0
+  fpdart: ^1.2.0
+  get_it: ^9.3.0
+  go_router: ^18.1.0
   qr_flutter: ^4.1.0
-  sdui_core: ^0.3.0
+  sdui_core: ^0.3.2
   sdui_flutter: ^0.4.0
-  shared_preferences: ^2.5.5
-  web: ^1.1.0
-  zard: ^1.3.0
+  shared_preferences: ^2.5.6
+  web: ^1.1.1
+  zard: ^1.4.0
 
 dev_dependencies:
   bloc_test: ^10.0.0
@@ -33,7 +35,7 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  mocktail: ^1.0.4
+  mocktail: ^1.0.5
 
 flutter:
   uses-material-design: true

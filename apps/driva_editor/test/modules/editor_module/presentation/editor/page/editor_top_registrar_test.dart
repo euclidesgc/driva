@@ -267,25 +267,22 @@ void main() {
       ).thenAnswer((_) async => const Right(ContentVersionsPage(items: [])));
     });
 
-    testWidgets(
-      'com o modo de comparação disponível no contexto, abre o '
-      'VersionHistoryDialog',
-      (tester) async {
-        await _pumpBarAt(
-          tester,
-          _publicationStates['no ar']!,
-          1600,
-          getContentVersionsUseCase: getContentVersionsUseCase,
-          getContentVersionUseCase: getContentVersionUseCase,
-        );
+    testWidgets('com o modo de comparação disponível no contexto, abre o '
+        'VersionHistoryDialog', (tester) async {
+      await _pumpBarAt(
+        tester,
+        _publicationStates['no ar']!,
+        1600,
+        getContentVersionsUseCase: getContentVersionsUseCase,
+        getContentVersionUseCase: getContentVersionUseCase,
+      );
 
-        await tester.tap(find.byTooltip('Histórico de versões'));
-        await tester.pump();
+      await tester.tap(find.byTooltip('Histórico de versões'));
+      await tester.pump();
 
-        expect(tester.takeException(), isNull);
-        expect(find.byType(VersionHistoryDialog), findsOneWidget);
-      },
-    );
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VersionHistoryDialog), findsOneWidget);
+    });
 
     testWidgets(
       'sem o modo de comparação no contexto, o botão nasce indisponível e o '

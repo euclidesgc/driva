@@ -58,9 +58,7 @@ void main() {
   testWidgets('toque não foca o campo do snapshot', (tester) async {
     await pumpSnapshot(tester);
 
-    final editable = tester.state<EditableTextState>(
-      find.byType(EditableText),
-    );
+    final editable = tester.state<EditableTextState>(find.byType(EditableText));
     expect(editable.widget.focusNode.hasFocus, isFalse);
 
     await tester.tap(find.byType(TextFormField), warnIfMissed: false);

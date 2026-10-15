@@ -183,27 +183,24 @@ void main() {
     },
   );
 
-  testWidgets(
-    'a contagem exibida vem de changedPropertyKeys, o único dado de '
-    'comparação que o cabeçalho recebe',
-    (tester) async {
-      final changedKeys = {'data', 'shape', 'color'};
-      await tester.pumpWidget(
-        _harness(
-          InspectorCompareHeader(
-            diff: _diff(),
-            candidateLabel: 'a versão 3',
-            changedPropertyKeys: changedKeys,
-            descriptor: _textDescriptor,
-          ),
+  testWidgets('a contagem exibida vem de changedPropertyKeys, o único dado de '
+      'comparação que o cabeçalho recebe', (tester) async {
+    final changedKeys = {'data', 'shape', 'color'};
+    await tester.pumpWidget(
+      _harness(
+        InspectorCompareHeader(
+          diff: _diff(),
+          candidateLabel: 'a versão 3',
+          changedPropertyKeys: changedKeys,
+          descriptor: _textDescriptor,
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('${changedKeys.length} propriedades alteradas'),
-        findsOneWidget,
-      );
-    },
-  );
+    expect(
+      find.textContaining('${changedKeys.length} propriedades alteradas'),
+      findsOneWidget,
+    );
+  });
 }

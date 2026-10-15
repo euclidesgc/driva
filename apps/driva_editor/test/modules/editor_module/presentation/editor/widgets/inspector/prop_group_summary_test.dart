@@ -64,10 +64,7 @@ void main() {
       expect(
         PropGroupSummary.of(
           const [_fontSize, _color],
-          const {
-            'fontSize': 18.0,
-            'color': '#FFF',
-          },
+          const {'fontSize': 18.0, 'color': '#FFF'},
         ),
         '2 definidas',
       );
@@ -77,10 +74,7 @@ void main() {
       expect(
         PropGroupSummary.of(
           const [_fontSize, _color],
-          const {
-            'fontSize': 18.0,
-            'color': null,
-          },
+          const {'fontSize': 18.0, 'color': null},
         ),
         '18',
       );
@@ -112,10 +106,12 @@ void main() {
 
     test('padding por lado mostra os quatro na ordem E·T·D·B', () {
       expect(
-        PropGroupSummary.describe(
-          _padding,
-          const {'left': 8.0, 'top': 12.0, 'right': 8.0, 'bottom': 16.0},
-        ),
+        PropGroupSummary.describe(_padding, const {
+          'left': 8.0,
+          'top': 12.0,
+          'right': 8.0,
+          'bottom': 16.0,
+        }),
         '8 · 12 · 8 · 16',
       );
     });

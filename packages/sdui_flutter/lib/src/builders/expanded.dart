@@ -11,8 +11,5 @@ import 'package:sdui_flutter/src/renderer.dart';
 Widget buildExpanded(BuildContext context, SduiNode node, SduiRenderer r) {
   final child = r.maybeRender(context, node.child) ?? const SizedBox.shrink();
   if (!SduiFlexScope.isInFlex(context)) return child;
-  return Expanded(
-    flex: parseInt(node.properties['flex']) ?? 1,
-    child: child,
-  );
+  return Expanded(flex: parseInt(node.properties['flex']) ?? 1, child: child);
 }

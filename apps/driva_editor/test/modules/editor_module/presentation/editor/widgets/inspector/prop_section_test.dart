@@ -49,9 +49,7 @@ void main() {
     'onExpandedChanged é chamado com o novo estado a cada alternância',
     (tester) async {
       final changes = <bool>[];
-      await tester.pumpWidget(
-        _harness(onExpandedChanged: changes.add),
-      );
+      await tester.pumpWidget(_harness(onExpandedChanged: changes.add));
 
       await tester.tap(find.text('APARÊNCIA'));
       await tester.pumpAndSettle();
@@ -62,16 +60,15 @@ void main() {
     },
   );
 
-  testWidgets(
-    'onExpandedChanged ausente não impede o toggle local',
-    (tester) async {
-      await tester.pumpWidget(_harness());
+  testWidgets('onExpandedChanged ausente não impede o toggle local', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness());
 
-      await tester.tap(find.text('APARÊNCIA'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('APARÊNCIA'));
+    await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('campo'), findsNothing);
-    },
-  );
+    expect(tester.takeException(), isNull);
+    expect(find.text('campo'), findsNothing);
+  });
 }

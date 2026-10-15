@@ -75,11 +75,7 @@ class PropFieldEditor extends StatelessWidget {
               expression: expression,
               onClear: () => onChanged(null),
             )
-          : TypedPropEditor(
-              field: field,
-              value: value,
-              onChanged: onChanged,
-            ),
+          : TypedPropEditor(field: field, value: value, onChanged: onChanged),
     );
   }
 }

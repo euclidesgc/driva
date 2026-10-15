@@ -145,10 +145,7 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
         isUniform: _isUniform,
         onChanged: (isUniform) => _changeMode(isUniform: isUniform),
       ),
-      actions: [
-        ?widget.bindingButton,
-        ?widget.resetButton,
-      ],
+      actions: [?widget.bindingButton, ?widget.resetButton],
       body: _isUniform
           ? Row(
               children: [

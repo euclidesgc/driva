@@ -7,8 +7,6 @@ class GetContentVersionUseCase {
   const GetContentVersionUseCase({required this.repository});
   final EditorRepository repository;
 
-  Future<Either<Failure, LoadedContentVersion>> call(
-    String id,
-    int version,
-  ) => repository.getVersion(id, version);
+  Future<Either<Failure, LoadedContentVersion>> call(String id, int version) =>
+      repository.getVersion(id, version);
 }

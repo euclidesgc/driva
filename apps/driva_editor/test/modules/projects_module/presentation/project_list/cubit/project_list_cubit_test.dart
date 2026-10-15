@@ -79,10 +79,7 @@ void main() {
       seed: () =>
           ProjectListLoaded(projects: [proj('1'), proj('2')], archivedCount: 3),
       setUp: () => when(
-        () => updateProject(
-          '1',
-          title: 'Novo',
-        ),
+        () => updateProject('1', title: 'Novo'),
       ).thenAnswer((_) async => Right(updated)),
       act: (cubit) => cubit.update('1', title: 'Novo'),
       expect: () => [
@@ -96,10 +93,7 @@ void main() {
       build: build,
       seed: () => ProjectListLoaded(projects: [proj('1')]),
       setUp: () => when(
-        () => updateProject(
-          '1',
-          title: 'Novo',
-        ),
+        () => updateProject('1', title: 'Novo'),
       ).thenAnswer((_) async => const Left(NetworkFailure())),
       act: (cubit) => cubit.update('1', title: 'Novo'),
       expect: () => const <ProjectListState>[],

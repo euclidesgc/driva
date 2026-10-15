@@ -172,9 +172,7 @@ void main() {
     tester,
   ) async {
     cubit.emit(ready());
-    when(
-      () => compareCubit.returnToPublished(),
-    ).thenAnswer((_) async => true);
+    when(() => compareCubit.returnToPublished()).thenAnswer((_) async => true);
     await pump(tester, compareState: active());
 
     await tester.tap(find.byType(ReturnToPublishedButton));

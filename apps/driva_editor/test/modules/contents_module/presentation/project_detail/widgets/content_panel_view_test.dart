@@ -91,9 +91,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
-        bootstrap(
-          state: ContentListLoaded(contents: [content]),
-        ),
+        bootstrap(state: ContentListLoaded(contents: [content])),
       );
 
       expect(find.byIcon(Icons.folder_outlined), findsNothing);

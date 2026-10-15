@@ -10,9 +10,7 @@ class NodeDiagnosticsSummary {
 /// Assume [diagnostics] não vazio — quem chama já filtrou pelo `nodeId`.
 NodeDiagnosticsSummary summarizeDiagnostics(List<SpecDiagnostic> diagnostics) {
   final severity =
-      diagnostics.any(
-        (each) => each.severity == DiagnosticSeverity.error,
-      )
+      diagnostics.any((each) => each.severity == DiagnosticSeverity.error)
       ? DiagnosticSeverity.error
       : DiagnosticSeverity.warning;
   return NodeDiagnosticsSummary(

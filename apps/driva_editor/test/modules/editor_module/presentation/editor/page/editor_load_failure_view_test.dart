@@ -80,10 +80,8 @@ void main() {
     );
   }
 
-  EditorLoadFailureContent shownContent(WidgetTester tester) =>
-      tester.widget<EditorLoadFailureContent>(
-        find.byType(EditorLoadFailureContent),
-      );
+  EditorLoadFailureContent shownContent(WidgetTester tester) => tester
+      .widget<EditorLoadFailureContent>(find.byType(EditorLoadFailureContent));
 
   group('404 do conteúdo cruzado com o projeto da URL', () {
     testWidgets('projeto resolvido: a mensagem nomeia o projeto', (

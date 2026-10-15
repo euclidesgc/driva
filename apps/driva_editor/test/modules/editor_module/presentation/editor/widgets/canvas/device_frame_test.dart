@@ -11,11 +11,7 @@ void main() {
     theme: AppTheme.light,
     home: Scaffold(
       body: Center(
-        child: DeviceFrame(
-          device: device,
-          highlighted: false,
-          child: child,
-        ),
+        child: DeviceFrame(device: device, highlighted: false, child: child),
       ),
     ),
   );
@@ -26,20 +22,17 @@ void main() {
     child: SizedBox(key: marker, width: 10, height: 10),
   );
 
-  testWidgets(
-    'desenhar a status bar não empurra o conteúdo (D29): o topo do '
-    'conteúdo e o topo da faixa desenhada ficam no mesmo y',
-    (tester) async {
-      await tester.pumpWidget(
-        harness(DevicePreset.smartphone, child: markerWidget),
-      );
-      await tester.pump();
+  testWidgets('desenhar a status bar não empurra o conteúdo (D29): o topo do '
+      'conteúdo e o topo da faixa desenhada ficam no mesmo y', (tester) async {
+    await tester.pumpWidget(
+      harness(DevicePreset.smartphone, child: markerWidget),
+    );
+    await tester.pump();
 
-      final barTop = tester.getTopLeft(find.byType(DeviceStatusBar)).dy;
-      final contentTop = tester.getTopLeft(find.byKey(marker)).dy;
-      expect(contentTop, barTop);
-    },
-  );
+    final barTop = tester.getTopLeft(find.byType(DeviceStatusBar)).dy;
+    final contentTop = tester.getTopLeft(find.byKey(marker)).dy;
+    expect(contentTop, barTop);
+  });
 
   testWidgets(
     'o SafeArea ganha causa visível (8f): sem ele o conteúdo passa por '

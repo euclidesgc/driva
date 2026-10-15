@@ -81,10 +81,7 @@ void main() {
         harness(
           compareDiffs: {
             'text': diffOf('text', propertiesChanged: true),
-            'button': diffOf(
-              'button',
-              baseType: 'button',
-            ),
+            'button': diffOf('button', baseType: 'button'),
           },
           compareOnlyInBase: const {'root'},
         ),

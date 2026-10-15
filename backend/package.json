@@ -3,22 +3,30 @@
   "version": "0.4.0",
   "private": true,
   "engines": {
-    "node": ">=22 <23",
+    "node": "^22.12.0 || >=24.0.0",
     "pnpm": ">=10.24.0"
   },
   "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@prisma/engines",
+      "prisma",
+      "unrs-resolver"
+    ]
+  },
   "description": "Backend do driva — storage de specs SDUI (NestJS + Prisma + Postgres)",
   "scripts": {
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:generate": "PRISMA_HIDE_UPDATE_MESSAGE=1 prisma generate",
+    "prisma:migrate:dev": "PRISMA_HIDE_UPDATE_MESSAGE=1 prisma migrate dev",
+    "prisma:migrate:deploy": "PRISMA_HIDE_UPDATE_MESSAGE=1 prisma migrate deploy",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test": "node --disable-warning=ExperimentalWarning --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:e2e": "vitest run --config ./vitest.e2e.config.mjs"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -28,42 +36,60 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/../test/jest.setup.ts"
+    ],
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
     },
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1081.0",
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/throttler": "^6.5.0",
-    "@prisma/client": "^6.8.0",
+    "@aws-sdk/client-s3": "^3.1152.0",
+    "@nestjs/common": "^12.1.3",
+    "@nestjs/core": "^12.1.3",
+    "@nestjs/platform-express": "^12.1.3",
+    "@nestjs/throttler": "^6.7.1",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "^7.10.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
-    "express": "^5.2.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "18.0.8",
+    "express": "^5.3.0",
     "ipaddr.js": "^2.5.0",
+    "pg": "8.23.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "sharp": "^0.35.3"
+    "rxjs": "^7.8.2",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/testing": "^11.2.1",
-    "@types/express": "^5.0.0",
+    "@jest/globals": "30.5.2",
+    "@nestjs/cli": "^12.0.8",
+    "@nestjs/testing": "^12.1.3",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
-    "@types/multer": "^2.2.0",
-    "@types/node": "^22.10.0",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^26.6.5",
+    "@types/pg": "8.23.1",
     "@types/supertest": "^7.2.1",
-    "eslint": "^10.7.0",
-    "globals": "^17.7.0",
-    "jest": "^30.4.2",
-    "prisma": "^6.8.0",
-    "supertest": "^7.2.2",
-    "ts-jest": "^29.4.12",
-    "typescript": "^5.7.0",
-    "typescript-eslint": "^8.64.0"
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "prisma": "7.10.0",
+    "supertest": "^7.3.1",
+    "ts-jest": "^29.4.14",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.4"
   }
 }

@@ -184,10 +184,7 @@ class _DimensionEditorState extends State<DimensionEditor> {
       label: widget.field.label,
       isRequired: widget.field.isRequired,
       helpText: widget.field.helpText,
-      headerTrailing: DimensionUnitToggle(
-        unit: _unit,
-        onChanged: _changeUnit,
-      ),
+      headerTrailing: DimensionUnitToggle(unit: _unit, onChanged: _changeUnit),
       // Binding só faz sentido em pixels: uma variável que devolve "70%" não
       // tem como ser validada aqui, e o FlutterFlow esconde o botão do mesmo
       // jeito.

@@ -115,9 +115,8 @@ void main() {
             GetContentCheckpointUseCase(repository: getIt<EditorRepository>()),
       )
       ..registerFactory(
-        () => GetEditorLayoutUseCase(
-          repository: getIt<EditorLayoutRepository>(),
-        ),
+        () =>
+            GetEditorLayoutUseCase(repository: getIt<EditorLayoutRepository>()),
       )
       ..registerFactory(
         () => SaveEditorLayoutUseCase(
@@ -179,30 +178,27 @@ void main() {
     },
   );
 
-  testWidgets(
-    'na árvore real, a linha do ponto salvo chega com as três ações '
-    'habilitadas — não são botões inertes',
-    (tester) async {
-      await pumpEditor(tester);
-      await openHistory(tester);
+  testWidgets('na árvore real, a linha do ponto salvo chega com as três ações '
+      'habilitadas — não são botões inertes', (tester) async {
+    await pumpEditor(tester);
+    await openHistory(tester);
 
-      expect(find.byType(CheckpointRow), findsOneWidget);
-      expect(find.text(checkpointNote), findsOneWidget);
+    expect(find.byType(CheckpointRow), findsOneWidget);
+    expect(find.text(checkpointNote), findsOneWidget);
 
-      final ver = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Ver'),
-      );
-      final comparar = tester.widget<OutlinedButton>(
-        find.widgetWithText(OutlinedButton, 'Comparar'),
-      );
-      final carregar = tester.widget<OutlinedButton>(
-        find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
-      );
-      expect(ver.onPressed, isNotNull);
-      expect(comparar.onPressed, isNotNull);
-      expect(carregar.onPressed, isNotNull);
-    },
-  );
+    final ver = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Ver'),
+    );
+    final comparar = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Comparar'),
+    );
+    final carregar = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Carregar no rascunho'),
+    );
+    expect(ver.onPressed, isNotNull);
+    expect(comparar.onPressed, isNotNull);
+    expect(carregar.onPressed, isNotNull);
+  });
 
   testWidgets(
     'Ver, na árvore real, abre a revisão com o cabeçalho do ponto salvo',

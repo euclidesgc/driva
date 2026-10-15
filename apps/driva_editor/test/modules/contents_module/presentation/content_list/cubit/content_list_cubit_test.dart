@@ -225,9 +225,7 @@ void main() {
       'conflito: não recarrega e devolve ConflictFailure com sugestão',
       build: build,
       setUp: () =>
-          when(
-            () => createContent(name: 'Home', slug: 'home'),
-          ).thenAnswer(
+          when(() => createContent(name: 'Home', slug: 'home')).thenAnswer(
             (_) async => const Left(ConflictFailure(suggestedSlug: 'home-2')),
           ),
       act: (cubit) => cubit.create(name: 'Home', slug: 'home'),

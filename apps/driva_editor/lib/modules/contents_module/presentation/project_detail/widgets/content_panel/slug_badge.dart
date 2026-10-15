@@ -79,9 +79,7 @@ class SlugBadge extends StatelessWidget {
             constrainedAxis: Axis.vertical,
             alignment: Alignment.centerLeft,
             child: ConstrainedBox(
-              constraints: const BoxConstraints.tightFor(
-                width: minimumWidth,
-              ),
+              constraints: const BoxConstraints.tightFor(width: minimumWidth),
               child: badge,
             ),
           );
