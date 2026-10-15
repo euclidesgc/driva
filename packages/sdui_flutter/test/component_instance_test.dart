@@ -31,7 +31,7 @@ SduiNode _instance(String componentId, [Map<String, dynamic>? args]) =>
       },
     );
 
-final _tituloText = SduiNode(
+const _tituloText = SduiNode(
   id: 'texto',
   type: 'text',
   properties: {
