@@ -50,6 +50,43 @@ const _otherDescriptor = WidgetDescriptor(
   ],
 );
 
+const _hoverDescriptor = WidgetDescriptor(
+  type: 'card',
+  label: 'Card',
+  iconName: 'card',
+  category: WidgetCategories.basics,
+  slot: SlotKind.none,
+  fields: [
+    PropField(
+      key: 'data',
+      kind: FieldKind.string,
+      label: 'Texto',
+      group: FieldGroups.content,
+    ),
+    PropField(
+      key: 'hoverEnabled',
+      kind: FieldKind.boolean,
+      label: 'Efeito hover',
+      group: FieldGroups.style,
+      defaultValue: false,
+    ),
+    PropField(
+      key: 'hoverColor',
+      kind: FieldKind.string,
+      label: 'Cor do hover',
+      group: FieldGroups.style,
+      visibleWhen: PropEquals('hoverEnabled', true),
+    ),
+    PropField(
+      key: 'hoverPadding',
+      kind: FieldKind.string,
+      label: 'Margem do hover',
+      group: FieldGroups.spacing,
+      visibleWhen: PropEquals('hoverEnabled', true),
+    ),
+  ],
+);
+
 Future<void> _pumpList(
   WidgetTester tester, {
   Map<String, dynamic> properties = const {},
@@ -231,6 +268,174 @@ void main() {
         );
 
         expect(find.text('Tamanho da fonte'), findsNothing);
+      },
+    );
+  });
+
+  group('visibleWhen', () {
+    final switchFinder = find.byType(Switch);
+    final hoverColor = find.text('Cor do hover');
+
+    Future<List<Map<String, dynamic>>> pumpHover(
+      WidgetTester tester, {
+      Map<String, dynamic> initial = const {},
+    }) async {
+      final patches = <Map<String, dynamic>>[];
+      var properties = initial;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SizedBox(
+              width: 320,
+              height: 700,
+              child: StatefulBuilder(
+                builder: (context, setState) => InspectorPropList(
+                  onBindProp: (_, _) {},
+                  onUnbindProp: (_) {},
+                  ownerKey: 'n1',
+                  properties: properties,
+                  descriptor: _hoverDescriptor,
+                  onUpdateProps: (patch) {
+                    patches.add(patch);
+                    setState(() {
+                      properties = {...properties, ...patch}
+                        ..removeWhere((_, value) => value == null);
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return patches;
+    }
+
+    testWidgets('com o switch desligado, o campo condicional fica fora', (
+      tester,
+    ) async {
+      await pumpHover(tester);
+
+      expect(find.text('Efeito hover'), findsOneWidget);
+      expect(hoverColor, findsNothing);
+    });
+
+    testWidgets('ligar o switch faz o campo aparecer', (tester) async {
+      await pumpHover(tester);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(hoverColor, findsOneWidget);
+    });
+
+    testWidgets(
+      'esconder e religar devolve o valor, e nenhum patch o remove',
+      (tester) async {
+        final patches = await pumpHover(
+          tester,
+          initial: {'hoverEnabled': true},
+        );
+        await tester.enterText(
+          find.descendant(
+            of: find.byKey(const ValueKey('n1_hoverColor')),
+            matching: find.byType(TextField),
+          ),
+          'red',
+        );
+        await tester.pumpAndSettle();
+        final before = patches.length;
+
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
+        expect(hoverColor, findsNothing);
+
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
+
+        expect(hoverColor, findsOneWidget);
+        expect(find.text('red'), findsOneWidget);
+        final afterEntry = patches.skip(before);
+        expect(afterEntry, isNotEmpty);
+        expect(
+          afterEntry.any((patch) => patch.containsKey('hoverColor')),
+          isFalse,
+        );
+      },
+    );
+
+    testWidgets('a seção cujo único campo está escondido não é renderizada', (
+      tester,
+    ) async {
+      await pumpHover(tester);
+
+      expect(find.byType(PropSection), findsNWidgets(2));
+      expect(find.text('ESPAÇAMENTO'), findsNothing);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ESPAÇAMENTO'), findsOneWidget);
+    });
+
+    testWidgets('o resumo da seção mista ignora o campo escondido', (
+      tester,
+    ) async {
+      await pumpHover(
+        tester,
+        initial: {'hoverEnabled': false, 'hoverColor': 'red'},
+      );
+
+      await tester.tap(find.text('ESTILO'));
+      await tester.pumpAndSettle();
+
+      final summary = find.descendant(
+        of: find.byType(PropSectionHeader),
+        matching: find.text('Não'),
+      );
+      expect(summary, findsOneWidget);
+      expect(find.text('2 definidas'), findsNothing);
+    });
+
+    testWidgets('buscar o rótulo do campo escondido não traz nada', (
+      tester,
+    ) async {
+      await pumpHover(tester);
+
+      await tester.enterText(find.byType(SearchField), 'Cor do hover');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nenhuma propriedade encontrada.'), findsOneWidget);
+    });
+
+    testWidgets(
+      'alternar o switch não tira o texto nem o foco de outra seção',
+      (
+        tester,
+      ) async {
+        await pumpHover(tester);
+        final data = find.descendant(
+          of: find.byKey(const ValueKey('n1_data')),
+          matching: find.byType(TextField),
+        );
+
+        await tester.tap(data);
+        await tester.enterText(data, 'olá');
+        await tester.pumpAndSettle();
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
+
+        expect(find.text('olá'), findsOneWidget);
+        expect(
+          tester
+              .widget<EditableText>(
+                find.descendant(of: data, matching: find.byType(EditableText)),
+              )
+              .focusNode
+              .hasFocus,
+          isTrue,
+        );
       },
     );
   });
