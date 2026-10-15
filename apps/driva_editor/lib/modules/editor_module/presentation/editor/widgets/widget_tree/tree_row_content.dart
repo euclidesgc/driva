@@ -21,6 +21,8 @@ class TreeRowContent extends StatelessWidget {
     required this.onRemove,
     required this.removeLabel,
     this.diffMarkerKind,
+    this.hasAction = false,
+    this.onContextMenu,
     super.key,
   });
 
@@ -34,6 +36,8 @@ class TreeRowContent extends StatelessWidget {
   final VoidCallback onSelect;
   final VoidCallback? onRemove;
   final String removeLabel;
+  final bool hasAction;
+  final ValueChanged<Offset>? onContextMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +48,9 @@ class TreeRowContent extends StatelessWidget {
       label: 'Bloco $label',
       child: InkWell(
         onTap: onSelect,
+        onSecondaryTapDown: onContextMenu == null
+            ? null
+            : (details) => onContextMenu!(details.globalPosition),
         child: Container(
           padding: EdgeInsets.only(
             left: AppSpacing.s12 + depth * AppSpacing.s16,
@@ -78,6 +85,18 @@ class TreeRowContent extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (hasAction)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.s4),
+                  child: Semantics(
+                    label: 'tem ação',
+                    child: Icon(
+                      Icons.bolt,
+                      size: 16,
+                      color: colors.success,
+                    ),
+                  ),
+                ),
               if (diffMarkerKind != null)
                 Padding(
                   padding: const EdgeInsets.only(left: AppSpacing.s4),

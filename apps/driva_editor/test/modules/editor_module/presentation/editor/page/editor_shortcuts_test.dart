@@ -111,6 +111,34 @@ void main() {
 
       verify(() => cubit.wrapSelected('column')).called(1);
     });
+
+    testWidgets('Ctrl+B abre o seletor e confirmar envolve', (tester) async {
+      await pumpEditor(tester);
+
+      await pressWithControl(tester, LogicalKeyboardKey.keyB);
+      await tester.pumpAndSettle();
+      expect(find.text('Envolver em…'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('picker-row')));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Envolver'));
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.wrapSelected('row')).called(1);
+    });
+
+    testWidgets('Ctrl+Shift+C copia o estilo', (tester) async {
+      await pumpEditor(tester);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pump();
+
+      verify(cubit.copyStyleSelected).called(1);
+      verifyNever(cubit.copySelected);
+    });
   });
 
   group('com o cursor num campo de texto', () {

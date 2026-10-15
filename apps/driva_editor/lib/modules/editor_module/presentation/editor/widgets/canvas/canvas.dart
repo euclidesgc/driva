@@ -10,6 +10,7 @@ export 'canvas_panel_body.dart';
 export 'canvas_toolbar.dart';
 export 'device_frame.dart';
 export 'empty_preview.dart';
+export 'empty_slot_marker.dart';
 export 'fit_scale.dart';
 export 'node_drag_feedback.dart';
 export 'node_tag.dart';

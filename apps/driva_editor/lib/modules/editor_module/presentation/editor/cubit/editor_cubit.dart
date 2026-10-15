@@ -57,6 +57,7 @@ class EditorCubit extends Cubit<EditorState> {
   final List<EditorHistoryEntry> _future = [];
 
   SduiNode? _clipboard;
+  Map<String, dynamic>? _styleClipboard;
 
   /// Referência ao documento que o servidor tem, para desfazer até ele devolver
   /// o status "salvo" em vez de deixar a top bar mentindo.
@@ -440,6 +441,88 @@ class EditorCubit extends Cubit<EditorState> {
       newRoot,
       selectedNodeId: newId,
       notice: _nextNotice(EditorNoticeKind.nodeWrapped, wrapperType),
+    );
+  }
+
+  void unwrapSelected() {
+    final current = _editable;
+    final root = current?.document.root;
+    final nodeId = current?.selectedNodeId;
+    if (current == null || root == null || nodeId == null) return;
+    final newRoot = sdui.unwrapNode(root, nodeId);
+    if (newRoot == null) {
+      _emitNotice(current, EditorNoticeKind.operationRefused);
+      return;
+    }
+    _emitRoot(
+      current,
+      newRoot,
+      selectedNodeId: null,
+      notice: _nextNotice(
+        EditorNoticeKind.nodeUnwrapped,
+        current.selectedNode?.type,
+      ),
+    );
+  }
+
+  void replaceSelected(String newType) {
+    final current = _editable;
+    final root = current?.document.root;
+    final nodeId = current?.selectedNodeId;
+    if (current == null || root == null || nodeId == null) return;
+    final newRoot = sdui.replaceNode(root, nodeId, newType);
+    if (newRoot == null) {
+      _emitNotice(current, EditorNoticeKind.operationRefused);
+      return;
+    }
+    _emitRoot(
+      current,
+      newRoot,
+      notice: _nextNotice(
+        EditorNoticeKind.nodeReplaced,
+        null,
+        wrapperType: newType,
+      ),
+    );
+  }
+
+  void copyStyleSelected() {
+    final current = _editable;
+    final root = current?.document.root;
+    final nodeId = current?.selectedNodeId;
+    if (current == null || root == null || nodeId == null) return;
+    final style = sdui.copyStyle(root, nodeId);
+    if (style == null) {
+      _emitNotice(current, EditorNoticeKind.operationRefused);
+      return;
+    }
+    _styleClipboard = style;
+    _emitNotice(
+      current,
+      EditorNoticeKind.styleCopied,
+      subjectType: current.selectedNode?.type,
+    );
+  }
+
+  void pasteStyleSelected() {
+    final current = _editable;
+    final root = current?.document.root;
+    final nodeId = current?.selectedNodeId;
+    if (current == null || root == null || nodeId == null) return;
+    final style = _styleClipboard;
+    if (style == null) {
+      _emitNotice(current, EditorNoticeKind.styleClipboardEmpty);
+      return;
+    }
+    final newRoot = sdui.pasteStyle(root, nodeId, style);
+    if (newRoot == null) {
+      _emitNotice(current, EditorNoticeKind.operationRefused);
+      return;
+    }
+    _emitRoot(
+      current,
+      newRoot,
+      notice: _nextNotice(EditorNoticeKind.stylePasted, null),
     );
   }
 

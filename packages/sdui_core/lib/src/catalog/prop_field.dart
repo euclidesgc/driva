@@ -20,6 +20,7 @@ class PropField extends Equatable {
     this.isRequired = false,
     this.isAdvanced = false,
     this.isBindable = true,
+    this.isStyle = false,
     this.declaredValueType,
   });
 
@@ -55,6 +56,9 @@ class PropField extends Equatable {
   /// Aceita `{{binding}}`, `$theme` ou `$bind` no lugar de um valor fixo.
   final bool isBindable;
 
+  /// Entra em copiar/colar estilo.
+  final bool isStyle;
+
   final PropValueType? declaredValueType;
 
   PropValueType get valueType => declaredValueType ?? kind.valueType;
@@ -80,6 +84,7 @@ class PropField extends Equatable {
     isRequired,
     isAdvanced,
     isBindable,
+    isStyle,
     declaredValueType,
   ];
 }
