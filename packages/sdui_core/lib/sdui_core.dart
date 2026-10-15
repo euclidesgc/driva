@@ -38,6 +38,7 @@ export 'src/model/theme_text_style_name.dart';
 export 'src/ops/binding_ops.dart';
 export 'src/ops/bound_value_resolution.dart';
 export 'src/ops/compare_ops.dart';
+export 'src/ops/component_resolution_error.dart';
 export 'src/ops/drop_ops.dart';
 export 'src/ops/spec_version_ops.dart';
 export 'src/ops/tree_ops.dart';
