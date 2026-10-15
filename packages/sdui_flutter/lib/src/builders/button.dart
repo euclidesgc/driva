@@ -8,7 +8,12 @@ import 'package:sdui_flutter/src/renderer.dart';
 Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final enabled = p['enabled'] as bool? ?? true;
-  final onPressed = enabled ? () => r.dispatch(node.events['onPressed']) : null;
+  final onPressed = enabled
+      ? () => r.dispatchTrigger(node, EventTrigger.onPressed)
+      : null;
+  final onLongPress = enabled && r.hasActions(node, EventTrigger.onLongPress)
+      ? () => r.dispatchTrigger(node, EventTrigger.onLongPress)
+      : null;
 
   final borderRadius = parseBorderRadius(p['borderRadius']);
   final fontSize = parseDouble(p['fontSize']);
@@ -23,13 +28,29 @@ Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
   final label = Text((p['label'] ?? '').toString());
 
   return switch (p['variant']) {
-    'text' => TextButton(onPressed: onPressed, style: style, child: label),
-    'outlined' => OutlinedButton(
+    'text' => TextButton(
       onPressed: onPressed,
+      onLongPress: onLongPress,
       style: style,
       child: label,
     ),
-    'filled' => FilledButton(onPressed: onPressed, style: style, child: label),
-    _ => ElevatedButton(onPressed: onPressed, style: style, child: label),
+    'outlined' => OutlinedButton(
+      onPressed: onPressed,
+      onLongPress: onLongPress,
+      style: style,
+      child: label,
+    ),
+    'filled' => FilledButton(
+      onPressed: onPressed,
+      onLongPress: onLongPress,
+      style: style,
+      child: label,
+    ),
+    _ => ElevatedButton(
+      onPressed: onPressed,
+      onLongPress: onLongPress,
+      style: style,
+      child: label,
+    ),
   };
 }
