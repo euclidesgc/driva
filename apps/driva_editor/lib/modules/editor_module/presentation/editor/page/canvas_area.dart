@@ -5,6 +5,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/edi
 import 'package:driva_editor/modules/editor_module/presentation/editor/device_preset.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/canvas_compare_chrome_binding.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_scope.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/page/select_with_modifiers.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/canvas_compare_pane.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas_panel.dart';
@@ -65,7 +66,7 @@ class CanvasArea extends StatelessWidget {
                 device: vm.device,
                 zoom: vm.zoom,
                 fitToWindow: vm.fitToWindow,
-                onSelect: cubit.selectNode,
+                onSelect: (id) => selectWithModifiers(cubit, id),
                 onChangeDevice: cubit.changeDevice,
                 onChangeZoom: cubit.changeZoom,
                 onToggleFitToWindow: cubit.toggleFitToWindow,

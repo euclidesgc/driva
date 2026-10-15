@@ -543,6 +543,45 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  /// Aplica o mesmo [patch] a vários nós numa única entrada de histórico.
+  /// Ids repetidos ou inexistentes são ignorados; ancestral + descendente
+  /// recebem o patch uma vez cada.
+  void updatePropsBatch(List<String> ids, Map<String, dynamic> patch) {
+    final current = _editable;
+    if (current == null) return;
+    var newRoot = current.document.root;
+    if (newRoot == null) return;
+    final unique = ids.toSet().toList()..sort();
+    for (final id in unique) {
+      if (sdui.findNode(newRoot!, id) == null) continue;
+      newRoot = sdui.updateNodeProps(newRoot, id, patch);
+    }
+    _emitRoot(
+      current,
+      newRoot,
+      coalesceKey: 'props-batch:${unique.join("|")}:${patch.keys.join(",")}',
+    );
+  }
+
+  /// Soma ou remove [id] da multi-seleção (Shift/Ctrl/Cmd+clique). Quem entra
+  /// vira o primário; ao remover, o primário passa ao último restante.
+  void toggleNodeSelection(String id) {
+    final current = _editable;
+    if (current == null) return;
+    final selection = List<String>.of(current.effectiveSelection);
+    if (selection.contains(id)) {
+      selection.remove(id);
+    } else {
+      selection.add(id);
+    }
+    emit(
+      current.copyWith(
+        selectedNodeId: () => selection.isEmpty ? null : selection.last,
+        selectedNodeIds: selection.length > 1 ? selection : const [],
+      ),
+    );
+  }
+
   void bindProp(String nodeId, String key, BoundPropValue binding) {
     final current = _editable;
     if (current == null) return;
@@ -596,7 +635,7 @@ class EditorCubit extends Cubit<EditorState> {
   void selectNode(String? id) {
     final current = state;
     if (current is! EditorReady) return;
-    emit(current.copyWith(selectedNodeId: () => id));
+    emit(current.copyWith(selectedNodeId: () => id, selectedNodeIds: const []));
   }
 
   void changeDevice(DevicePreset device) {
@@ -874,6 +913,10 @@ class EditorCubit extends Cubit<EditorState> {
         selectedNodeId: identical(selectedNodeId, _keepSelection)
             ? null
             : () => selectedNodeId as String?,
+        // Operação estrutural que troca o primário encerra a multi-seleção.
+        selectedNodeIds: identical(selectedNodeId, _keepSelection)
+            ? null
+            : const [],
         notice: () => notice,
         canUndo: _past.isNotEmpty,
         canRedo: _future.isNotEmpty,
@@ -927,6 +970,7 @@ class EditorCubit extends Cubit<EditorState> {
       current.copyWith(
         document: entry.document,
         selectedNodeId: () => entry.selectedNodeId,
+        selectedNodeIds: const [],
         saveStatus: _statusFor(entry.document),
         notice: () => null,
         canUndo: _past.isNotEmpty,

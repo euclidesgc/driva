@@ -7,6 +7,7 @@ import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/c
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/node_diagnostics_summary.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/widget_tree/node_context_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sdui_core/sdui_core.dart';
@@ -44,6 +45,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
 
   late ContentSpec _rendered;
   String? _selectedNodeId;
+  List<String> _selectedNodeIds = const [];
   bool _isReadOnly = false;
   Map<String, List<SpecDiagnostic>> _nodeDiagnostics = const {};
 
@@ -57,6 +59,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
     final state = _cubit.state as EditorReady;
     _rendered = state.document;
     _selectedNodeId = state.selectedNodeId;
+    _selectedNodeIds = state.selectedNodeIds;
     _isReadOnly = state.isReadOnly;
     _nodeDiagnostics = diagnosticsByNode(diagnoseTree(_rendered.root));
     _subscription = _cubit.stream.listen(_onState);
@@ -65,8 +68,12 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
   void _onState(EditorState state) {
     if (state is! EditorReady || !mounted) return;
 
-    if (state.selectedNodeId != _selectedNodeId) {
-      setState(() => _selectedNodeId = state.selectedNodeId);
+    if (state.selectedNodeId != _selectedNodeId ||
+        !listEquals(state.selectedNodeIds, _selectedNodeIds)) {
+      setState(() {
+        _selectedNodeId = state.selectedNodeId;
+        _selectedNodeIds = state.selectedNodeIds;
+      });
     }
 
     // Fora do throttle do documento de propósito: o congelamento não espera
@@ -132,7 +139,9 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
                   node: node,
                   built: built,
                   isDraggable: !_isReadOnly,
-                  isSelected: node.id == _selectedNodeId,
+                  isSelected:
+                      node.id == _selectedNodeId ||
+                      _selectedNodeIds.contains(node.id),
                   isHovered: node.id == _hoveredNodeId,
                   diagnostics: _nodeDiagnostics[node.id] ?? const [],
                   onSelect: () => widget.onSelect(node.id),
