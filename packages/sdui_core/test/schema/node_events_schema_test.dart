@@ -390,6 +390,46 @@ void main() {
       });
     });
 
+    test('descarta o passo de ação indisponível no contexto', () {
+      final result = parse(
+        {
+          'onPressed': [
+            {'action': 'x'},
+            _back,
+          ],
+        },
+        tolerant: true,
+        actions: [
+          ...actionCatalog,
+          const ActionDescriptor(
+            type: 'x',
+            label: 'X',
+            iconName: 'x',
+            category: ActionCategories.utilities,
+            contexts: {BindingContext.component},
+          ),
+        ],
+      );
+
+      expect(result.toNullable(), {
+        'onPressed': [_back],
+      });
+    });
+
+    test('lista vazia de entrada é mantida', () {
+      expect(
+        parse(
+          {
+            'onTap': <dynamic>[],
+            'onDrag': [_back],
+          },
+          type: 'container',
+          tolerant: true,
+        ).toNullable(),
+        {'onTap': <dynamic>[]},
+      );
+    });
+
     test('sem nada a descartar devolve o próprio mapa', () {
       final events = {
         'onPressed': [_navigate],
