@@ -110,6 +110,7 @@ class _InspectorPropListState extends State<InspectorPropList> {
             field,
             widget.properties,
             widget.descriptor,
+            indeterminateKeys: widget.mixedKeys,
           ))
         field,
   ];

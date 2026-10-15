@@ -438,5 +438,32 @@ void main() {
         );
       },
     );
+
+    testWidgets('controle "Misto" na edição em lote deixa o campo à vista', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SizedBox(
+              width: 320,
+              height: 700,
+              child: InspectorPropList(
+                onBindProp: (_, _) {},
+                onUnbindProp: (_) {},
+                ownerKey: 'multi-n1|n2',
+                properties: const {},
+                mixedKeys: const {'hoverEnabled'},
+                descriptor: _hoverDescriptor,
+                onUpdateProps: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(hoverColor, findsOneWidget);
+    });
   });
 }

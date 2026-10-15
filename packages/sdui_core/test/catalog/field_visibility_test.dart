@@ -97,7 +97,49 @@ void main() {
     test('prop ausente e sem default lê null e não lança', () {
       expect(eval(const PropEquals('a', true), {}), isFalse);
       expect(eval(const PropNotEquals('a', true), {}), isTrue);
-      expect(eval(const PropEquals('inexistente', 1), {}), isFalse);
+    });
+
+    test('prop que o descriptor não declara fica indeterminada', () {
+      expect(eval(const PropEquals('inexistente', 1), {}), isTrue);
+      expect(eval(const PropNotEquals('inexistente', 1), {}), isTrue);
+      expect(eval(const PropIn('inexistente', [1]), {}), isTrue);
+    });
+
+    group('indeterminateKeys', () {
+      bool evalWith(VisibilityCondition c, Map<String, dynamic> props) =>
+          FieldVisibility.evaluate(
+            c,
+            props,
+            plain,
+            indeterminateKeys: const {'a'},
+          );
+
+      test('a chave indeterminada deixa a folha verdadeira', () {
+        expect(evalWith(const PropEquals('a', 1), {'a': 2}), isTrue);
+        expect(evalWith(const PropNotEquals('a', 1), {'a': 1}), isTrue);
+        expect(evalWith(const PropIn('a', [1]), {}), isTrue);
+      });
+
+      test('vale dentro de AllOf e AnyOf, sem afetar as outras chaves', () {
+        expect(
+          evalWith(const AllOf([PropEquals('a', 1), PropEquals('b', 2)]), {
+            'b': 2,
+          }),
+          isTrue,
+        );
+        expect(
+          evalWith(const AllOf([PropEquals('a', 1), PropEquals('b', 2)]), {
+            'b': 3,
+          }),
+          isFalse,
+        );
+        expect(
+          evalWith(const AnyOf([PropEquals('b', 2), PropEquals('a', 1)]), {
+            'b': 3,
+          }),
+          isTrue,
+        );
+      });
     });
 
     group('valor indeterminado deixa o campo visível', () {
@@ -170,6 +212,25 @@ void main() {
         isTrue,
       );
     });
+
+    test('repassa indeterminateKeys para a condição', () {
+      final control = _field('flag', defaultValue: false);
+      final dependent = _field(
+        'color',
+        visibleWhen: const PropEquals('flag', true),
+      );
+      final descriptor = _descriptor([control, dependent]);
+
+      expect(
+        FieldVisibility.isVisible(
+          dependent,
+          {},
+          descriptor,
+          indeterminateKeys: const {'flag'},
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('FieldVisibility.problemsIn', () {
@@ -211,6 +272,25 @@ void main() {
 
       expect(problems, hasLength(1));
       expect(problems.single, contains('próprio campo'));
+    });
+
+    test('acusa AllOf ou AnyOf sem condições, mesmo aninhado', () {
+      final descriptor = _descriptor([
+        _field('flag'),
+        _field('color', visibleWhen: const AnyOf([])),
+        _field(
+          'size',
+          visibleWhen: const AllOf([
+            PropEquals('flag', true),
+            AllOf([]),
+          ]),
+        ),
+      ]);
+
+      final problems = FieldVisibility.problemsIn(descriptor);
+
+      expect(problems, hasLength(2));
+      expect(problems, everyElement(contains('sem condições')));
     });
   });
 }

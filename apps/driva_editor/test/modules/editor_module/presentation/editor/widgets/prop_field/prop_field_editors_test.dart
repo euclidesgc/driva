@@ -494,6 +494,90 @@ void main() {
         expect(campos.map((c) => c.controller?.text), ['8', '8', '8', '8']);
       },
     );
+
+    testWidgets('por lado: digitar acima do máximo grava 200 e avisa na tela', (
+      tester,
+    ) async {
+      final changes = await _pumpEditor(
+        tester,
+        field: _padding,
+        value: diferentes,
+      );
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'T'),
+        '500',
+      );
+      await tester.pump();
+
+      expect(changes.last, {
+        'left': 8.0,
+        'top': 200.0,
+        'right': 8.0,
+        'bottom': 4.0,
+      });
+      expect(find.text('Ajustado para o máximo (200)'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'T'))
+            .controller
+            ?.text,
+        '500',
+      );
+    });
+
+    testWidgets('por lado: valor negativo grava o mínimo e avisa na tela', (
+      tester,
+    ) async {
+      final changes = await _pumpEditor(
+        tester,
+        field: _padding,
+        value: diferentes,
+      );
+
+      await tester.enterText(find.widgetWithText(TextField, 'E'), '-5');
+      await tester.pump();
+
+      expect((changes.last! as Map)['left'], 0.0);
+      expect(find.text('Ajustado para o mínimo (0)'), findsOneWidget);
+    });
+
+    testWidgets(
+      'valor externo com lados diferentes leva o uniforme a por lado',
+      (
+        tester,
+      ) async {
+        await _pumpEditor(tester, field: _padding, value: const {'all': 8.0});
+        expect(find.byType(Slider), findsOneWidget);
+
+        final changes = await _pumpEditor(
+          tester,
+          field: _padding,
+          value: diferentes,
+        );
+
+        expect(changes, isEmpty);
+        expect(find.byType(Slider), findsNothing);
+        final campos = tester.widgetList<TextField>(find.byType(TextField));
+        expect(campos.map((c) => c.controller?.text), ['8', '4', '8', '4']);
+      },
+    );
+
+    testWidgets('uniforme escolhido pelo autor resiste a um mapa igual novo', (
+      tester,
+    ) async {
+      await _pumpEditor(tester, field: _padding, value: diferentes);
+      await tester.tap(find.byTooltip('Todos os lados'));
+      await tester.pump();
+
+      await _pumpEditor(
+        tester,
+        field: _padding,
+        value: Map<String, Object?>.of(diferentes),
+      );
+
+      expect(find.byType(Slider), findsOneWidget);
+    });
   });
 
   group('NumberEditor com default não numérico', () {

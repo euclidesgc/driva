@@ -37,11 +37,15 @@ class PropSummaryRow extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: AppTypography.md,
-                    color: colors.inkSecondary,
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: AppTypography.md,
+                      color: colors.inkSecondary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.s8),

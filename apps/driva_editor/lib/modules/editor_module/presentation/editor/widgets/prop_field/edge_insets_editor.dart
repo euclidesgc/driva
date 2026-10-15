@@ -1,4 +1,6 @@
 import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/core/theme/app_typography.dart';
+import 'package:driva_editor/core/theme/editor_colors.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_mode_bar.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/edge_insets_side_field.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/prop_field/number_editor.dart';
@@ -48,7 +50,25 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
       ),
   };
 
+  String? _clampMessage;
+
   String _format(double? value) => value == null ? '' : formatNumber(value);
+
+  double _clamp(double value) => clampToRange(
+    value,
+    min: widget.field.min,
+    max: widget.field.max,
+  ).toDouble();
+
+  double? _committedSideOf(String text) {
+    final parsed = _parse(text);
+    return parsed == null ? null : _clamp(parsed);
+  }
+
+  bool _sidesDiffer(Object? a, Object? b) => _sides.any(
+    (side) =>
+        EdgeInsetsValue.sideOf(a, side) != EdgeInsetsValue.sideOf(b, side),
+  );
 
   double? _parse(String text) {
     final trimmed = text.trim();
@@ -60,12 +80,30 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
   void didUpdateWidget(covariant EdgeInsetsEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value == oldWidget.value) return;
+    var hasExternalChange = false;
     for (final side in _sides) {
       final external = EdgeInsetsValue.sideOf(widget.value, side);
-      if (external != _parse(_controllers[side]!.text)) {
+      if (external != _committedSideOf(_controllers[side]!.text)) {
         _controllers[side]!.text = _format(external);
+        hasExternalChange = true;
       }
     }
+    if (hasExternalChange) _clampMessage = null;
+    if (_mode == EdgeInsetsMode.uniform &&
+        _sidesDiffer(widget.value, oldWidget.value) &&
+        EdgeInsetsValue.modeOf(widget.value) == EdgeInsetsMode.perSide) {
+      _mode = EdgeInsetsMode.perSide;
+    }
+  }
+
+  void _onSideTextChanged(String side, String text) {
+    final parsed = _parse(text);
+    final clamped = parsed == null ? null : _clamp(parsed);
+    final message = parsed == null || clamped == null
+        ? null
+        : clampMessageFor(parsed, clamped, min: widget.field.min);
+    if (message != _clampMessage) setState(() => _clampMessage = message);
+    _updateSide(side, clamped);
   }
 
   void _updateSide(String key, double? side) {
@@ -117,20 +155,38 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
           ? NumberEditor(
               field: widget.field,
               value: EdgeInsetsValue.uniformOf(widget.value),
-              onChanged: (v) => _updateUniform((v as num?)?.toDouble()),
+              onChanged: (v) => _updateUniform(v is num ? v.toDouble() : null),
               isInt: false,
             )
-          : Row(
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final side in _sides) ...[
-                  if (side != _sides.first)
-                    const SizedBox(width: AppSpacing.s4),
-                  EdgeInsetsSideField(
-                    controller: _controllers[side],
-                    label: _sideLabels[side]!,
-                    onChanged: (text) => _updateSide(side, _parse(text)),
+                Row(
+                  children: [
+                    for (final side in _sides) ...[
+                      if (side != _sides.first)
+                        const SizedBox(width: AppSpacing.s4),
+                      EdgeInsetsSideField(
+                        controller: _controllers[side],
+                        label: _sideLabels[side]!,
+                        onChanged: (text) => _onSideTextChanged(side, text),
+                      ),
+                    ],
+                  ],
+                ),
+                if (_clampMessage case final message?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.s4),
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: AppTypography.xs,
+                        color: Theme.of(
+                          context,
+                        ).extension<EditorColors>()!.inkMuted,
+                      ),
+                    ),
                   ),
-                ],
               ],
             ),
     );

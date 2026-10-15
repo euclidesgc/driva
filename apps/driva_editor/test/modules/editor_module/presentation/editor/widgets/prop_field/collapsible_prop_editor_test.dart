@@ -64,6 +64,33 @@ void main() {
       );
     });
 
+    testWidgets('rótulo longo é cortado na linha, sem estourar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              child: PropSummaryRow(
+                label: 'Espaçamento interno de todos os lados do cartão',
+                summary: '8',
+                isExpanded: false,
+                onToggle: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(_row()).height,
+        lessThanOrEqualTo(AppSizes.propSummaryRowHeight),
+      );
+    });
+
     testWidgets('resumo longo continua em uma linha, sem estourar', (
       tester,
     ) async {
