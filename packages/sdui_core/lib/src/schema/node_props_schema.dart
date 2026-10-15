@@ -73,6 +73,19 @@ Either<SpecValidationError, Unit> validateComponentInstanceProps(
     );
   }
 
+  for (final key in props.keys) {
+    if (key == ComponentInstance.componentIdKey ||
+        key == ComponentInstance.argsKey) {
+      continue;
+    }
+    return Left(
+      SpecValidationError(
+        '$path.$key: a instância só aceita '
+        '${ComponentInstance.componentIdKey} e ${ComponentInstance.argsKey}',
+      ),
+    );
+  }
+
   final argsPath = '$path.${ComponentInstance.argsKey}';
   final args = props[ComponentInstance.argsKey];
   if (args == null) return const Right(unit);

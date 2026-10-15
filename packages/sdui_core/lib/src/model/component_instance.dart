@@ -1,8 +1,5 @@
 import 'package:sdui_core/src/model/sdui_node.dart';
 
-/// Nó que usa um componente por referência, na forma
-/// `{"id", "type": "component", "props": {"componentId", "args"}}`.
-/// Fica fora do `widgetCatalog`, então a paleta nunca o oferece.
 abstract final class ComponentInstance {
   static const type = 'component';
   static const componentIdKey = 'componentId';

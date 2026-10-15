@@ -122,6 +122,20 @@ void main() {
       );
     });
 
+    test('prop fora de componentId e args reprova', () {
+      expect(
+        errorOf(instance({'componentId': 'c1', 'titulo': 'Olá'})),
+        startsWith('root.props.titulo:'),
+      );
+      expect(
+        errorOf(
+          instance({'componentId': 'c1', 'titulo': paramBind}),
+          specVersion: 2,
+        ),
+        startsWith('root.props.titulo:'),
+      );
+    });
+
     test('instância é folha: child e children reprovam', () {
       final props = {'componentId': 'c1'};
       expect(
