@@ -1,9 +1,18 @@
+import 'package:sdui_core/src/catalog/event_trigger.dart';
 import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_field.dart';
 import 'package:sdui_core/src/catalog/prop_option.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/dimension_value.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
+
+const List<EventTrigger> _gestureTriggers = [
+  EventTrigger.onTap,
+  EventTrigger.onDoubleTap,
+  EventTrigger.onLongPress,
+];
+
+const List<EventTrigger> _changeTriggers = [EventTrigger.onChanged];
 
 const List<PropField> _flexFields = [
   PropField(
@@ -75,6 +84,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'container',
     category: WidgetCategories.layout,
     slot: SlotKind.single,
+    triggers: _gestureTriggers,
     fields: [
       // Sem tamanho, um container vazio dentro de Column vira LimitedBox de
       // altura 0 e nasce invisível no canvas.
@@ -233,6 +243,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'text',
     category: WidgetCategories.basics,
     slot: SlotKind.none,
+    triggers: _gestureTriggers,
     fields: [
       PropField(
         key: 'data',
@@ -326,6 +337,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'image',
     category: WidgetCategories.basics,
     slot: SlotKind.none,
+    triggers: _gestureTriggers,
     fields: [
       PropField(
         key: 'src',
@@ -449,6 +461,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'icon',
     category: WidgetCategories.basics,
     slot: SlotKind.none,
+    triggers: _gestureTriggers,
     fields: [
       PropField(
         key: 'icon',
@@ -483,6 +496,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'button',
     category: WidgetCategories.basics,
     slot: SlotKind.none,
+    triggers: [EventTrigger.onPressed, EventTrigger.onLongPress],
     fields: [
       PropField(
         key: 'label',
@@ -553,6 +567,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'textField',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: [EventTrigger.onChanged, EventTrigger.onSubmit],
     fields: [
       PropField(
         key: 'label',
@@ -648,6 +663,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'switch',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: _changeTriggers,
     fields: [
       PropField(
         key: 'value',
@@ -684,6 +700,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'checkbox',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: _changeTriggers,
     fields: [
       PropField(
         key: 'value',
@@ -720,6 +737,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'card',
     category: WidgetCategories.layout,
     slot: SlotKind.single,
+    triggers: _gestureTriggers,
     fields: [
       PropField(
         key: 'color',
@@ -1112,6 +1130,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'radio',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: _changeTriggers,
     fields: [
       PropField(
         key: 'selected',
@@ -1148,6 +1167,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'dropdown',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: _changeTriggers,
     fields: [
       PropField(
         key: 'label',
@@ -1192,6 +1212,7 @@ final Map<String, WidgetDescriptor> widgetCatalog = Map.unmodifiable({
     iconName: 'slider',
     category: WidgetCategories.form,
     slot: SlotKind.none,
+    triggers: _changeTriggers,
     fields: [
       PropField(
         key: 'value',
