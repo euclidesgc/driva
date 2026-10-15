@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
@@ -12,8 +13,8 @@ Widget buildButton(BuildContext context, SduiNode node, SduiRenderer r) {
   final borderRadius = parseBorderRadius(p['borderRadius']);
   final fontSize = parseDouble(p['fontSize']);
   final style = ElevatedButton.styleFrom(
-    backgroundColor: parseColor(p['backgroundColor']),
-    foregroundColor: parseColor(p['foregroundColor']),
+    backgroundColor: resolveColor(p['backgroundColor'], r.theme),
+    foregroundColor: resolveColor(p['foregroundColor'], r.theme),
     textStyle: fontSize != null ? TextStyle(fontSize: fontSize) : null,
     shape: borderRadius != null
         ? RoundedRectangleBorder(borderRadius: borderRadius)

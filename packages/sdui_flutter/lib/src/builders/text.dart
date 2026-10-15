@@ -3,6 +3,7 @@ import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/parsing/enums.dart';
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 /// Text. Props planas (`fontSize`, `fontWeight`, `color`) — o estilo é
@@ -14,7 +15,7 @@ Widget buildText(BuildContext context, SduiNode node, SduiRenderer r) {
     style: TextStyle(
       fontSize: parseDouble(p['fontSize']),
       fontWeight: parseFontWeight(p['fontWeight']),
-      color: parseColor(p['color']),
+      color: resolveColor(p['color'], r.theme),
     ),
     textAlign: textAlignFrom(p['textAlign']),
     maxLines: parseInt(p['maxLines']),
