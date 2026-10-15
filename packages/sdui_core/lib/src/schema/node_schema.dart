@@ -1,7 +1,9 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/src/catalog/binding_context.dart';
+import 'package:sdui_core/src/catalog/component_instance_descriptor.dart';
 import 'package:sdui_core/src/catalog/widget_catalog.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/component_instance.dart';
 import 'package:sdui_core/src/model/dimension_value.dart';
 import 'package:sdui_core/src/model/sdui_node.dart';
 import 'package:sdui_core/src/schema/node_events_schema.dart';
@@ -22,6 +24,7 @@ Either<SpecValidationError, SduiNode> parseNode(
   String path = 'root',
   int specVersion = kOldestSpecVersion,
   bool tolerant = false,
+  BindingContext context = BindingContext.page,
 }) {
   final result = _nodeScalars.safeParse(json);
   if (!result.success) {
@@ -32,7 +35,10 @@ Either<SpecValidationError, SduiNode> parseNode(
   final id = result.data!['id'] as String;
   final type = result.data!['type'] as String;
 
-  final descriptor = descriptorFor(type);
+  final isInstance = type == ComponentInstance.type;
+  final descriptor = isInstance
+      ? componentInstanceDescriptor
+      : descriptorFor(type);
   if (descriptor == null && !tolerant) {
     return Left(SpecValidationError('$path: tipo "$type" fora do catálogo'));
   }
@@ -41,13 +47,21 @@ Either<SpecValidationError, SduiNode> parseNode(
   if (rawProps != null && rawProps is! Map) {
     return Left(SpecValidationError('$path.props: esperado um objeto'));
   }
-  if (rawProps is Map && descriptor != null) {
+  if (isInstance) {
+    final validated = validateComponentInstanceProps(
+      (rawProps as Map?)?.cast<String, dynamic>() ?? const {},
+      path: '$path.props',
+      specVersion: specVersion,
+      context: context,
+    );
+    if (validated case Left(:final value)) return Left(value);
+  } else if (rawProps is Map && descriptor != null) {
     final validated = validateNodeProps(
       rawProps.cast<String, dynamic>(),
       descriptor,
       path: '$path.props',
       specVersion: specVersion,
-      context: BindingContext.page,
+      context: context,
       tolerant: tolerant,
     );
     if (validated case Left(:final value)) return Left(value);
@@ -57,7 +71,7 @@ Either<SpecValidationError, SduiNode> parseNode(
     return Left(SpecValidationError('$path.events: esperado um objeto'));
   }
   var events = (rawEvents as Map?)?.cast<String, dynamic>() ?? const {};
-  if (rawEvents != null && descriptor != null) {
+  if (rawEvents != null && descriptor != null && !isInstance) {
     final parsed = parseNodeEvents(
       events,
       descriptor,
@@ -123,6 +137,7 @@ Either<SpecValidationError, SduiNode> parseNode(
       path: '$path.child',
       specVersion: specVersion,
       tolerant: tolerant,
+      context: context,
     );
     if (parsed.isLeft()) return parsed;
     child = parsed.toNullable();
@@ -145,6 +160,7 @@ Either<SpecValidationError, SduiNode> parseNode(
         path: '$path.children[$i]',
         specVersion: specVersion,
         tolerant: tolerant,
+        context: context,
       );
       if (parsed.isLeft()) return parsed;
       children.add(parsed.toNullable()!);
