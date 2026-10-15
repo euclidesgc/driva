@@ -66,15 +66,7 @@ class PreviewPage extends StatelessWidget {
     // assim que o app sobe, apagando o que o script do `index.html` deixou. No
     // iOS é esse título que o "Adicionar à tela inicial" sugere, e sem isto os
     // dois alvos instaláveis chegariam ao aparelho com o mesmo nome.
-    final future = projectFuture;
-    final page = _page(context);
-    return future == null
-        ? page
-        : ProjectThemeHost(projectFuture: future, child: page);
-  }
-
-  Widget _page(BuildContext context) {
-    return Title(
+    final page = Title(
       title: 'Driva Preview',
       color: Theme.of(context).colorScheme.primary,
       child: Scaffold(
@@ -95,5 +87,9 @@ class PreviewPage extends StatelessWidget {
         ),
       ),
     );
+    final future = projectFuture;
+    return future == null
+        ? page
+        : ProjectThemeHost(projectFuture: future, child: page);
   }
 }
