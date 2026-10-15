@@ -8,6 +8,7 @@ import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.da
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/editor_layout_controller.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/page/page.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/project_theme_scope.dart';
 import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -156,40 +157,44 @@ class _EditorPageState extends State<EditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    return EditorViewportGate(
-      contentId: widget.contentId,
-      child: BlocBuilder<EditorCubit, EditorState>(
-        buildWhen: (previous, current) =>
-            previous.runtimeType != current.runtimeType,
-        builder: (context, state) => switch (state) {
-          EditorLoading() => _editorBootScaffold,
-          final EditorLoadFailure s => EditorLoadFailureView(
-            failure: s.failure,
-            projectFuture: widget.projectFuture,
-          ),
-          // D13: só monta o workspace depois que a largura restaurada já
-          // chegou reclampada — sem isto, o `ResizableSplitView` nasceria
-          // com o padrão e nunca reagiria a um boot que termina depois do
-          // primeiro frame.
-          EditorReady() => FutureBuilder<void>(
-            future: _layoutController.ready,
-            builder: (context, snapshot) =>
-                snapshot.connectionState == ConnectionState.done
-                ? EditorWorkspaceHost(
-                    projectFuture: widget.projectFuture,
-                    imageUrlResolver: widget.imageUrlResolver,
-                    demoApkUrl: widget.demoApkUrl,
-                    layoutController: _layoutController,
-                    getContentVersionsUseCase: widget.getContentVersionsUseCase,
-                    getContentVersionUseCase: widget.getContentVersionUseCase,
-                    getContentCheckpointsUseCase:
-                        widget.getContentCheckpointsUseCase,
-                    getContentCheckpointUseCase:
-                        widget.getContentCheckpointUseCase,
-                  )
-                : _editorBootScaffold,
-          ),
-        },
+    return ProjectThemeHost(
+      projectFuture: widget.projectFuture,
+      child: EditorViewportGate(
+        contentId: widget.contentId,
+        child: BlocBuilder<EditorCubit, EditorState>(
+          buildWhen: (previous, current) =>
+              previous.runtimeType != current.runtimeType,
+          builder: (context, state) => switch (state) {
+            EditorLoading() => _editorBootScaffold,
+            final EditorLoadFailure s => EditorLoadFailureView(
+              failure: s.failure,
+              projectFuture: widget.projectFuture,
+            ),
+            // D13: só monta o workspace depois que a largura restaurada já
+            // chegou reclampada — sem isto, o `ResizableSplitView` nasceria
+            // com o padrão e nunca reagiria a um boot que termina depois do
+            // primeiro frame.
+            EditorReady() => FutureBuilder<void>(
+              future: _layoutController.ready,
+              builder: (context, snapshot) =>
+                  snapshot.connectionState == ConnectionState.done
+                  ? EditorWorkspaceHost(
+                      projectFuture: widget.projectFuture,
+                      imageUrlResolver: widget.imageUrlResolver,
+                      demoApkUrl: widget.demoApkUrl,
+                      layoutController: _layoutController,
+                      getContentVersionsUseCase:
+                          widget.getContentVersionsUseCase,
+                      getContentVersionUseCase: widget.getContentVersionUseCase,
+                      getContentCheckpointsUseCase:
+                          widget.getContentCheckpointsUseCase,
+                      getContentCheckpointUseCase:
+                          widget.getContentCheckpointUseCase,
+                    )
+                  : _editorBootScaffold,
+            ),
+          },
+        ),
       ),
     );
   }

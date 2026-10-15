@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:driva_editor/core/theme/app_durations.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/cubit/editor_cubit.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/project_theme_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/empty_preview.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/canvas/selectable_node.dart';
 import 'package:driva_editor/modules/editor_module/presentation/editor/widgets/drag_payload.dart';
@@ -123,6 +124,7 @@ class _PreviewSurfaceState extends State<PreviewSurface> {
           : SingleChildScrollView(
               child: SduiView.content(
                 document,
+                theme: ProjectThemeScope.of(context),
                 showDiagnostics: true,
                 boundValueDisplay: BoundValueDisplay.preview,
                 imageUrlResolver: widget.imageUrlResolver,

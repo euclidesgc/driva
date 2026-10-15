@@ -1,22 +1,29 @@
 import 'dart:async';
 
 import 'package:driva_editor/core/config/app_config.dart';
+import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/network/network.dart';
 import 'package:driva_editor/injection.dart';
 import 'package:driva_editor/modules/editor_module/domain/use_cases/use_cases.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/project_theme_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/cubit/preview_cubit.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/invalid_preview_screen.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/preview_content.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/preview_error_view.dart';
+import 'package:driva_editor/modules/projects_module/projects_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart' hide State;
 import 'package:go_router/go_router.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 /// A vista de conteúdo sem chrome (D3): rota irmã do `ShellRoute`, para o
 /// link que sai do laptop. `showDiagnostics: false` (D17) — não é o editor.
 class PreviewPage extends StatelessWidget {
-  const PreviewPage({this.imageUrlResolver, super.key});
+  const PreviewPage({this.imageUrlResolver, this.projectFuture, super.key});
+
+  /// Leitura do projeto para o tema; ausente = tema padrão.
+  final Future<Either<Failure, Project>>? projectFuture;
 
   /// Só o `pageBuilder` toca o `get_it` para montá-lo (regra do projeto);
   /// aqui ele só é repassado adiante.
@@ -48,6 +55,7 @@ class PreviewPage extends StatelessWidget {
       },
       child: PreviewPage(
         imageUrlResolver: imageUrlResolverFor(getIt<AppConfig>()),
+        projectFuture: getIt<GetProjectUseCase>()(projectId),
       ),
     );
   }
@@ -58,6 +66,14 @@ class PreviewPage extends StatelessWidget {
     // assim que o app sobe, apagando o que o script do `index.html` deixou. No
     // iOS é esse título que o "Adicionar à tela inicial" sugere, e sem isto os
     // dois alvos instaláveis chegariam ao aparelho com o mesmo nome.
+    final future = projectFuture;
+    final page = _page(context);
+    return future == null
+        ? page
+        : ProjectThemeHost(projectFuture: future, child: page);
+  }
+
+  Widget _page(BuildContext context) {
     return Title(
       title: 'Driva Preview',
       color: Theme.of(context).colorScheme.primary,

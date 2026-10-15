@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 class Project extends Equatable {
   const Project({
@@ -11,6 +12,7 @@ class Project extends Equatable {
     this.description,
     this.imageUrl,
     this.archivedAt,
+    this.theme = kDefaultProjectTheme,
   });
 
   final String id;
@@ -28,6 +30,9 @@ class Project extends Equatable {
 
   final DateTime? archivedAt;
 
+  /// Tema do projeto; ausente ou inválido = padrão do kernel.
+  final ProjectTheme theme;
+
   bool get isArchived => archivedAt != null;
 
   Project copyWith({
@@ -40,6 +45,7 @@ class Project extends Equatable {
     String? Function()? description,
     String? Function()? imageUrl,
     DateTime? Function()? archivedAt,
+    ProjectTheme? theme,
   }) {
     return Project(
       id: id ?? this.id,
@@ -51,6 +57,7 @@ class Project extends Equatable {
       description: description != null ? description() : this.description,
       imageUrl: imageUrl != null ? imageUrl() : this.imageUrl,
       archivedAt: archivedAt != null ? archivedAt() : this.archivedAt,
+      theme: theme ?? this.theme,
     );
   }
 
@@ -65,5 +72,6 @@ class Project extends Equatable {
     contentCount,
     categoryCount,
     archivedAt,
+    theme,
   ];
 }

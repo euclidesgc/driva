@@ -82,14 +82,11 @@ class _ColorPickerPopoverState extends State<ColorPickerPopover> {
           child: const Text('Cancelar'),
         ),
         FilledButton(
-          onPressed: () =>
-              Navigator.of(
-                context,
-              ).pop(
-                FreeColorChoice(
-                  '#${_picked.a == 1 ? _picked.hex : _picked.hexAlpha}',
-                ),
-              ),
+          onPressed: () => Navigator.of(context).pop(
+            FreeColorChoice(
+              '#${_picked.a == 1 ? _picked.hex : _picked.hexAlpha}',
+            ),
+          ),
           child: const Text('Selecionar'),
         ),
       ],

@@ -23,9 +23,7 @@ class InspectorArea extends StatelessWidget {
         final root = state.document.root;
         final multiNodes = root == null
             ? const <SduiNode>[]
-            : [
-                for (final id in state.effectiveSelection) ?findNode(root, id),
-              ];
+            : [for (final id in state.effectiveSelection) ?findNode(root, id)];
         return InspectorVm(
           node: selectedNode,
           isRoot:
