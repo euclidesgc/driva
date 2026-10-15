@@ -10,6 +10,12 @@ void main() {
 
   const themed = {r'$theme': 'primary'};
 
+  Map<String, dynamic> themedColorTextNode() => {
+    'id': 'n1',
+    'type': 'text',
+    'props': {'data': 'oi', 'color': themed},
+  };
+
   group('parseNode e specVersion', () {
     test(r'sem specVersion, recusa $theme como a versão mais antiga', () {
       final result = parseNode(textNode(themed));
@@ -27,20 +33,20 @@ void main() {
 
     test(r'com specVersion 2, aceita $theme e guarda o mapa cru', () {
       final result = parseNode(
-        textNode(themed),
+        themedColorTextNode(),
         specVersion: kTypedPropValuesSpecVersion,
       );
 
       final node = result.getRight().toNullable();
       expect(node, isNotNull, reason: result.toString());
-      expect(node!.properties['data'], themed);
+      expect(node!.properties['color'], themed);
     });
 
     test('repassa specVersion aos filhos', () {
       final json = <String, dynamic>{
         'id': 'c1',
         'type': 'column',
-        'children': [textNode(themed)],
+        'children': [themedColorTextNode()],
       };
 
       expect(parseNode(json).isLeft(), isTrue);

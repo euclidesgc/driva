@@ -1,9 +1,11 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:sdui_core/src/catalog/binding_context.dart';
 import 'package:sdui_core/src/catalog/binding_source_catalog.dart';
+import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_field.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
 import 'package:sdui_core/src/model/prop_value.dart';
+import 'package:sdui_core/src/model/theme_color_role.dart';
 import 'package:sdui_core/src/schema/prop_value_schema.dart';
 import 'package:sdui_core/src/schema/spec_validation_error.dart';
 import 'package:sdui_core/src/schema/spec_version.dart';
@@ -16,6 +18,7 @@ Either<SpecValidationError, Unit> validateNodeProps(
   required String path,
   required int specVersion,
   required BindingContext context,
+  bool tolerant = false,
 }) {
   for (final MapEntry(:key, :value) in props.entries) {
     if (!PropValue.isTypedForm(value)) continue;
@@ -25,6 +28,7 @@ Either<SpecValidationError, Unit> validateNodeProps(
       path: '$path.$key',
       specVersion: specVersion,
       context: context,
+      tolerant: tolerant,
     );
     if (result.isLeft()) return result;
   }
@@ -37,6 +41,7 @@ Either<SpecValidationError, Unit> _validateTypedProp(
   required String path,
   required int specVersion,
   required BindingContext context,
+  required bool tolerant,
 }) {
   if (specVersion < kTypedPropValuesSpecVersion) {
     return Left(
@@ -54,6 +59,11 @@ Either<SpecValidationError, Unit> _validateTypedProp(
           '$path: a prop não aceita token do tema nem binding',
         ),
       );
+    }
+    if (value is ThemeRefPropValue) {
+      return tolerant
+          ? const Right(unit)
+          : _validateThemeRef(value, field, path: path);
     }
     if (value is! BoundPropValue) return const Right(unit);
 
@@ -84,6 +94,32 @@ Either<SpecValidationError, Unit> _validateTypedProp(
     }
     return const Right(unit);
   });
+}
+
+/// O modo tolerante (o do app cliente) deixa passar o papel criado depois e a
+/// prop que ele ainda não conhece: o renderer os desenha como prop ausente em
+/// vez de recusar a página inteira.
+Either<SpecValidationError, Unit> _validateThemeRef(
+  ThemeRefPropValue value,
+  PropField? field, {
+  required String path,
+}) {
+  if (field?.kind != FieldKind.color) {
+    return Left(
+      SpecValidationError(
+        '$path: ${PropValue.themeKey} só vale em prop de cor',
+      ),
+    );
+  }
+  if (ThemeColorRole.fromName(value.token) == null) {
+    return Left(
+      SpecValidationError(
+        '$path.${PropValue.themeKey}: papel de cor "${value.token}" '
+        'desconhecido',
+      ),
+    );
+  }
+  return const Right(unit);
 }
 
 String _contextLabel(BindingContext context) => switch (context) {

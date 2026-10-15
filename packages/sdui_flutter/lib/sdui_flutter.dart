@@ -16,6 +16,7 @@ export 'src/parsing/material_icons.dart'
         iconFallback,
         iconLibraries,
         parseIconRef;
+export 'src/parsing/theme_resolvers.dart' show resolveThemeTextStyle;
 export 'src/registry.dart';
 export 'src/renderer.dart';
 export 'src/sdui_view.dart';

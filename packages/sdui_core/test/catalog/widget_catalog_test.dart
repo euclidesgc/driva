@@ -139,6 +139,26 @@ void main() {
       expect(prefixIcon.defaultValue, isNull);
     });
 
+    test('nenhum campo de cor tem defaultValue em hex', () {
+      final descriptors = [...widgetCatalog.values, safeAreaDescriptor];
+      final hexDefaults = [
+        for (final descriptor in descriptors)
+          for (final field in descriptor.fields)
+            if (field.kind == FieldKind.color &&
+                field.defaultValue is String &&
+                (field.defaultValue! as String).startsWith('#'))
+              '${descriptor.type}.${field.key}',
+      ];
+
+      expect(
+        descriptors
+            .expand((d) => d.fields)
+            .where((f) => f.kind == FieldKind.color),
+        isNotEmpty,
+      );
+      expect(hexDefaults, isEmpty);
+    });
+
     test('descriptorFor devolve null para tipo desconhecido', () {
       expect(descriptorFor('carousel3d'), isNull);
       expect(descriptorFor('text'), isNotNull);
