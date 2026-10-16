@@ -1,3 +1,4 @@
+import { CONTENT_KINDS, ContentKind } from './create-content.dto';
 import { Type } from 'class-transformer';
 import {
   IsIn,
@@ -18,6 +19,10 @@ export class ListContentsQueryDto {
   @IsOptional()
   @IsString()
   categoryId?: string;
+
+  @IsOptional()
+  @IsIn(CONTENT_KINDS)
+  kind?: ContentKind;
 
   @IsOptional()
   @IsString()

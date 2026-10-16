@@ -15,6 +15,8 @@
 
 - **Editor de cor com alfa, hex `#AARRGGBB` e cores do tema pesquisáveis (história #6 do board)**: o seletor de cor do Inspector passa a ser um popover com a cor livre (canal de opacidade incluído) e a lista de papéis do tema com busca por nome. Escolher um papel grava a referência `{"$theme": papel}`, e o campo mostra o nome do papel em vez do hex. O modelo do tema do projeto (história #3) foi trazido para esta branch só nos arquivos de `sdui_core/src/model`, idênticos aos do PR #239.
 
+- **Componente no backend (história #116 do board)**: `Content` ganha a coluna `kind` (`content` ou `component`, padrão `content`), com índice `(project_id, kind, updated_at desc, id)` e migração sem backfill. `POST /v1/contents` aceita `kind` e o grava no spec inicial; `GET /v1/contents` filtra por `?kind=` (sem o parâmetro, só conteúdos); `PUT` recusa com 400 um `spec.kind` diferente do `kind` da linha. A rota pública só serve `kind = 'content'`: componente não vira tela. O resumo e o detalhe devolvem `kind`.
+
 ### Corrigido
 
 - **Uma "Expressão livre" `{{x}}` numa prop que não é de texto derrubava o nó (história #5 do board)**: o builder fazia `'{{x}}' as bool?` no `value` de um checkbox (e equivalentes em dropdown, radio, switch) e o canvas quebrava com `TypeError`. Agora o `resolveBoundProps` do `sdui_core` tira essa chave antes do builder quando o campo do catálogo não é de texto, e o widget usa o próprio default; em prop de texto o `{{x}}` continua como sempre.

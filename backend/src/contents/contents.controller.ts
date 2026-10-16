@@ -30,7 +30,10 @@ export class ContentsController {
     @Query() query: ListContentsQueryDto,
     @Headers('x-project-id') projectId?: string,
   ) {
-    return this.contents.list(projectOf(projectId), query);
+    return this.contents.list(projectOf(projectId), {
+      ...query,
+      kind: query.kind ?? 'content',
+    });
   }
 
   @Post()
@@ -38,7 +41,10 @@ export class ContentsController {
     @Body() dto: CreateContentDto,
     @Headers('x-project-id') projectId?: string,
   ) {
-    return this.contents.create(projectOf(projectId), dto);
+    return this.contents.create(projectOf(projectId), {
+      ...dto,
+      kind: dto.kind ?? 'content',
+    });
   }
 
   @Get(':id/versions')

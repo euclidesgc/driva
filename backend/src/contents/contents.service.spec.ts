@@ -18,6 +18,7 @@ type ContentFixture = {
   nameNormalized: string;
   slug: string;
   description: string | null;
+  kind: string;
   draftSpec: Record<string, unknown>;
   draftUpdatedAt: Date;
   publishedVersionId: string | null;
@@ -34,6 +35,7 @@ function contentRow(overrides: Partial<ContentFixture> = {}): ContentFixture {
     name: 'Home',
     nameNormalized: 'home',
     slug: 'home',
+    kind: 'content',
     description: null,
     draftSpec: {
       specVersion: 1,
@@ -615,6 +617,7 @@ describe('ContentsService.create — conflito de slug', () => {
         name: 'Home',
         slug: 'home',
         categoryId: 'category-1',
+        kind: 'content',
       });
       throw new Error('deveria ter lançado ConflictException');
     } catch (error) {
@@ -631,7 +634,7 @@ describe('ContentsService.create — conflito de slug', () => {
     prisma.category.findFirst.mockResolvedValue(null);
 
     await expect(
-      serviceWith(prisma).create('project-1', { name: 'Home', slug: 'home' }),
+      serviceWith(prisma).create('project-1', { name: 'Home', slug: 'home', kind: 'content' }),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });

@@ -84,6 +84,7 @@ model Content {
   nameNormalized     String    @map("name_normalized")
   slug               String
   description        String?
+  kind               String    @default("content")
   draftSpec          Json      @map("draft_spec")
   draftUpdatedAt     DateTime  @map("draft_updated_at")
   publishedVersionId String?   @map("published_version_id")
@@ -97,6 +98,7 @@ model Content {
   @@unique([projectId, slug])
   @@index([projectId])
   @@index([projectId, updatedAt(sort: Desc), id])
+  @@index([projectId, kind, updatedAt(sort: Desc), id])
   @@map("contents")
 }
 

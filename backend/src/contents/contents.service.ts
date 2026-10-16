@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { decodeCursor, encodeCursor } from './cursor';
 import { isSameJsonValue } from './json-equality';
-import { CreateContentDto } from './dto/create-content.dto';
+import { ContentKind, CreateContentDto } from './dto/create-content.dto';
 import {
   ListContentsQueryDto,
   SortField,
@@ -28,6 +28,7 @@ type ContentRow = {
   name: string;
   slug: string;
   description: string | null;
+  kind: string;
   categoryId: string;
   updatedAt: Date;
   draftUpdatedAt: Date;
@@ -43,6 +44,7 @@ const CONTENT_SUMMARY_SELECT = {
   name: true,
   slug: true,
   description: true,
+  kind: true,
   categoryId: true,
   updatedAt: true,
   draftUpdatedAt: true,
@@ -53,12 +55,16 @@ const CONTENT_SUMMARY_SELECT = {
 export class ContentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(projectId: string, query: ListContentsQueryDto) {
+  async list(
+    projectId: string,
+    query: ListContentsQueryDto & { kind: ContentKind },
+  ) {
     const sort: SortField = query.sort ?? 'updatedAt';
     const order: SortOrder = query.order ?? 'desc';
     const limit = query.limit ?? 20;
 
-    const where: Prisma.ContentWhereInput = { projectId };
+    // O controller aplica o default; o service exige o valor.
+    const where: Prisma.ContentWhereInput = { projectId, kind: query.kind };
 
     if (query.categoryId) {
       where.categoryId = query.categoryId;
@@ -127,7 +133,10 @@ export class ContentsService {
     };
   }
 
-  async create(projectId: string, dto: CreateContentDto) {
+  async create(
+    projectId: string,
+    dto: CreateContentDto & { kind: ContentKind },
+  ) {
     const categoryId = await this.resolveCategoryId(projectId, dto.categoryId);
     try {
       const row = await this.prisma.$transaction(async (tx) => {
@@ -140,6 +149,7 @@ export class ContentsService {
             nameNormalized: normalizeName(dto.name),
             slug: dto.slug,
             description: dto.description,
+            kind: dto.kind,
             draftSpec: {},
             draftUpdatedAt: now,
           },
@@ -147,7 +157,7 @@ export class ContentsService {
         });
         const spec = {
           specVersion: NEW_CONTENT_SPEC_VERSION,
-          kind: 'content',
+          kind: dto.kind,
           id: created.id,
           name: dto.name,
           slug: dto.slug,
@@ -174,6 +184,7 @@ export class ContentsService {
     const content = await this.findContentOrThrow(projectId, id);
     return {
       id: content.id,
+      kind: content.kind,
       name: content.name,
       slug: content.slug,
       ...(content.description !== null
@@ -196,6 +207,19 @@ export class ContentsService {
       throw new BadRequestException(
         `spec.specVersion precisa ser ${SUPPORTED_SPEC_VERSIONS.join(' ou ')}`,
       );
+    }
+    if (dto.spec !== undefined) {
+      // O kind da linha é imutável: o spec não pode virar outro tipo.
+      const row = await this.prisma.content.findFirst({
+        where: { id, projectId },
+        select: { kind: true },
+      });
+      if (!row) throw new NotFoundException();
+      if (dto.spec['kind'] !== row.kind) {
+        throw new BadRequestException(
+          `spec.kind precisa ser "${row.kind}", o kind do conteúdo`,
+        );
+      }
     }
     const categoryId =
       dto.categoryId !== undefined
@@ -580,6 +604,7 @@ export class ContentsService {
   private toSummary(row: ContentRow, latestVersion: number | null) {
     return {
       id: row.id,
+      kind: row.kind,
       name: row.name,
       slug: row.slug,
       ...(row.description !== null ? { description: row.description } : {}),
