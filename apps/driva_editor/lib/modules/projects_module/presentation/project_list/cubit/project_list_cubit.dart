@@ -89,7 +89,7 @@ class ProjectListCubit extends Cubit<ProjectListState> {
           ProjectListLoaded(
             projects: [
               for (final p in current.projects)
-                p.id == updated.id ? updated : p,
+                if (p.id == updated.id) updated else p,
             ],
             archivedCount: current.archivedCount,
           ),

@@ -251,4 +251,23 @@ void main() {
       expect(() => defaultNode('carousel3d', id: 'x'), throwsArgumentError);
     });
   });
+
+  group('instância de componente fora do catálogo', () {
+    test('nenhum descriptor do catálogo é do tipo component', () {
+      expect(
+        widgetCatalog.values.where((d) => d.type == ComponentInstance.type),
+        isEmpty,
+      );
+    });
+
+    test('descriptorFor não conhece component', () {
+      expect(descriptorFor('component'), isNull);
+    });
+
+    test('o descriptor próprio da instância é uma folha sem campos', () {
+      expect(componentInstanceDescriptor.type, 'component');
+      expect(componentInstanceDescriptor.slot, SlotKind.none);
+      expect(componentInstanceDescriptor.fields, isEmpty);
+    });
+  });
 }

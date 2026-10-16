@@ -4,6 +4,7 @@ import 'package:sdui_core/src/catalog/binding_source_catalog.dart';
 import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_field.dart';
 import 'package:sdui_core/src/catalog/widget_descriptor.dart';
+import 'package:sdui_core/src/model/component_instance.dart';
 import 'package:sdui_core/src/model/prop_value.dart';
 import 'package:sdui_core/src/model/theme_color_role.dart';
 import 'package:sdui_core/src/schema/prop_value_schema.dart';
@@ -52,6 +53,52 @@ Either<SpecValidationError, Unit> validateFieldValues(
     if (result.isLeft()) return result;
   }
   return const Right(unit);
+}
+
+/// Só as formas tipadas dos `args` são conferidas aqui; o literal é casado com
+/// o tipo do parâmetro na resolução, que é quem conhece o componente.
+Either<SpecValidationError, Unit> validateComponentInstanceProps(
+  Map<String, dynamic> props, {
+  required String path,
+  required int specVersion,
+  required BindingContext context,
+}) {
+  final componentId = props[ComponentInstance.componentIdKey];
+  if (componentId is! String || componentId.isEmpty) {
+    return Left(
+      SpecValidationError(
+        '$path.${ComponentInstance.componentIdKey}: esperado o id do '
+        'componente (texto não vazio)',
+      ),
+    );
+  }
+
+  for (final key in props.keys) {
+    if (key == ComponentInstance.componentIdKey ||
+        key == ComponentInstance.argsKey) {
+      continue;
+    }
+    return Left(
+      SpecValidationError(
+        '$path.$key: a instância só aceita '
+        '${ComponentInstance.componentIdKey} e ${ComponentInstance.argsKey}',
+      ),
+    );
+  }
+
+  final argsPath = '$path.${ComponentInstance.argsKey}';
+  final args = props[ComponentInstance.argsKey];
+  if (args == null) return const Right(unit);
+  if (args is! Map) {
+    return Left(SpecValidationError('$argsPath: esperado um objeto'));
+  }
+  return validateFieldValues(
+    args.cast<String, dynamic>(),
+    const [],
+    path: argsPath,
+    specVersion: specVersion,
+    context: context,
+  );
 }
 
 PropField? _fieldOf(List<PropField> fields, String key) {

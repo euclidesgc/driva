@@ -1,0 +1,1 @@
+enum ContentKind { content, component }
