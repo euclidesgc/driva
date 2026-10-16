@@ -39,6 +39,8 @@ export 'src/schema/content_schema.dart';
 export 'src/schema/node_events_schema.dart';
 export 'src/schema/node_props_schema.dart';
 export 'src/schema/node_schema.dart';
+export 'src/schema/project_theme_schema.dart';
+export 'src/schema/project_theme_tolerant_parser.dart';
 export 'src/schema/prop_value_schema.dart';
 export 'src/schema/spec_validation_error.dart';
 export 'src/schema/spec_version.dart';

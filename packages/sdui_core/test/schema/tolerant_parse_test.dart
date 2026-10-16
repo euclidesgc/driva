@@ -49,4 +49,63 @@ void main() {
     ((spec['root'] as Map)['children'] as List)[1] = {'type': 'futureWidget'};
     expect(parseContentSpec(spec, tolerant: true).isLeft(), isTrue);
   });
+
+  group(r'$theme num spec v2', () {
+    Map<String, dynamic> themedSpec() => {
+      'specVersion': 2,
+      'kind': 'content',
+      'id': 'ct_1',
+      'name': 'Teste',
+      'slug': 'teste',
+      'root': {
+        'id': 'n1',
+        'type': 'column',
+        'children': [
+          {
+            'id': 'n2',
+            'type': 'text',
+            'props': {
+              'data': 'oi',
+              'color': {r'$theme': 'brand'},
+              'foo': {r'$theme': 'primary'},
+            },
+          },
+        ],
+      },
+    };
+
+    test('o modo tolerante aceita papel desconhecido e prop fora do catálogo '
+        'num nó filho', () {
+      final content = parseContentSpec(
+        themedSpec(),
+        tolerant: true,
+      ).toNullable();
+
+      expect(content, isNotNull);
+      expect(content!.root!.children.single.properties['color'], {
+        r'$theme': 'brand',
+      });
+    });
+
+    test('o modo estrito recusa o mesmo JSON pelo papel desconhecido', () {
+      final error = parseContentSpec(themedSpec()).getLeft().toNullable();
+
+      expect(error, isNotNull);
+      expect(
+        error!.message,
+        r'root.children[0].props.color.$theme: papel de cor "brand" '
+        'desconhecido',
+      );
+    });
+
+    test(r'o modo tolerante também vale para o $theme no safeArea', () {
+      final spec = themedSpec()
+        ..['safeArea'] = {
+          'foo': {r'$theme': 'primary'},
+        };
+
+      expect(parseContentSpec(spec).isLeft(), isTrue);
+      expect(parseContentSpec(spec, tolerant: true).isRight(), isTrue);
+    });
+  });
 }

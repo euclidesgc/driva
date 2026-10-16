@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 Widget buildDivider(BuildContext context, SduiNode node, SduiRenderer r) {
@@ -10,6 +11,6 @@ Widget buildDivider(BuildContext context, SduiNode node, SduiRenderer r) {
     thickness: parseDouble(p['thickness']),
     indent: parseDouble(p['indent']),
     endIndent: parseDouble(p['endIndent']),
-    color: parseColor(p['color']),
+    color: resolveColor(p['color'], r.theme),
   );
 }

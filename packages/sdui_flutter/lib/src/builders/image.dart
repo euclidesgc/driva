@@ -7,13 +7,14 @@ import 'package:sdui_flutter/src/builders/image/image_loading_box.dart';
 import 'package:sdui_flutter/src/layout/sdui_dimension_box.dart';
 import 'package:sdui_flutter/src/parsing/enums.dart';
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 Widget buildImage(BuildContext context, SduiNode node, SduiRenderer r) {
   final p = node.properties;
   final src = (p['src'] ?? '').toString();
   final borderRadius = parseBorderRadius(p['borderRadius']);
-  final backgroundColor = parseColor(p['backgroundColor']);
+  final backgroundColor = resolveColor(p['backgroundColor'], r.theme);
   final semanticLabel = (p['semanticLabel'] as String?)?.trim();
 
   Widget content;

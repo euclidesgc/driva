@@ -14,3 +14,4 @@ export 'src/driva.dart';
 export 'src/driva_config.dart';
 export 'src/driva_content.dart';
 export 'src/driva_load_failure.dart';
+export 'src/driva_loaded_content.dart';

@@ -26,6 +26,13 @@ model Project {
   /// que está publicado — nunca escrita, nunca lista projetos.
   publishableKey String @unique @map("publishable_key")
 
+  /// Tema visual do projeto (formato do `ProjectTheme` do `sdui_core`). O backend não o
+  /// interpreta: só confere que é objeto. Nulo = tema padrão do kernel.
+  theme Json?
+
+  /// Muda a cada gravação do tema, inclusive ao limpar: entra no ETag da leitura pública.
+  themeUpdatedAt DateTime? @map("theme_updated_at")
+
   contents   Content[]
   categories Category[]
 

@@ -22,6 +22,7 @@ import type { Response } from 'express';
 import { ProjectsService, ProjectStatus } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { SetProjectThemeDto } from './dto/set-project-theme.dto';
 import { MAX_UPLOAD_BYTES, processUploadedImage } from './image-pipeline';
 
 const projectOf = (header?: string) =>
@@ -86,6 +87,12 @@ export class ProjectsController {
       ? await processUploadedImage(file.buffer)
       : undefined;
     return this.projects.update(id, dto, image);
+  }
+
+  @Put(':id/theme')
+  @HttpCode(200)
+  setTheme(@Param('id') id: string, @Body() dto: SetProjectThemeDto) {
+    return this.projects.setTheme(id, dto.theme);
   }
 
   @Delete(':id')

@@ -2,7 +2,11 @@ import 'package:driva_client/src/cached_content.dart';
 import 'package:driva_client/src/driva_load_failure.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-typedef FetchEntry = ({ContentSpec spec, CachedContent cached});
+typedef FetchEntry = ({
+  ContentSpec spec,
+  ProjectTheme theme,
+  CachedContent cached,
+});
 
 /// Resultado interno de uma tentativa de busca na rede — preserva a causa
 /// de falha em vez de colapsar tudo em `null`. Interno ao package: não é

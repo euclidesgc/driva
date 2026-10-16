@@ -4,6 +4,9 @@ import 'package:driva_client/driva_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sdui_core/sdui_core.dart';
+
+import 'support/fake_cache_store.dart';
 
 const Map<String, dynamic> _validSpecJson = {
   'specVersion': 1,
@@ -20,6 +23,36 @@ Map<String, dynamic> _envelope(Map<String, dynamic> spec) => {
   'updatedAt': DateTime.now().toIso8601String(),
   'spec': spec,
 };
+
+Map<String, dynamic> _themedEnvelope(Object? theme) => {
+  ..._envelope(_validSpecJson),
+  'theme': theme,
+};
+
+const Map<String, dynamic> _redThemeJson = {
+  'colors': {'primary': '#FF0000'},
+};
+
+const Map<String, dynamic> _blueThemeJson = {
+  'colors': {'primary': '#0000FF'},
+};
+
+DrivaContentRepository _repositoryWith({
+  required http.Client client,
+  required DrivaCacheStore cache,
+  Map<String, Map<String, dynamic>> fallbacks = const {},
+}) => DrivaContentRepository(
+  config: DrivaConfig(
+    baseUrl: 'https://api.example.com',
+    publishableKey: 'pk_test',
+    fallbacks: fallbacks,
+    cache: cache,
+  ),
+  httpClient: client,
+);
+
+String? _primaryOf(DrivaLoadedContent loaded) =>
+    loaded.theme.colors[ThemeColorRole.primary];
 
 void main() {
   group('DrivaContentRepository', () {
@@ -43,7 +76,7 @@ void main() {
       final emissions = await repository.load('home').toList();
 
       expect(emissions, hasLength(1));
-      expect(emissions.single.slug, 'home');
+      expect(emissions.single.spec.slug, 'home');
     });
 
     test('304 não produz emissão além da já servida em memória', () async {
@@ -99,7 +132,7 @@ void main() {
       final emissions = await repository.load('home').toList();
 
       expect(emissions, hasLength(1));
-      expect(emissions.single.id, 'home-id');
+      expect(emissions.single.spec.id, 'home-id');
     });
 
     test(r'spec v2 com $bind numa prop carrega sem falha', () async {
@@ -139,8 +172,8 @@ void main() {
       final emissions = await repository.load('home').toList();
 
       expect(emissions, hasLength(1));
-      expect(emissions.single.specVersion, 2);
-      expect(emissions.single.root?.properties['text'], boundText);
+      expect(emissions.single.spec.specVersion, 2);
+      expect(emissions.single.spec.root?.properties['text'], boundText);
     });
 
     test(
@@ -272,7 +305,7 @@ void main() {
         final emissions = await repository.load('home').toList();
 
         expect(emissions, hasLength(1));
-        expect(emissions.single.id, 'home-id');
+        expect(emissions.single.spec.id, 'home-id');
       },
     );
 
@@ -330,6 +363,241 @@ void main() {
         expect(cache.deleted, isTrue);
       },
     );
+  });
+
+  group('DrivaContentRepository: tema do projeto', () {
+    test(
+      '200 com theme emite o tema lido e grava o themeJson no cache',
+      () async {
+        final cache = FakeCacheStore();
+        final client = MockClient(
+          (request) async => http.Response(
+            jsonEncode(_themedEnvelope(_redThemeJson)),
+            200,
+            headers: {'etag': '"home-1"'},
+          ),
+        );
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: cache,
+        ).load('home').toList();
+
+        expect(emissions, hasLength(1));
+        expect(_primaryOf(emissions.single), '#FF0000');
+        expect(cache.written.single.themeJson, _redThemeJson);
+      },
+    );
+
+    test(
+      'cache em disco com tema e rede falhando emite o tema guardado',
+      () async {
+        final cache = FakeCacheStore(
+          seed: CachedContent(
+            specJson: _validSpecJson,
+            etag: '"home-1"',
+            fetchedAt: DateTime.now(),
+            themeJson: _redThemeJson,
+          ),
+        );
+        final client = MockClient((request) async => throw Exception('boom'));
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: cache,
+        ).load('home').toList();
+
+        expect(emissions, hasLength(1));
+        expect(emissions.single.spec.id, 'home-id');
+        expect(_primaryOf(emissions.single), '#FF0000');
+      },
+    );
+
+    test('304 mantém o tema já emitido', () async {
+      var requestCount = 0;
+      final client = MockClient((request) async {
+        requestCount++;
+        if (requestCount == 1) {
+          return http.Response(
+            jsonEncode(_themedEnvelope(_redThemeJson)),
+            200,
+            headers: {'etag': '"home-1"'},
+          );
+        }
+        return http.Response('', 304);
+      });
+      final repository = _repositoryWith(
+        client: client,
+        cache: FakeCacheStore(),
+      );
+
+      final first = await repository.load('home').toList();
+      final second = await repository.load('home').toList();
+
+      expect(requestCount, 2);
+      expect(second, hasLength(1));
+      expect(second.single, first.single);
+      expect(_primaryOf(second.single), '#FF0000');
+    });
+
+    test('200 com tema novo emite de novo com o tema novo', () async {
+      final cache = FakeCacheStore(
+        seed: CachedContent(
+          specJson: _validSpecJson,
+          etag: '"home-1"',
+          fetchedAt: DateTime.now(),
+          themeJson: _redThemeJson,
+        ),
+      );
+      final client = MockClient(
+        (request) async => http.Response(
+          jsonEncode(_themedEnvelope(_blueThemeJson)),
+          200,
+          headers: {'etag': '"home-2"'},
+        ),
+      );
+
+      final emissions = await _repositoryWith(
+        client: client,
+        cache: cache,
+      ).load('home').toList();
+
+      expect(emissions.map(_primaryOf), ['#FF0000', '#0000FF']);
+      expect(cache.written.single.themeJson, _blueThemeJson);
+    });
+
+    test(
+      'CachedContent.fromJson sem a chave themeJson lê sem erro e o '
+      'conteúdo sai com o tema padrão',
+      () async {
+        final legacy = CachedContent.fromJson({
+          'specJson': _validSpecJson,
+          'etag': '"home-1"',
+          'fetchedAt': DateTime.now().toIso8601String(),
+        });
+        final client = MockClient((request) async => throw Exception('boom'));
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: FakeCacheStore(seed: legacy),
+        ).load('home').toList();
+
+        expect(legacy.themeJson, isNull);
+        expect(emissions, hasLength(1));
+        expect(emissions.single.theme, kDefaultProjectTheme);
+      },
+    );
+
+    test(
+      'cache legado sem themeJson refaz o pedido sem if-none-match e emite '
+      'o tema do servidor em vez de aceitar o 304',
+      () async {
+        final legacy = CachedContent.fromJson({
+          'specJson': _validSpecJson,
+          'etag': '"home-1-t5"',
+          'fetchedAt': DateTime.now().toIso8601String(),
+        });
+        final cache = FakeCacheStore(seed: legacy);
+        final sentIfNoneMatch = <String?>[];
+        final client = MockClient((request) async {
+          sentIfNoneMatch.add(request.headers['if-none-match']);
+          if (request.headers.containsKey('if-none-match')) {
+            return http.Response('', 304);
+          }
+          return http.Response(
+            jsonEncode(_themedEnvelope(_redThemeJson)),
+            200,
+            headers: {'etag': '"home-1-t5"'},
+          );
+        });
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: cache,
+        ).load('home').toList();
+
+        expect(sentIfNoneMatch, [null]);
+        expect(emissions, hasLength(2));
+        expect(emissions.first.theme, kDefaultProjectTheme);
+        expect(_primaryOf(emissions.last), '#FF0000');
+        expect(cache.written.single.themeJson, _redThemeJson);
+      },
+    );
+
+    test('CachedContent preserva o themeJson ida e volta pelo JSON', () {
+      final original = CachedContent(
+        specJson: _validSpecJson,
+        etag: '"home-1"',
+        fetchedAt: DateTime.utc(2026, 10, 15),
+        themeJson: _redThemeJson,
+      );
+
+      expect(CachedContent.fromJson(original.toJson()), original);
+    });
+
+    test(
+      'envelope com theme que não é objeto emite o conteúdo com o tema '
+      'padrão',
+      () async {
+        final cache = FakeCacheStore();
+        final client = MockClient(
+          (request) async =>
+              http.Response(jsonEncode(_themedEnvelope('abc')), 200),
+        );
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: cache,
+        ).load('home').toList();
+
+        expect(emissions, hasLength(1));
+        expect(emissions.single.spec.id, 'home-id');
+        expect(emissions.single.theme, kDefaultProjectTheme);
+        expect(cache.written.single.themeJson, isNull);
+      },
+    );
+
+    test(
+      'envelope com primary ilegível emite o conteúdo com o primary padrão',
+      () async {
+        final client = MockClient(
+          (request) async => http.Response(
+            jsonEncode(
+              _themedEnvelope({
+                'colors': {'primary': 1},
+              }),
+            ),
+            200,
+          ),
+        );
+
+        final emissions = await _repositoryWith(
+          client: client,
+          cache: FakeCacheStore(),
+        ).load('home').toList();
+
+        expect(emissions, hasLength(1));
+        expect(emissions.single.spec.id, 'home-id');
+        expect(
+          _primaryOf(emissions.single),
+          kDefaultProjectTheme.colors[ThemeColorRole.primary],
+        );
+      },
+    );
+
+    test('fallback embarcado é emitido com o tema padrão', () async {
+      final client = MockClient((request) async => throw Exception('boom'));
+
+      final emissions = await _repositoryWith(
+        client: client,
+        cache: FakeCacheStore(),
+        fallbacks: const {'home': _validSpecJson},
+      ).load('home').toList();
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single.spec.id, 'home-id');
+      expect(emissions.single.theme, kDefaultProjectTheme);
+    });
   });
 
   group('Driva', () {

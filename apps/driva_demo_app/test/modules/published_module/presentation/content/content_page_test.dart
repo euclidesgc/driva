@@ -155,5 +155,59 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets(
+      'spec v2 com cor de tema desenha o primary do tema do projeto',
+      (tester) async {
+        final spec = {
+          'specVersion': 2,
+          'kind': 'content',
+          'id': 'ct_1',
+          'name': 'Home',
+          'slug': 'home',
+          'root': {
+            'id': 'n1',
+            'type': 'text',
+            'props': {
+              'data': 'Texto do tema',
+              'color': {r'$theme': 'primary'},
+            },
+          },
+        };
+        final client = MockClient(
+          (request) async => http.Response(
+            jsonEncode({
+              'spec': spec,
+              'theme': {
+                'colors': {'primary': '#FF0000'},
+              },
+            }),
+            200,
+          ),
+        );
+        await Driva.init(
+          DrivaConfig(
+            baseUrl: 'https://api.example.com',
+            publishableKey: 'pk_test',
+            cache: MemoryCacheStore(),
+          ),
+          httpClient: client,
+        );
+
+        await tester.pumpWidget(
+          _harness(
+            const ContentPage(initialSlug: 'home', publishableKey: 'pk_test'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          tester.widget<Text>(find.text('Texto do tema')).style?.color,
+          const Color(0xFFFF0000),
+        );
+        expect(find.byType(ContentErrorView), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }

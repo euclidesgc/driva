@@ -17,6 +17,7 @@ class SduiView extends StatelessWidget {
     this.showDiagnostics = false,
     this.imageUrlResolver,
     this.boundValueDisplay = BoundValueDisplay.fallback,
+    this.theme = kDefaultProjectTheme,
   });
 
   SduiView.content(
@@ -28,6 +29,7 @@ class SduiView extends StatelessWidget {
     bool showDiagnostics = false,
     SduiImageUrlResolver? imageUrlResolver,
     BoundValueDisplay boundValueDisplay = BoundValueDisplay.fallback,
+    ProjectTheme theme = kDefaultProjectTheme,
   }) : this(
          key: key,
          node: spec.root,
@@ -38,6 +40,7 @@ class SduiView extends StatelessWidget {
          showDiagnostics: showDiagnostics,
          imageUrlResolver: imageUrlResolver,
          boundValueDisplay: boundValueDisplay,
+         theme: theme,
        );
 
   final SduiNode? node;
@@ -57,6 +60,8 @@ class SduiView extends StatelessWidget {
 
   final BoundValueDisplay boundValueDisplay;
 
+  final ProjectTheme theme;
+
   @override
   Widget build(BuildContext context) {
     final root = node;
@@ -68,6 +73,7 @@ class SduiView extends StatelessWidget {
       showDiagnostics: showDiagnostics,
       imageUrlResolver: imageUrlResolver,
       boundValueDisplay: boundValueDisplay,
+      theme: theme,
     );
     final rendered = renderer.render(context, root);
     final pageChrome = safeArea;

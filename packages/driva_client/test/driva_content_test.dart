@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:sdui_core/sdui_core.dart';
 
 const Map<String, dynamic> _rootTextNodeJson = {
   'id': 'home-text',
@@ -29,6 +30,25 @@ Map<String, dynamic> _envelope(Map<String, dynamic> spec) => {
   'updatedAt': DateTime.now().toIso8601String(),
   'spec': spec,
 };
+
+const Map<String, dynamic> _themedSpecJson = {
+  'specVersion': 2,
+  'kind': 'content',
+  'id': 'home-id',
+  'name': 'Home',
+  'slug': 'home',
+  'root': {
+    'id': 'themed-text',
+    'type': 'text',
+    'props': {
+      'data': 'Texto do tema',
+      'color': {r'$theme': 'primary'},
+    },
+  },
+};
+
+Color _colorFromHex(String hex) =>
+    Color(int.parse('FF${hex.substring(1)}', radix: 16));
 
 /// `SduiSafeArea` liga `SafeArea` por padrão (`enabled: true`), que exige
 /// `MediaQuery`/`Directionality` no ancestral — o par que `MaterialApp` +
@@ -149,5 +169,49 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+  });
+
+  group(r'DrivaContent: tema do projeto ($theme)', () {
+    Future<Color?> pumpThemedText(
+      WidgetTester tester,
+      Map<String, dynamic> envelope,
+    ) async {
+      final client = MockClient(
+        (request) async => http.Response(jsonEncode(envelope), 200),
+      );
+      await Driva.init(
+        DrivaConfig(
+          baseUrl: 'https://api.example.com',
+          publishableKey: 'pk_test',
+          cache: MemoryCacheStore(),
+        ),
+        httpClient: client,
+      );
+
+      await tester.pumpWidget(_harness(const DrivaContent(slug: 'home')));
+      await tester.pumpAndSettle();
+
+      return tester.widget<Text>(find.text('Texto do tema')).style?.color;
+    }
+
+    testWidgets('desenha o primary do tema do projeto', (tester) async {
+      final color = await pumpThemedText(tester, {
+        ..._envelope(_themedSpecJson),
+        'theme': {
+          'colors': {'primary': '#FF0000'},
+        },
+      });
+
+      expect(color, const Color(0xFFFF0000));
+    });
+
+    testWidgets('sem tema desenha o primary do tema padrão', (tester) async {
+      final color = await pumpThemedText(tester, _envelope(_themedSpecJson));
+
+      expect(
+        color,
+        _colorFromHex(kDefaultProjectTheme.colors[ThemeColorRole.primary]!),
+      );
+    });
   });
 }

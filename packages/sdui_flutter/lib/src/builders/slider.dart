@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 /// Preview estático: o valor vem das props e é clampado na faixa, para uma
@@ -21,7 +22,7 @@ Widget buildSlider(BuildContext context, SduiNode node, SduiRenderer r) {
     max: safeMax,
     divisions: divisions != null && divisions > 0 ? divisions : null,
     label: p['showLabel'] as bool? ?? false ? value.toString() : null,
-    activeColor: parseColor(p['activeColor']),
+    activeColor: resolveColor(p['activeColor'], r.theme),
     onChanged: enabled ? (_) {} : null,
   );
 }

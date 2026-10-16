@@ -6,11 +6,10 @@ import 'package:driva_client/src/cache/prefs_cache_store.dart';
 import 'package:driva_client/src/cached_content.dart';
 import 'package:driva_client/src/driva_config.dart';
 import 'package:driva_client/src/driva_load_failure.dart';
+import 'package:driva_client/src/driva_loaded_content.dart';
 import 'package:driva_client/src/fetch_outcome.dart';
 import 'package:http/http.dart' as http;
 import 'package:sdui_core/sdui_core.dart';
-
-typedef _Entry = ({ContentSpec spec, CachedContent cached});
 
 class DrivaContentRepository {
   DrivaContentRepository({required DrivaConfig config, http.Client? httpClient})
@@ -21,16 +20,16 @@ class DrivaContentRepository {
   final DrivaConfig _config;
   final http.Client _httpClient;
   final DrivaCacheStore _cache;
-  final Map<String, _Entry> _memory = {};
+  final Map<String, FetchEntry> _memory = {};
 
-  Stream<ContentSpec> load(String slug) async* {
+  Stream<DrivaLoadedContent> load(String slug) async* {
     final cacheKey = _cacheKeyFor(slug);
     var entry = _memory[cacheKey];
 
     entry ??= await _readDiskEntry(cacheKey);
     if (entry != null) {
       _memory[cacheKey] = entry;
-      yield entry.spec;
+      yield _loadedFrom(entry);
     }
 
     final outcome = await _fetchAndValidate(
@@ -43,7 +42,7 @@ class DrivaContentRepository {
       case FetchOk(entry: final fetched):
         _memory[cacheKey] = fetched;
         await _cache.write(cacheKey, fetched.cached);
-        yield fetched.spec;
+        yield _loadedFrom(fetched);
         return;
       case FetchNotModified():
         if (entry != null) return;
@@ -55,7 +54,7 @@ class DrivaContentRepository {
 
     final fallback = _fallbackFor(slug);
     if (fallback != null) {
-      yield fallback;
+      yield DrivaLoadedContent(spec: fallback, theme: kDefaultProjectTheme);
       return;
     }
 
@@ -70,7 +69,10 @@ class DrivaContentRepository {
 
   void dispose() => _httpClient.close();
 
-  Future<_Entry?> _readDiskEntry(String cacheKey) async {
+  DrivaLoadedContent _loadedFrom(FetchEntry entry) =>
+      DrivaLoadedContent(spec: entry.spec, theme: entry.theme);
+
+  Future<FetchEntry?> _readDiskEntry(String cacheKey) async {
     final onDisk = await _cache.read(cacheKey);
     if (onDisk == null) return null;
 
@@ -79,7 +81,11 @@ class DrivaContentRepository {
       await _cache.delete(cacheKey);
       return null;
     }
-    return (spec: parsed.getRight().toNullable()!, cached: onDisk);
+    return (
+      spec: parsed.getRight().toNullable()!,
+      theme: parseProjectThemeTolerant(onDisk.themeJson),
+      cached: onDisk,
+    );
   }
 
   Future<FetchOutcome> _fetchAndValidate(
@@ -135,12 +141,19 @@ class DrivaContentRepository {
       return const FetchFailed(DrivaLoadCause.invalidSpec);
     }
 
+    final rawTheme = envelope['theme'];
+    final themeJson = rawTheme is Map
+        ? Map<String, dynamic>.from(rawTheme)
+        : null;
+
     return FetchOk((
       spec: parsed.getRight().toNullable()!,
+      theme: parseProjectThemeTolerant(themeJson),
       cached: CachedContent(
         specJson: specJson,
         etag: response.headers['etag'],
         fetchedAt: DateTime.now(),
+        themeJson: themeJson,
       ),
     ));
   }

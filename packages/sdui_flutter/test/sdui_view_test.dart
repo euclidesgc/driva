@@ -294,4 +294,66 @@ void main() {
 
     expect(find.textContaining('carousel3d'), findsOneWidget);
   });
+
+  group(r'tema do projeto ($theme)', () {
+    const themedText = SduiNode(
+      id: 'n1',
+      type: 'text',
+      properties: {
+        'data': 'tema',
+        'color': {r'$theme': 'primary'},
+      },
+    );
+    const content = ContentSpec(
+      specVersion: kTypedPropValuesSpecVersion,
+      id: 'ct_tema',
+      name: 'Tema',
+      slug: 'tema',
+      root: themedText,
+    );
+    final redPrimary = ProjectTheme(
+      colors: {
+        ...kDefaultProjectTheme.colors,
+        ThemeColorRole.primary: '#FF0000',
+      },
+      textStyles: kDefaultProjectTheme.textStyles,
+      radii: kDefaultProjectTheme.radii,
+      shadows: kDefaultProjectTheme.shadows,
+    );
+
+    Color? textColor(WidgetTester tester) =>
+        tester.widget<Text>(find.text('tema')).style?.color;
+
+    testWidgets('SduiView sem tema usa o padrão do kernel', (tester) async {
+      await tester.pumpWidget(_host(const SduiView(node: themedText)));
+
+      expect(textColor(tester), const Color(0xFF6750A4));
+    });
+
+    testWidgets('SduiView com tema injetado usa a cor dele', (tester) async {
+      await tester.pumpWidget(
+        _host(SduiView(node: themedText, theme: redPrimary)),
+      );
+
+      expect(textColor(tester), const Color(0xFFFF0000));
+    });
+
+    testWidgets('SduiView.content sem tema usa o padrão do kernel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(SduiView.content(content)));
+
+      expect(textColor(tester), const Color(0xFF6750A4));
+    });
+
+    testWidgets('SduiView.content com tema injetado usa a cor dele', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(SduiView.content(content, theme: redPrimary)),
+      );
+
+      expect(textColor(tester), const Color(0xFFFF0000));
+    });
+  });
 }

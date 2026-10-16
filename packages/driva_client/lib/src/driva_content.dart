@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:driva_client/src/driva.dart';
+import 'package:driva_client/src/driva_loaded_content.dart';
 import 'package:flutter/widgets.dart';
-import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
 
 typedef DrivaErrorBuilder = Widget Function(BuildContext context, Object error);
@@ -27,8 +27,8 @@ class DrivaContent extends StatefulWidget {
 }
 
 class _DrivaContentState extends State<DrivaContent> {
-  StreamSubscription<ContentSpec>? _subscription;
-  ContentSpec? _spec;
+  StreamSubscription<DrivaLoadedContent>? _subscription;
+  DrivaLoadedContent? _loaded;
   Object? _error;
 
   @override
@@ -42,7 +42,7 @@ class _DrivaContentState extends State<DrivaContent> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.slug != widget.slug) {
       unawaited(_subscription?.cancel());
-      _spec = null;
+      _loaded = null;
       _error = null;
       _subscribe();
     }
@@ -58,10 +58,10 @@ class _DrivaContentState extends State<DrivaContent> {
     _subscription = Driva.instance.repository
         .load(widget.slug)
         .listen(
-          (spec) {
+          (loaded) {
             if (!mounted) return;
             setState(() {
-              _spec = spec;
+              _loaded = loaded;
               _error = null;
             });
           },
@@ -78,7 +78,7 @@ class _DrivaContentState extends State<DrivaContent> {
             // Stream que fecha com erro também dispara onDone — sem este
             // retorno cedo, o StateError genérico abaixo sobrescreveria o
             // DrivaLoadFailure que o onError acima acabou de guardar.
-            if (!mounted || _spec != null || _error != null) return;
+            if (!mounted || _loaded != null || _error != null) return;
             setState(
               () => _error = StateError(
                 'Driva: nenhum conteúdo disponível para "${widget.slug}" '
@@ -91,10 +91,11 @@ class _DrivaContentState extends State<DrivaContent> {
 
   @override
   Widget build(BuildContext context) {
-    final spec = _spec;
-    if (spec != null) {
+    final loaded = _loaded;
+    if (loaded != null) {
       return SduiView.content(
-        spec,
+        loaded.spec,
+        theme: loaded.theme,
         registry: Driva.instance.config.registry,
         onAction: widget.onAction,
       );

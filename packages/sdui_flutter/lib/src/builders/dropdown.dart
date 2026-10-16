@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 
-import 'package:sdui_flutter/src/parsing/parsers.dart';
+import 'package:sdui_flutter/src/parsing/theme_resolvers.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 /// Preview estático: mostra o valor escolhido (ou o hint). A lista de opções
@@ -13,6 +13,7 @@ Widget buildDropdown(BuildContext context, SduiNode node, SduiRenderer r) {
   final label = (p['label'] as String?)?.trim();
   final enabled = p['enabled'] as bool? ?? true;
   final hasValue = value != null && value.isNotEmpty;
+  final fillColor = resolveColor(p['fillColor'], r.theme);
 
   return DropdownButtonFormField<String>(
     initialValue: hasValue ? value : null,
@@ -20,8 +21,8 @@ Widget buildDropdown(BuildContext context, SduiNode node, SduiRenderer r) {
     decoration: InputDecoration(
       labelText: label == null || label.isEmpty ? null : label,
       border: const OutlineInputBorder(),
-      fillColor: parseColor(p['fillColor']),
-      filled: parseColor(p['fillColor']) != null,
+      fillColor: fillColor,
+      filled: fillColor != null,
     ),
     items: [if (hasValue) DropdownMenuItem(value: value, child: Text(value))],
     onChanged: enabled ? (_) {} : null,

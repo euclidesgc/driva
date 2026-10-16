@@ -121,6 +121,7 @@ Either<SpecValidationError, Object?> _parseStep(
     path: '$path.params',
     specVersion: specVersion,
     context: context,
+    tolerant: tolerant,
   ).map((_) => raw);
 }
 
