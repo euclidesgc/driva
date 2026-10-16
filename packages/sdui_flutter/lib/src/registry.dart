@@ -4,7 +4,11 @@ import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/src/renderer.dart';
 
 typedef SduiBuilder =
-    Widget Function(BuildContext context, SduiNode node, SduiRenderer renderer);
+    Widget Function(
+      BuildContext context,
+      SduiNode node,
+      SduiRenderer renderer,
+    );
 
 class SduiRegistry {
   SduiRegistry(Map<String, SduiBuilder> builders)

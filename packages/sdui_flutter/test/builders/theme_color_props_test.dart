@@ -6,10 +6,7 @@ import 'package:sdui_flutter/sdui_flutter.dart';
 const _accent = Color(0xFF123456);
 
 final _theme = ProjectTheme(
-  colors: {
-    ...kDefaultProjectTheme.colors,
-    ThemeColorRole.accent1: '#123456',
-  },
+  colors: {...kDefaultProjectTheme.colors, ThemeColorRole.accent1: '#123456'},
   textStyles: kDefaultProjectTheme.textStyles,
   radii: kDefaultProjectTheme.radii,
   shadows: kDefaultProjectTheme.shadows,
@@ -28,10 +25,7 @@ final Map<
   (Map<String, dynamic>, Iterable<Color?> Function(WidgetTester))
 >
 _cases = {
-  ('container', 'color'): (
-    {},
-    (t) => _all<Container>(t).map((c) => c.color),
-  ),
+  ('container', 'color'): ({}, (t) => _all<Container>(t).map((c) => c.color)),
   ('container', 'borderColor'): (
     {},
     (t) => _all<Container>(t).map(
@@ -108,11 +102,7 @@ void main() {
     ) async {
       await _pump(
         tester,
-        SduiNode(
-          id: 'n1',
-          type: type,
-          properties: {...props, key: _themed},
-        ),
+        SduiNode(id: 'n1', type: type, properties: {...props, key: _themed}),
         theme: _theme,
       );
 
@@ -121,41 +111,40 @@ void main() {
     });
   }
 
-  testWidgets(
-    'papel desconhecido sai como prop ausente e os irmãos aparecem',
-    (tester) async {
-      Future<Color?> colorOf(Map<String, dynamic> textProps) async {
-        await _pump(
-          tester,
-          SduiNode(
-            id: 'col',
-            type: 'column',
-            children: [
-              SduiNode(id: 't1', type: 'text', properties: textProps),
-              const SduiNode(
-                id: 't2',
-                type: 'text',
-                properties: {'data': 'irmão'},
-              ),
-            ],
-          ),
-          theme: _theme,
-        );
-        expect(tester.takeException(), isNull);
-        expect(find.text('irmão'), findsOneWidget);
-        return DefaultTextStyle.of(
-          tester.element(find.text('alvo')),
-        ).style.merge(tester.widget<Text>(find.text('alvo')).style).color;
-      }
+  testWidgets('papel desconhecido sai como prop ausente e os irmãos aparecem', (
+    tester,
+  ) async {
+    Future<Color?> colorOf(Map<String, dynamic> textProps) async {
+      await _pump(
+        tester,
+        SduiNode(
+          id: 'col',
+          type: 'column',
+          children: [
+            SduiNode(id: 't1', type: 'text', properties: textProps),
+            const SduiNode(
+              id: 't2',
+              type: 'text',
+              properties: {'data': 'irmão'},
+            ),
+          ],
+        ),
+        theme: _theme,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('irmão'), findsOneWidget);
+      return DefaultTextStyle.of(
+        tester.element(find.text('alvo')),
+      ).style.merge(tester.widget<Text>(find.text('alvo')).style).color;
+    }
 
-      final unknown = await colorOf({
-        'data': 'alvo',
-        'color': {r'$theme': 'brand'},
-      });
-      final absent = await colorOf({'data': 'alvo'});
+    final unknown = await colorOf({
+      'data': 'alvo',
+      'color': {r'$theme': 'brand'},
+    });
+    final absent = await colorOf({'data': 'alvo'});
 
-      expect(unknown, absent);
-      expect(unknown, isNot(_accent));
-    },
-  );
+    expect(unknown, absent);
+    expect(unknown, isNot(_accent));
+  });
 }

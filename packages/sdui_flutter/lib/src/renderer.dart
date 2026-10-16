@@ -27,6 +27,7 @@ class SduiRenderer {
     this.imageUrlResolver,
     this.boundValueDisplay = BoundValueDisplay.fallback,
     this.theme = kDefaultProjectTheme,
+    this.componentLookup,
   });
 
   final SduiRegistry registry;
@@ -46,6 +47,11 @@ class SduiRenderer {
   final BoundValueDisplay boundValueDisplay;
 
   final ProjectTheme theme;
+
+  /// Busca de componentes (`id → ContentSpec`) para desenhar nós `component`.
+  /// `null` no app cliente, que recebe a árvore já expandida: ali a instância
+  /// cai na caixa de erro.
+  final ComponentLookup? componentLookup;
 
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
@@ -85,6 +91,7 @@ class _SduiNodeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (ComponentInstance.isInstance(node)) return _buildInstance(context);
     final builder = renderer.registry[node.type];
     final built = builder == null
         ? _UnknownTypeBox(type: node.type)
@@ -95,6 +102,54 @@ class _SduiNodeView extends StatelessWidget {
           );
     final wrapper = renderer.nodeWrapper;
     return wrapper == null ? built : wrapper(node, built);
+  }
+
+  Widget _buildInstance(BuildContext context) {
+    final lookup = renderer.componentLookup;
+    final Widget built;
+    if (lookup == null) {
+      built = const _ComponentErrorBox(
+        message: 'Componente sem busca de componentes disponível',
+      );
+    } else {
+      built = resolveComponentInstance(node, lookup).fold(
+        (error) => _ComponentErrorBox(message: error.message),
+        (resolved) => resolved == null
+            ? const SizedBox.shrink()
+            : renderer.render(context, resolved),
+      );
+    }
+    final wrapper = renderer.nodeWrapper;
+    return wrapper == null ? built : wrapper(node, built);
+  }
+}
+
+class _ComponentErrorBox extends StatelessWidget {
+  const _ComponentErrorBox({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    developer.log(
+      'Erro de componente: $message',
+      name: 'sdui_flutter.renderer',
+      level: 900,
+    );
+    if (!kDebugMode) return const SizedBox.shrink();
+    return Container(
+      padding: SduiChromeTokens.unknownTypePadding,
+      decoration: BoxDecoration(
+        border: Border.all(color: SduiChromeTokens.unknownTypeAccent),
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(
+          color: SduiChromeTokens.unknownTypeAccent,
+          fontSize: SduiChromeTokens.unknownTypeFontSize,
+        ),
+      ),
+    );
   }
 }
 

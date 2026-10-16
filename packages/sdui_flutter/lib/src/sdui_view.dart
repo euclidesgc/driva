@@ -18,6 +18,7 @@ class SduiView extends StatelessWidget {
     this.imageUrlResolver,
     this.boundValueDisplay = BoundValueDisplay.fallback,
     this.theme = kDefaultProjectTheme,
+    this.componentLookup,
   });
 
   SduiView.content(
@@ -30,6 +31,7 @@ class SduiView extends StatelessWidget {
     SduiImageUrlResolver? imageUrlResolver,
     BoundValueDisplay boundValueDisplay = BoundValueDisplay.fallback,
     ProjectTheme theme = kDefaultProjectTheme,
+    ComponentLookup? componentLookup,
   }) : this(
          key: key,
          node: spec.root,
@@ -41,6 +43,7 @@ class SduiView extends StatelessWidget {
          imageUrlResolver: imageUrlResolver,
          boundValueDisplay: boundValueDisplay,
          theme: theme,
+         componentLookup: componentLookup,
        );
 
   final SduiNode? node;
@@ -62,6 +65,9 @@ class SduiView extends StatelessWidget {
 
   final ProjectTheme theme;
 
+  /// Busca de componentes; sem ela o nó `component` desenha a caixa de erro.
+  final ComponentLookup? componentLookup;
+
   @override
   Widget build(BuildContext context) {
     final root = node;
@@ -74,6 +80,7 @@ class SduiView extends StatelessWidget {
       imageUrlResolver: imageUrlResolver,
       boundValueDisplay: boundValueDisplay,
       theme: theme,
+      componentLookup: componentLookup,
     );
     final rendered = renderer.render(context, root);
     final pageChrome = safeArea;
