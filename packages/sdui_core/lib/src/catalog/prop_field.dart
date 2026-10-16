@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:sdui_core/src/catalog/field_kind.dart';
 import 'package:sdui_core/src/catalog/prop_option.dart';
 import 'package:sdui_core/src/catalog/prop_value_type.dart';
+import 'package:sdui_core/src/catalog/visibility_condition.dart';
 
 class PropField extends Equatable {
   const PropField({
@@ -22,6 +23,7 @@ class PropField extends Equatable {
     this.isBindable = true,
     this.isStyle = false,
     this.declaredValueType,
+    this.visibleWhen,
   });
 
   final String key;
@@ -61,6 +63,9 @@ class PropField extends Equatable {
 
   final PropValueType? declaredValueType;
 
+  /// Sem condição o campo é sempre visível. Esconder não apaga o valor do nó.
+  final VisibilityCondition? visibleWhen;
+
   PropValueType get valueType => declaredValueType ?? kind.valueType;
 
   List<String> get enumValues => [for (final option in options) option.value];
@@ -86,6 +91,7 @@ class PropField extends Equatable {
     isBindable,
     isStyle,
     declaredValueType,
+    visibleWhen,
   ];
 }
 

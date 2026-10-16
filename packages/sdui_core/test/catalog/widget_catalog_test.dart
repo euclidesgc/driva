@@ -36,6 +36,31 @@ void main() {
       expect(widgetCatalog, hasLength(24));
     });
 
+    test('toda visibleWhen aponta para prop existente do mesmo descriptor', () {
+      for (final descriptor in widgetCatalog.values) {
+        expect(
+          FieldVisibility.problemsIn(descriptor),
+          isEmpty,
+          reason: descriptor.type,
+        );
+      }
+    });
+
+    test('todo campo edgeInsets tem faixa 0..max', () {
+      var found = 0;
+      for (final descriptor in widgetCatalog.values) {
+        for (final field in descriptor.fields) {
+          if (field.kind != FieldKind.edgeInsets) continue;
+          found++;
+          final reason = '${descriptor.type}.${field.key}';
+          expect(field.min, 0, reason: reason);
+          expect(field.max, 200, reason: reason);
+          expect(field.step, 1, reason: reason);
+        }
+      }
+      expect(found, 6);
+    });
+
     test('controles de formulário são folhas na categoria Formulário', () {
       for (final type in <String>[
         'textField',

@@ -126,8 +126,9 @@ class _NumberEditorState extends State<NumberEditor> {
 
     final min = field.min!.toDouble();
     final max = field.max!.toDouble();
+    final defaultValue = field.defaultValue;
     final current =
-        (_parse(_controller.text) ?? field.defaultValue as num? ?? min)
+        (_parse(_controller.text) ?? (defaultValue is num ? defaultValue : min))
             .toDouble()
             .clamp(min, max);
     final step = field.step?.toDouble() ?? (widget.isInt ? 1.0 : null);

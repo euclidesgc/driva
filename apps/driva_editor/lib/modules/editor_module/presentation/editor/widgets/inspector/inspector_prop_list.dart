@@ -104,7 +104,15 @@ class _InspectorPropListState extends State<InspectorPropList> {
 
   List<PropField> _fieldsOf(String group) => [
     for (final field in widget.descriptor.fields)
-      if (field.group == group && _matches(field)) field,
+      if (field.group == group &&
+          _matches(field) &&
+          FieldVisibility.isVisible(
+            field,
+            widget.properties,
+            widget.descriptor,
+            indeterminateKeys: widget.mixedKeys,
+          ))
+        field,
   ];
 
   bool _matches(PropField field) =>
