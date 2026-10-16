@@ -1,0 +1,27 @@
+{
+  "specVersion": 2,
+  "kind": "component",
+  "id": "c-selo",
+  "name": "Selo",
+  "slug": "selo",
+  "params": [
+    { "name": "rotulo", "type": "text", "isList": false, "required": true },
+    {
+      "name": "cor",
+      "type": "color",
+      "isList": false,
+      "required": false,
+      "default": "#D32F2F"
+    }
+  ],
+  "root": {
+    "id": "texto",
+    "type": "text",
+    "props": {
+      "data": {
+        "$bind": { "source": "componentParam", "path": "rotulo", "fallback": "" }
+      },
+      "color": { "$bind": { "source": "componentParam", "path": "cor" } }
+    }
+  }
+}

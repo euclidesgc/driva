@@ -1,0 +1,43 @@
+{
+  "specVersion": 2,
+  "kind": "content",
+  "id": "ct-ofertas",
+  "name": "Ofertas",
+  "slug": "ofertas",
+  "root": {
+    "id": "raiz",
+    "type": "column",
+    "children": [
+      {
+        "id": "saudacao",
+        "type": "text",
+        "props": {
+          "data": {
+            "$bind": {
+              "source": "pageParam",
+              "path": "usuario.nome",
+              "fallback": "Visitante"
+            }
+          }
+        }
+      },
+      {
+        "id": "oferta",
+        "type": "component",
+        "props": {
+          "componentId": "c-card",
+          "args": { "titulo": "Frete grátis" }
+        }
+      },
+      {
+        "id": "moldura",
+        "type": "container",
+        "child": {
+          "id": "novidade",
+          "type": "component",
+          "props": { "componentId": "c-selo", "args": { "rotulo": "Novo" } }
+        }
+      }
+    ]
+  }
+}
