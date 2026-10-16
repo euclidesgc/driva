@@ -127,6 +127,7 @@ void main() {
               child: InspectorPanel(
                 onBindProp: (_, _, _) {},
                 onUnbindProp: (_, _) {},
+                onUpdateEvents: (_, _, {coalesceKey}) {},
                 node: _selectedNode,
                 isRoot: false,
                 safeArea: const {},

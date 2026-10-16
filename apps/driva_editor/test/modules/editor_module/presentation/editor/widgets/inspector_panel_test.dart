@@ -5,12 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sdui_core/sdui_core.dart';
 
+Finder _tab(String label) => find.widgetWithText(Tab, label);
+
 Future<void> _pump(
   WidgetTester tester, {
   SduiNode? node,
   bool isRoot = false,
   Map<String, dynamic> safeArea = const {},
   ValueChanged<Map<String, dynamic>>? onUpdateSafeAreaProps,
+  List<SduiNode> multiNodes = const [],
+  void Function(
+    String nodeId,
+    Map<String, List<Map<String, dynamic>>?> patch, {
+    String? coalesceKey,
+  })?
+  onUpdateEvents,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -22,6 +31,9 @@ Future<void> _pump(
           child: InspectorPanel(
             onBindProp: (_, _, _) {},
             onUnbindProp: (_, _) {},
+            onUpdateEvents: onUpdateEvents ?? (_, _, {coalesceKey}) {},
+            multiNodes: multiNodes,
+            onUpdatePropsBatch: (_, _) {},
             node: node,
             isRoot: isRoot,
             safeArea: safeArea,
@@ -105,6 +117,105 @@ void main() {
             : find.byType(InspectorPropList),
         findsOneWidget,
       );
+    });
+  });
+
+  group('abas Propriedades | Ações', () {
+    testWidgets('um nó mostra as duas abas, com Propriedades ativa', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        node: const SduiNode(id: 'nd_1', type: 'text'),
+      );
+
+      expect(_tab('Propriedades'), findsOneWidget);
+      expect(_tab('Ações'), findsOneWidget);
+      expect(find.byType(InspectorPropList), findsOneWidget);
+      expect(find.byType(ActionsTab), findsNothing);
+    });
+
+    testWidgets('página e seleção múltipla não têm abas', (tester) async {
+      await _pump(tester);
+
+      expect(_tab('Propriedades'), findsNothing);
+      expect(_tab('Ações'), findsNothing);
+
+      await _pump(
+        tester,
+        node: const SduiNode(id: 't1', type: 'text'),
+        multiNodes: const [
+          SduiNode(id: 't1', type: 'text'),
+          SduiNode(id: 't2', type: 'text'),
+        ],
+      );
+
+      expect(find.text('2 nós selecionados'), findsOneWidget);
+      expect(_tab('Propriedades'), findsNothing);
+      expect(_tab('Ações'), findsNothing);
+    });
+
+    testWidgets('a aba Ações continua ativa na troca de nó', (tester) async {
+      await _pump(
+        tester,
+        node: const SduiNode(id: 'nd_1', type: 'text'),
+      );
+      await tester.tap(_tab('Ações'));
+      await tester.pumpAndSettle();
+
+      await _pump(
+        tester,
+        node: const SduiNode(
+          id: 'nd_2',
+          type: 'container',
+          events: {
+            'onTap': [
+              {'action': 'navigateBack', 'params': <String, dynamic>{}},
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ActionsTab), findsOneWidget);
+      expect(find.byType(InspectorPropList), findsNothing);
+      expect(find.byType(ConfiguredTriggerCard), findsOneWidget);
+      expect(find.text('Voltar'), findsOneWidget);
+    });
+
+    testWidgets('adicionar um gatilho grava com o id do nó', (tester) async {
+      tester.view.physicalSize = const Size(1200, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      String? nodeId;
+      Map<String, List<Map<String, dynamic>>?>? patch;
+      await _pump(
+        tester,
+        node: const SduiNode(id: 'nd_box', type: 'container'),
+        onUpdateEvents: (id, value, {coalesceKey}) {
+          nodeId = id;
+          patch = value;
+        },
+      );
+
+      await tester.tap(_tab('Ações'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Adicionar gatilho'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ao tocar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mostrar aviso'));
+      await tester.pumpAndSettle();
+
+      expect(nodeId, 'nd_box');
+      expect(patch, {
+        'onTap': [
+          {
+            'action': 'showSnackBar',
+            'params': {'message': '', 'durationMs': 4000},
+          },
+        ],
+      });
     });
   });
 }

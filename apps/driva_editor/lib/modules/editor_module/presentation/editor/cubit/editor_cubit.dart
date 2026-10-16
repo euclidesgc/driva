@@ -543,6 +543,23 @@ class EditorCubit extends Cubit<EditorState> {
     );
   }
 
+  /// Cada chave troca a lista inteira do gatilho; `null` remove o gatilho.
+  void updateEvents(
+    String id,
+    Map<String, List<Map<String, dynamic>>?> patch, {
+    String? coalesceKey,
+  }) {
+    final current = _editable;
+    if (current == null) return;
+    final root = current.document.root;
+    if (root == null) return;
+    _emitRoot(
+      current,
+      sdui.updateNodeEvents(root, id, patch),
+      coalesceKey: coalesceKey,
+    );
+  }
+
   /// Aplica o mesmo [patch] a vários nós numa única entrada de histórico.
   /// Ids repetidos ou inexistentes são ignorados; ancestral + descendente
   /// recebem o patch uma vez cada.

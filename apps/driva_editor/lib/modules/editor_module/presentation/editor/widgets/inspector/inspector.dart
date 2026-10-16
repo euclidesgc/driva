@@ -1,4 +1,6 @@
+export 'actions/actions.dart';
 export 'inspector_header.dart';
+export 'inspector_node_tabs.dart';
 export 'inspector_prop_list.dart';
 export 'multi_selection.dart';
 export 'prop_group_summary.dart';

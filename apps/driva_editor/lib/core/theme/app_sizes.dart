@@ -117,6 +117,9 @@ abstract final class AppSizes {
   static const double workspaceMinimumWidth =
       2 * workspacePanelMinWidth + workspaceDividersWidth + minCenterWidth;
 
+  /// Altura das barras de abas dos painéis laterais do editor.
+  static const double panelTabHeight = 40;
+
   // F3 — piso do shell (D35).
   /// Altura fixa da faixa 1 do `AppShell` (wordmark + ações + status + tema).
   static const double topBarHeight = 56;

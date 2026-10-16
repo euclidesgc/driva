@@ -71,6 +71,7 @@ void main() {
     InspectorPanel(
       onBindProp: (_, _, _) {},
       onUnbindProp: (_, _) {},
+      onUpdateEvents: (_, _, {coalesceKey}) {},
       node: const SduiNode(id: 'text', type: 'text'),
       isRoot: false,
       safeArea: const {},
