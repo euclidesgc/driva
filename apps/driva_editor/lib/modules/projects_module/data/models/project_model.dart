@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/modules/projects_module/domain/entities/project.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:sdui_core/sdui_core.dart';
 import 'package:zard/zard.dart';
 
 class ProjectModel extends Project {
@@ -14,6 +15,7 @@ class ProjectModel extends Project {
     super.description,
     super.imageUrl,
     super.archivedAt,
+    super.theme,
   });
 
   // O backend serve `imageUrl`, nunca `imageKey` (chave interna de storage).
@@ -46,6 +48,7 @@ class ProjectModel extends Project {
         contentCount: data['contentCount'] as int,
         categoryCount: data['categoryCount'] as int,
         archivedAt: data['archivedAt'] as DateTime?,
+        theme: parseProjectThemeTolerant(map['theme']),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:driva_editor/modules/editor_module/presentation/editor/project_theme_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:sdui_core/sdui_core.dart';
 import 'package:sdui_flutter/sdui_flutter.dart';
@@ -29,6 +30,7 @@ class VersionCompareInertPreview extends StatelessWidget {
         child: SingleChildScrollView(
           child: SduiView.content(
             spec,
+            theme: ProjectThemeScope.of(context),
             imageUrlResolver: imageUrlResolver,
             boundValueDisplay: BoundValueDisplay.preview,
           ),

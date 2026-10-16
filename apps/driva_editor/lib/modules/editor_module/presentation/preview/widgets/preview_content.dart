@@ -1,6 +1,7 @@
 import 'package:driva_editor/core/error/error.dart';
 import 'package:driva_editor/core/theme/app_durations.dart';
 import 'package:driva_editor/core/theme/app_spacing.dart';
+import 'package:driva_editor/modules/editor_module/presentation/editor/project_theme_scope.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/preview_scroll_behavior.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/last_saved_pill.dart';
 import 'package:driva_editor/modules/editor_module/presentation/preview/widgets/preview_refresh_failure_banner.dart';
@@ -48,6 +49,7 @@ class PreviewContent extends StatelessWidget {
                     ),
                     child: SduiView.content(
                       spec,
+                      theme: ProjectThemeScope.of(context),
                       imageUrlResolver: imageUrlResolver,
                     ),
                   ),
