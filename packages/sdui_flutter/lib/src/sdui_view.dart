@@ -19,6 +19,7 @@ class SduiView extends StatelessWidget {
     this.boundValueDisplay = BoundValueDisplay.fallback,
     this.theme = kDefaultProjectTheme,
     this.componentLookup,
+    this.authoringMode = false,
   });
 
   SduiView.content(
@@ -32,6 +33,7 @@ class SduiView extends StatelessWidget {
     BoundValueDisplay boundValueDisplay = BoundValueDisplay.fallback,
     ProjectTheme theme = kDefaultProjectTheme,
     ComponentLookup? componentLookup,
+    bool authoringMode = false,
   }) : this(
          key: key,
          node: spec.root,
@@ -44,6 +46,7 @@ class SduiView extends StatelessWidget {
          boundValueDisplay: boundValueDisplay,
          theme: theme,
          componentLookup: componentLookup,
+         authoringMode: authoringMode,
        );
 
   final SduiNode? node;
@@ -68,6 +71,9 @@ class SduiView extends StatelessWidget {
   /// Busca de componentes; sem ela o nó `component` desenha a caixa de erro.
   final ComponentLookup? componentLookup;
 
+  /// Repassado ao [SduiRenderer] — só o canvas do editor liga.
+  final bool authoringMode;
+
   @override
   Widget build(BuildContext context) {
     final root = node;
@@ -81,6 +87,7 @@ class SduiView extends StatelessWidget {
       boundValueDisplay: boundValueDisplay,
       theme: theme,
       componentLookup: componentLookup,
+      authoringMode: authoringMode,
     );
     final rendered = renderer.render(context, root);
     final pageChrome = safeArea;

@@ -24,5 +24,8 @@ Widget buildSlider(BuildContext context, SduiNode node, SduiRenderer r) {
     label: p['showLabel'] as bool? ?? false ? value.toString() : null,
     activeColor: resolveColor(p['activeColor'], r.theme),
     onChanged: enabled ? (_) {} : null,
+    onChangeEnd: enabled
+        ? (_) => r.dispatchTrigger(node, EventTrigger.onChanged)
+        : null,
   );
 }

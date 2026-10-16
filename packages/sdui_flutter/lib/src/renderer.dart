@@ -6,6 +6,7 @@ import 'package:sdui_core/sdui_core.dart';
 
 import 'package:sdui_flutter/src/flex_scope.dart';
 import 'package:sdui_flutter/src/registry.dart';
+import 'package:sdui_flutter/src/sdui_gesture_triggers.dart';
 import 'package:sdui_flutter/src/theme/sdui_chrome_tokens.dart';
 
 typedef SduiNodeWrapper = Widget Function(SduiNode node, Widget built);
@@ -28,6 +29,7 @@ class SduiRenderer {
     this.boundValueDisplay = BoundValueDisplay.fallback,
     this.theme = kDefaultProjectTheme,
     this.componentLookup,
+    this.authoringMode = false,
   });
 
   final SduiRegistry registry;
@@ -52,6 +54,11 @@ class SduiRenderer {
   /// `null` no app cliente, que recebe a árvore já expandida: ali a instância
   /// cai na caixa de erro.
   final ComponentLookup? componentLookup;
+
+  /// `true` só no canvas do editor: ali o clique é da seleção do nó, então os
+  /// gatilhos de gesto não ganham detector. Botão e formulário continuam
+  /// despachando, e o editor avisa que a ação só roda no app cliente.
+  final bool authoringMode;
 
   Widget render(BuildContext context, SduiNode node) =>
       _SduiNodeView(key: ValueKey(node.id), renderer: this, node: node);
@@ -81,7 +88,35 @@ class SduiRenderer {
       }
     }
   }
+
+  void dispatchTrigger(SduiNode node, EventTrigger trigger) =>
+      dispatch(node.events[trigger.name]);
+
+  bool hasActions(SduiNode node, EventTrigger trigger) {
+    final actions = node.events[trigger.name];
+    return actions is List && actions.isNotEmpty;
+  }
+
+  Set<EventTrigger> boundGestureTriggers(SduiNode node) {
+    if (onAction == null || authoringMode) return const {};
+    final descriptor = descriptorFor(node.type);
+    if (descriptor == null ||
+        descriptor.declaresTrigger(EventTrigger.onPressed)) {
+      return const {};
+    }
+    return {
+      for (final trigger in descriptor.triggers)
+        if (_gestureTriggers.contains(trigger) && hasActions(node, trigger))
+          trigger,
+    };
+  }
 }
+
+const Set<EventTrigger> _gestureTriggers = {
+  EventTrigger.onTap,
+  EventTrigger.onDoubleTap,
+  EventTrigger.onLongPress,
+};
 
 class _SduiNodeView extends StatelessWidget {
   const _SduiNodeView({required this.renderer, required this.node, super.key});
@@ -100,8 +135,16 @@ class _SduiNodeView extends StatelessWidget {
             resolveBoundProps(node, display: renderer.boundValueDisplay),
             renderer,
           );
+    final triggers = renderer.boundGestureTriggers(node);
+    final reactive = triggers.isEmpty
+        ? built
+        : SduiGestureTriggers(
+            triggers: triggers,
+            onTrigger: (trigger) => renderer.dispatchTrigger(node, trigger),
+            child: built,
+          );
     final wrapper = renderer.nodeWrapper;
-    return wrapper == null ? built : wrapper(node, built);
+    return wrapper == null ? reactive : wrapper(node, reactive);
   }
 
   Widget _buildInstance(BuildContext context) {

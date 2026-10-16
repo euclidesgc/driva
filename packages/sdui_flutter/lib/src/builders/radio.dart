@@ -16,7 +16,7 @@ Widget buildRadio(BuildContext context, SduiNode node, SduiRenderer r) {
 
   return RadioGroup<bool>(
     groupValue: selected,
-    onChanged: (_) {},
+    onChanged: (_) => r.dispatchTrigger(node, EventTrigger.onChanged),
     child: label == null || label.isEmpty
         ? Radio<bool>(value: true, enabled: enabled, activeColor: activeColor)
         : RadioListTile<bool>(

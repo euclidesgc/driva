@@ -28,6 +28,8 @@ Widget buildTextField(BuildContext context, SduiNode node, SduiRenderer r) {
     obscureText: p['obscureText'] as bool? ?? false,
     keyboardType: _keyboardTypeFrom(p['keyboardType']),
     maxLength: parseInt(p['maxLength']),
+    onChanged: (_) => r.dispatchTrigger(node, EventTrigger.onChanged),
+    onFieldSubmitted: (_) => r.dispatchTrigger(node, EventTrigger.onSubmit),
     decoration: InputDecoration(
       labelText: (label?.isEmpty ?? true) ? null : label,
       hintText: (hint?.isEmpty ?? true) ? null : hint,
